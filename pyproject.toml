@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cnsm-agentic"
+version = "0.1.0"
+description = "Starter autonomous research workflow for the CNSM 2026 experimental track"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "openai>=1.0",
+  "openai-agents",
+  "python-dotenv",
+  "pydantic>=2",
+  "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+cnsm-agentic = "cnsm_agentic.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
