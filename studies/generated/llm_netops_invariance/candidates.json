@@ -1,0 +1,207 @@
+[
+  {
+    "candidate_id": "C1",
+    "title": "Cross-model permutation instability",
+    "research_question": "How does control-adjusted answer-order instability vary across model families and scales on NetOps MCQA tasks?",
+    "scientific_gap": "Benchmark accuracy obscures item-level decision churn.",
+    "unit_of_analysis": "paired semantic answer per question and model",
+    "independent_variables": [
+      "model",
+      "answer-order condition"
+    ],
+    "primary_outcome": "absolute excess semantic disagreement",
+    "hypotheses": [
+      {
+        "hypothesis_id": "H1",
+        "statement": "Permutation disagreement exceeds unchanged-repeat disagreement.",
+        "kind": "primary",
+        "primary_outcome": "absolute excess disagreement",
+        "null_statement": "Excess is non-positive.",
+        "falsification_condition": "Clustered interval includes zero and paired test is non-significant.",
+        "analysis_method": "Exact paired test plus task-cluster bootstrap"
+      }
+    ],
+    "minimum_required_evidence": [
+      "at least three models",
+      "disjoint sample"
+    ],
+    "expected_contribution": "Cross-model evidence for benchmark instability.",
+    "failure_conditions": [
+      "effect absent across models"
+    ],
+    "design_summary": "Uses unchanged repeat, fixed transformation manifest, disjoint confirmatory sample, and task-cluster-aware uncertainty.",
+    "estimated_model_calls": 2700,
+    "estimated_local_compute_hours": 4.0,
+    "tags": [
+      "multi-model",
+      "paired",
+      "benchmark-validity"
+    ]
+  },
+  {
+    "candidate_id": "C2",
+    "title": "Structured reasoning mitigation",
+    "research_question": "Can option-independent structured reasoning reduce answer-order instability without materially degrading accuracy?",
+    "scientific_gap": "Diagnosis-only studies do not provide an operational mitigation.",
+    "unit_of_analysis": "paired semantic answer per question and inference method",
+    "independent_variables": [
+      "inference method",
+      "answer-order condition"
+    ],
+    "primary_outcome": "difference in excess disagreement between methods",
+    "hypotheses": [
+      {
+        "hypothesis_id": "H1",
+        "statement": "Structured reasoning reduces excess disagreement versus direct MCQA.",
+        "kind": "mitigation",
+        "primary_outcome": "between-method difference in excess disagreement",
+        "null_statement": "No reduction.",
+        "falsification_condition": "Clustered interval includes zero or favours direct MCQA.",
+        "analysis_method": "Paired task-cluster bootstrap"
+      },
+      {
+        "hypothesis_id": "H2",
+        "statement": "Structured reasoning preserves accuracy within a non-inferiority margin.",
+        "kind": "secondary",
+        "primary_outcome": "accuracy difference",
+        "null_statement": "Accuracy loss exceeds margin.",
+        "falsification_condition": "Lower confidence bound crosses margin.",
+        "analysis_method": "Paired non-inferiority analysis"
+      }
+    ],
+    "minimum_required_evidence": [
+      "direct baseline",
+      "structured method",
+      "repeat control"
+    ],
+    "expected_contribution": "A tested inference-time mitigation for reliable NetOps decisions.",
+    "failure_conditions": [
+      "mitigation increases cost without reducing instability"
+    ],
+    "design_summary": "Uses unchanged repeat, fixed transformation manifest, disjoint confirmatory sample, and task-cluster-aware uncertainty. Includes a preregistered accuracy non-inferiority margin.",
+    "estimated_model_calls": 1800,
+    "estimated_local_compute_hours": 5.0,
+    "tags": [
+      "mitigation",
+      "paired",
+      "operational"
+    ]
+  },
+  {
+    "candidate_id": "C3",
+    "title": "Semantics-preserving transformation suite",
+    "research_question": "Which semantics-preserving presentation transformations most strongly alter LLM NetOps decisions?",
+    "scientific_gap": "Answer permutation is only one form of irrelevant presentation change.",
+    "unit_of_analysis": "paired semantic answer per question and transformation",
+    "independent_variables": [
+      "transformation family"
+    ],
+    "primary_outcome": "control-adjusted disagreement by transformation",
+    "hypotheses": [
+      {
+        "hypothesis_id": "H1",
+        "statement": "At least one transformation yields positive excess disagreement.",
+        "kind": "primary",
+        "primary_outcome": "maximum preregistered excess disagreement",
+        "null_statement": "All effects are non-positive.",
+        "falsification_condition": "Multiplicity-adjusted intervals include zero for all transformations.",
+        "analysis_method": "Multiplicity-controlled paired analysis"
+      }
+    ],
+    "minimum_required_evidence": [
+      "validated semantic equivalence",
+      "identity controls"
+    ],
+    "expected_contribution": "A taxonomy of benchmark-presentation fragility.",
+    "failure_conditions": [
+      "transformations cannot be validated as meaning-preserving"
+    ],
+    "design_summary": "Uses unchanged repeat, fixed transformation manifest, disjoint confirmatory sample, and task-cluster-aware uncertainty. Includes identity controls and multiplicity correction.",
+    "estimated_model_calls": 4200,
+    "estimated_local_compute_hours": 8.0,
+    "tags": [
+      "transformation-suite",
+      "benchmark-validity",
+      "multi-condition"
+    ]
+  },
+  {
+    "candidate_id": "C4",
+    "title": "Task-complexity moderation",
+    "research_question": "Do constraint density and competing objectives moderate transformation-induced NetOps decision instability?",
+    "scientific_gap": "Mechanisms and task-level moderators remain unexplained.",
+    "unit_of_analysis": "question with deterministic complexity features",
+    "independent_variables": [
+      "constraint density",
+      "objective conflict",
+      "transformation"
+    ],
+    "primary_outcome": "cluster-aware interaction coefficient",
+    "hypotheses": [
+      {
+        "hypothesis_id": "H1",
+        "statement": "Higher deterministic complexity predicts greater excess disagreement.",
+        "kind": "primary",
+        "primary_outcome": "interaction coefficient",
+        "null_statement": "Interaction is non-positive.",
+        "falsification_condition": "Interval includes zero or coefficient is non-positive.",
+        "analysis_method": "Cluster-aware regression"
+      }
+    ],
+    "minimum_required_evidence": [
+      "feature extraction validation",
+      "adequate within-task spread"
+    ],
+    "expected_contribution": "Mechanistic evidence on when instability occurs.",
+    "failure_conditions": [
+      "features lack reliability or variation"
+    ],
+    "design_summary": "Uses unchanged repeat, fixed transformation manifest, disjoint confirmatory sample, and task-cluster-aware uncertainty. Uses preregistered deterministic feature extraction.",
+    "estimated_model_calls": 1200,
+    "estimated_local_compute_hours": 10.0,
+    "tags": [
+      "mechanism",
+      "moderation",
+      "paired"
+    ]
+  },
+  {
+    "candidate_id": "C5",
+    "title": "Permutation ensemble mitigation",
+    "research_question": "Can semantic voting over fixed option permutations improve decision stability and calibration?",
+    "scientific_gap": "Permutation ensembles are plausible but their cost-benefit is unclear.",
+    "unit_of_analysis": "question-level semantic ensemble decision",
+    "independent_variables": [
+      "ensemble size",
+      "aggregation rule"
+    ],
+    "primary_outcome": "excess disagreement and cost-adjusted stability",
+    "hypotheses": [
+      {
+        "hypothesis_id": "H1",
+        "statement": "Permutation voting reduces excess disagreement versus one-pass answering.",
+        "kind": "mitigation",
+        "primary_outcome": "difference in excess disagreement",
+        "null_statement": "Voting provides no reduction.",
+        "falsification_condition": "Clustered interval includes zero.",
+        "analysis_method": "Paired task-cluster bootstrap"
+      }
+    ],
+    "minimum_required_evidence": [
+      "fixed permutation set",
+      "semantic aggregation"
+    ],
+    "expected_contribution": "A robustness wrapper with explicit cost trade-offs.",
+    "failure_conditions": [
+      "cost increase dominates robustness gain"
+    ],
+    "design_summary": "Uses unchanged repeat, fixed transformation manifest, disjoint confirmatory sample, and task-cluster-aware uncertainty. Uses preregistered semantic voting.",
+    "estimated_model_calls": 6000,
+    "estimated_local_compute_hours": 7.0,
+    "tags": [
+      "mitigation",
+      "ensemble",
+      "cost"
+    ]
+  }
+]

@@ -1,0 +1,194 @@
+[
+  {
+    "node_id": "validate-inputs",
+    "node_type": "validation",
+    "depends_on": [],
+    "inputs": {
+      "candidate_id": "C2"
+    },
+    "outputs": [
+      "validation_report.json"
+    ],
+    "gate_requirements": [
+      "sample_hash_matches_preregistration",
+      "zero_duplicate_ids"
+    ],
+    "status": "ready"
+  },
+  {
+    "node_id": "baseline-original",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "direct",
+      "condition": "original"
+    },
+    "outputs": [
+      "predictions-baseline-original.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "run_spec_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "baseline-repeat",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "direct",
+      "condition": "repeat"
+    },
+    "outputs": [
+      "predictions-baseline-repeat.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "run_spec_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "baseline-permuted",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "direct",
+      "condition": "permuted"
+    },
+    "outputs": [
+      "predictions-baseline-permuted.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "transformation_manifest_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "candidate-original",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "C2",
+      "condition": "original"
+    },
+    "outputs": [
+      "predictions-method-original.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "run_spec_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "candidate-repeat",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "C2",
+      "condition": "repeat"
+    },
+    "outputs": [
+      "predictions-method-repeat.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "run_spec_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "candidate-permuted",
+    "node_type": "model-evaluation",
+    "depends_on": [
+      "validate-inputs"
+    ],
+    "inputs": {
+      "method": "C2",
+      "condition": "permuted"
+    },
+    "outputs": [
+      "predictions-method-permuted.jsonl"
+    ],
+    "gate_requirements": [
+      "validation_complete",
+      "transformation_manifest_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "primary-analysis",
+    "node_type": "statistics",
+    "depends_on": [
+      "baseline-original",
+      "baseline-repeat",
+      "baseline-permuted",
+      "candidate-original",
+      "candidate-repeat",
+      "candidate-permuted"
+    ],
+    "inputs": {
+      "cluster_unit": "task",
+      "bootstrap_repetitions": 10000
+    },
+    "outputs": [
+      "primary_analysis.json",
+      "task_summary.csv"
+    ],
+    "gate_requirements": [
+      "all_predictions_complete",
+      "analysis_spec_frozen"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "falsification-suite",
+    "node_type": "robustness",
+    "depends_on": [
+      "primary-analysis"
+    ],
+    "inputs": {
+      "checks": [
+        "independent semantic remapping",
+        "identity transformation",
+        "leave-one-task-out",
+        "duplicate and hash verification"
+      ]
+    },
+    "outputs": [
+      "falsification_report.json"
+    ],
+    "gate_requirements": [
+      "primary_analysis_complete"
+    ],
+    "status": "pending"
+  },
+  {
+    "node_id": "freeze-claims",
+    "node_type": "claim-ledger",
+    "depends_on": [
+      "falsification-suite"
+    ],
+    "inputs": {},
+    "outputs": [
+      "claim_ledger.json"
+    ],
+    "gate_requirements": [
+      "falsification_passed"
+    ],
+    "status": "pending"
+  }
+]
