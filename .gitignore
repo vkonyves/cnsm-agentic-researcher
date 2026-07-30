@@ -9,6 +9,7 @@
 *.pem
 *.key
 *.crt
+
 secrets/
 credentials/
 
@@ -18,7 +19,7 @@ api_keys.txt
 
 
 # ============================================================
-# Python bytecode and caches
+# Python bytecode, caches, and test artefacts
 # ============================================================
 
 __pycache__/
@@ -30,6 +31,7 @@ __pycache__/
 .pyright/
 .ruff_cache/
 .hypothesis/
+
 .coverage
 .coverage.*
 htmlcov/
@@ -46,6 +48,7 @@ coverage.xml
 venv/
 env/
 ENV/
+
 .conda/
 conda-env/
 
@@ -87,6 +90,7 @@ MANIFEST
 *.swp
 *.swo
 *~
+
 .project
 .pydevproject
 .settings/
@@ -104,7 +108,7 @@ Desktop.ini
 
 
 # ============================================================
-# Logs, traces and temporary files
+# Logs, traces, and temporary files
 # ============================================================
 
 *.log
@@ -124,19 +128,26 @@ trace_exports/
 
 
 # ============================================================
-# Full autonomous run directories
+# Autonomous run directories
 #
 # These may contain:
 # - downloaded benchmark files
 # - extracted datasets
-# - full prompts and responses
-# - full prediction JSONL files
+# - complete prompts and responses
+# - prediction JSONL files
 # - traces and intermediate artefacts
 #
-# Keep them outside normal Git history by default.
+# Keep them outside normal Git history.
 # ============================================================
 
 runs/
+
+
+# ============================================================
+# Development and rehearsal studies
+# ============================================================
+
+studies/development/
 
 
 # ============================================================
@@ -205,7 +216,7 @@ inspection/cache/
 
 
 # ============================================================
-# Local database and vector-store files
+# Local databases and vector stores
 # ============================================================
 
 *.db
@@ -219,10 +230,9 @@ faiss_index/
 
 
 # ============================================================
-# Jupyter and notebook runtime files
+# Jupyter runtime files
 # ============================================================
 
-.ipynb_checkpoints/
 jupyter_runtime/
 
 
@@ -237,20 +247,18 @@ profiling/
 
 
 # ============================================================
-# Keep reproducibility artefacts tracked
+# Reproducibility artefacts
 #
-# These exceptions matter if broader parent directories are
-# ignored now or later.
+# These directories are intentionally tracked. No recursive
+# source-directory negations are used here because rules such
+# as !scripts/**, !src/**, and !tests/** would also re-include
+# generated __pycache__ directories.
 # ============================================================
 
 !configs/
-!configs/**
 !scripts/
-!scripts/**
 !src/
-!src/**
 !tests/
-!tests/**
 
 !README.md
 !LICENSE
@@ -262,7 +270,8 @@ profiling/
 !uv.lock
 !poetry.lock
 
-# Track small manifests, hashes, preregistrations and summaries
+# Track reproducibility outputs when they are stored in these
+# dedicated, non-ignored directories.
 !manifests/
 !manifests/**
 !preregistrations/
@@ -270,11 +279,14 @@ profiling/
 !reports/
 !reports/**
 
-# These are useful if copied out of runs/ into tracked folders
-!**/*manifest.json
-!**/*manifest.yaml
-!**/*manifest.yml
-!**/*preregistration.json
-!**/*summary.json
-!**/*report.json
-!**/*sha256*
+
+# ============================================================
+# Final generated-file exclusions
+#
+# Keep this block last so future re-inclusion rules cannot
+# accidentally expose generated Python caches.
+# ============================================================
+
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
