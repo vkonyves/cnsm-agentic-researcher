@@ -222,6 +222,258 @@ def create_failure_report(
         final_state=final_state,
     )
 
+async def create_feasible_experiment_plan(
+    *,
+    master_prompt: str,
+    capability_manifest: dict[str, Any],
+    preregistration: PreregistrationDocument,
+    repaired_design: RepairedStudyDesign,
+    records: list[dict[str, Any]],
+    run_dir: Path,
+    maximum_attempts: int = 3,
+) -> tuple[
+    ExperimentPlan | None,
+    dict[str, Any],
+]:
+    """
+    Produce a capability-compliant experiment plan.
+
+    Each generated plan is checked deterministically against the
+    frozen capability manifest. Failed plans and reports are retained,
+    and the planner receives the exact failures for bounded repair.
+    """
+    attempts_dir = (
+        run_dir
+        / "execution"
+        / "planning_attempts"
+    )
+    attempts_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    previous_plan: dict[str, Any] | None = None
+    previous_issues: list[str] = []
+
+    final_feasibility: dict[str, Any] = {
+        "status": "failed",
+        "issue_count": 1,
+        "issues": [
+            "No experiment-planning attempt completed."
+        ],
+    }
+
+    for attempt in range(
+        1,
+        maximum_attempts + 1,
+    ):
+        planner_payload: dict[str, Any] = {
+            "master_prompt": master_prompt,
+            "capability_manifest": (
+                capability_manifest
+            ),
+            "preregistration": (
+                preregistration.model_dump()
+            ),
+            "repaired_design": (
+                repaired_design.model_dump()
+            ),
+            "verified_records": records,
+            "planning_attempt": attempt,
+            "maximum_planning_attempts": (
+                maximum_attempts
+            ),
+            "hard_execution_constraints": {
+                "human_scientific_labour_allowed": (
+                    capability_manifest.get(
+                        "human_scientific_labour_allowed",
+                        False,
+                    )
+                ),
+                "external_partner_allowed": (
+                    capability_manifest.get(
+                        "external_partner_allowed",
+                        False,
+                    )
+                ),
+                "human_annotation_allowed": (
+                    capability_manifest.get(
+                        "human_annotation_allowed",
+                        False,
+                    )
+                ),
+                "manual_adjudication_allowed": (
+                    capability_manifest.get(
+                        "manual_adjudication_allowed",
+                        False,
+                    )
+                ),
+                "nda_resources_allowed": (
+                    capability_manifest.get(
+                        "nda_resources_allowed",
+                        False,
+                    )
+                ),
+                "private_live_lab_available": (
+                    capability_manifest.get(
+                        "private_live_lab_available",
+                        False,
+                    )
+                ),
+                "public_datasets_only": (
+                    capability_manifest.get(
+                        "public_datasets_only",
+                        False,
+                    )
+                ),
+                "autonomous_scoring_required": (
+                    capability_manifest.get(
+                        "autonomous_scoring_required",
+                        False,
+                    )
+                ),
+                "docker_available": (
+                    capability_manifest.get(
+                        "docker_available",
+                        False,
+                    )
+                ),
+                "kubernetes_available": (
+                    capability_manifest.get(
+                        "kubernetes_available",
+                        False,
+                    )
+                ),
+                "hosted_model_api_available": (
+                    capability_manifest.get(
+                        "hosted_model_api_available",
+                        False,
+                    )
+                ),
+                "cpu_execution_available": (
+                    capability_manifest.get(
+                        "cpu_execution_available",
+                        False,
+                    )
+                ),
+                "local_gpu": (
+                    capability_manifest.get(
+                        "local_gpu",
+                        {
+                            "available": False,
+                            "memory_gb": 0,
+                        },
+                    )
+                ),
+                "maximum_planned_model_calls": (
+                    capability_manifest.get(
+                        "maximum_planned_model_calls"
+                    )
+                ),
+                "maximum_wall_clock_days": (
+                    capability_manifest.get(
+                        "maximum_wall_clock_days"
+                    )
+                ),
+            },
+            "mandatory_planning_instruction": (
+                "Treat the frozen capability manifest as a hard "
+                "execution contract. Every model, execution batch, "
+                "validator, scorer, transformation, fallback and "
+                "dependency must be executable with the listed "
+                "capabilities. Do not include unavailable resources "
+                "as optional, recommended, audit, validation or "
+                "future components. When no local GPU is available, "
+                "use hosted model APIs or CPU-compatible methods. "
+                "When human labour is prohibited, all labels, audits, "
+                "scoring and validation must be autonomous."
+            ),
+        }
+
+        if previous_plan is not None:
+            planner_payload[
+                "rejected_previous_plan"
+            ] = previous_plan
+
+            planner_payload[
+                "deterministic_feasibility_issues"
+            ] = previous_issues
+
+            planner_payload[
+                "repair_instruction"
+            ] = (
+                "Repair every deterministic feasibility failure. "
+                "Remove or replace the offending dependency; do not "
+                "rename it or retain it as optional. Remove all local "
+                "GPU, CUDA, LoRA, local 7B or 70B model, human-rater, "
+                "expert-review, annotation, manual-adjudication, "
+                "external-partner, NDA, private-lab and unavailable "
+                "Kubernetes requirements. Preserve the scientific "
+                "question and estimands where executable."
+            )
+
+        experiment_plan = await run_agent(
+            EXPERIMENT_PLANNER,
+            planner_payload,
+            expected_type=ExperimentPlan,
+            stage_name=(
+                "Experiment planning "
+                f"attempt {attempt}"
+            ),
+        )
+
+        plan_dict = (
+            experiment_plan.model_dump()
+        )
+
+        write_json(
+            attempts_dir
+            / (
+                "experiment_plan_attempt_"
+                f"{attempt:02d}.json"
+            ),
+            plan_dict,
+        )
+
+        final_feasibility = (
+            feasibility_report(
+                design=plan_dict,
+                capability_manifest=(
+                    capability_manifest
+                ),
+            )
+        )
+
+        write_json(
+            attempts_dir
+            / (
+                "experiment_plan_attempt_"
+                f"{attempt:02d}_feasibility.json"
+            ),
+            final_feasibility,
+        )
+
+        if (
+            final_feasibility["status"]
+            == "passed"
+        ):
+            return (
+                experiment_plan,
+                final_feasibility,
+            )
+
+        previous_plan = plan_dict
+        previous_issues = list(
+            final_feasibility.get(
+                "issues",
+                [],
+            )
+        )
+
+    return (
+        None,
+        final_feasibility,
+    )
 
 class FinalAutonomousResearchPipeline:
     def __init__(
@@ -793,7 +1045,7 @@ class FinalAutonomousResearchPipeline:
             return report
 
         # -------------------------------------------------
-        # 5. Autonomous preregistration
+        # 5. Generate provisional preregistration
         # -------------------------------------------------
 
         preregistration = await run_agent(
@@ -818,11 +1070,19 @@ class FinalAutonomousResearchPipeline:
                 "verified_record_ids": (
                     allowed_evidence_record_ids
                 ),
+                "instruction": (
+                    "Produce a complete provisional "
+                    "preregistration. Do not introduce "
+                    "dependencies unavailable under the "
+                    "frozen capability manifest."
+                ),
             },
             expected_type=(
                 PreregistrationDocument
             ),
-            stage_name="Preregistration",
+            stage_name=(
+                "Provisional preregistration"
+            ),
         )
 
         preregistration_path = (
@@ -836,74 +1096,33 @@ class FinalAutonomousResearchPipeline:
             preregistration,
         )
 
-        preregistration_hash = (
-            sha256_file(
-                preregistration_path
-            )
-        )
-
-        (
+        preregistration_hash_path = (
             preregistration_path.parent
             / "preregistration.sha256"
-        ).write_text(
-            preregistration_hash + "\n",
-            encoding="utf-8",
         )
+
+        # A preregistration is not sealed until the
+        # experiment plan passes deterministic feasibility.
+        if preregistration_hash_path.exists():
+            preregistration_hash_path.unlink()
 
         # -------------------------------------------------
-        # 6. Autonomous experiment planning
+        # 6. Experiment planning with bounded repair
         # -------------------------------------------------
 
-        experiment_plan = await run_agent(
-            EXPERIMENT_PLANNER,
-            {
-                "master_prompt": (
-                    master_prompt
-                ),
-                "capability_manifest": (
-                    capability_manifest
-                ),
-                "preregistration": (
-                    preregistration
-                    .model_dump()
-                ),
-                "repaired_design": (
-                    repaired_design
-                    .model_dump()
-                ),
-                "verified_records": records,
-            },
-            expected_type=ExperimentPlan,
-            stage_name=(
-                "Experiment planning"
-            ),
-        )
-
-        experiment_plan_path = (
-            run_dir
-            / "execution"
-            / "experiment_plan.json"
-        )
-
-        write_json(
-            experiment_plan_path,
+        (
             experiment_plan,
-        )
-
-        # -------------------------------------------------
-        # 7. Deterministic experiment-plan feasibility
-        # -------------------------------------------------
-
-        experiment_feasibility = (
-            feasibility_report(
-                design=(
-                    experiment_plan
-                    .model_dump()
-                ),
-                capability_manifest=(
-                    capability_manifest
-                ),
-            )
+            experiment_feasibility,
+        ) = await create_feasible_experiment_plan(
+            master_prompt=master_prompt,
+            capability_manifest=(
+                capability_manifest
+            ),
+            preregistration=preregistration,
+            repaired_design=repaired_design,
+            records=records,
+            run_dir=run_dir,
+            maximum_attempts=3,
         )
 
         write_json(
@@ -912,12 +1131,7 @@ class FinalAutonomousResearchPipeline:
             experiment_feasibility,
         )
 
-        if (
-            experiment_feasibility[
-                "status"
-            ]
-            != "passed"
-        ):
+        if experiment_plan is None:
             report = create_failure_report(
                 passed_gates=[
                     "fresh_run",
@@ -926,20 +1140,21 @@ class FinalAutonomousResearchPipeline:
                     "evidence_verification",
                     "autonomous_design_repair",
                     "repaired_design_feasibility",
-                    "sealed_preregistration",
-                    "experiment_plan",
+                    "provisional_preregistration",
                 ],
                 failed_gate=(
-                    "Experiment plan is infeasible "
-                    "under the frozen capability manifest."
+                    "The autonomous experiment planner "
+                    "could not produce a capability-compliant "
+                    "plan after bounded repair attempts."
                 ),
                 final_state=(
-                    "AUTONOMOUS_DESIGN_REPAIR_REQUIRED"
+                    "AUTONOMOUS_EXPERIMENT_PLAN_REPAIR_REQUIRED"
                 ),
-                warnings=(
-                    experiment_feasibility[
-                        "issues"
-                    ]
+                warnings=list(
+                    experiment_feasibility.get(
+                        "issues",
+                        [],
+                    )
                 ),
             )
 
@@ -959,15 +1174,73 @@ class FinalAutonomousResearchPipeline:
                     self.development_rehearsal
                 ),
                 additional_fields={
-                    "feasibility_issues": (
-                        experiment_feasibility[
-                            "issues"
-                        ]
+                    "experiment_plan_repair_attempts": 3,
+                    "feasibility_issues": list(
+                        experiment_feasibility.get(
+                            "issues",
+                            [],
+                        )
                     ),
                 },
             )
 
             return report
+
+        # -------------------------------------------------
+        # 7. Accept plan and seal preregistration
+        # -------------------------------------------------
+
+        experiment_plan_path = (
+            run_dir
+            / "execution"
+            / "experiment_plan.json"
+        )
+
+        write_json(
+            experiment_plan_path,
+            experiment_plan,
+        )
+
+        preregistration_hash = (
+            sha256_file(
+                preregistration_path
+            )
+        )
+
+        preregistration_hash_path.write_text(
+            preregistration_hash + "\n",
+            encoding="utf-8",
+        )
+
+        write_json(
+            run_dir
+            / "preregistration"
+            / "sealing_manifest.json",
+            {
+                "preregistration_sha256": (
+                    preregistration_hash
+                ),
+                "selected_candidate_id": (
+                    selected_candidate_id
+                ),
+                "repaired_design_feasibility": (
+                    "passed"
+                ),
+                "experiment_plan_feasibility": (
+                    "passed"
+                ),
+                "experiment_plan_path": str(
+                    experiment_plan_path.relative_to(
+                        run_dir
+                    )
+                ),
+                "sealed_at_utc": (
+                    datetime.now(
+                        timezone.utc
+                    ).isoformat()
+                ),
+            },
+        )
 
         # -------------------------------------------------
         # 8. Resolve autonomous execution adapter
@@ -986,9 +1259,10 @@ class FinalAutonomousResearchPipeline:
                     "evidence_verification",
                     "autonomous_design_repair",
                     "repaired_design_feasibility",
-                    "sealed_preregistration",
+                    "provisional_preregistration",
                     "experiment_plan",
                     "experiment_plan_feasibility",
+                    "sealed_preregistration",
                 ],
                 failed_gate=(
                     "No installed autonomous execution "
@@ -1053,9 +1327,10 @@ class FinalAutonomousResearchPipeline:
                     "evidence_verification",
                     "autonomous_design_repair",
                     "repaired_design_feasibility",
-                    "sealed_preregistration",
+                    "provisional_preregistration",
                     "experiment_plan",
                     "experiment_plan_feasibility",
+                    "sealed_preregistration",
                     "execution_adapter_resolved",
                 ],
                 failed_gate=(

@@ -5,7 +5,6 @@ from cnsm_agentic.autonomous_research.feasibility import (
     validate_design_feasibility,
 )
 
-
 CAPABILITIES = {
     "human_scientific_labour_allowed": False,
     "external_partner_allowed": False,
@@ -93,3 +92,36 @@ def test_accepts_bounded_api_study() -> None:
 
     assert report["status"] == "passed"
     assert report["issues"] == []
+    
+def test_repaired_hosted_api_plan_passes_after_gpu_plan_fails() -> None:
+    rejected_plan = {
+        "adapter_family": "Local 7B model running on GPU",
+        "implementation_strategy": "CUDA inference",
+        "estimated_model_calls": 3_000,
+    }
+
+    rejected_issues = validate_design_feasibility(
+        design=rejected_plan,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "gpu" in issue.lower()
+        for issue in rejected_issues
+    )
+
+    repaired_plan = {
+        "adapter_family": "Hosted model API benchmark",
+        "implementation_strategy": (
+            "Hosted API execution with deterministic "
+            "automatic scoring"
+        ),
+        "estimated_model_calls": 3_000,
+    }
+
+    repaired_issues = validate_design_feasibility(
+        design=repaired_plan,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert repaired_issues == []    
