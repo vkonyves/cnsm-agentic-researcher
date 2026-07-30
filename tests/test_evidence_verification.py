@@ -1,7 +1,8 @@
 from cnsm_agentic.autonomous_research.evidence_verification import (
+    build_evidence_alias_index,
+    normalise_evidence_id,
     verify_evidence,
-)
-
+)  
 
 def test_missing_is_critical() -> None:
     result = verify_evidence(
@@ -208,3 +209,40 @@ def test_openalex_identifier_still_resolves() -> None:
     assert result.missing_record_ids == []
     assert result.critical_issues == []
     assert result.quality_score == 1.0
+    
+
+def test_repaired_design_bare_doi_resolves_against_prefixed_record() -> None:
+    records = [
+        {
+            "record_id": (
+                "doi:10.2139/ssrn.6740060"
+            ),
+            "doi": (
+                "10.2139/ssrn.6740060"
+            ),
+            "title": (
+                "Prompt Injection and Jailbreak Attacks"
+            ),
+            "publication_year": 2026,
+            "url": (
+                "https://doi.org/"
+                "10.2139/ssrn.6740060"
+            ),
+            "abstract": "A test abstract.",
+        }
+    ]
+
+    alias_index = build_evidence_alias_index(
+        records
+    )
+
+    cited_id = (
+        "10.2139/ssrn.6740060"
+    )
+
+    assert (
+        normalise_evidence_id(
+            cited_id
+        )
+        in alias_index
+    )      

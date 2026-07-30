@@ -14,6 +14,8 @@ from .design_repair import (
     run_agent_with_retry,
 )
 from .evidence_verification import (
+    build_evidence_alias_index,
+    normalise_evidence_id,
     verify_evidence,
 )
 from .execution_adapters import (
@@ -831,22 +833,72 @@ class FinalAutonomousResearchPipeline:
                 "the selected candidate ID."
             )
 
-        unknown_repair_evidence_ids = sorted(
-            set(
-                repaired_design
-                .evidence_record_ids
+        evidence_alias_index = (
+            build_evidence_alias_index(
+                records
             )
-            - set(
-                allowed_evidence_record_ids
+        )
+
+        unknown_repair_evidence_ids = sorted(
+            evidence_id
+            for evidence_id
+            in repaired_design.evidence_record_ids
+            if (
+                normalise_evidence_id(
+                    evidence_id
+                )
+                not in evidence_alias_index
             )
         )
 
         if unknown_repair_evidence_ids:
-            raise ValueError(
-                "Repaired design references unknown "
-                "evidence IDs: "
-                f"{unknown_repair_evidence_ids}"
+            report = create_failure_report(
+                passed_gates=[
+                    "fresh_run",
+                    "autonomous_discovery",
+                    "candidate_validation",
+                    "evidence_verification",
+                ],
+                failed_gate=(
+                    "Autonomous design repair referenced "
+                    "evidence that was not retrieved."
+                ),
+                final_state=(
+                    "AUTONOMOUS_EVIDENCE_REPAIR_REQUIRED"
+                ),
+                warnings=[
+                    (
+                        "Unresolved repaired-design evidence IDs: "
+                        + ", ".join(
+                            unknown_repair_evidence_ids
+                        )
+                    )
+                ],
             )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "unknown_repair_evidence_ids": (
+                        unknown_repair_evidence_ids
+                    ),
+                },
+            )
+
+            return report
 
         write_json(
             design_dir
