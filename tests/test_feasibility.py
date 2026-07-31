@@ -125,3 +125,87 @@ def test_repaired_hosted_api_plan_passes_after_gpu_plan_fails() -> None:
     )
 
     assert repaired_issues == []    
+    
+    
+def test_explicit_no_gpu_requirement_is_accepted() -> None:
+    design = {
+        "implementation_strategy": (
+            "Hosted API execution and CPU-only procedural synthesis. "
+            "No local GPU required."
+        ),
+        "estimated_model_calls": 2_400,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "gpu" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_gpu_requirement_is_still_rejected() -> None:
+    design = {
+        "implementation_strategy": (
+            "Run model inference on a local GPU using CUDA."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "gpu" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_hosted_7b_model_is_not_assumed_local() -> None:
+    design = {
+        "adapter_family": (
+            "Hosted 7B model API"
+        ),
+        "implementation_strategy": (
+            "All inference is performed through a hosted endpoint."
+        ),
+        "estimated_model_calls": 500,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "gpu" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_local_7b_model_is_rejected() -> None:
+    design = {
+        "adapter_family": (
+            "Local 7B model"
+        ),
+        "implementation_strategy": (
+            "Execute the model locally."
+        ),
+        "estimated_model_calls": 500,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "gpu" in issue.lower()
+        for issue in issues
+    )    
+    

@@ -44,6 +44,7 @@ HUMAN_DEPENDENCY_PATTERNS = {
     ),
 }
 
+
 PRIVATE_INFRASTRUCTURE_PATTERNS = {
     "private live lab": (
         r"\blive[\s-]?lab\b"
@@ -59,23 +60,88 @@ PRIVATE_INFRASTRUCTURE_PATTERNS = {
     ),
 }
 
+
 GPU_DEPENDENCY_PATTERNS = {
-    "CUDA": r"\bcuda\b",
-    "GPU": r"\bgpu\b",
-    "LoRA": r"\blora\b",
-    "7B local model": (
-        r"\b7b\b"
+    "CUDA": (
+        r"\bcuda\b"
     ),
-    "70B model": (
-        r"\b70b\b"
+    "local GPU": (
+        r"\blocal[\s-]+gpu\b"
+    ),
+    "GPU execution": (
+        r"\bgpu[\s-]+"
+        r"(?:execution|inference|training|compute|runtime)\b"
+    ),
+    "GPU required": (
+        r"\bgpu[\s-]+"
+        r"(?:is[\s-]+)?required\b"
+    ),
+    "GPU dependency": (
+        r"\bgpu[\s-]+dependenc(?:y|ies)\b"
+    ),
+    "LoRA training": (
+        r"\blora[\s-]+"
+        r"(?:training|fine[\s-]?tuning|adaptation)\b"
+    ),
+    "local 7B model": (
+        r"\b(?:local[\s-]+7b|7b[\s-]+local)"
+        r"(?:[\s-]+model)?\b"
+    ),
+    "local 70B model": (
+        r"\b(?:local[\s-]+70b|70b[\s-]+local)"
+        r"(?:[\s-]+model)?\b"
     ),
     "80 GB GPU": (
-        r"\b80\s*gb\b"
+        r"\b80\s*gb[\s-]+gpu\b"
     ),
-    "V100": r"\bv100\b",
-    "A100": r"\ba100\b",
-    "H100": r"\bh100\b",
+    "V100": (
+        r"\bv100\b"
+    ),
+    "A100": (
+        r"\ba100\b"
+    ),
+    "H100": (
+        r"\bh100\b"
+    ),
 }
+
+
+NEGATED_GPU_PATTERNS = (
+    r"\bno[\s-]+local[\s-]+gpu"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bno[\s-]+gpu"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+"
+    r"(?:a[\s-]+)?(?:local[\s-]+)?gpu\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+(?:a[\s-]+)?(?:local[\s-]+)?gpu\b",
+
+    r"\bdo[\s-]+not[\s-]+require"
+    r"[\s-]+(?:a[\s-]+)?(?:local[\s-]+)?gpu\b",
+
+    r"\bnot[\s-]+dependent[\s-]+on"
+    r"[\s-]+(?:a[\s-]+)?(?:local[\s-]+)?gpu\b",
+
+    r"\bgpu[\s-]+not[\s-]+required\b",
+
+    r"\bgpu[\s-]+is[\s-]+not[\s-]+required\b",
+
+    r"\bcpu[\s-]?only"
+    r"(?:[\s-]+execution)?\b",
+
+    r"\bcpu[\s-]+compatible\b",
+
+    r"\blocal_gpu[\"']?\s*"
+    r"[:.=]\s*(?:false|0|null|none)\b",
+
+    r"[\"']available[\"']\s*:\s*false"
+    r"(?=[^{}]{0,120}"
+    r"[\"']?(?:gpu|local_gpu)[\"']?)",
+)
+
 
 KUBERNETES_PATTERNS = {
     "Kubernetes": (
@@ -85,6 +151,7 @@ KUBERNETES_PATTERNS = {
         r"\bk8s\b"
     ),
 }
+
 
 DOCKER_PATTERNS = {
     "Docker": (
@@ -119,6 +186,39 @@ def _find_patterns(
             flags=re.IGNORECASE,
         )
     ]
+
+
+def _remove_patterns(
+    text: str,
+    patterns: tuple[str, ...],
+) -> str:
+    cleaned = text
+
+    for pattern in patterns:
+        cleaned = re.sub(
+            pattern,
+            " ",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+
+    return cleaned
+
+
+def _prepare_gpu_scan_text(
+    text: str,
+) -> str:
+    """
+    Remove explicit statements that deny a GPU requirement.
+
+    The remaining text is then inspected for positive GPU dependencies.
+    This avoids treating phrases such as "no local GPU required" as
+    evidence that the design requires a GPU.
+    """
+    return _remove_patterns(
+        text,
+        NEGATED_GPU_PATTERNS,
+    )
 
 
 def _extract_estimated_calls(
@@ -251,8 +351,12 @@ def validate_design_feasibility(
     )
 
     if not gpu_available:
+        gpu_scan_text = _prepare_gpu_scan_text(
+            text
+        )
+
         for dependency in _find_patterns(
-            text,
+            gpu_scan_text,
             GPU_DEPENDENCY_PATTERNS,
         ):
             issues.append(
@@ -339,10 +443,8 @@ def validate_design_feasibility(
         "maximum_planned_model_calls"
     )
 
-    estimated_calls = (
-        _extract_estimated_calls(
-            design
-        )
+    estimated_calls = _extract_estimated_calls(
+        design
     )
 
     if (
@@ -357,7 +459,9 @@ def validate_design_feasibility(
         )
 
     return sorted(
-        set(issues)
+        set(
+            issues
+        )
     )
 
 
