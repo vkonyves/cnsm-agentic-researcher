@@ -45,6 +45,43 @@ HUMAN_DEPENDENCY_PATTERNS = {
 }
 
 
+NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
+    r"\bno[\s-]+human[\s-]+annotation"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+human[\s-]+annotation\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+human[\s-]+annotation\b",
+
+    r"\bno[\s-]+human[\s-]+review"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+human[\s-]+review\b",
+
+    r"\bno[\s-]+manual[\s-]+review"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+manual[\s-]+review\b",
+
+    r"\bno[\s-]+external[\s-]+human[\s-]+labor"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bno[\s-]+external[\s-]+human[\s-]+labour"
+    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+
+    r"\bautomated[\s-]+flagging[\s-]+only\b",
+
+    r"\bautomated[\s-]+review[\s-]+only\b",
+
+    r"\bfully[\s-]+automated[\s-]+review\b",
+
+    r"\bno[\s-]+human[\s-]+in[\s-]+(?:the[\s-]+)?loop\b",
+
+    r"\bno[\s-]+human[\s-]?in[\s-]?loop\b",
+)
+
+
 PRIVATE_INFRASTRUCTURE_PATTERNS = {
     "private live lab": (
         r"\blive[\s-]?lab\b"
@@ -205,6 +242,21 @@ def _remove_patterns(
     return cleaned
 
 
+def _prepare_human_dependency_scan_text(
+    text: str,
+) -> str:
+    """
+    Remove explicit statements denying human scientific labour.
+
+    The remaining text is inspected for positive dependencies such as
+    required human annotation, manual review, or adjudication.
+    """
+    return _remove_patterns(
+        text,
+        NEGATED_HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+
 def _prepare_gpu_scan_text(
     text: str,
 ) -> str:
@@ -249,6 +301,12 @@ def validate_design_feasibility(
         design
     )
 
+    human_scan_text = (
+        _prepare_human_dependency_scan_text(
+            text
+        )
+    )
+
     issues: list[str] = []
 
     if not capability_manifest.get(
@@ -256,7 +314,7 @@ def validate_design_feasibility(
         False,
     ):
         for dependency in _find_patterns(
-            text,
+            human_scan_text,
             HUMAN_DEPENDENCY_PATTERNS,
         ):
             issues.append(
@@ -280,7 +338,7 @@ def validate_design_feasibility(
         }
 
         for dependency in _find_patterns(
-            text,
+            human_scan_text,
             external_patterns,
         ):
             issues.append(
@@ -304,7 +362,7 @@ def validate_design_feasibility(
         }
 
         for dependency in _find_patterns(
-            text,
+            human_scan_text,
             annotation_patterns,
         ):
             issues.append(
@@ -430,7 +488,7 @@ def validate_design_feasibility(
         if any(
             re.search(
                 pattern,
-                text,
+                human_scan_text,
                 flags=re.IGNORECASE,
             )
             for pattern in scoring_patterns

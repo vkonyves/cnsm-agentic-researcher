@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+import re
 from collections import Counter
 from dataclasses import dataclass
 from typing import Any
+
+
+CLAIM_ID_PATTERN = re.compile(
+    r"^(?:EF|CG|UQ)\d+$",
+    flags=re.IGNORECASE,
+)
+
+
+SYNTHESIS_CLAIM_SECTIONS = (
+    "established_findings",
+    "unresolved_questions",
+    "candidate_gaps",
+)
 
 
 @dataclass(frozen=True)
@@ -40,7 +54,9 @@ def normalise_evidence_id(
     if value is None:
         return None
 
-    normalised = str(value).strip().lower()
+    normalised = str(
+        value
+    ).strip().lower()
 
     if not normalised:
         return None
@@ -54,13 +70,17 @@ def normalise_evidence_id(
     )
 
     for prefix in doi_prefixes:
-        if normalised.startswith(prefix):
+        if normalised.startswith(
+            prefix
+        ):
             normalised = normalised[
                 len(prefix):
             ]
             break
 
-    return normalised.rstrip("/")
+    return normalised.rstrip(
+        "/"
+    )
 
 
 def _doi(
@@ -72,7 +92,9 @@ def _doi(
 
     if (
         normalised is None
-        or not normalised.startswith("10.")
+        or not normalised.startswith(
+            "10."
+        )
     ):
         return None
 
@@ -94,7 +116,9 @@ def record_aliases(
         "doi",
         "url",
     ):
-        value = record.get(field)
+        value = record.get(
+            field
+        )
 
         normalised = normalise_evidence_id(
             value
@@ -106,7 +130,9 @@ def record_aliases(
             )
 
     doi = _doi(
-        record.get("doi")
+        record.get(
+            "doi"
+        )
     )
 
     if doi:
@@ -121,12 +147,11 @@ def build_evidence_alias_index(
     records: list[dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     """
-    Build an identifier-to-record lookup containing DOI and
-    OpenAlex aliases.
+    Build an identifier-to-record lookup containing DOI, URL,
+    record-ID, and OpenAlex aliases.
 
-    If two records expose the same alias, the first retrieved
-    record is retained. Duplicate DOI reporting is handled
-    independently.
+    If two records expose the same alias, the first retrieved record
+    is retained. Duplicate DOI reporting is handled independently.
     """
     index: dict[
         str,
@@ -145,59 +170,344 @@ def build_evidence_alias_index(
     return index
 
 
-def collect_referenced_ids(
-    *,
-    synthesis: dict[str, Any],
-    candidates: dict[str, Any],
-    decision: dict[str, Any],
-) -> set[str]:
-    references: set[str] = set()
-
-    for section in (
-        "established_findings",
-        "unresolved_questions",
-        "candidate_gaps",
+def _string_list(
+    value: Any,
+) -> list[str]:
+    """
+    Convert a possible list of identifiers to cleaned strings.
+    """
+    if not isinstance(
+        value,
+        list,
     ):
-        for claim in synthesis.get(
-            section,
+        return []
+
+    return [
+        str(item).strip()
+        for item in value
+        if str(item).strip()
+    ]
+
+
+def build_claim_evidence_index(
+    synthesis: dict[str, Any],
+) -> dict[str, list[str]]:
+    """
+    Map synthesis claim IDs such as EF1, UQ3, and CG2 to the
+    bibliographic record IDs supporting those claims.
+
+    Claim IDs are internal links between synthesis, candidate
+    generation, and selection. They are not bibliographic IDs and
+    must be resolved before evidence verification.
+    """
+    index: dict[
+        str,
+        list[str],
+    ] = {}
+
+    for section_name in SYNTHESIS_CLAIM_SECTIONS:
+        claims = synthesis.get(
+            section_name,
             [],
+        )
+
+        if not isinstance(
+            claims,
+            list,
         ):
-            references.update(
+            continue
+
+        for claim in claims:
+            if not isinstance(
+                claim,
+                dict,
+            ):
+                continue
+
+            claim_id = str(
+                claim.get(
+                    "claim_id",
+                    "",
+                )
+            ).strip()
+
+            if not claim_id:
+                continue
+
+            evidence_ids = _string_list(
                 claim.get(
                     "evidence_record_ids",
                     [],
                 )
             )
 
-    for candidate in candidates.get(
-        "candidates",
-        [],
-    ):
-        references.update(
-            candidate.get(
-                "novelty_evidence_ids",
-                [],
-            )
-        )
-        references.update(
-            candidate.get(
-                "feasibility_evidence_ids",
-                [],
-            )
-        )
+            index[
+                claim_id.upper()
+            ] = evidence_ids
 
-    references.update(
-        decision.get(
-            "evidence_record_ids",
-            [],
-        )
-    )
+    return index
 
-    return {
+
+def resolve_evidence_references(
+    *,
+    references: list[str] | set[str],
+    claim_evidence_index: dict[str, list[str]],
+) -> tuple[set[str], set[str]]:
+    """
+    Resolve mixed evidence references.
+
+    References may be:
+    - synthesis claim IDs such as EF1 or CG2;
+    - direct DOI, OpenAlex, URL, or record identifiers.
+
+    Returns:
+        resolved bibliographic identifiers;
+        unresolved synthesis claim identifiers.
+
+    An unknown value matching the synthesis-claim format is treated as
+    an unresolved claim rather than as a bibliographic record ID.
+    """
+    resolved: set[str] = set()
+    unresolved_claim_ids: set[str] = set()
+
+    pending = [
         str(reference).strip()
         for reference in references
         if str(reference).strip()
-    }
+    ]
+
+    visited_claim_ids: set[str] = set()
+
+    while pending:
+        reference = pending.pop(
+            0
+        )
+
+        claim_key = reference.upper()
+
+        if claim_key in claim_evidence_index:
+            if claim_key in visited_claim_ids:
+                continue
+
+            visited_claim_ids.add(
+                claim_key
+            )
+
+            supporting_ids = (
+                claim_evidence_index[
+                    claim_key
+                ]
+            )
+
+            if not supporting_ids:
+                unresolved_claim_ids.add(
+                    reference
+                )
+                continue
+
+            pending.extend(
+                supporting_ids
+            )
+            continue
+
+        if CLAIM_ID_PATTERN.fullmatch(
+            reference
+        ):
+            unresolved_claim_ids.add(
+                reference
+            )
+            continue
+
+        resolved.add(
+            reference
+        )
+
+    return (
+        resolved,
+        unresolved_claim_ids,
+    )
+
+
+def _selected_candidates(
+    *,
+    candidates: dict[str, Any],
+    decision: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """
+    Return only the selected candidate when its identity is available.
+
+    Falling back to all candidates preserves compatibility with older
+    development artifacts that do not record selected_candidate_id.
+    """
+    candidate_items = candidates.get(
+        "candidates",
+        [],
+    )
+
+    if not isinstance(
+        candidate_items,
+        list,
+    ):
+        return []
+
+    valid_candidates = [
+        candidate
+        for candidate in candidate_items
+        if isinstance(
+            candidate,
+            dict,
+        )
+    ]
+
+    selected_candidate_id = str(
+        decision.get(
+            "selected_candidate_id",
+            "",
+        )
+    ).strip()
+
+    if not selected_candidate_id:
+        return valid_candidates
+
+    selected: list[
+        dict[str, Any]
+    ] = []
+
+    for candidate in valid_candidates:
+        candidate_id = str(
+            candidate.get(
+                "candidate_id",
+                candidate.get(
+                    "id",
+                    "",
+                ),
+            )
+        ).strip()
+
+        if (
+            candidate_id
+            == selected_candidate_id
+        ):
+            selected.append(
+                candidate
+            )
+
+    # A missing selected candidate is a separate candidate-identity
+    # problem. Do not silently verify all rejected candidates instead.
+    return selected
+
+
+def collect_referenced_ids(
+    *,
+    synthesis: dict[str, Any],
+    candidates: dict[str, Any],
+    decision: dict[str, Any],
+) -> set[str]:
+    """
+    Collect bibliographic identifiers relevant to evidence verification.
+
+    This includes:
+    - evidence supporting synthesis claims;
+    - evidence referenced by the selected candidate;
+    - evidence referenced by the final selection decision.
+
+    Candidate and decision references may contain synthesis claim IDs.
+    These are resolved to their supporting bibliographic identifiers.
+    """
+    claim_evidence_index = (
+        build_claim_evidence_index(
+            synthesis
+        )
+    )
+
+    direct_synthesis_references: set[
+        str
+    ] = set()
+
+    for section_name in SYNTHESIS_CLAIM_SECTIONS:
+        claims = synthesis.get(
+            section_name,
+            [],
+        )
+
+        if not isinstance(
+            claims,
+            list,
+        ):
+            continue
+
+        for claim in claims:
+            if not isinstance(
+                claim,
+                dict,
+            ):
+                continue
+
+            direct_synthesis_references.update(
+                _string_list(
+                    claim.get(
+                        "evidence_record_ids",
+                        [],
+                    )
+                )
+            )
+
+    candidate_references: set[
+        str
+    ] = set()
+
+    for candidate in _selected_candidates(
+        candidates=candidates,
+        decision=decision,
+    ):
+        candidate_references.update(
+            _string_list(
+                candidate.get(
+                    "novelty_evidence_ids",
+                    [],
+                )
+            )
+        )
+
+        candidate_references.update(
+            _string_list(
+                candidate.get(
+                    "feasibility_evidence_ids",
+                    [],
+                )
+            )
+        )
+
+    decision_references = set(
+        _string_list(
+            decision.get(
+                "evidence_record_ids",
+                [],
+            )
+        )
+    )
+
+    mixed_references = (
+        direct_synthesis_references
+        | candidate_references
+        | decision_references
+    )
+
+    resolved, unresolved_claim_ids = (
+        resolve_evidence_references(
+            references=mixed_references,
+            claim_evidence_index=(
+                claim_evidence_index
+            ),
+        )
+    )
+
+    # Preserve unresolved claim IDs so verify_evidence records them as
+    # missing and produces a controlled evidence-repair stop.
+    return (
+        resolved
+        | unresolved_claim_ids
+    )
 
 
 def verify_evidence(
@@ -213,8 +523,10 @@ def verify_evidence(
         decision=decision,
     )
 
-    alias_index = build_evidence_alias_index(
-        records
+    alias_index = (
+        build_evidence_alias_index(
+            records
+        )
     )
 
     resolved_records: dict[
@@ -277,10 +589,18 @@ def verify_evidence(
         )
 
         identity_present = bool(
-            record.get("doi")
-            or record.get("url")
-            or record.get("openalex_id")
-            or record.get("record_id")
+            record.get(
+                "doi"
+            )
+            or record.get(
+                "url"
+            )
+            or record.get(
+                "openalex_id"
+            )
+            or record.get(
+                "record_id"
+            )
         )
 
         if not (
@@ -305,7 +625,9 @@ def verify_evidence(
         doi
         for doi in (
             _doi(
-                record.get("doi")
+                record.get(
+                    "doi"
+                )
             )
             for record in records
         )
@@ -322,7 +644,29 @@ def verify_evidence(
     critical_issues: list[str] = []
     warnings: list[str] = []
 
-    if missing:
+    missing_claim_ids = sorted(
+        reference
+        for reference in missing
+        if CLAIM_ID_PATTERN.fullmatch(
+            reference
+        )
+    )
+
+    missing_bibliographic_ids = sorted(
+        reference
+        for reference in missing
+        if not CLAIM_ID_PATTERN.fullmatch(
+            reference
+        )
+    )
+
+    if missing_claim_ids:
+        critical_issues.append(
+            "Synthesis claim IDs do not resolve to supporting "
+            "bibliographic records."
+        )
+
+    if missing_bibliographic_ids:
         critical_issues.append(
             "Evidence IDs do not resolve to retrieved records."
         )
@@ -349,7 +693,9 @@ def verify_evidence(
         )
 
     denominator = max(
-        len(references),
+        len(
+            references
+        ),
         1,
     )
 
@@ -379,12 +725,18 @@ def verify_evidence(
         referenced_record_count=len(
             references
         ),
-        missing_record_ids=missing,
+        missing_record_ids=sorted(
+            missing
+        ),
         metadata_incomplete_record_ids=(
-            incomplete
+            sorted(
+                incomplete
+            )
         ),
         metadata_only_record_ids=(
-            metadata_only
+            sorted(
+                metadata_only
+            )
         ),
         duplicate_dois=duplicate_dois,
         quality_score=quality_score,

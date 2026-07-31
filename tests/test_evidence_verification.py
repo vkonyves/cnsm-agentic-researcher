@@ -1,8 +1,12 @@
 from cnsm_agentic.autonomous_research.evidence_verification import (
+    build_claim_evidence_index,
     build_evidence_alias_index,
+    collect_referenced_ids,
     normalise_evidence_id,
+    resolve_evidence_references,
     verify_evidence,
-)  
+)
+
 
 def test_missing_is_critical() -> None:
     result = verify_evidence(
@@ -246,3 +250,140 @@ def test_repaired_design_bare_doi_resolves_against_prefixed_record() -> None:
         )
         in alias_index
     )      
+    
+    
+def test_claim_ids_resolve_to_supporting_records() -> None:
+    synthesis = {
+        "established_findings": [
+            {
+                "claim_id": "EF1",
+                "evidence_record_ids": [
+                    "https://openalex.org/W123",
+                ],
+            }
+        ],
+        "unresolved_questions": [
+            {
+                "claim_id": "UQ3",
+                "evidence_record_ids": [
+                    "doi:10.1234/example",
+                ],
+            }
+        ],
+        "candidate_gaps": [
+            {
+                "claim_id": "CG1",
+                "evidence_record_ids": [
+                    "https://openalex.org/W456",
+                ],
+            }
+        ],
+    }
+
+    claim_index = build_claim_evidence_index(
+        synthesis
+    )
+
+    resolved, unresolved = (
+        resolve_evidence_references(
+            references={
+                "EF1",
+                "UQ3",
+                "CG1",
+            },
+            claim_evidence_index=claim_index,
+        )
+    )
+
+    assert resolved == {
+        "https://openalex.org/W123",
+        "doi:10.1234/example",
+        "https://openalex.org/W456",
+    }
+
+    assert unresolved == set()
+
+
+def test_unknown_claim_id_remains_unresolved() -> None:
+    resolved, unresolved = (
+        resolve_evidence_references(
+            references={
+                "CG99",
+            },
+            claim_evidence_index={
+                "CG1": [
+                    "https://openalex.org/W123",
+                ]
+            },
+        )
+    )
+
+    assert resolved == set()
+    assert unresolved == {
+        "CG99",
+    }
+
+
+def test_only_selected_candidate_references_are_collected() -> None:
+    synthesis = {
+        "established_findings": [
+            {
+                "claim_id": "EF1",
+                "evidence_record_ids": [
+                    "https://openalex.org/W100",
+                ],
+            },
+            {
+                "claim_id": "EF2",
+                "evidence_record_ids": [
+                    "https://openalex.org/W200",
+                ],
+            },
+        ],
+        "unresolved_questions": [],
+        "candidate_gaps": [],
+    }
+
+    candidates = {
+        "candidates": [
+            {
+                "candidate_id": "selected",
+                "novelty_evidence_ids": [
+                    "EF1",
+                ],
+                "feasibility_evidence_ids": [],
+            },
+            {
+                "candidate_id": "rejected",
+                "novelty_evidence_ids": [
+                    "https://openalex.org/W999",
+                ],
+                "feasibility_evidence_ids": [],
+            },
+        ]
+    }
+
+    decision = {
+        "selected_candidate_id": "selected",
+        "evidence_record_ids": [
+            "EF1",
+        ],
+    }
+
+    references = collect_referenced_ids(
+        synthesis=synthesis,
+        candidates=candidates,
+        decision=decision,
+    )
+
+    assert (
+        "https://openalex.org/W999"
+        not in references
+    )
+
+    assert (
+        "https://openalex.org/W100"
+        in references
+    )    
+
+    

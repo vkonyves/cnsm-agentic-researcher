@@ -209,3 +209,84 @@ def test_local_7b_model_is_rejected() -> None:
         for issue in issues
     )    
     
+
+def test_no_human_annotation_required_is_accepted() -> None:
+    design = {
+        "audit_policy": (
+            "All audits are deterministic and automated. "
+            "No human annotation required."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "human" in issue.lower()
+        or "annotation" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_automated_flagging_without_human_labour_is_accepted() -> None:
+    design = {
+        "contamination_detection": (
+            "Items are flagged for automated quarantine. "
+            "Automated flagging only; no external human labour required."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "human" in issue.lower()
+        or "manual review" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_required_manual_review_is_rejected() -> None:
+    design = {
+        "audit_policy": (
+            "Every flagged item must undergo manual review."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "manual review" in issue.lower()
+        or "human" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_required_human_annotation_is_rejected() -> None:
+    design = {
+        "scoring": (
+            "Two human annotators label every generated artifact."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "human annotation" in issue.lower()
+        or "human scientific" in issue.lower()
+        for issue in issues
+    )    
