@@ -15,6 +15,8 @@ from cnsm_agentic.autonomous_research.execution_adapters import (
     validate_final_autonomy_contract,
     validate_paired_binary_result_row,
     synthetic_paired_plan_issues,
+    SyntheticPairedLLMBenchmarkAdapter,
+    register_builtin_execution_adapters,
 )
 
 
@@ -482,3 +484,93 @@ def test_synthetic_plan_rejects_human_scientific_labour() -> None:
         ),),
     )
     assert any("human scientific labour" in issue.lower() for issue in issues)
+
+
+
+def _rehearsal_plan(task_count: int = 6) -> dict[str, Any]:
+    return {
+        "study_id": "study-rehearsal-1",
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "task_count": task_count,
+        "estimated_model_calls": task_count * 2,
+        "task_families": ["configuration_error_detection_v1"],
+        "transformations": {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "execution_mode": "development_rehearsal",
+    }
+
+
+def test_builtin_adapter_registration_is_explicit_and_idempotent() -> None:
+    register_builtin_execution_adapters()
+    register_builtin_execution_adapters()
+    assert registered_adapter_families() == [
+        "synthetic_paired_llm_benchmark_v1"
+    ]
+
+
+def test_concrete_adapter_rejects_non_rehearsal_mode() -> None:
+    plan = _rehearsal_plan()
+    plan["execution_mode"] = "scientific_pilot"
+    assert SyntheticPairedLLMBenchmarkAdapter().supports(plan) is False
+
+
+def test_deterministic_rehearsal_creates_valid_artifacts(
+    tmp_path: Path,
+) -> None:
+    output_dir = tmp_path / "execution"
+    adapter = SyntheticPairedLLMBenchmarkAdapter()
+    manifest = adapter.execute(
+        plan=_rehearsal_plan(),
+        preregistration={"study_id": "study-rehearsal-1"},
+        output_dir=output_dir,
+    )
+    assert manifest["planned_episode_count"] == 12
+    assert manifest["completed_episode_count"] == 12
+    assert manifest["failed_episode_count"] == 0
+    assert manifest["model_calls_used"] == 12
+    assert "DEVELOPMENT_REHEARSAL_ONLY" in manifest["warnings"]
+    assert validate_execution_manifest(
+        manifest,
+        plan=_rehearsal_plan(),
+        output_dir=output_dir,
+        maximum_model_calls=12,
+    ) == []
+    rows = [
+        __import__("json").loads(line)
+        for line in (output_dir / "raw_results.jsonl").read_text().splitlines()
+    ]
+    assert len(rows) == 12
+    assert all(validate_paired_binary_result_row(row) == [] for row in rows)
+    assert {row["condition"] for row in rows} == {"baseline", "guarded"}
+
+
+def test_rehearsal_failure_is_preserved_as_terminal_row(
+    tmp_path: Path,
+) -> None:
+    plan = _rehearsal_plan(task_count=3)
+    plan["rehearsal_failure_task_ids"] = ["task-000001"]
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    assert manifest["failed_episode_count"] == 1
+    rows = [
+        __import__("json").loads(line)
+        for line in (tmp_path / "execution" / "raw_results.jsonl")
+        .read_text().splitlines()
+    ]
+    failed = [row for row in rows if row["call_status"] == "FAILED"]
+    assert len(failed) == 1
+    assert failed[0]["score"] is None

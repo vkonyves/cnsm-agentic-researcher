@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Any, Protocol
@@ -861,3 +862,418 @@ def synthetic_paired_plan_issues(
 
     issues.extend(validate_final_autonomy_contract(plan))
     return sorted(set(issues))
+
+
+
+def _canonical_json_bytes(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def _sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _write_json(path: Path, value: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _relative_to_parent(path: Path, output_dir: Path) -> str:
+    return path.relative_to(output_dir.parent).as_posix()
+
+
+class SyntheticPairedLLMBenchmarkAdapter:
+    """Deterministic development implementation of the paired contract.
+
+    This first implementation proves task, response, scoring, logging, hashing,
+    and manifest flow. It intentionally supports development rehearsal only and
+    therefore cannot be used as final scientific evidence.
+    """
+
+    family = SYNTHETIC_PAIRED_ADAPTER_FAMILY
+    aliases = ("synthetic-paired-llm-benchmark-v1",)
+    maximum_model_calls = 200
+    supported_task_families = ("configuration_error_detection_v1",)
+    supported_transformations = (
+        "baseline_prompt_v1",
+        "guarded_prompt_v1",
+    )
+    available_models = ((
+        "deterministic_local",
+        "paired-smoke-model",
+        "1.0",
+    ),)
+
+    def supports(self, plan: dict[str, Any]) -> bool:
+        issues = synthetic_paired_plan_issues(
+            plan,
+            maximum_model_calls=self.maximum_model_calls,
+            supported_task_families=self.supported_task_families,
+            supported_transformations=self.supported_transformations,
+            available_models=self.available_models,
+        )
+        if plan.get("execution_mode") != "development_rehearsal":
+            issues.append(
+                "Deterministic stand-in supports development rehearsal only."
+            )
+        task_count = plan.get("task_count")
+        if (
+            not isinstance(task_count, int)
+            or isinstance(task_count, bool)
+            or task_count <= 0
+        ):
+            issues.append("task_count must be a positive integer.")
+        elif plan.get("estimated_model_calls") != task_count * 2:
+            issues.append(
+                "estimated_model_calls must equal two calls per paired task."
+            )
+        return not issues
+
+    def execute(
+        self,
+        *,
+        plan: dict[str, Any],
+        preregistration: dict[str, Any],
+        output_dir: Path,
+    ) -> dict[str, Any]:
+        if not self.supports(plan):
+            raise ValueError(
+                "Unsupported synthetic paired plan: "
+                + "; ".join(
+                    synthetic_paired_plan_issues(
+                        plan,
+                        maximum_model_calls=self.maximum_model_calls,
+                        supported_task_families=self.supported_task_families,
+                        supported_transformations=self.supported_transformations,
+                        available_models=self.available_models,
+                    )
+                )
+            )
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        responses_dir = output_dir / "responses"
+        responses_dir.mkdir(exist_ok=True)
+
+        study_id = str(plan["study_id"])
+        task_count = int(plan["task_count"])
+        started = str(plan.get(
+            "rehearsal_started_at_utc",
+            "2026-08-01T00:00:00+00:00",
+        ))
+
+        tasks: list[dict[str, Any]] = []
+        for index in range(1, task_count + 1):
+            task_id = f"task-{index:06d}"
+            pair_id = f"pair-{index:06d}"
+            payload = {
+                "candidate_configuration": (
+                    f"interface eth{index} mtu {1400 + index}"
+                ),
+                "policy": "MTU must be at least 1500.",
+                "question": "Does the configuration violate the policy?",
+            }
+            reference_answer = "YES"
+            tasks.append({
+                "schema_version": "1.0",
+                "task_manifest_id": "task-manifest-v1",
+                "study_id": study_id,
+                "task_id": task_id,
+                "pair_id": pair_id,
+                "task_family": "configuration_error_detection_v1",
+                "generator_id": "deterministic_smoke_task_generator_v1",
+                "generator_version": "1.0",
+                "generation_seed": index,
+                "source_identifier": f"synthetic:{task_id}",
+                "task_payload": payload,
+                "reference_answer": reference_answer,
+                "task_input_sha256": _sha256_bytes(
+                    _canonical_json_bytes(payload)
+                ),
+                "reference_answer_sha256": _sha256_bytes(
+                    reference_answer.encode("utf-8")
+                ),
+                "contamination_checks": [],
+            })
+
+        task_manifest_path = output_dir / "task_manifest.jsonl"
+        task_manifest_path.write_text(
+            "".join(
+                json.dumps(task, sort_keys=True) + "\n"
+                for task in tasks
+            ),
+            encoding="utf-8",
+        )
+        task_manifest_hash = _sha256_file(task_manifest_path)
+
+        transformation_manifest = {
+            "schema_version": "1.0",
+            "study_id": study_id,
+            "conditions": {
+                "baseline": {
+                    "transformation_id": "baseline_prompt_v1",
+                    "instruction": "Answer YES or NO.",
+                },
+                "guarded": {
+                    "transformation_id": "guarded_prompt_v1",
+                    "instruction": (
+                        "Check the numeric MTU against the policy, then answer "
+                        "YES or NO. Return only the answer."
+                    ),
+                },
+            },
+        }
+        transformation_path = output_dir / "transformation_manifest.json"
+        _write_json(transformation_path, transformation_manifest)
+        transformation_hash = _sha256_file(transformation_path)
+
+        model_configuration = {
+            "provider": "deterministic_local",
+            "model_name": "paired-smoke-model",
+            "model_version": "1.0",
+            "execution_mode": "development_rehearsal",
+            "scientific_evidence": False,
+        }
+        model_configuration_path = output_dir / "model_configuration.json"
+        _write_json(model_configuration_path, model_configuration)
+        model_configuration_hash = _sha256_file(model_configuration_path)
+
+        result_schema = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": PAIRED_BINARY_RESULT_SCHEMA_ID,
+            "schema_version": PAIRED_BINARY_RESULT_SCHEMA_VERSION,
+            "type": "object",
+            "required": list(PAIRED_BINARY_REQUIRED_ROW_FIELDS),
+        }
+        result_schema_path = output_dir / "result_schema.json"
+        _write_json(result_schema_path, result_schema)
+
+        failure_task_ids = set(plan.get("rehearsal_failure_task_ids", []))
+        rows: list[dict[str, Any]] = []
+        log_events: list[dict[str, Any]] = []
+        model_calls_used = 0
+
+        for task in tasks:
+            for order, condition in enumerate(SUPPORTED_PAIRED_CONDITIONS, 1):
+                paired_condition = (
+                    "guarded" if condition == "baseline" else "baseline"
+                )
+                episode_id = f"{task['task_id']}-{condition}"
+                transformation_id = plan["transformations"][condition]
+                instruction = transformation_manifest["conditions"][condition][
+                    "instruction"
+                ]
+                prompt = (
+                    f"{instruction}\n"
+                    f"Configuration: {task['task_payload']['candidate_configuration']}\n"
+                    f"Policy: {task['task_payload']['policy']}\n"
+                    f"Question: {task['task_payload']['question']}"
+                )
+                prompt_hash = _sha256_bytes(prompt.encode("utf-8"))
+                model_calls_used += 1
+
+                failed = task["task_id"] in failure_task_ids and condition == "baseline"
+                if failed:
+                    response = None
+                    score = None
+                    call_status = "FAILED"
+                    scoring_status = "NOT_SCORED"
+                    reason = "CALL_FAILED"
+                    response_hash = None
+                    response_relative = None
+                    scoring_input_hash = None
+                    scoring_artifact_hash = None
+                    error_type = "InjectedRehearsalFailure"
+                    error_message = "Deterministic failure requested by rehearsal plan."
+                else:
+                    # Baseline deliberately misses every third task; guarded is
+                    # correct on every task. This gives deterministic discordance.
+                    response = (
+                        "NO"
+                        if condition == "baseline"
+                        and int(task["task_id"].split("-")[-1]) % 3 == 0
+                        else "YES"
+                    )
+                    score = int(response == task["reference_answer"])
+                    call_status = "COMPLETED"
+                    scoring_status = "COMPLETED"
+                    reason = "EXACT_MATCH" if score else "EXACT_MISMATCH"
+                    response_path = responses_dir / f"{episode_id}.txt"
+                    response_path.write_text(response + "\n", encoding="utf-8")
+                    response_hash = _sha256_file(response_path)
+                    response_relative = _relative_to_parent(
+                        response_path, output_dir
+                    )
+                    scoring_input = {
+                        "response": response,
+                        "reference_answer": task["reference_answer"],
+                    }
+                    scoring_input_hash = _sha256_bytes(
+                        _canonical_json_bytes(scoring_input)
+                    )
+                    scoring_artifact_hash = _sha256_bytes(
+                        _canonical_json_bytes({
+                            "score": score,
+                            "reason": reason,
+                            "scorer": "deterministic_netops_scorer_v1",
+                        })
+                    )
+                    error_type = None
+                    error_message = None
+
+                row = {
+                    "schema_version": "1.0",
+                    "result_schema_id": PAIRED_BINARY_RESULT_SCHEMA_ID,
+                    "study_id": study_id,
+                    "episode_id": episode_id,
+                    "pair_id": task["pair_id"],
+                    "task_id": task["task_id"],
+                    "task_family": task["task_family"],
+                    "condition": condition,
+                    "paired_condition": paired_condition,
+                    "condition_order": order,
+                    "execution_mode": "development_rehearsal",
+                    "model_provider": "deterministic_local",
+                    "model_name": "paired-smoke-model",
+                    "model_version": "1.0",
+                    "model_configuration_sha256": model_configuration_hash,
+                    "task_manifest_id": "task-manifest-v1",
+                    "task_manifest_sha256": task_manifest_hash,
+                    "task_input_sha256": task["task_input_sha256"],
+                    "reference_answer_sha256": task[
+                        "reference_answer_sha256"
+                    ],
+                    "transformation_id": transformation_id,
+                    "transformation_manifest_sha256": transformation_hash,
+                    "prompt_sha256": prompt_hash,
+                    "call_status": call_status,
+                    "attempt_count": 1,
+                    "model_calls_used": 1,
+                    "terminal_error_type": error_type,
+                    "terminal_error_message": error_message,
+                    "response_sha256": response_hash,
+                    "response_artifact_path": response_relative,
+                    "scoring_status": scoring_status,
+                    "score": score,
+                    "score_reason_code": reason,
+                    "scorer_id": "deterministic_netops_scorer_v1",
+                    "scorer_version": "1.0",
+                    "scoring_input_sha256": scoring_input_hash,
+                    "scoring_artifact_sha256": scoring_artifact_hash,
+                    "contamination_flags": [],
+                    "validity_flags": [],
+                    "started_at_utc": started,
+                    "completed_at_utc": started,
+                    "latency_ms": 0,
+                }
+                row_issues = validate_paired_binary_result_row(row)
+                if row_issues:
+                    raise RuntimeError(
+                        "Generated invalid paired result row: "
+                        + "; ".join(row_issues)
+                    )
+                rows.append(row)
+                log_events.append({
+                    "event_type": "model_call_attempt",
+                    "study_id": study_id,
+                    "episode_id": episode_id,
+                    "pair_id": task["pair_id"],
+                    "task_id": task["task_id"],
+                    "condition": condition,
+                    "attempt_number": 1,
+                    "cache_key_sha256": _sha256_bytes(
+                        f"{model_configuration_hash}:{prompt_hash}".encode()
+                    ),
+                    "provider_request_id": None,
+                    "started_at_utc": started,
+                    "completed_at_utc": started,
+                    "outcome": call_status,
+                    "error_type": error_type,
+                    "retry_decision": "STOP",
+                    "model_calls_used": 1,
+                })
+
+        results_path = output_dir / "raw_results.jsonl"
+        results_path.write_text(
+            "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows),
+            encoding="utf-8",
+        )
+        execution_log_path = output_dir / "execution_log.jsonl"
+        execution_log_path.write_text(
+            "".join(
+                json.dumps(event, sort_keys=True) + "\n"
+                for event in log_events
+            ),
+            encoding="utf-8",
+        )
+
+        artifact_paths = [
+            results_path,
+            result_schema_path,
+            execution_log_path,
+            task_manifest_path,
+            transformation_path,
+            model_configuration_path,
+            *sorted(responses_dir.glob("*.txt")),
+        ]
+        artifact_hashes = {
+            _relative_to_parent(path, output_dir): _sha256_file(path)
+            for path in artifact_paths
+        }
+        completed_count = sum(row["score"] in (0, 1) for row in rows)
+        failed_count = len(rows) - completed_count
+        manifest = {
+            "status": COMPLETED_STATUS,
+            "schema_version": "1.0",
+            "adapter_family": self.family,
+            "study_id": study_id,
+            "started_at_utc": started,
+            "completed_at_utc": started,
+            "planned_episode_count": len(rows),
+            "completed_episode_count": completed_count,
+            "failed_episode_count": failed_count,
+            "model_calls_used": model_calls_used,
+            "results_path": _relative_to_parent(results_path, output_dir),
+            "result_schema_path": _relative_to_parent(
+                result_schema_path, output_dir
+            ),
+            "execution_log_path": _relative_to_parent(
+                execution_log_path, output_dir
+            ),
+            "task_manifest_path": _relative_to_parent(
+                task_manifest_path, output_dir
+            ),
+            "transformation_manifest_path": _relative_to_parent(
+                transformation_path, output_dir
+            ),
+            "model_configuration_path": _relative_to_parent(
+                model_configuration_path, output_dir
+            ),
+            "result_schema_id": PAIRED_BINARY_RESULT_SCHEMA_ID,
+            "result_schema_version": PAIRED_BINARY_RESULT_SCHEMA_VERSION,
+            "execution_mode": "development_rehearsal",
+            "artifact_hashes": artifact_hashes,
+            "warnings": [
+                "DEVELOPMENT_REHEARSAL_ONLY",
+                "DETERMINISTIC_LOCAL_STAND_IN_NOT_SCIENTIFIC_EVIDENCE",
+            ],
+            "preregistration_sha256": _sha256_bytes(
+                _canonical_json_bytes(preregistration)
+            ),
+        }
+        manifest_path = output_dir / "execution_manifest.json"
+        _write_json(manifest_path, manifest)
+        return manifest
+
+
+def register_builtin_execution_adapters() -> None:
+    """Register built-in adapters explicitly and idempotently by family."""
+    if SYNTHETIC_PAIRED_ADAPTER_FAMILY not in registered_adapter_families():
+        register_adapter(SyntheticPairedLLMBenchmarkAdapter())
