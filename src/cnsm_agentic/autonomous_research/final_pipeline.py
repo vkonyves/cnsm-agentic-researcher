@@ -20,6 +20,7 @@ from .evidence_verification import (
 )
 from .execution_adapters import (
     resolve_adapter,
+    validate_execution_manifest,
 )
 from .feasibility import (
     feasibility_report,
@@ -1365,12 +1366,24 @@ class FinalAutonomousResearchPipeline:
             execution_manifest,
         )
 
-        if (
-            execution_manifest.get(
-                "status"
+        execution_manifest_issues = (
+            validate_execution_manifest(
+                execution_manifest,
+                plan=(
+                    experiment_plan.model_dump()
+                ),
+                output_dir=(
+                    run_dir / "execution"
+                ),
+                maximum_model_calls=(
+                    capability_manifest.get(
+                        "maximum_planned_model_calls"
+                    )
+                ),
             )
-            != "COMPLETED"
-        ):
+        )
+
+        if execution_manifest_issues:
             report = create_failure_report(
                 passed_gates=[
                     "fresh_run",
@@ -1387,10 +1400,14 @@ class FinalAutonomousResearchPipeline:
                 ],
                 failed_gate=(
                     "Autonomous execution adapter "
-                    "did not complete successfully."
+                    "did not produce a valid completed "
+                    "execution manifest."
                 ),
                 final_state=(
                     "AUTONOMOUS_EXECUTION_INCOMPLETE"
+                ),
+                warnings=(
+                    execution_manifest_issues
                 ),
             )
 
@@ -1409,6 +1426,11 @@ class FinalAutonomousResearchPipeline:
                 development_rehearsal=(
                     self.development_rehearsal
                 ),
+                additional_fields={
+                    "execution_manifest_issues": (
+                        execution_manifest_issues
+                    ),
+                },
             )
 
             return report
