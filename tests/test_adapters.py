@@ -403,6 +403,7 @@ def _valid_paired_row() -> dict[str, Any]:
         "scorer_id": "deterministic_netops_scorer_v1",
         "scorer_version": "1.0",
         "scoring_input_sha256": digest,
+        "scoring_artifact_path": "execution/scoring/x.json",
         "scoring_artifact_sha256": digest,
         "contamination_flags": [],
         "validity_flags": [],
@@ -554,6 +555,24 @@ def test_deterministic_rehearsal_creates_valid_artifacts(
     assert all(validate_paired_binary_result_row(row) == [] for row in rows)
     assert {row["condition"] for row in rows} == {"baseline", "guarded"}
 
+    scoring_paths = sorted((output_dir / "scoring").glob("*.json"))
+    assert len(scoring_paths) == 12
+    first_scoring_record = __import__("json").loads(
+        scoring_paths[0].read_text(encoding="utf-8")
+    )
+    assert first_scoring_record["scoring_rule"] == (
+        "normalized_exact_match"
+    )
+    assert first_scoring_record["scorer_id"] == (
+        "deterministic_netops_scorer_v1"
+    )
+    assert first_scoring_record["score"] in (0, 1)
+    assert all(
+        path.relative_to(output_dir.parent).as_posix()
+        in manifest["artifact_hashes"]
+        for path in scoring_paths
+    )
+
 
 def test_rehearsal_failure_is_preserved_as_terminal_row(
     tmp_path: Path,
@@ -574,3 +593,13 @@ def test_rehearsal_failure_is_preserved_as_terminal_row(
     failed = [row for row in rows if row["call_status"] == "FAILED"]
     assert len(failed) == 1
     assert failed[0]["score"] is None
+    scoring_path = (
+        tmp_path
+        / failed[0]["scoring_artifact_path"]
+    )
+    scoring_record = __import__("json").loads(
+        scoring_path.read_text(encoding="utf-8")
+    )
+    assert scoring_record["scoring_status"] == "NOT_SCORED"
+    assert scoring_record["score_reason_code"] == "CALL_FAILED"
+    assert scoring_record["normalized_response"] is None

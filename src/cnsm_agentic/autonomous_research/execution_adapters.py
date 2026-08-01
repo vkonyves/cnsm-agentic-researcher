@@ -67,6 +67,7 @@ PAIRED_BINARY_REQUIRED_ROW_FIELDS = (
     "scorer_id",
     "scorer_version",
     "scoring_input_sha256",
+    "scoring_artifact_path",
     "scoring_artifact_sha256",
     "contamination_flags",
     "validity_flags",
@@ -789,6 +790,19 @@ def validate_paired_binary_result_row(
         if not _is_sha256(row.get(field)):
             issues.append(f"{field} must be a lowercase SHA-256 digest.")
 
+    scoring_artifact_path = row.get("scoring_artifact_path")
+    if (
+        not isinstance(scoring_artifact_path, str)
+        or not scoring_artifact_path.strip()
+    ):
+        issues.append(
+            "Every terminal episode requires a scoring artifact path."
+        )
+    if not _is_sha256(row.get("scoring_artifact_sha256")):
+        issues.append(
+            "Every terminal episode requires a scoring artifact hash."
+        )
+
     for field in ("contamination_flags", "validity_flags"):
         if not isinstance(row.get(field), list):
             issues.append(f"{field} must be a list.")
@@ -961,6 +975,8 @@ class SyntheticPairedLLMBenchmarkAdapter:
         output_dir.mkdir(parents=True, exist_ok=True)
         responses_dir = output_dir / "responses"
         responses_dir.mkdir(exist_ok=True)
+        scoring_dir = output_dir / "scoring"
+        scoring_dir.mkdir(exist_ok=True)
 
         study_id = str(plan["study_id"])
         task_count = int(plan["task_count"])
@@ -1082,6 +1098,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
                 failed = task["task_id"] in failure_task_ids and condition == "baseline"
                 if failed:
                     response = None
+                    normalized_response = None
                     score = None
                     call_status = "FAILED"
                     scoring_status = "NOT_SCORED"
@@ -1089,9 +1106,10 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     response_hash = None
                     response_relative = None
                     scoring_input_hash = None
-                    scoring_artifact_hash = None
                     error_type = "InjectedRehearsalFailure"
-                    error_message = "Deterministic failure requested by rehearsal plan."
+                    error_message = (
+                        "Deterministic failure requested by rehearsal plan."
+                    )
                 else:
                     # Baseline deliberately misses every third task; guarded is
                     # correct on every task. This gives deterministic discordance.
@@ -1101,7 +1119,10 @@ class SyntheticPairedLLMBenchmarkAdapter:
                         and int(task["task_id"].split("-")[-1]) % 3 == 0
                         else "YES"
                     )
-                    score = int(response == task["reference_answer"])
+                    normalized_response = response.strip().upper()
+                    score = int(
+                        normalized_response == task["reference_answer"]
+                    )
                     call_status = "COMPLETED"
                     scoring_status = "COMPLETED"
                     reason = "EXACT_MATCH" if score else "EXACT_MISMATCH"
@@ -1112,21 +1133,44 @@ class SyntheticPairedLLMBenchmarkAdapter:
                         response_path, output_dir
                     )
                     scoring_input = {
-                        "response": response,
+                        "response": normalized_response,
                         "reference_answer": task["reference_answer"],
                     }
                     scoring_input_hash = _sha256_bytes(
                         _canonical_json_bytes(scoring_input)
                     )
-                    scoring_artifact_hash = _sha256_bytes(
-                        _canonical_json_bytes({
-                            "score": score,
-                            "reason": reason,
-                            "scorer": "deterministic_netops_scorer_v1",
-                        })
-                    )
                     error_type = None
                     error_message = None
+
+                scoring_record = {
+                    "schema_version": "1.0",
+                    "study_id": study_id,
+                    "episode_id": episode_id,
+                    "pair_id": task["pair_id"],
+                    "task_id": task["task_id"],
+                    "condition": condition,
+                    "scorer_id": "deterministic_netops_scorer_v1",
+                    "scorer_version": "1.0",
+                    "scoring_rule": "normalized_exact_match",
+                    "raw_response_sha256": response_hash,
+                    "normalized_response": normalized_response,
+                    "reference_answer_sha256": task[
+                        "reference_answer_sha256"
+                    ],
+                    "normalized_reference_answer": task[
+                        "reference_answer"
+                    ],
+                    "score": score,
+                    "score_reason_code": reason,
+                    "scoring_status": scoring_status,
+                    "terminal_error_type": error_type,
+                }
+                scoring_path = scoring_dir / f"{episode_id}.json"
+                _write_json(scoring_path, scoring_record)
+                scoring_relative = _relative_to_parent(
+                    scoring_path, output_dir
+                )
+                scoring_artifact_hash = _sha256_file(scoring_path)
 
                 row = {
                     "schema_version": "1.0",
@@ -1166,6 +1210,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     "scorer_id": "deterministic_netops_scorer_v1",
                     "scorer_version": "1.0",
                     "scoring_input_sha256": scoring_input_hash,
+                    "scoring_artifact_path": scoring_relative,
                     "scoring_artifact_sha256": scoring_artifact_hash,
                     "contamination_flags": [],
                     "validity_flags": [],
@@ -1222,6 +1267,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
             transformation_path,
             model_configuration_path,
             *sorted(responses_dir.glob("*.txt")),
+            *sorted(scoring_dir.glob("*.json")),
         ]
         artifact_hashes = {
             _relative_to_parent(path, output_dir): _sha256_file(path)
