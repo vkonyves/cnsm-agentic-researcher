@@ -12,6 +12,7 @@ from cnsm_agentic.autonomous_research.analysis_executors import (
     registered_analysis_families,
     resolve_analysis_executor,
     validate_analysis_results,
+    paired_binary_analysis_compatibility_issues,
 )
 
 
@@ -358,3 +359,79 @@ def test_analysis_path_traversal_rejected(
         in issue.lower()
         for issue in issues
     )
+
+
+
+def test_paired_analysis_compatibility_passes() -> None:
+    issues = paired_binary_analysis_compatibility_issues(
+        analysis_plan={
+            "analysis_executor": "paired_binary_analysis_v1",
+            "study_id": "study-1",
+            "estimand": (
+                "paired_success_rate_difference_guarded_minus_baseline"
+            ),
+            "failed_call_treatment": "complete_pair_primary",
+        },
+        execution_manifest={
+            "status": "COMPLETED",
+            "adapter_family": "synthetic_paired_llm_benchmark_v1",
+            "study_id": "study-1",
+            "result_schema_id": "paired_binary_episode_v1",
+            "result_schema_version": "1.0",
+            "results_path": "execution/raw_results.jsonl",
+            "result_schema_path": "execution/result_schema.json",
+            "artifact_hashes": {"execution/raw_results.jsonl": "x"},
+            "execution_mode": "development_rehearsal",
+        },
+    )
+    assert issues == []
+
+
+def test_paired_analysis_rejects_mismatched_study() -> None:
+    issues = paired_binary_analysis_compatibility_issues(
+        analysis_plan={
+            "analysis_executor": "paired_binary_analysis_v1",
+            "study_id": "study-2",
+            "estimand": (
+                "paired_success_rate_difference_guarded_minus_baseline"
+            ),
+            "failed_call_treatment": "complete_pair_primary",
+        },
+        execution_manifest={
+            "status": "COMPLETED",
+            "adapter_family": "synthetic_paired_llm_benchmark_v1",
+            "study_id": "study-1",
+            "result_schema_id": "paired_binary_episode_v1",
+            "result_schema_version": "1.0",
+            "results_path": "execution/raw_results.jsonl",
+            "result_schema_path": "execution/result_schema.json",
+            "artifact_hashes": {"execution/raw_results.jsonl": "x"},
+        },
+    )
+    assert any("study ids" in issue.lower() for issue in issues)
+
+
+def test_final_analysis_requires_master_prompt_provenance() -> None:
+    issues = paired_binary_analysis_compatibility_issues(
+        analysis_plan={
+            "analysis_executor": "paired_binary_analysis_v1",
+            "study_id": "study-1",
+            "estimand": (
+                "paired_success_rate_difference_guarded_minus_baseline"
+            ),
+            "failed_call_treatment": "complete_pair_primary",
+        },
+        execution_manifest={
+            "status": "COMPLETED",
+            "adapter_family": "synthetic_paired_llm_benchmark_v1",
+            "study_id": "study-1",
+            "result_schema_id": "paired_binary_episode_v1",
+            "result_schema_version": "1.0",
+            "results_path": "execution/raw_results.jsonl",
+            "result_schema_path": "execution/result_schema.json",
+            "artifact_hashes": {"execution/raw_results.jsonl": "x"},
+            "execution_mode": "final_autonomous_run",
+            "human_scientific_intervention_after_launch": False,
+        },
+    )
+    assert any("master-prompt" in issue.lower() for issue in issues)

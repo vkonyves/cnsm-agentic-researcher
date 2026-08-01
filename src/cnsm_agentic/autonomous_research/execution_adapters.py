@@ -1,11 +1,78 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from pathlib import Path
 from typing import Any, Protocol
 
 
 COMPLETED_STATUS = "COMPLETED"
+
+
+SYNTHETIC_PAIRED_ADAPTER_FAMILY = (
+    "synthetic_paired_llm_benchmark_v1"
+)
+PAIRED_BINARY_RESULT_SCHEMA_ID = "paired_binary_episode_v1"
+PAIRED_BINARY_RESULT_SCHEMA_VERSION = "1.0"
+SUPPORTED_PAIRED_CONDITIONS = ("baseline", "guarded")
+SUPPORTED_EXECUTION_MODES = (
+    "development_rehearsal",
+    "scientific_pilot",
+    "final_autonomous_run",
+)
+FINAL_AUTONOMY_REQUIRED_FIELDS = (
+    "master_prompt_sha256",
+    "framework_commit",
+    "framework_tag",
+    "capability_manifest_sha256",
+    "preregistration_sha256",
+    "human_scientific_intervention_after_launch",
+)
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+PAIRED_BINARY_REQUIRED_ROW_FIELDS = (
+    "schema_version",
+    "result_schema_id",
+    "study_id",
+    "episode_id",
+    "pair_id",
+    "task_id",
+    "task_family",
+    "condition",
+    "paired_condition",
+    "condition_order",
+    "execution_mode",
+    "model_provider",
+    "model_name",
+    "model_version",
+    "model_configuration_sha256",
+    "task_manifest_id",
+    "task_manifest_sha256",
+    "task_input_sha256",
+    "reference_answer_sha256",
+    "transformation_id",
+    "transformation_manifest_sha256",
+    "prompt_sha256",
+    "call_status",
+    "attempt_count",
+    "model_calls_used",
+    "terminal_error_type",
+    "terminal_error_message",
+    "response_sha256",
+    "response_artifact_path",
+    "scoring_status",
+    "score",
+    "score_reason_code",
+    "scorer_id",
+    "scorer_version",
+    "scoring_input_sha256",
+    "scoring_artifact_sha256",
+    "contamination_flags",
+    "validity_flags",
+    "started_at_utc",
+    "completed_at_utc",
+    "latency_ms",
+)
 
 REQUIRED_COMPLETED_MANIFEST_FIELDS = (
     "schema_version",
@@ -589,3 +656,208 @@ def validate_execution_manifest(
             issues
         )
     )
+
+def _is_sha256(value: Any) -> bool:
+    return isinstance(value, str) and bool(
+        SHA256_PATTERN.fullmatch(value.strip().lower())
+    )
+
+
+def validate_final_autonomy_contract(
+    plan: dict[str, Any],
+) -> list[str]:
+    """Validate conference-compliant final-run launch constraints."""
+    issues: list[str] = []
+
+    if plan.get("execution_mode") != "final_autonomous_run":
+        return issues
+
+    for field in FINAL_AUTONOMY_REQUIRED_FIELDS:
+        if field not in plan:
+            issues.append(
+                f"Final autonomous run lacks required field: {field}"
+            )
+
+    for field in (
+        "master_prompt_sha256",
+        "capability_manifest_sha256",
+        "preregistration_sha256",
+    ):
+        value = plan.get(field)
+        if value is not None and not _is_sha256(value):
+            issues.append(f"{field} must be a lowercase SHA-256 digest.")
+
+    for field in ("framework_commit", "framework_tag"):
+        value = plan.get(field)
+        if value is not None and (
+            not isinstance(value, str) or not value.strip()
+        ):
+            issues.append(f"{field} must be a non-empty string.")
+
+    if plan.get("human_scientific_intervention_after_launch") is not False:
+        issues.append(
+            "Final autonomous run must prohibit human scientific "
+            "intervention after launch."
+        )
+
+    if plan.get("human_text_editing_after_launch") not in (None, False):
+        issues.append(
+            "Final autonomous run must prohibit human text editing "
+            "after launch."
+        )
+
+    return sorted(set(issues))
+
+
+def validate_paired_binary_result_row(
+    row: dict[str, Any],
+) -> list[str]:
+    """Validate one terminal condition-level paired-benchmark row."""
+    issues: list[str] = []
+    if not isinstance(row, dict):
+        return ["Paired result row is not a dictionary."]
+
+    for field in PAIRED_BINARY_REQUIRED_ROW_FIELDS:
+        if field not in row:
+            issues.append(f"Paired result row lacks required field: {field}")
+
+    if row.get("schema_version") != PAIRED_BINARY_RESULT_SCHEMA_VERSION:
+        issues.append("Unsupported paired result schema version.")
+    if row.get("result_schema_id") != PAIRED_BINARY_RESULT_SCHEMA_ID:
+        issues.append("Unsupported paired result schema identifier.")
+
+    condition = row.get("condition")
+    paired = row.get("paired_condition")
+    if condition not in SUPPORTED_PAIRED_CONDITIONS:
+        issues.append("Unsupported experimental condition.")
+    if paired not in SUPPORTED_PAIRED_CONDITIONS or paired == condition:
+        issues.append("paired_condition must identify the opposite condition.")
+    if row.get("condition_order") not in (1, 2):
+        issues.append("condition_order must be 1 or 2.")
+    if row.get("execution_mode") not in SUPPORTED_EXECUTION_MODES:
+        issues.append("Unsupported execution mode.")
+
+    for field in ("attempt_count", "model_calls_used", "latency_ms"):
+        value = row.get(field)
+        if (
+            not isinstance(value, int)
+            or isinstance(value, bool)
+            or value < 0
+        ):
+            issues.append(f"{field} must be a nonnegative integer.")
+    if row.get("attempt_count") == 0:
+        issues.append("attempt_count must be positive.")
+
+    call_status = row.get("call_status")
+    scoring_status = row.get("scoring_status")
+    score = row.get("score")
+    if call_status not in {"COMPLETED", "FAILED", "CACHED"}:
+        issues.append("Unsupported call_status.")
+    if score not in (0, 1, None) or isinstance(score, bool):
+        issues.append("score must be 0, 1, or null.")
+
+    if call_status in {"COMPLETED", "CACHED"}:
+        if scoring_status != "COMPLETED" or score not in (0, 1):
+            issues.append(
+                "Successful calls require a completed binary score."
+            )
+        if not _is_sha256(row.get("response_sha256")):
+            issues.append("Successful calls require response_sha256.")
+        if not isinstance(row.get("response_artifact_path"), str):
+            issues.append("Successful calls require a response artifact path.")
+        if row.get("terminal_error_type") is not None:
+            issues.append("Successful calls cannot have terminal errors.")
+    elif call_status == "FAILED":
+        if scoring_status != "NOT_SCORED" or score is not None:
+            issues.append("Failed calls must remain unscored with null score.")
+        if row.get("response_sha256") is not None:
+            issues.append("Failed calls cannot claim a response hash.")
+        if row.get("response_artifact_path") is not None:
+            issues.append("Failed calls cannot claim a response artifact.")
+        if not isinstance(row.get("terminal_error_type"), str):
+            issues.append("Failed calls require a terminal error type.")
+
+    for field in (
+        "model_configuration_sha256",
+        "task_manifest_sha256",
+        "task_input_sha256",
+        "reference_answer_sha256",
+        "transformation_manifest_sha256",
+        "prompt_sha256",
+    ):
+        if not _is_sha256(row.get(field)):
+            issues.append(f"{field} must be a lowercase SHA-256 digest.")
+
+    for field in ("contamination_flags", "validity_flags"):
+        if not isinstance(row.get(field), list):
+            issues.append(f"{field} must be a list.")
+
+    return sorted(set(issues))
+
+
+def synthetic_paired_plan_issues(
+    plan: dict[str, Any],
+    *,
+    maximum_model_calls: int,
+    supported_task_families: tuple[str, ...],
+    supported_transformations: tuple[str, ...],
+    available_models: tuple[tuple[str, str, str], ...],
+) -> list[str]:
+    """Return explicit incompatibilities for the first concrete adapter."""
+    issues: list[str] = []
+    if not adapter_family_matches(
+        plan, family=SYNTHETIC_PAIRED_ADAPTER_FAMILY,
+        aliases=("synthetic-paired-llm-benchmark-v1",),
+    ):
+        issues.append("Adapter family is incompatible.")
+
+    if plan.get("result_schema_id") != PAIRED_BINARY_RESULT_SCHEMA_ID:
+        issues.append("Plan does not request paired_binary_episode_v1.")
+    if plan.get("result_schema_version", "1.0") != "1.0":
+        issues.append("Plan requests an unsupported result schema version.")
+    if tuple(plan.get("conditions", ())) != SUPPORTED_PAIRED_CONDITIONS:
+        issues.append("Plan must use exactly baseline and guarded conditions.")
+    if plan.get("design") != "paired_binary":
+        issues.append("Plan must declare a paired_binary design.")
+
+    estimated = plan.get("estimated_model_calls")
+    if (
+        not isinstance(estimated, int)
+        or isinstance(estimated, bool)
+        or estimated <= 0
+        or estimated > maximum_model_calls
+    ):
+        issues.append("Estimated model calls are outside adapter scope.")
+
+    tasks = plan.get("task_families")
+    if not isinstance(tasks, list) or not tasks or any(
+        task not in supported_task_families for task in tasks
+    ):
+        issues.append("Plan requests unsupported task families.")
+
+    transformations = plan.get("transformations")
+    if not isinstance(transformations, dict) or set(transformations) != set(
+        SUPPORTED_PAIRED_CONDITIONS
+    ) or any(
+        value not in supported_transformations
+        for value in transformations.values()
+    ):
+        issues.append("Plan requests unsupported condition transformations.")
+
+    model = (
+        plan.get("model_provider"),
+        plan.get("model_name"),
+        plan.get("model_version"),
+    )
+    if model not in available_models:
+        issues.append("Requested provider/model/version is unavailable.")
+
+    if plan.get("deterministic_automated_scoring") is not True:
+        issues.append("Plan must require deterministic automated scoring.")
+    if plan.get("requires_human_scientific_labour") is not False:
+        issues.append("Plan must not require human scientific labour.")
+    if plan.get("execution_mode") not in SUPPORTED_EXECUTION_MODES:
+        issues.append("Plan requests an unsupported execution mode.")
+
+    issues.extend(validate_final_autonomy_contract(plan))
+    return sorted(set(issues))

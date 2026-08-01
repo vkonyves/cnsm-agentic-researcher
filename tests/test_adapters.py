@@ -12,6 +12,9 @@ from cnsm_agentic.autonomous_research.execution_adapters import (
     registered_adapter_families,
     resolve_adapter,
     validate_execution_manifest,
+    validate_final_autonomy_contract,
+    validate_paired_binary_result_row,
+    synthetic_paired_plan_issues,
 )
 
 
@@ -358,3 +361,124 @@ def test_manifest_rejects_path_traversal(
         in issue.lower()
         for issue in issues
     )
+
+
+def _valid_paired_row() -> dict[str, Any]:
+    digest = "a" * 64
+    return {
+        "schema_version": "1.0",
+        "result_schema_id": "paired_binary_episode_v1",
+        "study_id": "study-1",
+        "episode_id": "episode-1-baseline",
+        "pair_id": "pair-1",
+        "task_id": "task-1",
+        "task_family": "configuration_error_detection_v1",
+        "condition": "baseline",
+        "paired_condition": "guarded",
+        "condition_order": 1,
+        "execution_mode": "development_rehearsal",
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "model_configuration_sha256": digest,
+        "task_manifest_id": "task-manifest-v1",
+        "task_manifest_sha256": digest,
+        "task_input_sha256": digest,
+        "reference_answer_sha256": digest,
+        "transformation_id": "baseline_prompt_v1",
+        "transformation_manifest_sha256": digest,
+        "prompt_sha256": digest,
+        "call_status": "COMPLETED",
+        "attempt_count": 1,
+        "model_calls_used": 1,
+        "terminal_error_type": None,
+        "terminal_error_message": None,
+        "response_sha256": digest,
+        "response_artifact_path": "execution/responses/x.txt",
+        "scoring_status": "COMPLETED",
+        "score": 1,
+        "score_reason_code": "EXACT_MATCH",
+        "scorer_id": "deterministic_netops_scorer_v1",
+        "scorer_version": "1.0",
+        "scoring_input_sha256": digest,
+        "scoring_artifact_sha256": digest,
+        "contamination_flags": [],
+        "validity_flags": [],
+        "started_at_utc": "2026-08-01T20:00:00+00:00",
+        "completed_at_utc": "2026-08-01T20:00:01+00:00",
+        "latency_ms": 1000,
+    }
+
+
+def test_valid_paired_binary_row_passes() -> None:
+    assert validate_paired_binary_result_row(_valid_paired_row()) == []
+
+
+def test_failed_call_must_remain_unscored() -> None:
+    row = _valid_paired_row()
+    row.update({
+        "call_status": "FAILED",
+        "scoring_status": "COMPLETED",
+        "score": 0,
+        "terminal_error_type": "TimeoutError",
+        "response_sha256": None,
+        "response_artifact_path": None,
+    })
+    issues = validate_paired_binary_result_row(row)
+    assert any("unscored" in issue.lower() for issue in issues)
+
+
+def test_final_run_requires_sealed_autonomy_contract() -> None:
+    issues = validate_final_autonomy_contract({
+        "execution_mode": "final_autonomous_run",
+    })
+    assert any("master_prompt_sha256" in issue for issue in issues)
+    assert any("prohibit human scientific" in issue.lower() for issue in issues)
+
+
+def test_final_run_autonomy_contract_passes() -> None:
+    digest = "b" * 64
+    assert validate_final_autonomy_contract({
+        "execution_mode": "final_autonomous_run",
+        "master_prompt_sha256": digest,
+        "framework_commit": "afc39f7",
+        "framework_tag": "v1.0.0-final",
+        "capability_manifest_sha256": digest,
+        "preregistration_sha256": digest,
+        "human_scientific_intervention_after_launch": False,
+        "human_text_editing_after_launch": False,
+    }) == []
+
+
+def test_synthetic_plan_rejects_human_scientific_labour() -> None:
+    plan = {
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "estimated_model_calls": 2,
+        "task_families": ["configuration_error_detection_v1"],
+        "transformations": {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": True,
+        "execution_mode": "development_rehearsal",
+    }
+    issues = synthetic_paired_plan_issues(
+        plan,
+        maximum_model_calls=10,
+        supported_task_families=("configuration_error_detection_v1",),
+        supported_transformations=(
+            "baseline_prompt_v1", "guarded_prompt_v1",
+        ),
+        available_models=((
+            "deterministic_local", "paired-smoke-model", "1.0",
+        ),),
+    )
+    assert any("human scientific labour" in issue.lower() for issue in issues)

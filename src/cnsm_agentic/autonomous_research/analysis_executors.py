@@ -7,6 +7,13 @@ from typing import Any, Protocol
 
 COMPLETED_STATUS = "COMPLETED"
 
+PAIRED_BINARY_ANALYSIS_FAMILY = "paired_binary_analysis_v1"
+COMPATIBLE_EXECUTION_ADAPTER_FAMILIES = (
+    "synthetic_paired_llm_benchmark_v1",
+)
+COMPATIBLE_RESULT_SCHEMA_ID = "paired_binary_episode_v1"
+COMPATIBLE_RESULT_SCHEMA_VERSIONS = ("1.0",)
+
 REQUIRED_COMPLETED_ANALYSIS_FIELDS = (
     "status",
     "schema_version",
@@ -519,3 +526,60 @@ def validate_analysis_results(
             issues
         )
     )
+
+
+def paired_binary_analysis_compatibility_issues(
+    *,
+    analysis_plan: dict[str, Any],
+    execution_manifest: dict[str, Any],
+) -> list[str]:
+    """Return explicit incompatibilities for paired binary analysis."""
+    issues: list[str] = []
+    if not analysis_family_matches(
+        analysis_plan.get("analysis_executor"),
+        family=PAIRED_BINARY_ANALYSIS_FAMILY,
+        aliases=("paired-binary-analysis-v1",),
+    ):
+        issues.append("Analysis family is incompatible.")
+
+    if execution_manifest.get("status") != COMPLETED_STATUS:
+        issues.append("Execution manifest is not completed.")
+    if execution_manifest.get("adapter_family") not in (
+        COMPATIBLE_EXECUTION_ADAPTER_FAMILIES
+    ):
+        issues.append("Execution adapter family is incompatible.")
+    if execution_manifest.get("result_schema_id") != (
+        COMPATIBLE_RESULT_SCHEMA_ID
+    ):
+        issues.append("Execution result schema is incompatible.")
+    if execution_manifest.get("result_schema_version") not in (
+        COMPATIBLE_RESULT_SCHEMA_VERSIONS
+    ):
+        issues.append("Execution result schema version is incompatible.")
+
+    if analysis_plan.get("study_id") != execution_manifest.get("study_id"):
+        issues.append("Analysis and execution study IDs do not agree.")
+    if analysis_plan.get("estimand") != (
+        "paired_success_rate_difference_guarded_minus_baseline"
+    ):
+        issues.append("Analysis plan requests an incompatible estimand.")
+    if analysis_plan.get("failed_call_treatment") not in {
+        "complete_pair_primary",
+        "complete_pair_primary_with_failure_as_zero_sensitivity",
+    }:
+        issues.append("Failed-call treatment is not explicitly supported.")
+
+    for field in ("results_path", "result_schema_path", "artifact_hashes"):
+        if not execution_manifest.get(field):
+            issues.append(f"Execution manifest lacks required field: {field}")
+
+    if execution_manifest.get("execution_mode") == "final_autonomous_run":
+        if execution_manifest.get("human_scientific_intervention_after_launch") is not False:
+            issues.append(
+                "Final execution does not attest absence of human "
+                "scientific intervention after launch."
+            )
+        if not execution_manifest.get("master_prompt_sha256"):
+            issues.append("Final execution lacks sealed master-prompt provenance.")
+
+    return sorted(set(issues))
