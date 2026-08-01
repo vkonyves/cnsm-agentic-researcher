@@ -488,41 +488,52 @@ def validate_analysis_results(
         issues.append(
             "Analysis artifact hashes are missing."
         )
-    elif (
-        resolved_results_path is not None
-        and resolved_results_path.is_file()
-        and isinstance(
-            results_path_value,
-            str,
-        )
-    ):
-        expected_hash = artifact_hashes.get(
-            results_path_value
-        )
+    elif isinstance(artifact_hashes, dict):
+        # A JSON document cannot contain its own final SHA-256 digest without
+        # an impossible self-reference. Validate all supporting artifacts;
+        # validate results.json through existence, required fields, and the
+        # execution input-results hash linkage above.
+        for relative_path, expected_hash in artifact_hashes.items():
+            if not isinstance(relative_path, str) or not relative_path.strip():
+                issues.append("Analysis artifact hash path is invalid.")
+                continue
 
-        if (
-            not isinstance(
-                expected_hash,
-                str,
+            artifact_path = _safe_artifact_path(
+                run_dir=run_dir,
+                relative_path=relative_path,
             )
-            or not expected_hash.strip()
-        ):
-            issues.append(
-                "Analysis artifact hash is "
-                f"missing for: {results_path_value}"
-            )
-        else:
-            actual_hash = _sha256_file(
-                resolved_results_path
-            )
+
+            if artifact_path is None:
+                issues.append(
+                    "Analysis artifact path is unsafe: "
+                    f"{relative_path}"
+                )
+                continue
+
+            if not artifact_path.is_file():
+                issues.append(
+                    "Analysis artifact does not exist: "
+                    f"{relative_path}"
+                )
+                continue
 
             if (
-                actual_hash.lower()
+                not isinstance(expected_hash, str)
+                or not expected_hash.strip()
+            ):
+                issues.append(
+                    "Analysis artifact hash is missing for: "
+                    f"{relative_path}"
+                )
+                continue
+
+            if (
+                _sha256_file(artifact_path).lower()
                 != expected_hash.strip().lower()
             ):
                 issues.append(
-                    "Analysis artifact hash does "
-                    f"not match: {results_path_value}"
+                    "Analysis artifact hash does not match: "
+                    f"{relative_path}"
                 )
 
     return sorted(
@@ -923,12 +934,7 @@ class PairedBinaryAnalysisExecutor:
             "execution_mode": execution_manifest.get("execution_mode"),
         }
         results_path_out = analysis_dir / "results.json"
-        results_path_out.write_text(
-            json.dumps(results_payload, sort_keys=True, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        artifacts = [
-            results_path_out,
+        supporting_artifacts = [
             contingency_path,
             condition_path,
             missing_path,
@@ -938,11 +944,15 @@ class PairedBinaryAnalysisExecutor:
         ]
         artifact_hashes = {
             path.relative_to(run_dir).as_posix(): _sha256_file(path)
-            for path in artifacts
+            for path in supporting_artifacts
         }
         results = dict(results_payload)
         results["results_path"] = results_path_out.relative_to(run_dir).as_posix()
         results["artifact_hashes"] = artifact_hashes
+        results_path_out.write_text(
+            json.dumps(results, sort_keys=True, indent=2) + "\n",
+            encoding="utf-8",
+        )
         return results
 
 

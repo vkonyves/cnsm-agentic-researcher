@@ -1,4 +1,5 @@
 import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -519,6 +520,16 @@ def test_end_to_end_paired_analysis_rehearsal(tmp_path: Path) -> None:
         run_dir=tmp_path,
         execution_manifest=manifest,
     ) == []
+    persisted_results = json.loads(
+        (tmp_path / results["results_path"]).read_text(encoding="utf-8")
+    )
+    assert persisted_results == results
+    assert validate_analysis_results(
+        persisted_results,
+        run_dir=tmp_path,
+        execution_manifest=manifest,
+    ) == []
+    assert results["results_path"] not in results["artifact_hashes"]
     for relative_path in results["artifact_hashes"]:
         assert (tmp_path / relative_path).is_file()
 
@@ -571,4 +582,3 @@ def test_analysis_reports_incomplete_pair_from_failed_call(tmp_path: Path) -> No
     assert results["missingness_summary"]["guarded_only_observed_pairs"] == 1
     assert results["missingness_summary"]["failed_baseline_episodes"] == 1
     assert results["confirmatory_results"][0]["complete_pair_count"] == 2
-
