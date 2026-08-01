@@ -20,6 +20,30 @@ DESIGN_REPAIR_AGENT = Agent(
     model="gpt-5-mini",
     output_type=RepairedStudyDesign,
     instructions=(
+        "You repair the selected study design before preregistration. "
+        "Use only the supplied evidence, candidate, decision, capability "
+        "manifest, and required repairs. "
+
+        "The repaired design must not depend on unavailable resources, "
+        "including human labour, human annotation, manual adjudication, "
+        "external partners, private infrastructure, or local GPU "
+        "execution unless explicitly available in the capability "
+        "manifest. "
+
+        "When a procedure is automated, avoid ambiguous phrases such as "
+        "'manual review', 'human review', or 'manual adjudication'. "
+        "Describe it instead as deterministic flagging, automatic "
+        "exclusion, automated re-execution, or sensitivity analysis. "
+        "Do not introduce any required human annotation, adjudication, "
+        "scoring, evaluation, or scientific review. "
+
+        "Cross-check every sample count across sampling_plan, power_plan, "
+        "budget_scenarios, and any execution estimates. Per-cluster, "
+        "per-method, per-condition, and total counts must be "
+        "arithmetically consistent. Explicitly state how the totals are "
+        "derived, for example: number of methods multiplied by trials per "
+        "method equals the overall confirmatory trial count. "
+        
         "Repair the selected study using only the supplied programme, "
         "capability manifest, evidence, reviews, evidence verification, "
         "and required repairs. Do not preserve development choices by "

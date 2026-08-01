@@ -61,6 +61,31 @@ def normalise_evidence_id(
     if not normalised:
         return None
 
+    # Recover a narrowly defined malformed hybrid identifier observed in
+    # generated synthesis output, for example:
+    #
+    # https://openalex.org/W36227/techrxiv.173386065.57486944/v1
+    #
+    # The embedded W36227 corresponds to the DOI registrant prefix
+    # 10.36227, while the remaining path is the TechRxiv DOI suffix.
+    # Restrict recovery to TechRxiv-shaped suffixes so legitimate
+    # OpenAlex work URLs are never rewritten.
+    malformed_techrxiv_match = re.fullmatch(
+        r"https?://openalex\.org/w(\d{5})/"
+        r"(techrxiv\.[^?#\s]+)",
+        normalised,
+        flags=re.IGNORECASE,
+    )
+
+    if malformed_techrxiv_match:
+        doi_registrant = malformed_techrxiv_match.group(1)
+        doi_suffix = malformed_techrxiv_match.group(2)
+
+        normalised = (
+            f"10.{doi_registrant}/"
+            f"{doi_suffix}"
+        )
+
     doi_prefixes = (
         "https://doi.org/",
         "http://doi.org/",
@@ -168,6 +193,85 @@ def build_evidence_alias_index(
             )
 
     return index
+
+def recover_uniquely_truncated_openalex_id(
+    reference: str,
+    *,
+    alias_index: dict[
+        str,
+        dict[str, Any],
+    ],
+) -> str | None:
+    """
+    Recover an OpenAlex work identifier missing exactly one trailing digit.
+
+    Recovery is allowed only when:
+
+    - the unresolved reference is an OpenAlex work URL;
+    - a registered OpenAlex alias has exactly one additional digit;
+    - that registered identifier starts with the requested identifier;
+    - exactly one unique matching identifier exists.
+
+    No recovery is attempted for ambiguous prefixes or other identifier
+    families.
+    """
+    canonical_reference = (
+        normalise_evidence_id(
+            reference
+        )
+    )
+
+    if canonical_reference is None:
+        return None
+
+    requested_match = re.fullmatch(
+        r"https://openalex\.org/w(\d+)",
+        canonical_reference,
+        flags=re.IGNORECASE,
+    )
+
+    if requested_match is None:
+        return None
+
+    requested_digits = (
+        requested_match.group(1)
+    )
+
+    candidates: set[str] = set()
+
+    for alias in alias_index:
+        alias_match = re.fullmatch(
+            r"https://openalex\.org/w(\d+)",
+            alias,
+            flags=re.IGNORECASE,
+        )
+
+        if alias_match is None:
+            continue
+
+        alias_digits = (
+            alias_match.group(1)
+        )
+
+        if (
+            len(alias_digits)
+            == len(requested_digits) + 1
+            and alias_digits.startswith(
+                requested_digits
+            )
+        ):
+            candidates.add(
+                alias
+            )
+
+    if len(candidates) != 1:
+        return None
+
+    return next(
+        iter(
+            candidates
+        )
+    )
 
 
 def _string_list(
@@ -536,6 +640,11 @@ def verify_evidence(
 
     missing: list[str] = []
 
+    recovered_references: dict[
+        str,
+        str,
+    ] = {}
+
     for original_reference in sorted(
         references
     ):
@@ -545,11 +654,30 @@ def verify_evidence(
             )
         )
 
+        resolved_reference: str | None = None
+
         if (
-            canonical_reference is None
-            or canonical_reference
-            not in alias_index
+            canonical_reference is not None
+            and canonical_reference
+            in alias_index
         ):
+            resolved_reference = (
+                canonical_reference
+            )
+        elif canonical_reference is not None:
+            resolved_reference = (
+                recover_uniquely_truncated_openalex_id(
+                    original_reference,
+                    alias_index=alias_index,
+                )
+            )
+
+            if resolved_reference is not None:
+                recovered_references[
+                    original_reference
+                ] = resolved_reference
+
+        if resolved_reference is None:
             missing.append(
                 original_reference
             )
@@ -558,7 +686,7 @@ def verify_evidence(
         resolved_records[
             original_reference
         ] = alias_index[
-            canonical_reference
+            resolved_reference
         ]
 
     incomplete: list[str] = []
@@ -643,6 +771,16 @@ def verify_evidence(
 
     critical_issues: list[str] = []
     warnings: list[str] = []
+
+    for original_reference, recovered_reference in sorted(
+        recovered_references.items()
+    ):
+        warnings.append(
+            "Recovered uniquely truncated OpenAlex "
+            "identifier: "
+            f"{original_reference} -> "
+            f"{recovered_reference}"
+        )
 
     missing_claim_ids = sorted(
         reference

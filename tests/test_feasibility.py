@@ -290,3 +290,160 @@ def test_required_human_annotation_is_rejected() -> None:
         or "human scientific" in issue.lower()
         for issue in issues
     )    
+    
+    
+def test_no_human_adjudication_is_accepted() -> None:
+    design = {
+        "missingness_plan": (
+            "All missingness decisions are deterministic and logged. "
+            "No human adjudication will be used."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert (
+        "Design violates autonomous-scoring requirement."
+        not in issues
+    )
+
+    assert not any(
+        "human" in issue.lower()
+        or "adjudication" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_required_human_adjudication_is_rejected() -> None:
+    design = {
+        "scoring_plan": (
+            "Disagreements are resolved by human adjudication."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert any(
+        "adjudication" in issue.lower()
+        or "autonomous-scoring" in issue.lower()
+        or "human scientific" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_no_human_evaluation_is_accepted() -> None:
+    design = {
+        "evaluation_plan": (
+            "Metrics are computed automatically. "
+            "No human evaluation is required."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert (
+        "Design violates autonomous-scoring requirement."
+        not in issues
+    ) 
+
+def test_flagging_only_not_manual_adjudication_is_not_human_dependency():
+    design = {
+        "contamination_plan": {
+            "detection_procedures": [
+                (
+                    "Items with near-perfect accuracy are flagged "
+                    "for manual review (flagging only, not manual "
+                    "adjudication)."
+                )
+            ]
+        }
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "human_annotation_available": False,
+        },
+    )
+
+    issues = report.get(
+        "issues",
+        [],
+    )
+
+    assert not any(
+        "manual review" in issue.lower()
+        for issue in issues
+    )
+
+    assert not any(
+        "manual adjudication" in issue.lower()
+        for issue in issues
+    )
+    
+    
+def test_automated_audit_with_no_human_annotation_is_allowed():
+    design = {
+        "transformation_validation": {
+            "audit_sample_policy": (
+                "The audit is automated with no human annotation."
+            )
+        }
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "human_annotation_available": False,
+        },
+    )
+
+    issues = report.get(
+        "issues",
+        [],
+    )
+
+    assert not any(
+        "human annotation"
+        in issue.lower()
+        for issue in issues
+    )
+
+
+def test_true_manual_review_dependency_remains_forbidden():
+    design = {
+        "validation_plan": (
+            "Human experts perform manual review of every flagged "
+            "item before inclusion."
+        )
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "human_annotation_available": False,
+        },
+    )
+
+    issues = report.get(
+        "issues",
+        [],
+    )
+
+    assert any(
+        "manual review"
+        in issue.lower()
+        for issue in issues
+    )

@@ -46,29 +46,127 @@ HUMAN_DEPENDENCY_PATTERNS = {
 
 
 NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
+    # Handle the complete ambiguous construction first so that
+    # "manual review" is removed together with its explicit denial
+    # of human adjudication.
+    r"\bflagged[\s-]+for[\s-]+manual[\s-]+review"
+    r"[\s\S]{0,80}?"
+    r"\bflagging[\s-]+only"
+    r"[,;:]?[\s-]+not[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bflagging[\s-]+only"
+    r"[,;:]?[\s-]+not[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bnot[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bno[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
     r"\bno[\s-]+human[\s-]+annotation"
-    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
 
     r"\bwithout[\s-]+human[\s-]+annotation\b",
 
     r"\bdoes[\s-]+not[\s-]+require"
     r"[\s-]+human[\s-]+annotation\b",
 
+    r"\bdue[\s-]+to[\s-]+no"
+    r"[\s-]+human[\s-]+annotation\b",
+
     r"\bno[\s-]+human[\s-]+review"
-    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
 
     r"\bwithout[\s-]+human[\s-]+review\b",
 
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+human[\s-]+review\b",
+
     r"\bno[\s-]+manual[\s-]+review"
-    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
 
     r"\bwithout[\s-]+manual[\s-]+review\b",
 
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+manual[\s-]+review\b",
+
+    r"\bno[\s-]+human[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+human[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+human[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bno[\s-]+human[\s-]+scor"
+    r"(?:ing|er|ers|e|ed)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+human[\s-]+scor"
+    r"(?:ing|er|ers|e|ed)?\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+human[\s-]+scor"
+    r"(?:ing|er|ers|e|ed)?\b",
+
+    r"\bno[\s-]+manual[\s-]+scor"
+    r"(?:ing|er|ers|e|ed)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+manual[\s-]+scor"
+    r"(?:ing|er|ers|e|ed)?\b",
+
+    r"\bno[\s-]+human[\s-]+evaluat"
+    r"(?:ion|or|ors|e|ed|ing)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+human[\s-]+evaluat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+human[\s-]+evaluat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\bno[\s-]+manual[\s-]+evaluat"
+    r"(?:ion|or|ors|e|ed|ing)?"
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+manual[\s-]+evaluat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
     r"\bno[\s-]+external[\s-]+human[\s-]+labor"
-    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
 
     r"\bno[\s-]+external[\s-]+human[\s-]+labour"
-    r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
+    r"(?:[\s-]+is)?"
+    r"(?:[\s-]+required)?\b",
+
+    r"\bwithout[\s-]+external[\s-]+human[\s-]+labor\b",
+
+    r"\bwithout[\s-]+external[\s-]+human[\s-]+labour\b",
 
     r"\bautomated[\s-]+flagging[\s-]+only\b",
 
@@ -76,9 +174,22 @@ NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
 
     r"\bfully[\s-]+automated[\s-]+review\b",
 
-    r"\bno[\s-]+human[\s-]+in[\s-]+(?:the[\s-]+)?loop\b",
+    r"\baudit[\s-]+is[\s-]+"
+    r"(?:fully[\s-]+)?automated\b",
+
+    r"\bautomated[\s-]+audit\b",
+
+    r"\bno[\s-]+human[\s-]+in[\s-]+"
+    r"(?:the[\s-]+)?loop\b",
 
     r"\bno[\s-]+human[\s-]?in[\s-]?loop\b",
+
+    r"\bwithout[\s-]+human[\s-]+in[\s-]+"
+    r"(?:the[\s-]+)?loop\b",
+
+    r"\bfully[\s-]+autonomous\b",
+
+    r"\bfully[\s-]+automated\b",
 )
 
 

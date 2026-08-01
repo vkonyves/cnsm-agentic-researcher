@@ -4,6 +4,7 @@ from cnsm_agentic.autonomous_research.evidence_verification import (
     collect_referenced_ids,
     normalise_evidence_id,
     resolve_evidence_references,
+    recover_uniquely_truncated_openalex_id,
     verify_evidence,
 )
 
@@ -386,4 +387,171 @@ def test_only_selected_candidate_references_are_collected() -> None:
         in references
     )    
 
+
+def test_malformed_openalex_techrxiv_id_normalises_to_doi() -> None:
+    malformed = (
+        "https://openalex.org/"
+        "W36227/"
+        "techrxiv.173386065.57486944/v1"
+    )
+
+    assert normalise_evidence_id(
+        malformed
+    ) == (
+        "10.36227/"
+        "techrxiv.173386065.57486944/v1"
+    )
+
+
+def test_malformed_openalex_techrxiv_id_resolves_against_doi_record() -> None:
+    records = [
+        {
+            "record_id": (
+                "doi:10.36227/"
+                "techrxiv.173386065.57486944/v1"
+            ),
+            "doi": (
+                "10.36227/"
+                "techrxiv.173386065.57486944/v1"
+            ),
+            "title": (
+                "A Survey on Large Language Models "
+                "for Network Operations and Management"
+            ),
+            "publication_year": 2024,
+            "url": (
+                "https://doi.org/"
+                "10.36227/"
+                "techrxiv.173386065.57486944/v1"
+            ),
+            "abstract": "Example abstract.",
+        }
+    ]
+
+    alias_index = build_evidence_alias_index(
+        records
+    )
+
+    malformed = (
+        "https://openalex.org/"
+        "W36227/"
+        "techrxiv.173386065.57486944/v1"
+    )
+
+    assert normalise_evidence_id(
+        malformed
+    ) in alias_index    
     
+
+def test_uniquely_truncated_openalex_id_is_recovered() -> None:
+    records = [
+        {
+            "record_id": (
+                "https://openalex.org/W4412158322"
+            ),
+            "openalex_id": (
+                "https://openalex.org/W4412158322"
+            ),
+            "title": "Example work",
+            "publication_year": 2026,
+            "abstract": "Example abstract.",
+        }
+    ]
+
+    alias_index = build_evidence_alias_index(
+        records
+    )
+
+    recovered = (
+        recover_uniquely_truncated_openalex_id(
+            "https://openalex.org/W441215832",
+            alias_index=alias_index,
+        )
+    )
+
+    assert recovered == (
+        "https://openalex.org/w4412158322"
+    )
+    
+def test_ambiguous_truncated_openalex_id_is_not_recovered() -> None:
+    records = [
+        {
+            "record_id": (
+                "https://openalex.org/W4412158321"
+            ),
+        },
+        {
+            "record_id": (
+                "https://openalex.org/W4412158322"
+            ),
+        },
+    ]
+
+    alias_index = build_evidence_alias_index(
+        records
+    )
+
+    recovered = (
+        recover_uniquely_truncated_openalex_id(
+            "https://openalex.org/W441215832",
+            alias_index=alias_index,
+        )
+    )
+
+    assert recovered is None
+    
+def test_verification_recovers_uniquely_truncated_openalex_id() -> None:
+    records = [
+        {
+            "record_id": (
+                "https://openalex.org/W4412158322"
+            ),
+            "openalex_id": (
+                "https://openalex.org/W4412158322"
+            ),
+            "url": (
+                "https://openalex.org/W4412158322"
+            ),
+            "title": "Example work",
+            "publication_year": 2026,
+            "abstract": "Example abstract.",
+        }
+    ]
+
+    synthesis = {
+        "established_findings": [
+            {
+                "claim_id": "EF1",
+                "claim": "Example finding.",
+                "evidence_record_ids": [
+                    "https://openalex.org/W441215832"
+                ],
+            }
+        ],
+        "unresolved_questions": [],
+        "candidate_gaps": [],
+    }
+
+    candidates = {
+        "candidates": []
+    }
+
+    decision = {
+        "selected_candidate_id": None,
+        "evidence_record_ids": [],
+    }
+
+    report = verify_evidence(
+        records=records,
+        synthesis=synthesis,
+        candidates=candidates,
+        decision=decision,
+    )
+
+    assert report.missing_record_ids == []
+    assert report.critical_issues == []
+    assert any(
+        "uniquely truncated openalex"
+        in warning.lower()
+        for warning in report.warnings
+    )    

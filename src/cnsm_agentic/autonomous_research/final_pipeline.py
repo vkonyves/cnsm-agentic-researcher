@@ -50,6 +50,10 @@ from .final_schemas import (
 from .pipeline import (
     AutonomousDiscoveryPipeline,
 )
+from .analysis_executors import (
+    resolve_analysis_executor,
+    validate_analysis_results,
+)
 from .repair_schemas import (
     RepairedStudyDesign,
     RepairReadinessReport,
@@ -1436,7 +1440,7 @@ class FinalAutonomousResearchPipeline:
             return report
 
         # -------------------------------------------------
-        # 10. Analysis planning and execution check
+        # 10. Analysis planning and execution
         # -------------------------------------------------
 
         analysis_plan = await run_agent(
@@ -1469,21 +1473,27 @@ class FinalAutonomousResearchPipeline:
             analysis_plan,
         )
 
-        results_path = (
-            run_dir
-            / "analysis"
-            / "results.json"
+        analysis_executor = (
+            resolve_analysis_executor(
+                analysis_plan=(
+                    analysis_plan.model_dump()
+                ),
+                execution_manifest=(
+                    execution_manifest
+                ),
+            )
         )
 
-        if not results_path.is_file():
+        if analysis_executor is None:
             report = create_failure_report(
                 passed_gates=[
                     "execution_completed",
                     "analysis_plan",
                 ],
                 failed_gate=(
-                    "Autonomous analysis executor has "
-                    "not produced results.json."
+                    "No installed deterministic "
+                    "analysis executor supports the "
+                    "analysis plan and execution output."
                 ),
                 final_state=(
                     "AUTONOMOUS_ANALYSIS_EXECUTOR_REQUIRED"
@@ -1509,9 +1519,85 @@ class FinalAutonomousResearchPipeline:
 
             return report
 
-        analysis_results = read_json(
-            results_path
+        analysis_results = (
+            analysis_executor.execute(
+                analysis_plan=(
+                    analysis_plan.model_dump()
+                ),
+                preregistration=(
+                    preregistration.model_dump()
+                ),
+                execution_manifest=(
+                    execution_manifest
+                ),
+                run_dir=run_dir,
+            )
         )
+
+        results_path = (
+            run_dir
+            / "analysis"
+            / "results.json"
+        )
+
+        write_json(
+            results_path,
+            analysis_results,
+        )
+
+        analysis_result_issues = (
+            validate_analysis_results(
+                analysis_results,
+                run_dir=run_dir,
+                execution_manifest=(
+                    execution_manifest
+                ),
+            )
+        )
+
+        if analysis_result_issues:
+            report = create_failure_report(
+                passed_gates=[
+                    "execution_completed",
+                    "analysis_plan",
+                    "analysis_executor_resolved",
+                ],
+                failed_gate=(
+                    "Deterministic analysis executor "
+                    "did not produce valid completed "
+                    "analysis results."
+                ),
+                final_state=(
+                    "AUTONOMOUS_ANALYSIS_INCOMPLETE"
+                ),
+                warnings=(
+                    analysis_result_issues
+                ),
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "analysis_result_issues": (
+                        analysis_result_issues
+                    ),
+                },
+            )
+
+            return report
 
         # -------------------------------------------------
         # 11. Autonomous manuscript generation
