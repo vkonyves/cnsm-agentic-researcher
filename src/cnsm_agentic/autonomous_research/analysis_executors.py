@@ -738,13 +738,11 @@ class PairedBinaryAnalysisExecutor:
             condition = str(row.get("condition"))
             bucket = pairs.setdefault(pair_id, {})
             if condition in bucket:
-                exclusions.append({
-                    "pair_id": pair_id,
-                    "reason": "DUPLICATE_CONDITION_ROW",
-                    "condition": condition,
-                })
-            else:
-                bucket[condition] = row
+                raise ValueError(
+                    "Duplicate condition row for "
+                    f"{pair_id}/{condition}."
+                )
+            bucket[condition] = row
 
         complete: list[tuple[int, int]] = []
         missing_counts = {
@@ -770,13 +768,19 @@ class PairedBinaryAnalysisExecutor:
             guarded_observed = guarded_score in (0, 1) and not isinstance(
                 guarded_score, bool
             )
-            if baseline and baseline.get("call_status") == "FAILED":
+            baseline_failed = bool(
+                baseline and baseline.get("call_status") == "FAILED"
+            )
+            guarded_failed = bool(
+                guarded and guarded.get("call_status") == "FAILED"
+            )
+            if baseline_failed:
                 missing_counts["failed_baseline_episodes"] += 1
-            if guarded and guarded.get("call_status") == "FAILED":
+            if guarded_failed:
                 missing_counts["failed_guarded_episodes"] += 1
-            if baseline and not baseline_observed:
+            if baseline and not baseline_observed and not baseline_failed:
                 missing_counts["unscorable_baseline_episodes"] += 1
-            if guarded and not guarded_observed:
+            if guarded and not guarded_observed and not guarded_failed:
                 missing_counts["unscorable_guarded_episodes"] += 1
             for row in (baseline, guarded):
                 if not row:

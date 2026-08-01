@@ -579,6 +579,178 @@ def test_analysis_reports_incomplete_pair_from_failed_call(tmp_path: Path) -> No
         execution_manifest=manifest,
         run_dir=tmp_path,
     )
-    assert results["missingness_summary"]["guarded_only_observed_pairs"] == 1
-    assert results["missingness_summary"]["failed_baseline_episodes"] == 1
+    missing = results["missingness_summary"]
+    assert missing["guarded_only_observed_pairs"] == 1
+    assert missing["failed_baseline_episodes"] == 1
+    assert missing["unscorable_baseline_episodes"] == 0
     assert results["confirmatory_results"][0]["complete_pair_count"] == 2
+
+
+def test_analysis_reports_unscorable_incomplete_pair(
+    tmp_path: Path,
+) -> None:
+    from cnsm_agentic.autonomous_research.execution_adapters import (
+        SyntheticPairedLLMBenchmarkAdapter,
+    )
+
+    plan = {
+        "study_id": "study-unscorable-1",
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "task_count": 3,
+        "estimated_model_calls": 6,
+        "task_families": ["configuration_error_detection_v1"],
+        "transformations": {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "execution_mode": "development_rehearsal",
+        "rehearsal_unscorable_task_ids": ["task-000001"],
+    }
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    results = PairedBinaryAnalysisExecutor().execute(
+        analysis_plan={
+            "analysis_executor": "paired_binary_analysis_v1",
+            "study_id": "study-unscorable-1",
+            "estimand": (
+                "paired_success_rate_difference_guarded_minus_baseline"
+            ),
+            "failed_call_treatment": "complete_pair_primary",
+            "bootstrap_resamples": 100,
+        },
+        preregistration={},
+        execution_manifest=manifest,
+        run_dir=tmp_path,
+    )
+    missing = results["missingness_summary"]
+    assert missing["guarded_only_observed_pairs"] == 1
+    assert missing["unscorable_baseline_episodes"] == 1
+    assert missing["failed_baseline_episodes"] == 0
+    assert results["confirmatory_results"][0]["complete_pair_count"] == 2
+
+
+def test_analysis_rejects_duplicate_condition_row(
+    tmp_path: Path,
+) -> None:
+    from cnsm_agentic.autonomous_research.execution_adapters import (
+        SyntheticPairedLLMBenchmarkAdapter,
+    )
+
+    plan = {
+        "study_id": "study-duplicate-1",
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "task_count": 2,
+        "estimated_model_calls": 4,
+        "task_families": ["configuration_error_detection_v1"],
+        "transformations": {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "execution_mode": "development_rehearsal",
+    }
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    results_path = tmp_path / manifest["results_path"]
+    lines = results_path.read_text(encoding="utf-8").splitlines()
+    results_path.write_text(
+        "\n".join([*lines, lines[0]]) + "\n",
+        encoding="utf-8",
+    )
+    import hashlib
+    manifest["artifact_hashes"][manifest["results_path"]] = (
+        hashlib.sha256(results_path.read_bytes()).hexdigest()
+    )
+    with pytest.raises(ValueError, match="Duplicate condition row"):
+        PairedBinaryAnalysisExecutor().execute(
+            analysis_plan={
+                "analysis_executor": "paired_binary_analysis_v1",
+                "study_id": "study-duplicate-1",
+                "estimand": (
+                    "paired_success_rate_difference_guarded_minus_baseline"
+                ),
+                "failed_call_treatment": "complete_pair_primary",
+                "bootstrap_resamples": 100,
+            },
+            preregistration={},
+            execution_manifest=manifest,
+            run_dir=tmp_path,
+        )
+
+
+def test_analysis_rejects_tampered_raw_results(
+    tmp_path: Path,
+) -> None:
+    from cnsm_agentic.autonomous_research.execution_adapters import (
+        SyntheticPairedLLMBenchmarkAdapter,
+    )
+
+    plan = {
+        "study_id": "study-tamper-1",
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "task_count": 2,
+        "estimated_model_calls": 4,
+        "task_families": ["configuration_error_detection_v1"],
+        "transformations": {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "execution_mode": "development_rehearsal",
+    }
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    results_path = tmp_path / manifest["results_path"]
+    results_path.write_text(
+        results_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="hash does not match"):
+        PairedBinaryAnalysisExecutor().execute(
+            analysis_plan={
+                "analysis_executor": "paired_binary_analysis_v1",
+                "study_id": "study-tamper-1",
+                "estimand": (
+                    "paired_success_rate_difference_guarded_minus_baseline"
+                ),
+                "failed_call_treatment": "complete_pair_primary",
+                "bootstrap_resamples": 100,
+            },
+            preregistration={},
+            execution_manifest=manifest,
+            run_dir=tmp_path,
+        )

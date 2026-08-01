@@ -603,3 +603,85 @@ def test_rehearsal_failure_is_preserved_as_terminal_row(
     assert scoring_record["scoring_status"] == "NOT_SCORED"
     assert scoring_record["score_reason_code"] == "CALL_FAILED"
     assert scoring_record["normalized_response"] is None
+
+
+def test_rehearsal_unscorable_response_is_preserved(
+    tmp_path: Path,
+) -> None:
+    plan = _rehearsal_plan(task_count=3)
+    plan["rehearsal_unscorable_task_ids"] = ["task-000001"]
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    assert manifest["completed_episode_count"] == 5
+    assert manifest["failed_episode_count"] == 1
+    rows = [
+        __import__("json").loads(line)
+        for line in (tmp_path / "execution" / "raw_results.jsonl")
+        .read_text(encoding="utf-8").splitlines()
+    ]
+    row = next(
+        row for row in rows
+        if row["task_id"] == "task-000001"
+        and row["condition"] == "baseline"
+    )
+    assert row["call_status"] == "COMPLETED"
+    assert row["scoring_status"] == "NOT_SCORED"
+    assert row["score"] is None
+    assert row["score_reason_code"] == "RESPONSE_FORMAT_INVALID"
+    assert row["response_sha256"]
+    assert validate_paired_binary_result_row(row) == []
+
+
+def test_rehearsal_cache_reuse_uses_no_model_call(
+    tmp_path: Path,
+) -> None:
+    plan = _rehearsal_plan(task_count=3)
+    plan["rehearsal_cached_task_ids"] = ["task-000001"]
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=tmp_path / "execution",
+    )
+    assert manifest["model_calls_used"] == 5
+    rows = [
+        __import__("json").loads(line)
+        for line in (tmp_path / "execution" / "raw_results.jsonl")
+        .read_text(encoding="utf-8").splitlines()
+    ]
+    row = next(
+        row for row in rows
+        if row["task_id"] == "task-000001"
+        and row["condition"] == "guarded"
+    )
+    assert row["call_status"] == "CACHED"
+    assert row["model_calls_used"] == 0
+    assert row["score"] == 1
+    assert validate_paired_binary_result_row(row) == []
+
+
+def test_manifest_detects_tampered_scoring_artifact(
+    tmp_path: Path,
+) -> None:
+    plan = _rehearsal_plan(task_count=2)
+    output_dir = tmp_path / "execution"
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={},
+        output_dir=output_dir,
+    )
+    scoring_path = output_dir / "scoring" / "task-000001-baseline.json"
+    scoring_path.write_text("{}\n", encoding="utf-8")
+    issues = validate_execution_manifest(
+        manifest,
+        plan=plan,
+        output_dir=output_dir,
+        maximum_model_calls=4,
+    )
+    assert any(
+        "hash does not match" in issue.lower()
+        and "scoring" in issue.lower()
+        for issue in issues
+    )

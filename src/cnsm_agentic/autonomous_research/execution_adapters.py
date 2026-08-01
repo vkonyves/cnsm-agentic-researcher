@@ -582,36 +582,54 @@ def validate_execution_manifest(
             "Execution artifact hashes are missing."
         )
     else:
-        for manifest_path, artifact_path in (
-            resolved_artifacts.items()
-        ):
-            expected_hash = (
-                artifact_hashes.get(
-                    manifest_path
-                )
-            )
-
-            if not isinstance(
-                expected_hash,
-                str,
-            ) or not expected_hash.strip():
+        for manifest_path, expected_hash in artifact_hashes.items():
+            if (
+                not isinstance(manifest_path, str)
+                or not manifest_path.strip()
+            ):
                 issues.append(
-                    "Execution artifact hash "
-                    f"is missing for: {manifest_path}"
+                    "Execution artifact hash contains an invalid path key."
                 )
                 continue
 
-            actual_hash = _sha256_file(
-                artifact_path
+            artifact_path = _resolve_artifact_path(
+                output_dir=output_dir,
+                relative_path=manifest_path,
             )
-
+            if artifact_path is None:
+                issues.append(
+                    "Execution artifact hash path is unsafe: "
+                    f"{manifest_path}"
+                )
+                continue
+            if not artifact_path.is_file():
+                issues.append(
+                    "Execution artifact hash path does not exist: "
+                    f"{manifest_path}"
+                )
+                continue
             if (
-                actual_hash.lower()
-                != expected_hash.strip().lower()
+                not isinstance(expected_hash, str)
+                or not expected_hash.strip()
             ):
                 issues.append(
-                    "Execution artifact hash "
-                    f"does not match: {manifest_path}"
+                    "Execution artifact hash is missing for: "
+                    f"{manifest_path}"
+                )
+                continue
+
+            actual_hash = _sha256_file(artifact_path)
+            if actual_hash.lower() != expected_hash.strip().lower():
+                issues.append(
+                    "Execution artifact hash does not match: "
+                    f"{manifest_path}"
+                )
+
+        for manifest_path in resolved_artifacts:
+            if manifest_path not in artifact_hashes:
+                issues.append(
+                    "Execution artifact hash is missing for: "
+                    f"{manifest_path}"
                 )
 
     warnings = manifest.get(
@@ -759,16 +777,28 @@ def validate_paired_binary_result_row(
         issues.append("score must be 0, 1, or null.")
 
     if call_status in {"COMPLETED", "CACHED"}:
-        if scoring_status != "COMPLETED" or score not in (0, 1):
-            issues.append(
-                "Successful calls require a completed binary score."
-            )
         if not _is_sha256(row.get("response_sha256")):
             issues.append("Successful calls require response_sha256.")
         if not isinstance(row.get("response_artifact_path"), str):
             issues.append("Successful calls require a response artifact path.")
         if row.get("terminal_error_type") is not None:
             issues.append("Successful calls cannot have terminal errors.")
+        if scoring_status == "COMPLETED":
+            if score not in (0, 1):
+                issues.append(
+                    "Completed scoring requires a binary score."
+                )
+        elif scoring_status == "NOT_SCORED":
+            if score is not None:
+                issues.append(
+                    "Unscored responses require a null score."
+                )
+        else:
+            issues.append(
+                "Successful calls require COMPLETED or NOT_SCORED scoring."
+            )
+        if call_status == "CACHED" and row.get("model_calls_used") != 0:
+            issues.append("Cached calls must use zero model calls.")
     elif call_status == "FAILED":
         if scoring_status != "NOT_SCORED" or score is not None:
             issues.append("Failed calls must remain unscored with null score.")
@@ -1072,6 +1102,10 @@ class SyntheticPairedLLMBenchmarkAdapter:
         _write_json(result_schema_path, result_schema)
 
         failure_task_ids = set(plan.get("rehearsal_failure_task_ids", []))
+        unscorable_task_ids = set(
+            plan.get("rehearsal_unscorable_task_ids", [])
+        )
+        cached_task_ids = set(plan.get("rehearsal_cached_task_ids", []))
         rows: list[dict[str, Any]] = []
         log_events: list[dict[str, Any]] = []
         model_calls_used = 0
@@ -1093,10 +1127,22 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     f"Question: {task['task_payload']['question']}"
                 )
                 prompt_hash = _sha256_bytes(prompt.encode("utf-8"))
-                model_calls_used += 1
 
-                failed = task["task_id"] in failure_task_ids and condition == "baseline"
+                failed = (
+                    task["task_id"] in failure_task_ids
+                    and condition == "baseline"
+                )
+                unscorable = (
+                    task["task_id"] in unscorable_task_ids
+                    and condition == "baseline"
+                )
+                cached = (
+                    task["task_id"] in cached_task_ids
+                    and condition == "guarded"
+                )
+
                 if failed:
+                    model_calls_for_episode = 1
                     response = None
                     normalized_response = None
                     score = None
@@ -1111,36 +1157,54 @@ class SyntheticPairedLLMBenchmarkAdapter:
                         "Deterministic failure requested by rehearsal plan."
                     )
                 else:
-                    # Baseline deliberately misses every third task; guarded is
-                    # correct on every task. This gives deterministic discordance.
-                    response = (
-                        "NO"
-                        if condition == "baseline"
-                        and int(task["task_id"].split("-")[-1]) % 3 == 0
-                        else "YES"
-                    )
+                    model_calls_for_episode = 0 if cached else 1
+                    if unscorable:
+                        response = "MAYBE"
+                    else:
+                        # Baseline deliberately misses every third task; guarded
+                        # is correct on every task, creating fixed discordance.
+                        response = (
+                            "NO"
+                            if condition == "baseline"
+                            and int(task["task_id"].split("-")[-1]) % 3 == 0
+                            else "YES"
+                        )
                     normalized_response = response.strip().upper()
-                    score = int(
-                        normalized_response == task["reference_answer"]
-                    )
-                    call_status = "COMPLETED"
-                    scoring_status = "COMPLETED"
-                    reason = "EXACT_MATCH" if score else "EXACT_MISMATCH"
+                    call_status = "CACHED" if cached else "COMPLETED"
                     response_path = responses_dir / f"{episode_id}.txt"
-                    response_path.write_text(response + "\n", encoding="utf-8")
+                    response_path.write_text(
+                        response + "\n",
+                        encoding="utf-8",
+                    )
                     response_hash = _sha256_file(response_path)
                     response_relative = _relative_to_parent(
-                        response_path, output_dir
+                        response_path,
+                        output_dir,
                     )
-                    scoring_input = {
-                        "response": normalized_response,
-                        "reference_answer": task["reference_answer"],
-                    }
-                    scoring_input_hash = _sha256_bytes(
-                        _canonical_json_bytes(scoring_input)
-                    )
+                    if normalized_response not in {"YES", "NO"}:
+                        score = None
+                        scoring_status = "NOT_SCORED"
+                        reason = "RESPONSE_FORMAT_INVALID"
+                        scoring_input_hash = None
+                    else:
+                        score = int(
+                            normalized_response == task["reference_answer"]
+                        )
+                        scoring_status = "COMPLETED"
+                        reason = (
+                            "EXACT_MATCH" if score else "EXACT_MISMATCH"
+                        )
+                        scoring_input = {
+                            "response": normalized_response,
+                            "reference_answer": task["reference_answer"],
+                        }
+                        scoring_input_hash = _sha256_bytes(
+                            _canonical_json_bytes(scoring_input)
+                        )
                     error_type = None
                     error_message = None
+
+                model_calls_used += model_calls_for_episode
 
                 scoring_record = {
                     "schema_version": "1.0",
@@ -1199,7 +1263,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     "prompt_sha256": prompt_hash,
                     "call_status": call_status,
                     "attempt_count": 1,
-                    "model_calls_used": 1,
+                    "model_calls_used": model_calls_for_episode,
                     "terminal_error_type": error_type,
                     "terminal_error_message": error_message,
                     "response_sha256": response_hash,
@@ -1226,7 +1290,9 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     )
                 rows.append(row)
                 log_events.append({
-                    "event_type": "model_call_attempt",
+                    "event_type": (
+                        "cache_reuse" if cached else "model_call_attempt"
+                    ),
                     "study_id": study_id,
                     "episode_id": episode_id,
                     "pair_id": task["pair_id"],
@@ -1242,7 +1308,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     "outcome": call_status,
                     "error_type": error_type,
                     "retry_decision": "STOP",
-                    "model_calls_used": 1,
+                    "model_calls_used": model_calls_for_episode,
                 })
 
         results_path = output_dir / "raw_results.jsonl"
