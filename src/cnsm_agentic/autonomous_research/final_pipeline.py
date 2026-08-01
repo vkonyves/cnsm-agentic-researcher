@@ -19,6 +19,7 @@ from .evidence_verification import (
     verify_evidence,
 )
 from .execution_adapters import (
+    registered_adapter_families,
     resolve_adapter,
     validate_execution_manifest,
 )
@@ -51,6 +52,7 @@ from .pipeline import (
     AutonomousDiscoveryPipeline,
 )
 from .analysis_executors import (
+    registered_analysis_families,
     resolve_analysis_executor,
     validate_analysis_results,
 )
@@ -286,6 +288,9 @@ async def create_feasible_experiment_plan(
                 repaired_design.model_dump()
             ),
             "verified_records": records,
+            "available_adapter_families": (
+                registered_adapter_families()
+            ),
             "planning_attempt": attempt,
             "maximum_planning_attempts": (
                 maximum_attempts
@@ -393,7 +398,13 @@ async def create_feasible_experiment_plan(
                 "future components. When no local GPU is available, "
                 "use hosted model APIs or CPU-compatible methods. "
                 "When human labour is prohibited, all labels, audits, "
-                "scoring and validation must be autonomous."
+                "scoring and validation must be autonomous. Set "
+                "adapter_family to exactly one identifier from "
+                "available_adapter_families. Do not invent, describe, "
+                "expand, rename, or decorate the identifier. The "
+                "implementation strategy, resources, batches, and "
+                "result schema must fit the selected registered "
+                "adapter's actual scope."
             ),
         }
 
@@ -416,7 +427,10 @@ async def create_feasible_experiment_plan(
                 "expert-review, annotation, manual-adjudication, "
                 "external-partner, NDA, private-lab and unavailable "
                 "Kubernetes requirements. Preserve the scientific "
-                "question and estimands where executable."
+                "question and estimands where executable. Set "
+                "adapter_family to exactly one identifier from "
+                "available_adapter_families; never invent or decorate "
+                "an adapter identifier."
             )
 
         experiment_plan = await run_agent(
@@ -1167,6 +1181,52 @@ class FinalAutonomousResearchPipeline:
         # 6. Experiment planning with bounded repair
         # -------------------------------------------------
 
+        available_adapter_families = (
+            registered_adapter_families()
+        )
+
+        if not available_adapter_families:
+            report = create_failure_report(
+                passed_gates=[
+                    "fresh_run",
+                    "autonomous_discovery",
+                    "candidate_validation",
+                    "evidence_verification",
+                    "autonomous_design_repair",
+                    "repaired_design_feasibility",
+                    "provisional_preregistration",
+                ],
+                failed_gate=(
+                    "No autonomous execution adapters "
+                    "are registered."
+                ),
+                final_state=(
+                    "AUTONOMOUS_EXECUTION_ADAPTER_REQUIRED"
+                ),
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "available_adapter_families": [],
+                },
+            )
+
+            return report
+
         (
             experiment_plan,
             experiment_feasibility,
@@ -1443,6 +1503,57 @@ class FinalAutonomousResearchPipeline:
         # 10. Analysis planning and execution
         # -------------------------------------------------
 
+        available_analysis_families = (
+            registered_analysis_families()
+        )
+
+        if not available_analysis_families:
+            report = create_failure_report(
+                passed_gates=[
+                    "fresh_run",
+                    "autonomous_discovery",
+                    "candidate_validation",
+                    "evidence_verification",
+                    "autonomous_design_repair",
+                    "repaired_design_feasibility",
+                    "provisional_preregistration",
+                    "experiment_plan",
+                    "experiment_plan_feasibility",
+                    "sealed_preregistration",
+                    "execution_adapter_resolved",
+                    "execution_completed",
+                ],
+                failed_gate=(
+                    "No deterministic analysis executors "
+                    "are registered."
+                ),
+                final_state=(
+                    "AUTONOMOUS_ANALYSIS_EXECUTOR_REQUIRED"
+                ),
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "available_analysis_families": [],
+                },
+            )
+
+            return report
+
         analysis_plan = await run_agent(
             ANALYSIS_PLANNER,
             {
@@ -1460,6 +1571,9 @@ class FinalAutonomousResearchPipeline:
                 ),
                 "execution_manifest": (
                     execution_manifest
+                ),
+                "available_analysis_families": (
+                    available_analysis_families
                 ),
             },
             expected_type=AnalysisPlan,

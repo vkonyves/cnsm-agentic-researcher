@@ -61,10 +61,17 @@ class ExperimentPlan(BaseModel):
     estimated_model_calls:int=Field(gt=0); estimated_compute_notes:str
 
 class AnalysisPlan(BaseModel):
-    study_id:str; primary_analysis:str; secondary_analyses:list[str]
-    sensitivity_analyses:list[str]; uncertainty_quantification:str
-    multiplicity_implementation:str; contamination_analysis:str
-    failed_call_treatment:str; table_specifications:list[str]; figure_specifications:list[str]
+    study_id: str
+    analysis_executor: str
+    primary_analysis: str
+    secondary_analyses: list[str]
+    sensitivity_analyses: list[str]
+    uncertainty_quantification: str
+    multiplicity_implementation: str
+    contamination_analysis: str
+    failed_call_treatment: str
+    table_specifications: list[str]
+    figure_specifications: list[str]
 
 class ManuscriptPackage(BaseModel):
     title:str; abstract:str; sections:dict[str,str]; figure_captions:list[str]
