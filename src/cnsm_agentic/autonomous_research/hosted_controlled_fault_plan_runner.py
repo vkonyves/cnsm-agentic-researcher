@@ -360,7 +360,7 @@ class HostedControlledFaultPlanRunner:
                     metadata={
                         "pair_id": pair_id,
                         "task_id": task_id,
-                        "task_index": pair_spec["task_index"],
+                        "task_index": str(pair_spec["task_index"]),
                         "stage": "valid_source_generation",
                         "plan_sha256": plan["plan_sha256"],
                     },
@@ -527,7 +527,7 @@ class HostedControlledFaultPlanRunner:
                     metadata={
                         "pair_id": pair_id,
                         "task_id": task_id,
-                        "task_index": pair_spec["task_index"],
+                        "task_index": str(pair_spec["task_index"]),
                         "stage": "controlled_fault_repair",
                         "fault_class": pair_spec["fault_class"],
                         "plan_sha256": plan["plan_sha256"],

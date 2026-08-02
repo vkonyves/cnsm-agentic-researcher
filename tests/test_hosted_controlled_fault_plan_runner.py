@@ -123,6 +123,9 @@ def test_plan_runner_completes_fake_five_pair_run(
     assert summary["baseline_successes"] == 0
     assert summary["guarded_successes"] == 5
     assert len(provider.requests) == 10
+    for request in provider.requests:
+        assert isinstance(request.metadata["task_index"], str)
+        assert request.metadata["task_index"].isdigit()
 
 
 def test_resume_skips_completed_pair_after_process_interruption(
