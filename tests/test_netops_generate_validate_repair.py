@@ -1,5 +1,7 @@
 from cnsm_agentic.autonomous_research.netops_generate_validate_repair import (
     TASK_FAMILY,
+    TASK_GENERATOR_VERSION,
+    VALIDATOR_VERSION,
     generate_direct_candidate,
     generate_task,
     repair_configuration,
@@ -12,13 +14,34 @@ from cnsm_agentic.autonomous_research.netops_generate_validate_repair import (
 def test_generated_task_and_reference_are_valid() -> None:
     task = generate_task(1)
     assert task["task_family"] == TASK_FAMILY
+    assert task["task_generator_version"] == TASK_GENERATOR_VERSION
+    assert len(task["initial_state"]) == 3
     reference = render_reference_configuration(task)
     validation = validate_configuration(task, reference)
     assert validation["valid"] is True
+    assert validation["validator_version"] == VALIDATOR_VERSION
     assert validation["violation_count"] == 0
 
 
-def test_validator_detects_wrong_value_missing_setting_and_scope_change() -> None:
+def test_task_variants_include_multi_interface_and_preservation_cases() -> None:
+    task_two = generate_task(2)
+    changed_interfaces = {
+        item["interface"] for item in task_two["required_changes"]
+    }
+    assert len(changed_interfaces) == 2
+    assert task_two["constraints"]["preserve_unspecified_state"] is True
+
+    task_three = generate_task(3)
+    assert len(task_three["required_changes"]) == 2
+    assert "must remain 1500" in task_three["intent"]
+
+    task_four = generate_task(4)
+    assert len({
+        item["interface"] for item in task_four["required_changes"]
+    }) == 2
+
+
+def test_validator_detects_wrong_value_missing_setting_and_preserved_change() -> None:
     task = generate_task(1)
 
     wrong = generate_direct_candidate(task, 1)
@@ -32,7 +55,17 @@ def test_validator_detects_wrong_value_missing_setting_and_scope_change() -> Non
 
     scope = generate_direct_candidate(task, 3)
     scope_validation = validate_configuration(task, scope)
-    assert "UNINTENDED_INTERFACE_CHANGE" in scope_validation["violation_codes"]
+    assert "UNINTENDED_STATE_CHANGE" in scope_validation["violation_codes"]
+
+
+def test_validator_rejects_change_to_unspecified_field_on_target_interface() -> None:
+    task = generate_task(3)
+    reference = render_reference_configuration(task)
+    target = task["required_changes"][0]["interface"]
+    candidate = reference + f"\ninterface {target} mtu 1700"
+    validation = validate_configuration(task, candidate)
+    assert validation["valid"] is False
+    assert "UNINTENDED_STATE_CHANGE" in validation["violation_codes"]
 
 
 def test_repair_is_bounded_and_produces_valid_configuration() -> None:
@@ -65,8 +98,15 @@ def test_guarded_condition_never_performs_worse_than_direct_candidate() -> None:
         )
 
 
-def test_validator_rejects_unsupported_syntax() -> None:
+def test_validator_rejects_unsupported_syntax_and_unknown_interface() -> None:
     task = generate_task(1)
-    validation = validate_configuration(task, "router ospf 1")
-    assert validation["valid"] is False
-    assert "SYNTAX_ERROR" in validation["violation_codes"]
+    syntax = validate_configuration(task, "router ospf 1")
+    assert syntax["valid"] is False
+    assert "SYNTAX_ERROR" in syntax["violation_codes"]
+
+    unknown = validate_configuration(
+        task,
+        render_reference_configuration(task) + "\ninterface ghost0 admin down",
+    )
+    assert unknown["valid"] is False
+    assert "UNKNOWN_INTERFACE" in unknown["violation_codes"]

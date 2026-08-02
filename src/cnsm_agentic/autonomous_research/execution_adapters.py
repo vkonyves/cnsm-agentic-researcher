@@ -10,6 +10,7 @@ from .netops_generate_validate_repair import (
     BASELINE_TRANSFORMATION as NETOPS_BASELINE_TRANSFORMATION,
     GUARDED_TRANSFORMATION as NETOPS_GUARDED_TRANSFORMATION,
     TASK_FAMILY as NETOPS_TASK_FAMILY,
+    TASK_GENERATOR_ID as NETOPS_TASK_GENERATOR_ID,
     generate_task as generate_netops_task,
     render_reference_configuration,
     run_condition as run_netops_condition,
@@ -1057,7 +1058,7 @@ class SyntheticPairedLLMBenchmarkAdapter:
             if selected_task_family == NETOPS_TASK_FAMILY:
                 payload = generate_netops_task(index)
                 reference_answer = render_reference_configuration(payload)
-                generator_id = "deterministic_netops_task_generator_v1"
+                generator_id = NETOPS_TASK_GENERATOR_ID
                 source_identifier = f"synthetic-netops:{task_id}"
             else:
                 payload = {
@@ -1489,3 +1490,11 @@ def register_builtin_execution_adapters() -> None:
     """Register built-in adapters explicitly and idempotently by family."""
     if SYNTHETIC_PAIRED_ADAPTER_FAMILY not in registered_adapter_families():
         register_adapter(SyntheticPairedLLMBenchmarkAdapter())
+
+    from .hosted_netops_adapter import (
+        HOSTED_NETOPS_ADAPTER_FAMILY,
+        HostedNetOpsGVRAdapter,
+    )
+
+    if HOSTED_NETOPS_ADAPTER_FAMILY not in registered_adapter_families():
+        register_adapter(HostedNetOpsGVRAdapter())

@@ -6,18 +6,21 @@ from typing import Any
 
 
 TASK_FAMILY = "intent_configuration_repair_v1"
+TASK_GENERATOR_ID = "deterministic_netops_task_generator_v2"
+TASK_GENERATOR_VERSION = "2.0"
 BASELINE_TRANSFORMATION = "direct_configuration_generation_v1"
 GUARDED_TRANSFORMATION = "generate_validate_repair_v1"
-VALIDATOR_ID = "deterministic_netops_validator_v1"
-VALIDATOR_VERSION = "1.0"
-REPAIRER_ID = "deterministic_netops_repairer_v1"
-REPAIRER_VERSION = "1.0"
+VALIDATOR_ID = "deterministic_netops_validator_v2"
+VALIDATOR_VERSION = "2.0"
+REPAIRER_ID = "deterministic_netops_repairer_v2"
+REPAIRER_VERSION = "2.0"
 
 _INTERFACE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]*$")
 _COMMAND_RE = re.compile(
     r"^interface\s+(?P<interface>\S+)\s+"
     r"(?P<field>mtu|admin|vlan)\s+(?P<value>\S+)$"
 )
+_FIELDS = ("admin", "mtu", "vlan")
 
 
 @dataclass(frozen=True)
@@ -28,83 +31,145 @@ class ParsedCommand:
     source_line: str
 
 
+def _state(admin: str, mtu: int, vlan: int) -> dict[str, int | str]:
+    return {"admin": admin, "mtu": mtu, "vlan": vlan}
+
+
 def generate_task(index: int) -> dict[str, Any]:
-    """Generate one deterministic, self-contained NetOps intent task."""
+    """Generate a deterministic state-aware NetOps intent task."""
     if not isinstance(index, int) or isinstance(index, bool) or index <= 0:
         raise ValueError("index must be a positive integer")
 
-    interface = f"eth{index}"
-    required_mtu = 1500 + 100 * ((index - 1) % 3)
-    required_vlan = 10 + ((index - 1) % 4)
-    required_admin = "up"
+    cycle = (index - 1) // 4
+    variant = (index - 1) % 4
+    a = f"edge{cycle * 3 + 1}"
+    b = f"edge{cycle * 3 + 2}"
+    c = f"mgmt{cycle + 1}"
+
+    initial_state = {
+        a: _state("down", 1500, 1),
+        b: _state("up", 1500, 20 + cycle),
+        c: _state("up", 1500, 99),
+    }
+
+    if variant == 0:
+        required_changes = [
+            {"interface": a, "field": "admin", "value": "up"},
+            {"interface": a, "field": "mtu", "value": 1600 + 100 * (cycle % 2)},
+            {"interface": a, "field": "vlan", "value": 10 + cycle},
+        ]
+        intent = (
+            f"Bring {a} up, set its MTU to {required_changes[1]['value']}, "
+            f"and move it to access VLAN {required_changes[2]['value']}. "
+            f"Leave {b} and {c} unchanged."
+        )
+    elif variant == 1:
+        required_changes = [
+            {"interface": a, "field": "admin", "value": "up"},
+            {"interface": a, "field": "vlan", "value": 30 + cycle},
+            {"interface": b, "field": "mtu", "value": 1700},
+        ]
+        intent = (
+            f"Enable {a} and assign it to access VLAN {30 + cycle}; "
+            f"change only the MTU of {b} to 1700. Preserve every other "
+            f"setting, including all settings on {c}."
+        )
+    elif variant == 2:
+        required_changes = [
+            {"interface": b, "field": "admin", "value": "down"},
+            {"interface": b, "field": "vlan", "value": 40 + cycle},
+        ]
+        intent = (
+            f"Administratively shut down {b} and prepare access VLAN "
+            f"{40 + cycle} on it. Its MTU must remain 1500, and {a} and "
+            f"{c} must remain completely unchanged."
+        )
+    else:
+        required_changes = [
+            {"interface": a, "field": "mtu", "value": 1800},
+            {"interface": b, "field": "admin", "value": "down"},
+            {"interface": b, "field": "vlan", "value": 50 + cycle},
+        ]
+        intent = (
+            f"Set {a} MTU to 1800. On {b}, shut the interface down and "
+            f"change its access VLAN to {50 + cycle}. Do not alter {a}'s "
+            f"admin or VLAN settings, {b}'s MTU, or anything on {c}."
+        )
 
     return {
         "task_family": TASK_FAMILY,
-        "interface": interface,
-        "intent": (
-            f"Configure {interface} administratively {required_admin}, "
-            f"with MTU {required_mtu} and access VLAN {required_vlan}."
-        ),
-        "initial_state": {
-            "interface": interface,
-            "admin": "down",
-            "mtu": 1500,
-            "vlan": 1,
-        },
+        "task_generator_id": TASK_GENERATOR_ID,
+        "task_generator_version": TASK_GENERATOR_VERSION,
+        "intent": intent,
+        "initial_state": initial_state,
+        "required_changes": required_changes,
         "constraints": {
-            "required_admin": required_admin,
-            "required_mtu": required_mtu,
-            "required_vlan": required_vlan,
-            "allowed_interfaces": [interface],
-            "allowed_fields": ["admin", "mtu", "vlan"],
+            "allowed_assignments": [
+                {
+                    "interface": item["interface"],
+                    "field": item["field"],
+                }
+                for item in required_changes
+            ],
+            "preserve_unspecified_state": True,
+            "allowed_fields": list(_FIELDS),
         },
     }
 
 
 def render_reference_configuration(task: dict[str, Any]) -> str:
-    constraints = task["constraints"]
-    interface = task["interface"]
     return "\n".join(
-        [
-            f"interface {interface} admin {constraints['required_admin']}",
-            f"interface {interface} mtu {constraints['required_mtu']}",
-            f"interface {interface} vlan {constraints['required_vlan']}",
-        ]
+        f"interface {item['interface']} {item['field']} {item['value']}"
+        for item in task["required_changes"]
     )
 
 
 def generate_direct_candidate(task: dict[str, Any], seed: int) -> str:
-    """Generate a deterministic direct candidate with controlled failure modes."""
-    reference = render_reference_configuration(task).splitlines()
+    """Generate a deterministic candidate with controlled realistic failures."""
+    required = [dict(item) for item in task["required_changes"]]
     mode = seed % 4
 
     if mode == 0:
-        return "\n".join(reference)
-    if mode == 1:
-        # Wrong MTU while all syntax remains valid.
-        constraints = task["constraints"]
-        interface = task["interface"]
-        return "\n".join(
-            [
-                f"interface {interface} admin {constraints['required_admin']}",
-                f"interface {interface} mtu {constraints['required_mtu'] - 100}",
-                f"interface {interface} vlan {constraints['required_vlan']}",
-            ]
-        )
-    if mode == 2:
-        # Missing VLAN command.
-        return "\n".join(reference[:2])
+        return render_reference_configuration(task)
 
-    # Correct target plus an unintended change on another interface.
+    if mode == 1:
+        # Keep syntax valid but use a plausible wrong value on one target.
+        item = required[0]
+        if item["field"] == "admin":
+            item["value"] = "down" if item["value"] == "up" else "up"
+        else:
+            item["value"] = int(item["value"]) - 1
+        return "\n".join(
+            f"interface {change['interface']} {change['field']} {change['value']}"
+            for change in required
+        )
+
+    if mode == 2:
+        # Omit one required change.
+        return "\n".join(
+            f"interface {item['interface']} {item['field']} {item['value']}"
+            for item in required[:-1]
+        )
+
+    # Make all required changes but also modify preserved state.
+    distractor = next(
+        interface
+        for interface in task["initial_state"]
+        if interface not in {
+            item["interface"] for item in required
+        }
+    )
     return "\n".join(
         [
-            *reference,
-            "interface management0 admin down",
+            render_reference_configuration(task),
+            f"interface {distractor} admin down",
         ]
     )
 
 
-def _parse_configuration(configuration: str) -> tuple[list[ParsedCommand], list[dict[str, Any]]]:
+def _parse_configuration(
+    configuration: str,
+) -> tuple[list[ParsedCommand], list[dict[str, Any]]]:
     commands: list[ParsedCommand] = []
     violations: list[dict[str, Any]] = []
 
@@ -181,30 +246,32 @@ def _parse_configuration(configuration: str) -> tuple[list[ParsedCommand], list[
 
 
 def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str, Any]:
-    """Validate syntax, intent satisfaction, and unintended changes."""
+    """Validate syntax, required changes, and preservation of unspecified state."""
     commands, violations = _parse_configuration(configuration)
-    constraints = task["constraints"]
-    allowed_interfaces = set(constraints["allowed_interfaces"])
-    allowed_fields = set(constraints["allowed_fields"])
+    initial_state = task["initial_state"]
+    required = {
+        (item["interface"], item["field"]): item["value"]
+        for item in task["required_changes"]
+    }
 
     observed: dict[tuple[str, str], int | str] = {}
     duplicate_keys: set[tuple[str, str]] = set()
 
     for command in commands:
         key = (command.interface, command.field)
-        if command.interface not in allowed_interfaces:
+        if command.interface not in initial_state:
             violations.append({
-                "code": "UNINTENDED_INTERFACE_CHANGE",
-                "message": (
-                    "Command modifies an interface outside the task scope: "
-                    f"{command.interface}"
-                ),
+                "code": "UNKNOWN_INTERFACE",
+                "message": f"Unknown interface: {command.interface}.",
                 "line_number": None,
             })
-        if command.field not in allowed_fields:
+        elif key not in required:
             violations.append({
-                "code": "UNINTENDED_FIELD_CHANGE",
-                "message": f"Field is outside the task scope: {command.field}",
+                "code": "UNINTENDED_STATE_CHANGE",
+                "message": (
+                    "Command modifies state that the intent requires to be "
+                    f"preserved: {command.interface} {command.field}."
+                ),
                 "line_number": None,
             })
         if key in observed:
@@ -218,13 +285,7 @@ def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str
             "line_number": None,
         })
 
-    interface = task["interface"]
-    required = {
-        "admin": constraints["required_admin"],
-        "mtu": constraints["required_mtu"],
-        "vlan": constraints["required_vlan"],
-    }
-    for field, expected in required.items():
+    for (interface, field), expected in required.items():
         key = (interface, field)
         if key not in observed:
             violations.append({
@@ -254,6 +315,8 @@ def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str
         "normalized_configuration": "\n".join(
             command.source_line for command in commands
         ),
+        "required_assignment_count": len(required),
+        "observed_assignment_count": len(observed),
     }
 
 

@@ -14,6 +14,7 @@ COMPLETED_STATUS = "COMPLETED"
 PAIRED_BINARY_ANALYSIS_FAMILY = "paired_binary_analysis_v1"
 COMPATIBLE_EXECUTION_ADAPTER_FAMILIES = (
     "synthetic_paired_llm_benchmark_v1",
+    "hosted_netops_gvr_v1",
 )
 COMPATIBLE_RESULT_SCHEMA_ID = "paired_binary_episode_v1"
 COMPATIBLE_RESULT_SCHEMA_VERSIONS = ("1.0",)
