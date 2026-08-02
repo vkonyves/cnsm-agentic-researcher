@@ -7,14 +7,16 @@ from typing import Any
 
 
 TASK_FAMILY = "intent_configuration_repair_v1"
-TASK_GENERATOR_ID = "deterministic_netops_task_generator_v4"
-TASK_GENERATOR_VERSION = "4.0"
+TASK_GENERATOR_ID = "deterministic_netops_task_generator_v5"
+TASK_GENERATOR_VERSION = "5.0"
 BASELINE_TRANSFORMATION = "direct_configuration_generation_v1"
 GUARDED_TRANSFORMATION = "generate_validate_repair_v1"
-VALIDATOR_ID = "deterministic_netops_validator_v4"
-VALIDATOR_VERSION = "4.0"
-REPAIRER_ID = "deterministic_netops_repairer_v4"
-REPAIRER_VERSION = "4.0"
+VALIDATOR_ID = "deterministic_netops_validator_v5"
+VALIDATOR_VERSION = "5.0"
+REPAIRER_ID = "deterministic_netops_repairer_v5"
+REPAIRER_VERSION = "5.0"
+FAULT_INJECTOR_ID = "deterministic_netops_fault_injector_v1"
+FAULT_INJECTOR_VERSION = "1.0"
 
 _INTERFACE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]*$")
 _COMMAND_RE = re.compile(
@@ -699,6 +701,262 @@ def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str
         "difficulty": task.get("difficulty"),
     }
 
+
+
+def _command_dict(command: ParsedCommand) -> dict[str, Any]:
+    return {
+        "interface": command.interface,
+        "field": command.field,
+        "value": command.value,
+    }
+
+
+def _find_prior_shutdown(
+    commands: list[ParsedCommand],
+    change_index: int,
+) -> int | None:
+    target = commands[change_index].interface
+    for index in range(change_index - 1, -1, -1):
+        command = commands[index]
+        if (
+            command.interface == target
+            and command.field == "admin"
+            and command.value == "down"
+        ):
+            return index
+    return None
+
+
+def _inject_offline_change_before_shutdown(
+    commands: list[ParsedCommand],
+) -> tuple[list[ParsedCommand], dict[str, Any]]:
+    for change_index, command in enumerate(commands):
+        if command.field not in {"mtu", "vlan"}:
+            continue
+        shutdown_index = _find_prior_shutdown(commands, change_index)
+        if shutdown_index is None:
+            continue
+        mutated = list(commands)
+        change = mutated.pop(change_index)
+        mutated.insert(shutdown_index, change)
+        return mutated, {
+            "fault_class": "offline_change_before_shutdown",
+            "affected_interface": command.interface,
+            "affected_field": command.field,
+            "source_line_number": command.line_number,
+        }
+    raise ValueError("No offline field change with a prior shutdown was found.")
+
+
+def _inject_break_before_make(
+    task: dict[str, Any],
+    commands: list[ParsedCommand],
+) -> tuple[list[ParsedCommand], dict[str, Any]]:
+    groups = task["constraints"]["workflow_policies"].get(
+        "minimum_active_in_groups", []
+    )
+    for group in groups:
+        interfaces = set(group["interfaces"])
+        up_index = next(
+            (
+                index
+                for index, command in enumerate(commands)
+                if command.interface in interfaces
+                and command.field == "admin"
+                and command.value == "up"
+            ),
+            None,
+        )
+        down_index = next(
+            (
+                index
+                for index, command in enumerate(commands)
+                if command.interface in interfaces
+                and command.field == "admin"
+                and command.value == "down"
+                and (up_index is None or index > up_index)
+            ),
+            None,
+        )
+        if up_index is None or down_index is None:
+            continue
+        mutated = list(commands)
+        down_command = mutated.pop(down_index)
+        mutated.insert(up_index, down_command)
+        return mutated, {
+            "fault_class": "break_before_make",
+            "affected_group": sorted(interfaces),
+            "moved_interface": down_command.interface,
+            "source_line_number": down_command.line_number,
+        }
+    raise ValueError("No make-before-break sequence was found.")
+
+
+def _inject_drop_required_restore(
+    task: dict[str, Any],
+    commands: list[ParsedCommand],
+) -> tuple[list[ParsedCommand], dict[str, Any]]:
+    initial_state = task["initial_state"]
+    expected_final = task["expected_final_state"]
+    for index in range(len(commands) - 1, -1, -1):
+        command = commands[index]
+        if command.field != "admin":
+            continue
+        expected = expected_final[command.interface]["admin"]
+        initial = initial_state[command.interface]["admin"]
+        if command.value == expected and command.value == initial:
+            mutated = list(commands)
+            removed = mutated.pop(index)
+            return mutated, {
+                "fault_class": "dropped_required_restore",
+                "affected_interface": removed.interface,
+                "expected_final_admin": expected,
+                "source_line_number": removed.line_number,
+            }
+    raise ValueError("No required administrative restoration was found.")
+
+
+def _inject_protected_interface_change(
+    task: dict[str, Any],
+    commands: list[ParsedCommand],
+) -> tuple[list[ParsedCommand], dict[str, Any]]:
+    protected = task["constraints"]["workflow_policies"].get(
+        "protected_interfaces", []
+    )
+    if not protected:
+        raise ValueError("Task has no protected interface.")
+    interface = protected[0]
+    current = task["initial_state"][interface]["admin"]
+    value = "down" if current == "up" else "up"
+    mutated = list(commands)
+    mutated.append(
+        ParsedCommand(
+            interface=interface,
+            field="admin",
+            value=value,
+            source_line=f"interface {interface} admin {value}",
+            line_number=len(commands) + 1,
+        )
+    )
+    return mutated, {
+        "fault_class": "protected_interface_change",
+        "affected_interface": interface,
+        "injected_value": value,
+        "source_line_number": len(commands) + 1,
+    }
+
+
+def _inject_no_op_command(
+    task: dict[str, Any],
+    commands: list[ParsedCommand],
+) -> tuple[list[ParsedCommand], dict[str, Any]]:
+    interface = next(iter(task["initial_state"]))
+    value = task["initial_state"][interface]["vlan"]
+    injected = ParsedCommand(
+        interface=interface,
+        field="vlan",
+        value=value,
+        source_line=f"interface {interface} vlan {value}",
+        line_number=1,
+    )
+    return [injected, *commands], {
+        "fault_class": "no_op_command",
+        "affected_interface": interface,
+        "affected_field": "vlan",
+        "injected_value": value,
+        "source_line_number": 1,
+    }
+
+
+def inject_controlled_fault(
+    task: dict[str, Any],
+    valid_configuration: str,
+    *,
+    fault_class: str | None = None,
+) -> dict[str, Any]:
+    """Inject one deterministic operational defect into a valid workflow.
+
+    The source configuration must already pass deterministic validation.
+    The function records the chosen fault and verifies that the injected
+    configuration is invalid under the unchanged workflow validator.
+    """
+    source_validation = validate_configuration(task, valid_configuration)
+    if not source_validation["valid"]:
+        raise ValueError(
+            "Controlled faults may only be injected into valid configurations."
+        )
+
+    commands, parse_violations = _parse_configuration(valid_configuration)
+    if parse_violations:
+        raise ValueError("Valid source unexpectedly produced parse violations.")
+
+    pattern = task["difficulty"]["pattern"]
+    default_faults = {
+        "shutdown_configure_restore": "offline_change_before_shutdown",
+        "make_before_break_uplink_switchover": "break_before_make",
+        "paired_link_atomic_mtu_change": "offline_change_before_shutdown",
+        "safe_access_service_transfer": "break_before_make",
+        "failover_then_offline_reconfiguration": "offline_change_before_shutdown",
+        "rolling_access_vlan_migration": "dropped_required_restore",
+        "redundant_uplink_maintenance_window": "dropped_required_restore",
+        "composed_redundancy_and_access_maintenance": (
+            "protected_interface_change"
+        ),
+    }
+    selected = fault_class or default_faults[pattern]
+
+    injectors = {
+        "offline_change_before_shutdown": (
+            lambda: _inject_offline_change_before_shutdown(commands)
+        ),
+        "break_before_make": (
+            lambda: _inject_break_before_make(task, commands)
+        ),
+        "dropped_required_restore": (
+            lambda: _inject_drop_required_restore(task, commands)
+        ),
+        "protected_interface_change": (
+            lambda: _inject_protected_interface_change(task, commands)
+        ),
+        "no_op_command": lambda: _inject_no_op_command(task, commands),
+    }
+    if selected not in injectors:
+        raise ValueError(f"Unsupported controlled fault class: {selected}")
+
+    mutated_commands, metadata = injectors[selected]()
+    injected_configuration = "\n".join(
+        command.source_line for command in mutated_commands
+    )
+    injected_validation = validate_configuration(
+        task,
+        injected_configuration,
+    )
+    if injected_validation["valid"]:
+        raise RuntimeError(
+            "Controlled fault injection did not produce an invalid workflow."
+        )
+
+    return {
+        "fault_injector_id": FAULT_INJECTOR_ID,
+        "fault_injector_version": FAULT_INJECTOR_VERSION,
+        "fault_class": selected,
+        "fault_metadata": metadata,
+        "source_configuration": valid_configuration,
+        "source_validation": source_validation,
+        "injected_configuration": injected_configuration,
+        "injected_validation": injected_validation,
+        "injected_violation_codes": injected_validation["violation_codes"],
+    }
+
+
+def available_controlled_fault_classes() -> list[str]:
+    return [
+        "offline_change_before_shutdown",
+        "break_before_make",
+        "dropped_required_restore",
+        "protected_interface_change",
+        "no_op_command",
+    ]
 
 def repair_configuration(task: dict[str, Any], candidate: str) -> dict[str, Any]:
     """Apply one bounded deterministic workflow repair and revalidate."""

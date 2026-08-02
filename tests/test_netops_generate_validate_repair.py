@@ -1,8 +1,13 @@
+import pytest
+
 from cnsm_agentic.autonomous_research.netops_generate_validate_repair import (
+    FAULT_INJECTOR_VERSION,
     TASK_GENERATOR_VERSION,
     VALIDATOR_VERSION,
+    available_controlled_fault_classes,
     generate_direct_candidate,
     generate_task,
+    inject_controlled_fault,
     repair_configuration,
     render_reference_configuration,
     run_condition,
@@ -35,6 +40,121 @@ def test_task_bank_has_eight_sequence_patterns() -> None:
         task["difficulty"]["required_command_count"]
         for task in tasks
     ) == 9
+
+
+def test_controlled_fault_defaults_invalidate_all_task_patterns() -> None:
+    observed_faults = set()
+    for index in range(1, 9):
+        task = generate_task(index)
+        source = render_reference_configuration(task)
+        result = inject_controlled_fault(task, source)
+
+        assert result["fault_injector_version"] == FAULT_INJECTOR_VERSION
+        assert result["source_validation"]["valid"] is True
+        assert result["injected_validation"]["valid"] is False
+        assert result["injected_violation_codes"]
+        assert result["source_configuration"] != result[
+            "injected_configuration"
+        ]
+        observed_faults.add(result["fault_class"])
+
+    assert observed_faults == {
+        "offline_change_before_shutdown",
+        "break_before_make",
+        "dropped_required_restore",
+        "protected_interface_change",
+    }
+
+
+@pytest.mark.parametrize(
+    "fault_class, expected_code",
+    [
+        (
+            "offline_change_before_shutdown",
+            "INTERFACE_NOT_DOWN_FOR_CHANGE",
+        ),
+        (
+            "protected_interface_change",
+            "PROTECTED_INTERFACE_CHANGE",
+        ),
+        (
+            "no_op_command",
+            "NO_OP_COMMAND",
+        ),
+    ],
+)
+def test_explicit_fault_classes_have_expected_violations(
+    fault_class: str,
+    expected_code: str,
+) -> None:
+    task = generate_task(8)
+    result = inject_controlled_fault(
+        task,
+        render_reference_configuration(task),
+        fault_class=fault_class,
+    )
+    assert expected_code in result["injected_violation_codes"]
+
+
+def test_break_before_make_creates_transient_availability_failure() -> None:
+    task = generate_task(2)
+    result = inject_controlled_fault(
+        task,
+        render_reference_configuration(task),
+        fault_class="break_before_make",
+    )
+    assert (
+        "TRANSIENT_AVAILABILITY_VIOLATION"
+        in result["injected_violation_codes"]
+    )
+
+
+def test_dropped_restore_creates_final_state_failure() -> None:
+    task = generate_task(7)
+    result = inject_controlled_fault(
+        task,
+        render_reference_configuration(task),
+        fault_class="dropped_required_restore",
+    )
+    assert "FINAL_STATE_MISMATCH" in result["injected_violation_codes"]
+
+
+def test_controlled_fault_rejects_invalid_source_candidate() -> None:
+    task = generate_task(8)
+    invalid = generate_direct_candidate(task, 3)
+    assert validate_configuration(task, invalid)["valid"] is False
+    with pytest.raises(
+        ValueError,
+        match="only be injected into valid configurations",
+    ):
+        inject_controlled_fault(task, invalid)
+
+
+def test_available_fault_classes_are_stable_and_unique() -> None:
+    classes = available_controlled_fault_classes()
+    assert classes == [
+        "offline_change_before_shutdown",
+        "break_before_make",
+        "dropped_required_restore",
+        "protected_interface_change",
+        "no_op_command",
+    ]
+    assert len(classes) == len(set(classes))
+
+
+def test_injected_candidate_is_repairable_by_bounded_repair() -> None:
+    task = generate_task(8)
+    injected = inject_controlled_fault(
+        task,
+        render_reference_configuration(task),
+    )
+    repaired = repair_configuration(
+        task,
+        injected["injected_configuration"],
+    )
+    assert repaired["repair_applied"] is True
+    assert repaired["validation_before"]["valid"] is False
+    assert repaired["validation_after"]["valid"] is True
 
 
 def test_shutdown_is_required_before_vlan_or_mtu_change() -> None:
