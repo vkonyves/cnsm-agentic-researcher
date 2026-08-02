@@ -104,6 +104,21 @@ def hosted_netops_plan_issues(
             f"task_count must be an integer from 1 to {maximum_task_count}."
         )
     else:
+        task_indices = plan.get("task_indices")
+        if (
+            not isinstance(task_indices, list)
+            or len(task_indices) != task_count
+            or any(
+                not isinstance(item, int)
+                or isinstance(item, bool)
+                or item <= 0
+                for item in task_indices
+            )
+            or len(set(task_indices)) != len(task_indices)
+        ):
+            issues.append(
+                "task_indices must contain task_count unique positive integers."
+            )
         expected_calls = task_count * 2
         if plan.get("estimated_model_calls") != expected_calls:
             issues.append(
@@ -233,7 +248,7 @@ class HostedNetOpsGVRAdapter:
         provider = self._provider_for(output_dir, plan)
 
         tasks: list[dict[str, Any]] = []
-        for index in range(1, task_count + 1):
+        for index in plan["task_indices"]:
             task_id = f"task-{index:06d}"
             pair_id = f"pair-{index:06d}"
             payload = generate_task(index)

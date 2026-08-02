@@ -73,6 +73,7 @@ def _plan(task_count: int = 2):
         "conditions": ["baseline", "guarded"],
         "design": "paired_binary",
         "task_count": task_count,
+        "task_indices": list(range(1, task_count + 1)),
         "estimated_model_calls": task_count * 2,
         "maximum_model_calls": task_count * 2,
         "task_families": ["intent_configuration_repair_v1"],
@@ -106,10 +107,20 @@ def test_hosted_plan_rejects_inexact_call_ceiling() -> None:
     )
 
 
+def test_hosted_plan_rejects_duplicate_task_indices() -> None:
+    plan = _plan()
+    plan["task_indices"] = [7, 7]
+    assert any(
+        "task_indices" in issue
+        for issue in hosted_netops_plan_issues(plan)
+    )
+
+
 def test_mock_hosted_execution_and_analysis(tmp_path: Path) -> None:
     provider = FakeHostedProvider()
     adapter = HostedNetOpsGVRAdapter(provider=provider)
     plan = _plan(task_count=2)
+    plan["task_indices"] = [7, 8]
     execution_dir = tmp_path / "execution"
 
     manifest = adapter.execute(
@@ -150,7 +161,7 @@ def test_mock_hosted_execution_and_analysis(tmp_path: Path) -> None:
     )
     assert len(list((execution_dir / "provider_calls").glob("*.json"))) == 4
     assert len(list((execution_dir / "responses").glob("*shared-initial.txt"))) == 2
-    for pair_id in {"pair-000001", "pair-000002"}:
+    for pair_id in {"pair-000007", "pair-000008"}:
         pair_rows = [row for row in raw_rows if row["pair_id"] == pair_id]
         assert len({row["shared_initial_candidate_sha256"] for row in pair_rows}) == 1
         assert len({row["shared_initial_provider_trace_sha256"] for row in pair_rows}) == 1

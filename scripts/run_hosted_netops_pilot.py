@@ -51,9 +51,10 @@ def _build_plan(
     *,
     study_id: str,
     model: str,
-    task_count: int,
+    task_indices: list[int],
     max_output_tokens: int,
 ) -> dict[str, Any]:
+    task_count = len(task_indices)
     maximum_calls = task_count * 2
     return {
         "study_id": study_id,
@@ -63,6 +64,7 @@ def _build_plan(
         "conditions": ["baseline", "guarded"],
         "design": "paired_binary",
         "task_count": task_count,
+        "task_indices": task_indices,
         "estimated_model_calls": maximum_calls,
         "maximum_model_calls": maximum_calls,
         "task_families": ["intent_configuration_repair_v1"],
@@ -121,8 +123,8 @@ def _build_preregistration(
     }
 
 
-def _print_prompt_preview(task_count: int) -> None:
-    for index in range(1, task_count + 1):
+def _print_prompt_preview(task_indices: list[int]) -> None:
+    for index in task_indices:
         task = generate_task(index)
         _print_header(f"TASK {index}: INITIAL GENERATION PROMPT")
         print(_task_prompt(task))
@@ -185,6 +187,10 @@ def _print_preflight(
     print(f"Adapter:                {plan['adapter_family']}")
     print(f"Model:                  {plan['model_name']}")
     print(f"Task count:             {plan['task_count']}")
+    print(
+        "Task indices:           "
+        + ",".join(str(item) for item in plan["task_indices"])
+    )
     print(f"Terminal episodes:      {plan['task_count'] * 2}")
     print(f"Maximum model calls:    {plan['maximum_model_calls']}")
     print("Attempts per call:      1")
@@ -217,6 +223,14 @@ def main() -> None:
         type=int,
         default=DEFAULT_TASK_COUNT,
         help="Number of paired tasks. Default: 2.",
+    )
+    parser.add_argument(
+        "--task-indices",
+        default=None,
+        help=(
+            "Comma-separated deterministic task indices, for example 7,8. "
+            "When omitted, uses 1..task-count."
+        ),
     )
     parser.add_argument(
         "--max-output-tokens",
@@ -265,7 +279,37 @@ def main() -> None:
     if load_dotenv is not None:
         load_dotenv()
 
-    if args.task_count <= 0 or args.task_count > 2:
+    if args.task_indices:
+        try:
+            task_indices = [
+                int(item.strip())
+                for item in args.task_indices.split(",")
+                if item.strip()
+            ]
+        except ValueError as exc:
+            raise SystemExit(
+                "--task-indices must be comma-separated positive integers."
+            ) from exc
+        if (
+            not task_indices
+            or any(item <= 0 for item in task_indices)
+            or len(set(task_indices)) != len(task_indices)
+        ):
+            raise SystemExit(
+                "--task-indices must contain unique positive integers."
+            )
+        if args.task_count != DEFAULT_TASK_COUNT and (
+            args.task_count != len(task_indices)
+        ):
+            raise SystemExit(
+                "--task-count must match the number of --task-indices."
+            )
+    else:
+        if args.task_count <= 0:
+            raise SystemExit("--task-count must be positive.")
+        task_indices = list(range(1, args.task_count + 1))
+
+    if len(task_indices) > 2:
         raise SystemExit(
             "The first paid pilot is restricted to one or two tasks."
         )
@@ -292,13 +336,13 @@ def main() -> None:
     plan = _build_plan(
         study_id=study_id,
         model=args.model,
-        task_count=args.task_count,
+        task_indices=task_indices,
         max_output_tokens=args.max_output_tokens,
     )
     preregistration = _build_preregistration(
         study_id=study_id,
         model=args.model,
-        task_count=args.task_count,
+        task_count=len(task_indices),
         maximum_model_calls=plan["maximum_model_calls"],
     )
 
@@ -312,7 +356,7 @@ def main() -> None:
     _print_preflight(plan=plan, run_dir=run_dir)
 
     if args.show_prompts:
-        _print_prompt_preview(args.task_count)
+        _print_prompt_preview(task_indices)
 
     if args.check_api_access or args.execute_paid:
         _verify_environment(args.model)

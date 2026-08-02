@@ -6,14 +6,14 @@ from typing import Any
 
 
 TASK_FAMILY = "intent_configuration_repair_v1"
-TASK_GENERATOR_ID = "deterministic_netops_task_generator_v2"
-TASK_GENERATOR_VERSION = "2.0"
+TASK_GENERATOR_ID = "deterministic_netops_task_generator_v3"
+TASK_GENERATOR_VERSION = "3.0"
 BASELINE_TRANSFORMATION = "direct_configuration_generation_v1"
 GUARDED_TRANSFORMATION = "generate_validate_repair_v1"
-VALIDATOR_ID = "deterministic_netops_validator_v2"
-VALIDATOR_VERSION = "2.0"
-REPAIRER_ID = "deterministic_netops_repairer_v2"
-REPAIRER_VERSION = "2.0"
+VALIDATOR_ID = "deterministic_netops_validator_v3"
+VALIDATOR_VERSION = "3.0"
+REPAIRER_ID = "deterministic_netops_repairer_v3"
+REPAIRER_VERSION = "3.0"
 
 _INTERFACE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]*$")
 _COMMAND_RE = re.compile(
@@ -35,21 +35,45 @@ def _state(admin: str, mtu: int, vlan: int) -> dict[str, int | str]:
     return {"admin": admin, "mtu": mtu, "vlan": vlan}
 
 
+def _difficulty(
+    *,
+    level: str,
+    required_assignments: int,
+    changed_interfaces: int,
+    preserved_interfaces: int,
+    preservation_clauses: int,
+    distractor_count: int,
+    pattern: str,
+) -> dict[str, Any]:
+    return {
+        "level": level,
+        "required_assignment_count": required_assignments,
+        "changed_interface_count": changed_interfaces,
+        "preserved_interface_count": preserved_interfaces,
+        "preservation_clause_count": preservation_clauses,
+        "distractor_count": distractor_count,
+        "pattern": pattern,
+    }
+
+
 def generate_task(index: int) -> dict[str, Any]:
     """Generate a deterministic state-aware NetOps intent task."""
     if not isinstance(index, int) or isinstance(index, bool) or index <= 0:
         raise ValueError("index must be a positive integer")
 
-    cycle = (index - 1) // 4
-    variant = (index - 1) % 4
-    a = f"edge{cycle * 3 + 1}"
-    b = f"edge{cycle * 3 + 2}"
-    c = f"mgmt{cycle + 1}"
+    cycle = (index - 1) // 8
+    variant = (index - 1) % 8
+
+    a = f"edge{cycle * 4 + 1}"
+    b = f"edge{cycle * 4 + 2}"
+    c = f"uplink{cycle + 1}"
+    d = f"mgmt{cycle + 1}"
 
     initial_state = {
         a: _state("down", 1500, 1),
         b: _state("up", 1500, 20 + cycle),
-        c: _state("up", 1500, 99),
+        c: _state("up", 9000, 200 + cycle),
+        d: _state("up", 1500, 99),
     }
 
     if variant == 0:
@@ -61,7 +85,16 @@ def generate_task(index: int) -> dict[str, Any]:
         intent = (
             f"Bring {a} up, set its MTU to {required_changes[1]['value']}, "
             f"and move it to access VLAN {required_changes[2]['value']}. "
-            f"Leave {b} and {c} unchanged."
+            f"Leave {b}, {c}, and {d} unchanged."
+        )
+        difficulty = _difficulty(
+            level="medium",
+            required_assignments=3,
+            changed_interfaces=1,
+            preserved_interfaces=3,
+            preservation_clauses=1,
+            distractor_count=3,
+            pattern="single_interface_full_reconfiguration",
         )
     elif variant == 1:
         required_changes = [
@@ -72,7 +105,16 @@ def generate_task(index: int) -> dict[str, Any]:
         intent = (
             f"Enable {a} and assign it to access VLAN {30 + cycle}; "
             f"change only the MTU of {b} to 1700. Preserve every other "
-            f"setting, including all settings on {c}."
+            f"setting, including everything on {c} and {d}."
+        )
+        difficulty = _difficulty(
+            level="hard",
+            required_assignments=3,
+            changed_interfaces=2,
+            preserved_interfaces=2,
+            preservation_clauses=2,
+            distractor_count=4,
+            pattern="two_interface_partial_update",
         )
     elif variant == 2:
         required_changes = [
@@ -81,10 +123,19 @@ def generate_task(index: int) -> dict[str, Any]:
         ]
         intent = (
             f"Administratively shut down {b} and prepare access VLAN "
-            f"{40 + cycle} on it. Its MTU must remain 1500, and {a} and "
-            f"{c} must remain completely unchanged."
+            f"{40 + cycle} on it. Its MTU must remain 1500. Keep {a}, "
+            f"{c}, and {d} completely unchanged."
         )
-    else:
+        difficulty = _difficulty(
+            level="hard",
+            required_assignments=2,
+            changed_interfaces=1,
+            preserved_interfaces=3,
+            preservation_clauses=2,
+            distractor_count=4,
+            pattern="target_partial_update_with_explicit_preservation",
+        )
+    elif variant == 3:
         required_changes = [
             {"interface": a, "field": "mtu", "value": 1800},
             {"interface": b, "field": "admin", "value": "down"},
@@ -93,7 +144,100 @@ def generate_task(index: int) -> dict[str, Any]:
         intent = (
             f"Set {a} MTU to 1800. On {b}, shut the interface down and "
             f"change its access VLAN to {50 + cycle}. Do not alter {a}'s "
-            f"admin or VLAN settings, {b}'s MTU, or anything on {c}."
+            f"admin or VLAN, {b}'s MTU, or anything on {c} or {d}."
+        )
+        difficulty = _difficulty(
+            level="hard",
+            required_assignments=3,
+            changed_interfaces=2,
+            preserved_interfaces=2,
+            preservation_clauses=4,
+            distractor_count=5,
+            pattern="cross_interface_mixed_fields",
+        )
+    elif variant == 4:
+        required_changes = [
+            {"interface": a, "field": "admin", "value": "up"},
+            {"interface": b, "field": "admin", "value": "down"},
+            {"interface": c, "field": "mtu", "value": 9200},
+        ]
+        intent = (
+            f"Bring {a} up, shut {b} down, and change only {c}'s MTU "
+            f"from 9000 to 9200. Preserve all VLANs, preserve the MTUs of "
+            f"{a}, {b}, and {d}, and leave {d} otherwise untouched."
+        )
+        difficulty = _difficulty(
+            level="very_hard",
+            required_assignments=3,
+            changed_interfaces=3,
+            preserved_interfaces=1,
+            preservation_clauses=3,
+            distractor_count=6,
+            pattern="three_interface_sparse_update",
+        )
+    elif variant == 5:
+        required_changes = [
+            {"interface": a, "field": "vlan", "value": 60 + cycle},
+            {"interface": c, "field": "admin", "value": "down"},
+            {"interface": c, "field": "vlan", "value": 210 + cycle},
+        ]
+        intent = (
+            f"Move {a} to access VLAN {60 + cycle} without enabling it "
+            f"or changing its MTU. On {c}, shut the interface down and "
+            f"set VLAN {210 + cycle}, but keep its jumbo MTU at 9000. "
+            f"Leave {b} and {d} unchanged."
+        )
+        difficulty = _difficulty(
+            level="very_hard",
+            required_assignments=3,
+            changed_interfaces=2,
+            preserved_interfaces=2,
+            preservation_clauses=4,
+            distractor_count=6,
+            pattern="negative_instruction_and_jumbo_preservation",
+        )
+    elif variant == 6:
+        required_changes = [
+            {"interface": a, "field": "admin", "value": "up"},
+            {"interface": a, "field": "mtu", "value": 1900},
+            {"interface": b, "field": "vlan", "value": 70 + cycle},
+            {"interface": c, "field": "admin", "value": "down"},
+        ]
+        intent = (
+            f"Enable {a} and set its MTU to 1900 while keeping its VLAN "
+            f"at 1. Change only {b}'s VLAN to {70 + cycle}. Shut {c} "
+            f"down without changing its MTU or VLAN. Do not touch {d}."
+        )
+        difficulty = _difficulty(
+            level="very_hard",
+            required_assignments=4,
+            changed_interfaces=3,
+            preserved_interfaces=1,
+            preservation_clauses=4,
+            distractor_count=7,
+            pattern="three_interface_four_assignment_update",
+        )
+    else:
+        required_changes = [
+            {"interface": a, "field": "mtu", "value": 2000},
+            {"interface": b, "field": "admin", "value": "down"},
+            {"interface": b, "field": "mtu", "value": 1600},
+            {"interface": c, "field": "vlan", "value": 220 + cycle},
+        ]
+        intent = (
+            f"Set only {a}'s MTU to 2000. On {b}, shut it down and set "
+            f"its MTU to 1600 while preserving VLAN {20 + cycle}. Change "
+            f"only {c}'s VLAN to {220 + cycle}, preserving admin up and "
+            f"MTU 9000. Keep every setting on {d} unchanged."
+        )
+        difficulty = _difficulty(
+            level="very_hard",
+            required_assignments=4,
+            changed_interfaces=3,
+            preserved_interfaces=1,
+            preservation_clauses=5,
+            distractor_count=8,
+            pattern="multi_interface_selective_field_preservation",
         )
 
     return {
@@ -114,6 +258,7 @@ def generate_task(index: int) -> dict[str, Any]:
             "preserve_unspecified_state": True,
             "allowed_fields": list(_FIELDS),
         },
+        "difficulty": difficulty,
     }
 
 
@@ -133,7 +278,6 @@ def generate_direct_candidate(task: dict[str, Any], seed: int) -> str:
         return render_reference_configuration(task)
 
     if mode == 1:
-        # Keep syntax valid but use a plausible wrong value on one target.
         item = required[0]
         if item["field"] == "admin":
             item["value"] = "down" if item["value"] == "up" else "up"
@@ -145,13 +289,11 @@ def generate_direct_candidate(task: dict[str, Any], seed: int) -> str:
         )
 
     if mode == 2:
-        # Omit one required change.
         return "\n".join(
             f"interface {item['interface']} {item['field']} {item['value']}"
             for item in required[:-1]
         )
 
-    # Make all required changes but also modify preserved state.
     distractor = next(
         interface
         for interface in task["initial_state"]
@@ -317,6 +459,7 @@ def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str
         ),
         "required_assignment_count": len(required),
         "observed_assignment_count": len(observed),
+        "difficulty": task.get("difficulty"),
     }
 
 
