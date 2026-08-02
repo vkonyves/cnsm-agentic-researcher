@@ -685,3 +685,86 @@ def test_manifest_detects_tampered_scoring_artifact(
         and "scoring" in issue.lower()
         for issue in issues
     )
+
+
+def _netops_rehearsal_plan(task_count: int = 8) -> dict[str, Any]:
+    return {
+        "study_id": "study-netops-gvr-1",
+        "adapter_family": "synthetic_paired_llm_benchmark_v1",
+        "result_schema_id": "paired_binary_episode_v1",
+        "result_schema_version": "1.0",
+        "conditions": ["baseline", "guarded"],
+        "design": "paired_binary",
+        "task_count": task_count,
+        "estimated_model_calls": task_count * 2,
+        "task_families": ["intent_configuration_repair_v1"],
+        "transformations": {
+            "baseline": "direct_configuration_generation_v1",
+            "guarded": "generate_validate_repair_v1",
+        },
+        "model_provider": "deterministic_local",
+        "model_name": "paired-smoke-model",
+        "model_version": "1.0",
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "execution_mode": "development_rehearsal",
+    }
+
+
+def test_netops_generate_validate_repair_plan_is_supported() -> None:
+    assert SyntheticPairedLLMBenchmarkAdapter().supports(
+        _netops_rehearsal_plan()
+    ) is True
+
+
+def test_netops_plan_rejects_wrong_transformation_pair() -> None:
+    plan = _netops_rehearsal_plan()
+    plan["transformations"] = {
+        "baseline": "baseline_prompt_v1",
+        "guarded": "guarded_prompt_v1",
+    }
+    assert SyntheticPairedLLMBenchmarkAdapter().supports(plan) is False
+
+
+def test_netops_generate_validate_repair_rehearsal(
+    tmp_path: Path,
+) -> None:
+    plan = _netops_rehearsal_plan(task_count=8)
+    output_dir = tmp_path / "execution"
+    manifest = SyntheticPairedLLMBenchmarkAdapter().execute(
+        plan=plan,
+        preregistration={
+            "primary_estimand": (
+                "paired_success_rate_difference_guarded_minus_baseline"
+            )
+        },
+        output_dir=output_dir,
+    )
+    assert validate_execution_manifest(
+        manifest,
+        plan=plan,
+        output_dir=output_dir,
+        maximum_model_calls=16,
+    ) == []
+
+    rows = [
+        __import__("json").loads(line)
+        for line in (output_dir / "raw_results.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    baseline = [row for row in rows if row["condition"] == "baseline"]
+    guarded = [row for row in rows if row["condition"] == "guarded"]
+    assert len(baseline) == len(guarded) == 8
+    assert sum(row["score"] for row in baseline) == 2
+    assert sum(row["score"] for row in guarded) == 8
+    assert all(row["score_reason_code"] == "VALID_CONFIGURATION" for row in guarded)
+
+    guarded_scoring = __import__("json").loads(
+        (output_dir / "scoring" / "task-000001-guarded.json")
+        .read_text(encoding="utf-8")
+    )
+    trace = guarded_scoring["validator_trace"]
+    assert trace["validation_before"]["valid"] is False
+    assert trace["repair_applied"] is True
+    assert trace["validation_after"]["valid"] is True

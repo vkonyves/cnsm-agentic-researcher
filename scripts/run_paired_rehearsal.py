@@ -36,6 +36,15 @@ def main() -> None:
         )
     )
     parser.add_argument(
+        "--study-kind",
+        choices=("binary-smoke", "netops-gvr"),
+        default="binary-smoke",
+        help=(
+            "Rehearsal study kind. Use netops-gvr for the deterministic "
+            "generate-validate-repair NetOps method."
+        ),
+    )
+    parser.add_argument(
         "--task-count",
         type=int,
         default=6,
@@ -83,6 +92,19 @@ def main() -> None:
     execution_dir = run_dir / "execution"
     study_id = f"paired-rehearsal-{timestamp}"
 
+    if args.study_kind == "netops-gvr":
+        task_families = ["intent_configuration_repair_v1"]
+        transformations = {
+            "baseline": "direct_configuration_generation_v1",
+            "guarded": "generate_validate_repair_v1",
+        }
+    else:
+        task_families = ["configuration_error_detection_v1"]
+        transformations = {
+            "baseline": "baseline_prompt_v1",
+            "guarded": "guarded_prompt_v1",
+        }
+
     plan: dict[str, Any] = {
         "study_id": study_id,
         "adapter_family": "synthetic_paired_llm_benchmark_v1",
@@ -92,11 +114,8 @@ def main() -> None:
         "design": "paired_binary",
         "task_count": args.task_count,
         "estimated_model_calls": args.task_count * 2,
-        "task_families": ["configuration_error_detection_v1"],
-        "transformations": {
-            "baseline": "baseline_prompt_v1",
-            "guarded": "guarded_prompt_v1",
-        },
+        "task_families": task_families,
+        "transformations": transformations,
         "model_provider": "deterministic_local",
         "model_name": "paired-smoke-model",
         "model_version": "1.0",
@@ -201,6 +220,7 @@ def main() -> None:
     print("=" * 34)
     print(f"Run directory:          {run_dir}")
     print(f"Study ID:               {study_id}")
+    print(f"Study kind:             {args.study_kind}")
     print(f"Execution status:       {execution_manifest['status']}")
     print(
         "Episodes:               "
@@ -239,5 +259,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

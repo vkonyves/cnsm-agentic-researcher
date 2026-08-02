@@ -6,6 +6,15 @@ import re
 from pathlib import Path
 from typing import Any, Protocol
 
+from .netops_generate_validate_repair import (
+    BASELINE_TRANSFORMATION as NETOPS_BASELINE_TRANSFORMATION,
+    GUARDED_TRANSFORMATION as NETOPS_GUARDED_TRANSFORMATION,
+    TASK_FAMILY as NETOPS_TASK_FAMILY,
+    generate_task as generate_netops_task,
+    render_reference_configuration,
+    run_condition as run_netops_condition,
+)
+
 
 COMPLETED_STATUS = "COMPLETED"
 
@@ -945,10 +954,15 @@ class SyntheticPairedLLMBenchmarkAdapter:
     family = SYNTHETIC_PAIRED_ADAPTER_FAMILY
     aliases = ("synthetic-paired-llm-benchmark-v1",)
     maximum_model_calls = 200
-    supported_task_families = ("configuration_error_detection_v1",)
+    supported_task_families = (
+        "configuration_error_detection_v1",
+        NETOPS_TASK_FAMILY,
+    )
     supported_transformations = (
         "baseline_prompt_v1",
         "guarded_prompt_v1",
+        NETOPS_BASELINE_TRANSFORMATION,
+        NETOPS_GUARDED_TRANSFORMATION,
     )
     available_models = ((
         "deterministic_local",
@@ -978,6 +992,26 @@ class SyntheticPairedLLMBenchmarkAdapter:
         elif plan.get("estimated_model_calls") != task_count * 2:
             issues.append(
                 "estimated_model_calls must equal two calls per paired task."
+            )
+
+        task_families = plan.get("task_families")
+        transformations = plan.get("transformations")
+        if task_families == [NETOPS_TASK_FAMILY] and transformations != {
+            "baseline": NETOPS_BASELINE_TRANSFORMATION,
+            "guarded": NETOPS_GUARDED_TRANSFORMATION,
+        }:
+            issues.append(
+                "NetOps repair tasks require the direct and guarded repair "
+                "transformations."
+            )
+        if task_families == ["configuration_error_detection_v1"] and (
+            transformations != {
+                "baseline": "baseline_prompt_v1",
+                "guarded": "guarded_prompt_v1",
+            }
+        ):
+            issues.append(
+                "Configuration-error tasks require the YES/NO transformations."
             )
         return not issues
 
@@ -1015,29 +1049,39 @@ class SyntheticPairedLLMBenchmarkAdapter:
             "2026-08-01T00:00:00+00:00",
         ))
 
+        selected_task_family = plan["task_families"][0]
         tasks: list[dict[str, Any]] = []
         for index in range(1, task_count + 1):
             task_id = f"task-{index:06d}"
             pair_id = f"pair-{index:06d}"
-            payload = {
-                "candidate_configuration": (
-                    f"interface eth{index} mtu {1400 + index}"
-                ),
-                "policy": "MTU must be at least 1500.",
-                "question": "Does the configuration violate the policy?",
-            }
-            reference_answer = "YES"
+            if selected_task_family == NETOPS_TASK_FAMILY:
+                payload = generate_netops_task(index)
+                reference_answer = render_reference_configuration(payload)
+                generator_id = "deterministic_netops_task_generator_v1"
+                source_identifier = f"synthetic-netops:{task_id}"
+            else:
+                payload = {
+                    "candidate_configuration": (
+                        f"interface eth{index} mtu {1400 + index}"
+                    ),
+                    "policy": "MTU must be at least 1500.",
+                    "question": "Does the configuration violate the policy?",
+                }
+                reference_answer = "YES"
+                generator_id = "deterministic_smoke_task_generator_v1"
+                source_identifier = f"synthetic:{task_id}"
+
             tasks.append({
                 "schema_version": "1.0",
                 "task_manifest_id": "task-manifest-v1",
                 "study_id": study_id,
                 "task_id": task_id,
                 "pair_id": pair_id,
-                "task_family": "configuration_error_detection_v1",
-                "generator_id": "deterministic_smoke_task_generator_v1",
+                "task_family": selected_task_family,
+                "generator_id": generator_id,
                 "generator_version": "1.0",
                 "generation_seed": index,
-                "source_identifier": f"synthetic:{task_id}",
+                "source_identifier": source_identifier,
                 "task_payload": payload,
                 "reference_answer": reference_answer,
                 "task_input_sha256": _sha256_bytes(
@@ -1059,10 +1103,24 @@ class SyntheticPairedLLMBenchmarkAdapter:
         )
         task_manifest_hash = _sha256_file(task_manifest_path)
 
-        transformation_manifest = {
-            "schema_version": "1.0",
-            "study_id": study_id,
-            "conditions": {
+        if selected_task_family == NETOPS_TASK_FAMILY:
+            condition_definitions = {
+                "baseline": {
+                    "transformation_id": NETOPS_BASELINE_TRANSFORMATION,
+                    "instruction": (
+                        "Generate the requested interface configuration directly."
+                    ),
+                },
+                "guarded": {
+                    "transformation_id": NETOPS_GUARDED_TRANSFORMATION,
+                    "instruction": (
+                        "Generate a candidate, validate it deterministically, and "
+                        "apply at most one bounded repair before returning it."
+                    ),
+                },
+            }
+        else:
+            condition_definitions = {
                 "baseline": {
                     "transformation_id": "baseline_prompt_v1",
                     "instruction": "Answer YES or NO.",
@@ -1074,7 +1132,12 @@ class SyntheticPairedLLMBenchmarkAdapter:
                         "YES or NO. Return only the answer."
                     ),
                 },
-            },
+            }
+        transformation_manifest = {
+            "schema_version": "1.0",
+            "study_id": study_id,
+            "task_family": selected_task_family,
+            "conditions": condition_definitions,
         }
         transformation_path = output_dir / "transformation_manifest.json"
         _write_json(transformation_path, transformation_manifest)
@@ -1120,12 +1183,20 @@ class SyntheticPairedLLMBenchmarkAdapter:
                 instruction = transformation_manifest["conditions"][condition][
                     "instruction"
                 ]
-                prompt = (
-                    f"{instruction}\n"
-                    f"Configuration: {task['task_payload']['candidate_configuration']}\n"
-                    f"Policy: {task['task_payload']['policy']}\n"
-                    f"Question: {task['task_payload']['question']}"
-                )
+                if task["task_family"] == NETOPS_TASK_FAMILY:
+                    prompt = (
+                        f"{instruction}\n"
+                        f"Intent: {task['task_payload']['intent']}\n"
+                        "Return only commands in the supported interface DSL."
+                    )
+                else:
+                    prompt = (
+                        f"{instruction}\n"
+                        f"Configuration: "
+                        f"{task['task_payload']['candidate_configuration']}\n"
+                        f"Policy: {task['task_payload']['policy']}\n"
+                        f"Question: {task['task_payload']['question']}"
+                    )
                 prompt_hash = _sha256_bytes(prompt.encode("utf-8"))
 
                 failed = (
@@ -1158,18 +1229,50 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     )
                 else:
                     model_calls_for_episode = 0 if cached else 1
-                    if unscorable:
-                        response = "MAYBE"
-                    else:
-                        # Baseline deliberately misses every third task; guarded
-                        # is correct on every task, creating fixed discordance.
-                        response = (
-                            "NO"
-                            if condition == "baseline"
-                            and int(task["task_id"].split("-")[-1]) % 3 == 0
-                            else "YES"
+                    netops_trace = None
+                    if task["task_family"] == NETOPS_TASK_FAMILY:
+                        netops_trace = run_netops_condition(
+                            task["task_payload"],
+                            condition,
+                            int(task["task_id"].split("-")[-1]),
                         )
-                    normalized_response = response.strip().upper()
+                        response = netops_trace["final_configuration"]
+                        normalized_response = response.strip()
+                        score = int(
+                            netops_trace["validation_after"]["valid"]
+                        )
+                        scoring_status = "COMPLETED"
+                        reason = (
+                            "VALID_CONFIGURATION"
+                            if score
+                            else "VALIDATION_FAILED"
+                        )
+                    else:
+                        if unscorable:
+                            response = "MAYBE"
+                        else:
+                            # Baseline deliberately misses every third task;
+                            # guarded is correct on every task.
+                            response = (
+                                "NO"
+                                if condition == "baseline"
+                                and int(task["task_id"].split("-")[-1]) % 3 == 0
+                                else "YES"
+                            )
+                        normalized_response = response.strip().upper()
+                        if normalized_response not in {"YES", "NO"}:
+                            score = None
+                            scoring_status = "NOT_SCORED"
+                            reason = "RESPONSE_FORMAT_INVALID"
+                        else:
+                            score = int(
+                                normalized_response == task["reference_answer"]
+                            )
+                            scoring_status = "COMPLETED"
+                            reason = (
+                                "EXACT_MATCH" if score else "EXACT_MISMATCH"
+                            )
+
                     call_status = "CACHED" if cached else "COMPLETED"
                     response_path = responses_dir / f"{episode_id}.txt"
                     response_path.write_text(
@@ -1181,22 +1284,13 @@ class SyntheticPairedLLMBenchmarkAdapter:
                         response_path,
                         output_dir,
                     )
-                    if normalized_response not in {"YES", "NO"}:
-                        score = None
-                        scoring_status = "NOT_SCORED"
-                        reason = "RESPONSE_FORMAT_INVALID"
+                    if score is None:
                         scoring_input_hash = None
                     else:
-                        score = int(
-                            normalized_response == task["reference_answer"]
-                        )
-                        scoring_status = "COMPLETED"
-                        reason = (
-                            "EXACT_MATCH" if score else "EXACT_MISMATCH"
-                        )
                         scoring_input = {
                             "response": normalized_response,
                             "reference_answer": task["reference_answer"],
+                            "validator_trace": netops_trace,
                         }
                         scoring_input_hash = _sha256_bytes(
                             _canonical_json_bytes(scoring_input)
@@ -1228,6 +1322,12 @@ class SyntheticPairedLLMBenchmarkAdapter:
                     "score_reason_code": reason,
                     "scoring_status": scoring_status,
                     "terminal_error_type": error_type,
+                    "validator_trace": (
+                        netops_trace
+                        if task["task_family"] == NETOPS_TASK_FAMILY
+                        and not failed
+                        else None
+                    ),
                 }
                 scoring_path = scoring_dir / f"{episode_id}.json"
                 _write_json(scoring_path, scoring_record)
