@@ -142,9 +142,9 @@ def hosted_netops_plan_issues(
         not isinstance(max_output, int)
         or isinstance(max_output, bool)
         or max_output <= 0
-        or max_output > 1000
+        or max_output > 2000
     ):
-        issues.append("max_output_tokens must be an integer from 1 to 1000.")
+        issues.append("max_output_tokens must be an integer from 1 to 2000.")
     return sorted(set(issues))
 
 
@@ -156,11 +156,14 @@ def _task_prompt(task: dict[str, Any]) -> str:
             f"mtu={state['mtu']}, vlan={state['vlan']}"
         )
     return (
-        f"Intent: {task['intent']}\n"
+        f"Intent and safety policy: {task['intent']}\n"
         "Current state:\n"
         + "\n".join(state_lines)
-        + "\nGenerate only commands required to satisfy the intent. "
-        "Do not restate or modify preserved settings. Use exactly this DSL:\n"
+        + "\nReturn an ordered command sequence. Command order is "
+        "scientifically relevant: transient safety constraints must hold "
+        "after every command, not only in the final state. Generate only "
+        "commands required to satisfy the intent. Do not restate preserved "
+        "settings or add no-op commands. Use exactly this DSL:\n"
         "interface <name> admin up|down\n"
         "interface <name> mtu <integer>\n"
         "interface <name> vlan <integer>\n"
@@ -177,12 +180,22 @@ def _repair_prompt(
         f"- {item['code']}: {item['message']}"
         for item in validation["violations"]
     )
+    state_lines = []
+    for interface, state in task["initial_state"].items():
+        state_lines.append(
+            f"- {interface}: admin={state['admin']}, "
+            f"mtu={state['mtu']}, vlan={state['vlan']}"
+        )
     return (
-        f"Intent: {task['intent']}\n"
-        "The candidate configuration failed deterministic validation.\n"
+        f"Intent and safety policy: {task['intent']}\n"
+        "Initial state:\n"
+        + "\n".join(state_lines)
+        + "\nThe candidate sequence failed deterministic validation.\n"
         f"Candidate:\n{candidate}\n"
         f"Violations:\n{violations}\n"
-        "Return a corrected complete configuration only, using exactly this DSL:\n"
+        "Return a corrected complete ordered sequence. Ensure transient "
+        "constraints hold after every command, not only in the final state. "
+        "Do not include no-op or unrelated commands. Use exactly this DSL:\n"
         "interface <name> admin up|down\n"
         "interface <name> mtu <integer>\n"
         "interface <name> vlan <integer>\n"

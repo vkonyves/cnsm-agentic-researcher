@@ -1,19 +1,20 @@
 from __future__ import annotations
 
+import copy
 import re
 from dataclasses import dataclass
 from typing import Any
 
 
 TASK_FAMILY = "intent_configuration_repair_v1"
-TASK_GENERATOR_ID = "deterministic_netops_task_generator_v3"
-TASK_GENERATOR_VERSION = "3.0"
+TASK_GENERATOR_ID = "deterministic_netops_task_generator_v4"
+TASK_GENERATOR_VERSION = "4.0"
 BASELINE_TRANSFORMATION = "direct_configuration_generation_v1"
 GUARDED_TRANSFORMATION = "generate_validate_repair_v1"
-VALIDATOR_ID = "deterministic_netops_validator_v3"
-VALIDATOR_VERSION = "3.0"
-REPAIRER_ID = "deterministic_netops_repairer_v3"
-REPAIRER_VERSION = "3.0"
+VALIDATOR_ID = "deterministic_netops_validator_v4"
+VALIDATOR_VERSION = "4.0"
+REPAIRER_ID = "deterministic_netops_repairer_v4"
+REPAIRER_VERSION = "4.0"
 
 _INTERFACE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]*$")
 _COMMAND_RE = re.compile(
@@ -29,216 +30,355 @@ class ParsedCommand:
     field: str
     value: int | str
     source_line: str
+    line_number: int
 
 
 def _state(admin: str, mtu: int, vlan: int) -> dict[str, int | str]:
     return {"admin": admin, "mtu": mtu, "vlan": vlan}
 
 
+def _step(interface: str, field: str, value: int | str) -> dict[str, Any]:
+    return {"interface": interface, "field": field, "value": value}
+
+
+def _render_steps(steps: list[dict[str, Any]]) -> str:
+    return "\n".join(
+        f"interface {item['interface']} {item['field']} {item['value']}"
+        for item in steps
+    )
+
+
 def _difficulty(
     *,
     level: str,
-    required_assignments: int,
+    required_commands: int,
     changed_interfaces: int,
-    preserved_interfaces: int,
-    preservation_clauses: int,
-    distractor_count: int,
+    transient_rules: int,
+    dependency_rules: int,
     pattern: str,
 ) -> dict[str, Any]:
     return {
         "level": level,
-        "required_assignment_count": required_assignments,
+        "required_command_count": required_commands,
         "changed_interface_count": changed_interfaces,
-        "preserved_interface_count": preserved_interfaces,
-        "preservation_clause_count": preservation_clauses,
-        "distractor_count": distractor_count,
+        "transient_rule_count": transient_rules,
+        "dependency_rule_count": dependency_rules,
         "pattern": pattern,
     }
 
 
 def generate_task(index: int) -> dict[str, Any]:
-    """Generate a deterministic state-aware NetOps intent task."""
+    """Generate deterministic sequence-aware NetOps workflow tasks."""
     if not isinstance(index, int) or isinstance(index, bool) or index <= 0:
         raise ValueError("index must be a positive integer")
 
     cycle = (index - 1) // 8
     variant = (index - 1) % 8
 
-    a = f"edge{cycle * 4 + 1}"
-    b = f"edge{cycle * 4 + 2}"
-    c = f"uplink{cycle + 1}"
-    d = f"mgmt{cycle + 1}"
+    edge1 = f"edge{cycle * 4 + 1}"
+    edge2 = f"edge{cycle * 4 + 2}"
+    uplink1 = f"uplink{cycle * 2 + 1}"
+    uplink2 = f"uplink{cycle * 2 + 2}"
+    mgmt = f"mgmt{cycle + 1}"
 
     initial_state = {
-        a: _state("down", 1500, 1),
-        b: _state("up", 1500, 20 + cycle),
-        c: _state("up", 9000, 200 + cycle),
-        d: _state("up", 1500, 99),
+        edge1: _state("up", 1500, 10),
+        edge2: _state("up", 1500, 20),
+        uplink1: _state("up", 9000, 200),
+        uplink2: _state("down", 9000, 201),
+        mgmt: _state("up", 1500, 99),
     }
 
     if variant == 0:
-        required_changes = [
-            {"interface": a, "field": "admin", "value": "up"},
-            {"interface": a, "field": "mtu", "value": 1600 + 100 * (cycle % 2)},
-            {"interface": a, "field": "vlan", "value": 10 + cycle},
+        sequence = [
+            _step(edge1, "admin", "down"),
+            _step(edge1, "mtu", 1600),
+            _step(edge1, "vlan", 30),
+            _step(edge1, "admin", "up"),
         ]
         intent = (
-            f"Bring {a} up, set its MTU to {required_changes[1]['value']}, "
-            f"and move it to access VLAN {required_changes[2]['value']}. "
-            f"Leave {b}, {c}, and {d} unchanged."
+            f"Migrate {edge1} to VLAN 30 and MTU 1600. For safety, shut "
+            f"{edge1} down before changing either VLAN or MTU, then restore "
+            f"it to admin up. Do not modify any other interface."
         )
+        policies = {
+            "must_be_down_for_fields": {edge1: ["mtu", "vlan"]},
+            "minimum_active_in_groups": [],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [],
+        }
         difficulty = _difficulty(
             level="medium",
-            required_assignments=3,
+            required_commands=4,
             changed_interfaces=1,
-            preserved_interfaces=3,
-            preservation_clauses=1,
-            distractor_count=3,
-            pattern="single_interface_full_reconfiguration",
+            transient_rules=2,
+            dependency_rules=1,
+            pattern="shutdown_configure_restore",
         )
     elif variant == 1:
-        required_changes = [
-            {"interface": a, "field": "admin", "value": "up"},
-            {"interface": a, "field": "vlan", "value": 30 + cycle},
-            {"interface": b, "field": "mtu", "value": 1700},
+        sequence = [
+            _step(uplink2, "admin", "up"),
+            _step(uplink1, "admin", "down"),
         ]
         intent = (
-            f"Enable {a} and assign it to access VLAN {30 + cycle}; "
-            f"change only the MTU of {b} to 1700. Preserve every other "
-            f"setting, including everything on {c} and {d}."
+            f"Move service from {uplink1} to {uplink2}. At least one of the "
+            f"two uplinks must remain admin up at every step, so enable "
+            f"{uplink2} before shutting down {uplink1}. Preserve all MTU and "
+            f"VLAN settings and do not touch other interfaces."
         )
+        policies = {
+            "must_be_down_for_fields": {},
+            "minimum_active_in_groups": [
+                {"interfaces": [uplink1, uplink2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [
+                {
+                    "interfaces": [uplink1, uplink2],
+                    "exactly_active": 1,
+                }
+            ],
+        }
         difficulty = _difficulty(
             level="hard",
-            required_assignments=3,
+            required_commands=2,
             changed_interfaces=2,
-            preserved_interfaces=2,
-            preservation_clauses=2,
-            distractor_count=4,
-            pattern="two_interface_partial_update",
+            transient_rules=1,
+            dependency_rules=2,
+            pattern="make_before_break_uplink_switchover",
         )
     elif variant == 2:
-        required_changes = [
-            {"interface": b, "field": "admin", "value": "down"},
-            {"interface": b, "field": "vlan", "value": 40 + cycle},
+        sequence = [
+            _step(edge1, "admin", "down"),
+            _step(edge2, "admin", "down"),
+            _step(edge1, "mtu", 1800),
+            _step(edge2, "mtu", 1800),
+            _step(edge1, "admin", "up"),
+            _step(edge2, "admin", "up"),
         ]
         intent = (
-            f"Administratively shut down {b} and prepare access VLAN "
-            f"{40 + cycle} on it. Its MTU must remain 1500. Keep {a}, "
-            f"{c}, and {d} completely unchanged."
+            f"Change the point-to-point pair {edge1}/{edge2} to matching MTU "
+            f"1800. Both interfaces must be down before either MTU change, "
+            f"and both must finish admin up. Preserve both VLANs and every "
+            f"setting on the uplinks and {mgmt}."
         )
+        policies = {
+            "must_be_down_for_fields": {
+                edge1: ["mtu"],
+                edge2: ["mtu"],
+            },
+            "all_down_before_any_field_change": [
+                {
+                    "interfaces": [edge1, edge2],
+                    "fields": ["mtu"],
+                }
+            ],
+            "minimum_active_in_groups": [],
+            "protected_interfaces": [mgmt],
+            "equal_final_fields": [
+                {"interfaces": [edge1, edge2], "field": "mtu"}
+            ],
+            "final_group_constraints": [],
+        }
         difficulty = _difficulty(
             level="hard",
-            required_assignments=2,
-            changed_interfaces=1,
-            preserved_interfaces=3,
-            preservation_clauses=2,
-            distractor_count=4,
-            pattern="target_partial_update_with_explicit_preservation",
+            required_commands=6,
+            changed_interfaces=2,
+            transient_rules=3,
+            dependency_rules=2,
+            pattern="paired_link_atomic_mtu_change",
         )
     elif variant == 3:
-        required_changes = [
-            {"interface": a, "field": "mtu", "value": 1800},
-            {"interface": b, "field": "admin", "value": "down"},
-            {"interface": b, "field": "vlan", "value": 50 + cycle},
+        sequence = [
+            _step(edge2, "admin", "down"),
+            _step(edge2, "vlan", 40),
+            _step(edge2, "admin", "up"),
+            _step(edge1, "admin", "down"),
         ]
         intent = (
-            f"Set {a} MTU to 1800. On {b}, shut the interface down and "
-            f"change its access VLAN to {50 + cycle}. Do not alter {a}'s "
-            f"admin or VLAN, {b}'s MTU, or anything on {c} or {d}."
+            f"Transfer access service from {edge1} to {edge2}: first shut "
+            f"{edge2} down, move it to VLAN 40, and bring it up; only then "
+            f"shut {edge1} down. At least one edge interface must remain up "
+            f"throughout. Preserve all MTUs and do not touch the uplinks or "
+            f"{mgmt}."
         )
+        policies = {
+            "must_be_down_for_fields": {edge2: ["vlan"]},
+            "minimum_active_in_groups": [
+                {"interfaces": [edge1, edge2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [
+                {
+                    "interfaces": [edge1, edge2],
+                    "exactly_active": 1,
+                }
+            ],
+        }
         difficulty = _difficulty(
-            level="hard",
-            required_assignments=3,
+            level="very_hard",
+            required_commands=4,
             changed_interfaces=2,
-            preserved_interfaces=2,
-            preservation_clauses=4,
-            distractor_count=5,
-            pattern="cross_interface_mixed_fields",
+            transient_rules=2,
+            dependency_rules=2,
+            pattern="safe_access_service_transfer",
         )
     elif variant == 4:
-        required_changes = [
-            {"interface": a, "field": "admin", "value": "up"},
-            {"interface": b, "field": "admin", "value": "down"},
-            {"interface": c, "field": "mtu", "value": 9200},
+        sequence = [
+            _step(uplink2, "admin", "up"),
+            _step(uplink1, "admin", "down"),
+            _step(uplink1, "vlan", 210),
         ]
         intent = (
-            f"Bring {a} up, shut {b} down, and change only {c}'s MTU "
-            f"from 9000 to 9200. Preserve all VLANs, preserve the MTUs of "
-            f"{a}, {b}, and {d}, and leave {d} otherwise untouched."
+            f"Fail traffic over to {uplink2}, then retire {uplink1} onto "
+            f"VLAN 210. Enable {uplink2} before disabling {uplink1}; VLAN "
+            f"changes are allowed only while the affected uplink is down. "
+            f"Keep at least one uplink up at all times. Preserve all MTUs and "
+            f"do not modify edge interfaces or {mgmt}."
         )
+        policies = {
+            "must_be_down_for_fields": {uplink1: ["vlan"]},
+            "minimum_active_in_groups": [
+                {"interfaces": [uplink1, uplink2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [
+                {
+                    "interfaces": [uplink1, uplink2],
+                    "exactly_active": 1,
+                }
+            ],
+        }
         difficulty = _difficulty(
             level="very_hard",
-            required_assignments=3,
-            changed_interfaces=3,
-            preserved_interfaces=1,
-            preservation_clauses=3,
-            distractor_count=6,
-            pattern="three_interface_sparse_update",
+            required_commands=3,
+            changed_interfaces=2,
+            transient_rules=2,
+            dependency_rules=2,
+            pattern="failover_then_offline_reconfiguration",
         )
     elif variant == 5:
-        required_changes = [
-            {"interface": a, "field": "vlan", "value": 60 + cycle},
-            {"interface": c, "field": "admin", "value": "down"},
-            {"interface": c, "field": "vlan", "value": 210 + cycle},
+        sequence = [
+            _step(edge1, "admin", "down"),
+            _step(edge1, "vlan", 50),
+            _step(edge1, "admin", "up"),
+            _step(edge2, "admin", "down"),
+            _step(edge2, "vlan", 60),
+            _step(edge2, "admin", "up"),
         ]
         intent = (
-            f"Move {a} to access VLAN {60 + cycle} without enabling it "
-            f"or changing its MTU. On {c}, shut the interface down and "
-            f"set VLAN {210 + cycle}, but keep its jumbo MTU at 9000. "
-            f"Leave {b} and {d} unchanged."
+            f"Migrate {edge1} to VLAN 50 and {edge2} to VLAN 60, one at a "
+            f"time. An interface must be down for its VLAN change, but the "
+            f"other edge interface must remain up, so never have both edges "
+            f"down simultaneously. Restore both to admin up. Preserve MTUs "
+            f"and do not touch either uplink or {mgmt}."
         )
+        policies = {
+            "must_be_down_for_fields": {
+                edge1: ["vlan"],
+                edge2: ["vlan"],
+            },
+            "minimum_active_in_groups": [
+                {"interfaces": [edge1, edge2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [],
+        }
         difficulty = _difficulty(
             level="very_hard",
-            required_assignments=3,
+            required_commands=6,
             changed_interfaces=2,
-            preserved_interfaces=2,
-            preservation_clauses=4,
-            distractor_count=6,
-            pattern="negative_instruction_and_jumbo_preservation",
+            transient_rules=3,
+            dependency_rules=2,
+            pattern="rolling_access_vlan_migration",
         )
     elif variant == 6:
-        required_changes = [
-            {"interface": a, "field": "admin", "value": "up"},
-            {"interface": a, "field": "mtu", "value": 1900},
-            {"interface": b, "field": "vlan", "value": 70 + cycle},
-            {"interface": c, "field": "admin", "value": "down"},
+        sequence = [
+            _step(uplink2, "admin", "up"),
+            _step(uplink1, "admin", "down"),
+            _step(uplink1, "mtu", 9200),
+            _step(uplink1, "admin", "up"),
+            _step(uplink2, "admin", "down"),
         ]
         intent = (
-            f"Enable {a} and set its MTU to 1900 while keeping its VLAN "
-            f"at 1. Change only {b}'s VLAN to {70 + cycle}. Shut {c} "
-            f"down without changing its MTU or VLAN. Do not touch {d}."
+            f"Upgrade {uplink1} to MTU 9200 without losing uplink service. "
+            f"Bring {uplink2} up first, shut {uplink1} down, change its MTU, "
+            f"restore {uplink1}, and only then shut {uplink2} back down. "
+            f"At least one uplink must remain up throughout. Preserve VLANs "
+            f"and do not touch edge interfaces or {mgmt}."
         )
+        policies = {
+            "must_be_down_for_fields": {uplink1: ["mtu"]},
+            "minimum_active_in_groups": [
+                {"interfaces": [uplink1, uplink2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [
+                {
+                    "interfaces": [uplink1, uplink2],
+                    "exactly_active": 1,
+                }
+            ],
+        }
         difficulty = _difficulty(
             level="very_hard",
-            required_assignments=4,
-            changed_interfaces=3,
-            preserved_interfaces=1,
-            preservation_clauses=4,
-            distractor_count=7,
-            pattern="three_interface_four_assignment_update",
+            required_commands=5,
+            changed_interfaces=2,
+            transient_rules=2,
+            dependency_rules=3,
+            pattern="redundant_uplink_maintenance_window",
         )
     else:
-        required_changes = [
-            {"interface": a, "field": "mtu", "value": 2000},
-            {"interface": b, "field": "admin", "value": "down"},
-            {"interface": b, "field": "mtu", "value": 1600},
-            {"interface": c, "field": "vlan", "value": 220 + cycle},
+        sequence = [
+            _step(uplink2, "admin", "up"),
+            _step(uplink1, "admin", "down"),
+            _step(uplink1, "vlan", 220),
+            _step(uplink1, "mtu", 9300),
+            _step(uplink1, "admin", "up"),
+            _step(uplink2, "admin", "down"),
+            _step(edge1, "admin", "down"),
+            _step(edge1, "vlan", 70),
+            _step(edge1, "admin", "up"),
         ]
         intent = (
-            f"Set only {a}'s MTU to 2000. On {b}, shut it down and set "
-            f"its MTU to 1600 while preserving VLAN {20 + cycle}. Change "
-            f"only {c}'s VLAN to {220 + cycle}, preserving admin up and "
-            f"MTU 9000. Keep every setting on {d} unchanged."
+            f"Perform two safe maintenance workflows. First, use {uplink2} "
+            f"as temporary redundancy while {uplink1} is shut down and moved "
+            f"to VLAN 220 with MTU 9300; restore {uplink1} before returning "
+            f"{uplink2} to down. At least one uplink must always be up. Then "
+            f"shut {edge1} down, move it to VLAN 70, and restore it. VLAN and "
+            f"MTU changes are allowed only while their interface is down. "
+            f"Never modify {mgmt}, and preserve all unspecified fields."
         )
+        policies = {
+            "must_be_down_for_fields": {
+                uplink1: ["vlan", "mtu"],
+                edge1: ["vlan"],
+            },
+            "minimum_active_in_groups": [
+                {"interfaces": [uplink1, uplink2], "minimum": 1}
+            ],
+            "protected_interfaces": [mgmt],
+            "final_group_constraints": [
+                {
+                    "interfaces": [uplink1, uplink2],
+                    "exactly_active": 1,
+                }
+            ],
+        }
         difficulty = _difficulty(
-            level="very_hard",
-            required_assignments=4,
+            level="extreme",
+            required_commands=9,
             changed_interfaces=3,
-            preserved_interfaces=1,
-            preservation_clauses=5,
-            distractor_count=8,
-            pattern="multi_interface_selective_field_preservation",
+            transient_rules=4,
+            dependency_rules=4,
+            pattern="composed_redundancy_and_access_maintenance",
         )
+
+    final_state = copy.deepcopy(initial_state)
+    touched_fields: set[tuple[str, str]] = set()
+    for item in sequence:
+        final_state[item["interface"]][item["field"]] = item["value"]
+        touched_fields.add((item["interface"], item["field"]))
 
     return {
         "task_family": TASK_FAMILY,
@@ -246,67 +386,63 @@ def generate_task(index: int) -> dict[str, Any]:
         "task_generator_version": TASK_GENERATOR_VERSION,
         "intent": intent,
         "initial_state": initial_state,
-        "required_changes": required_changes,
+        "required_sequence": sequence,
+        "expected_final_state": final_state,
         "constraints": {
-            "allowed_assignments": [
-                {
-                    "interface": item["interface"],
-                    "field": item["field"],
-                }
-                for item in required_changes
+            "allowed_touched_fields": [
+                {"interface": interface, "field": field}
+                for interface, field in sorted(touched_fields)
             ],
             "preserve_unspecified_state": True,
             "allowed_fields": list(_FIELDS),
+            "workflow_policies": policies,
         },
         "difficulty": difficulty,
     }
 
 
 def render_reference_configuration(task: dict[str, Any]) -> str:
-    return "\n".join(
-        f"interface {item['interface']} {item['field']} {item['value']}"
-        for item in task["required_changes"]
-    )
+    return _render_steps(task["required_sequence"])
 
 
 def generate_direct_candidate(task: dict[str, Any], seed: int) -> str:
-    """Generate a deterministic candidate with controlled realistic failures."""
-    required = [dict(item) for item in task["required_changes"]]
+    """Generate controlled direct candidates: valid, wrong, missing, unsafe."""
+    steps = [dict(item) for item in task["required_sequence"]]
     mode = seed % 4
 
     if mode == 0:
-        return render_reference_configuration(task)
+        return _render_steps(steps)
 
     if mode == 1:
-        item = required[0]
-        if item["field"] == "admin":
-            item["value"] = "down" if item["value"] == "up" else "up"
-        else:
-            item["value"] = int(item["value"]) - 1
-        return "\n".join(
-            f"interface {change['interface']} {change['field']} {change['value']}"
-            for change in required
-        )
+        for item in reversed(steps):
+            if item["field"] in {"mtu", "vlan"}:
+                item["value"] = int(item["value"]) + 1
+                break
+            if item["field"] == "admin":
+                item["value"] = "down" if item["value"] == "up" else "up"
+                break
+        return _render_steps(steps)
 
     if mode == 2:
-        return "\n".join(
-            f"interface {item['interface']} {item['field']} {item['value']}"
-            for item in required[:-1]
-        )
+        return _render_steps(steps[:-1])
 
-    distractor = next(
-        interface
-        for interface in task["initial_state"]
-        if interface not in {
-            item["interface"] for item in required
-        }
-    )
-    return "\n".join(
-        [
-            render_reference_configuration(task),
-            f"interface {distractor} admin down",
-        ]
-    )
+    # Create an order/safety failure while retaining plausible commands.
+    if len(steps) >= 2:
+        unsafe = [dict(item) for item in steps]
+        # Move the first non-admin change before its shutdown/precondition.
+        change_index = next(
+            (
+                idx
+                for idx, item in enumerate(unsafe)
+                if item["field"] in {"mtu", "vlan"}
+            ),
+            1,
+        )
+        change = unsafe.pop(change_index)
+        unsafe.insert(0, change)
+        return _render_steps(unsafe)
+
+    return _render_steps(list(reversed(steps)))
 
 
 def _parse_configuration(
@@ -324,12 +460,11 @@ def _parse_configuration(
 
     lines = configuration.splitlines()
     if not lines:
-        violations.append({
+        return [], [{
             "code": "EMPTY_CONFIGURATION",
             "message": "Configuration contains no commands.",
             "line_number": None,
-        })
-        return commands, violations
+        }]
 
     for line_number, raw_line in enumerate(lines, 1):
         line = raw_line.strip()
@@ -361,10 +496,9 @@ def _parse_configuration(
             })
             continue
 
-        value: int | str
         if field in {"mtu", "vlan"}:
             try:
-                value = int(raw_value)
+                value: int | str = int(raw_value)
             except ValueError:
                 violations.append({
                     "code": "INVALID_NUMERIC_VALUE",
@@ -382,89 +516,192 @@ def _parse_configuration(
                 })
                 continue
 
-        commands.append(ParsedCommand(interface, field, value, line))
+        commands.append(
+            ParsedCommand(interface, field, value, line, line_number)
+        )
 
     return commands, violations
 
 
+def _active_count(
+    state: dict[str, dict[str, int | str]],
+    interfaces: list[str],
+) -> int:
+    return sum(state[name]["admin"] == "up" for name in interfaces)
+
+
 def validate_configuration(task: dict[str, Any], configuration: str) -> dict[str, Any]:
-    """Validate syntax, required changes, and preservation of unspecified state."""
+    """Simulate an ordered workflow and validate transient and final safety."""
     commands, violations = _parse_configuration(configuration)
     initial_state = task["initial_state"]
-    required = {
-        (item["interface"], item["field"]): item["value"]
-        for item in task["required_changes"]
+    expected_final = task["expected_final_state"]
+    constraints = task["constraints"]
+    policies = constraints["workflow_policies"]
+    allowed = {
+        (item["interface"], item["field"])
+        for item in constraints["allowed_touched_fields"]
     }
-
-    observed: dict[tuple[str, str], int | str] = {}
-    duplicate_keys: set[tuple[str, str]] = set()
+    state = copy.deepcopy(initial_state)
+    observed_touched: set[tuple[str, str]] = set()
 
     for command in commands:
         key = (command.interface, command.field)
-        if command.interface not in initial_state:
+        if command.interface not in state:
             violations.append({
                 "code": "UNKNOWN_INTERFACE",
                 "message": f"Unknown interface: {command.interface}.",
-                "line_number": None,
+                "line_number": command.line_number,
             })
-        elif key not in required:
+            continue
+
+        if command.interface in policies.get("protected_interfaces", []):
+            violations.append({
+                "code": "PROTECTED_INTERFACE_CHANGE",
+                "message": (
+                    f"Protected interface {command.interface} must not change."
+                ),
+                "line_number": command.line_number,
+            })
+
+        if key not in allowed:
             violations.append({
                 "code": "UNINTENDED_STATE_CHANGE",
                 "message": (
-                    "Command modifies state that the intent requires to be "
-                    f"preserved: {command.interface} {command.field}."
+                    "Command modifies a field outside the permitted workflow: "
+                    f"{command.interface} {command.field}."
+                ),
+                "line_number": command.line_number,
+            })
+
+        current_value = state[command.interface][command.field]
+        if current_value == command.value:
+            violations.append({
+                "code": "NO_OP_COMMAND",
+                "message": (
+                    f"{command.interface} {command.field} is already "
+                    f"{command.value!r}."
+                ),
+                "line_number": command.line_number,
+            })
+
+        required_down_fields = policies.get(
+            "must_be_down_for_fields", {}
+        ).get(command.interface, [])
+        if (
+            command.field in required_down_fields
+            and state[command.interface]["admin"] != "down"
+        ):
+            violations.append({
+                "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+                "message": (
+                    f"{command.interface} must be down before changing "
+                    f"{command.field}."
+                ),
+                "line_number": command.line_number,
+            })
+
+        for rule in policies.get("all_down_before_any_field_change", []):
+            if (
+                command.interface in rule["interfaces"]
+                and command.field in rule["fields"]
+                and any(
+                    state[name]["admin"] != "down"
+                    for name in rule["interfaces"]
+                )
+            ):
+                violations.append({
+                    "code": "PEER_GROUP_NOT_QUIESCED",
+                    "message": (
+                        "All interfaces in the peer group must be down "
+                        "before the field change."
+                    ),
+                    "line_number": command.line_number,
+                })
+
+        state[command.interface][command.field] = command.value
+        observed_touched.add(key)
+
+        for group in policies.get("minimum_active_in_groups", []):
+            if _active_count(state, group["interfaces"]) < group["minimum"]:
+                violations.append({
+                    "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+                    "message": (
+                        "Too few interfaces remain active in protected group "
+                        f"{group['interfaces']}."
+                    ),
+                    "line_number": command.line_number,
+                })
+
+    for interface, fields in expected_final.items():
+        for field, expected in fields.items():
+            actual = state[interface][field]
+            if actual != expected:
+                violations.append({
+                    "code": "FINAL_STATE_MISMATCH",
+                    "message": (
+                        f"{interface} {field} ended as {actual!r}; "
+                        f"expected {expected!r}."
+                    ),
+                    "line_number": None,
+                })
+
+    for rule in policies.get("equal_final_fields", []):
+        values = {
+            state[name][rule["field"]] for name in rule["interfaces"]
+        }
+        if len(values) != 1:
+            violations.append({
+                "code": "FINAL_DEPENDENCY_VIOLATION",
+                "message": (
+                    f"Final {rule['field']} values must match across "
+                    f"{rule['interfaces']}."
                 ),
                 "line_number": None,
             })
-        if key in observed:
-            duplicate_keys.add(key)
-        observed[key] = command.value
 
-    for interface, field in sorted(duplicate_keys):
+    for rule in policies.get("final_group_constraints", []):
+        active = _active_count(state, rule["interfaces"])
+        if active != rule["exactly_active"]:
+            violations.append({
+                "code": "FINAL_ACTIVE_COUNT_VIOLATION",
+                "message": (
+                    f"Expected exactly {rule['exactly_active']} active "
+                    f"interfaces in {rule['interfaces']}; observed {active}."
+                ),
+                "line_number": None,
+            })
+
+    required_touched = {
+        (item["interface"], item["field"])
+        for item in task["required_sequence"]
+    }
+    for interface, field in sorted(required_touched - observed_touched):
         violations.append({
-            "code": "DUPLICATE_ASSIGNMENT",
-            "message": f"Duplicate assignment for {interface} {field}.",
+            "code": "MISSING_REQUIRED_OPERATION",
+            "message": f"Missing required operation on {interface} {field}.",
             "line_number": None,
         })
 
-    for (interface, field), expected in required.items():
-        key = (interface, field)
-        if key not in observed:
-            violations.append({
-                "code": "MISSING_REQUIRED_SETTING",
-                "message": f"Missing required setting: {interface} {field}.",
-                "line_number": None,
-            })
-        elif observed[key] != expected:
-            violations.append({
-                "code": "INTENT_CONSTRAINT_VIOLATION",
-                "message": (
-                    f"{interface} {field} is {observed[key]!r}; "
-                    f"expected {expected!r}."
-                ),
-                "line_number": None,
-            })
-
-    codes = [violation["code"] for violation in violations]
     return {
         "validator_id": VALIDATOR_ID,
         "validator_version": VALIDATOR_VERSION,
         "valid": not violations,
         "violation_count": len(violations),
-        "violation_codes": codes,
+        "violation_codes": [item["code"] for item in violations],
         "violations": violations,
         "parsed_command_count": len(commands),
         "normalized_configuration": "\n".join(
             command.source_line for command in commands
         ),
-        "required_assignment_count": len(required),
-        "observed_assignment_count": len(observed),
+        "required_command_count": len(task["required_sequence"]),
+        "observed_touched_field_count": len(observed_touched),
+        "final_state": state,
         "difficulty": task.get("difficulty"),
     }
 
 
 def repair_configuration(task: dict[str, Any], candidate: str) -> dict[str, Any]:
-    """Apply one bounded deterministic repair and revalidate it."""
+    """Apply one bounded deterministic workflow repair and revalidate."""
     before = validate_configuration(task, candidate)
     if before["valid"]:
         repaired = before["normalized_configuration"]
@@ -485,7 +722,6 @@ def repair_configuration(task: dict[str, Any], candidate: str) -> dict[str, Any]
 
 
 def run_condition(task: dict[str, Any], condition: str, seed: int) -> dict[str, Any]:
-    """Run direct generation or one bounded generate-validate-repair workflow."""
     candidate = generate_direct_candidate(task, seed)
     if condition == "baseline":
         validation = validate_configuration(task, candidate)

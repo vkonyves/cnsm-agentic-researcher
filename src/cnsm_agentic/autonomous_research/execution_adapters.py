@@ -508,7 +508,7 @@ def validate_execution_manifest(
     ):
         issues.append(
             "Completed execution contains no "
-            "successful episodes."
+            "completed episodes."
         )
 
     model_calls_used = counts.get(

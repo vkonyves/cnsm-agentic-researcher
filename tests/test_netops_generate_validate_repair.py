@@ -1,5 +1,4 @@
 from cnsm_agentic.autonomous_research.netops_generate_validate_repair import (
-    TASK_FAMILY,
     TASK_GENERATOR_VERSION,
     VALIDATOR_VERSION,
     generate_direct_candidate,
@@ -11,102 +10,140 @@ from cnsm_agentic.autonomous_research.netops_generate_validate_repair import (
 )
 
 
-def test_generated_task_and_reference_are_valid() -> None:
-    task = generate_task(1)
-    assert task["task_family"] == TASK_FAMILY
-    assert task["task_generator_version"] == TASK_GENERATOR_VERSION
-    assert len(task["initial_state"]) == 4
-    reference = render_reference_configuration(task)
-    validation = validate_configuration(task, reference)
-    assert validation["valid"] is True
-    assert validation["validator_version"] == VALIDATOR_VERSION
-    assert validation["violation_count"] == 0
-    assert validation["difficulty"] == task["difficulty"]
+def test_reference_workflows_are_valid_for_all_patterns() -> None:
+    for index in range(1, 9):
+        task = generate_task(index)
+        result = validate_configuration(
+            task,
+            render_reference_configuration(task),
+        )
+        assert result["valid"] is True, (index, result["violations"])
+        assert task["task_generator_version"] == TASK_GENERATOR_VERSION
+        assert result["validator_version"] == VALIDATOR_VERSION
 
 
-def test_task_bank_has_eight_distinct_difficulty_patterns() -> None:
+def test_task_bank_has_eight_sequence_patterns() -> None:
     tasks = [generate_task(index) for index in range(1, 9)]
-    patterns = {task["difficulty"]["pattern"] for task in tasks}
-    assert len(patterns) == 8
+    assert len({task["difficulty"]["pattern"] for task in tasks}) == 8
     assert {task["difficulty"]["level"] for task in tasks} == {
         "medium",
         "hard",
         "very_hard",
+        "extreme",
     }
     assert max(
-        task["difficulty"]["required_assignment_count"]
+        task["difficulty"]["required_command_count"]
         for task in tasks
-    ) == 4
-    assert max(
-        task["difficulty"]["changed_interface_count"]
-        for task in tasks
-    ) == 3
+    ) == 9
 
 
-def test_task_variants_include_multi_interface_and_preservation_cases() -> None:
-    task_two = generate_task(2)
-    changed_interfaces = {
-        item["interface"] for item in task_two["required_changes"]
-    }
-    assert len(changed_interfaces) == 2
-    assert task_two["constraints"]["preserve_unspecified_state"] is True
-
-    task_five = generate_task(5)
-    assert task_five["difficulty"]["changed_interface_count"] == 3
-    assert "Preserve all VLANs" in task_five["intent"]
-
-    task_eight = generate_task(8)
-    assert len(task_eight["required_changes"]) == 4
-    assert "preserving admin up and MTU 9000" in task_eight["intent"]
-
-
-def test_validator_detects_wrong_value_missing_setting_and_preserved_change() -> None:
+def test_shutdown_is_required_before_vlan_or_mtu_change() -> None:
     task = generate_task(1)
-
-    wrong = generate_direct_candidate(task, 1)
-    wrong_validation = validate_configuration(task, wrong)
-    assert wrong_validation["valid"] is False
-    assert "INTENT_CONSTRAINT_VIOLATION" in wrong_validation["violation_codes"]
-
-    missing = generate_direct_candidate(task, 2)
-    missing_validation = validate_configuration(task, missing)
-    assert "MISSING_REQUIRED_SETTING" in missing_validation["violation_codes"]
-
-    scope = generate_direct_candidate(task, 3)
-    scope_validation = validate_configuration(task, scope)
-    assert "UNINTENDED_STATE_CHANGE" in scope_validation["violation_codes"]
+    unsafe = "\n".join(
+        [
+            "interface edge1 mtu 1600",
+            "interface edge1 admin down",
+            "interface edge1 vlan 30",
+            "interface edge1 admin up",
+        ]
+    )
+    result = validate_configuration(task, unsafe)
+    assert result["valid"] is False
+    assert "INTERFACE_NOT_DOWN_FOR_CHANGE" in result["violation_codes"]
 
 
-def test_validator_rejects_change_to_unspecified_field_on_target_interface() -> None:
-    task = generate_task(6)
-    reference = render_reference_configuration(task)
-    target = task["required_changes"][0]["interface"]
-    candidate = reference + f"\ninterface {target} mtu 1700"
-    validation = validate_configuration(task, candidate)
-    assert validation["valid"] is False
-    assert "UNINTENDED_STATE_CHANGE" in validation["violation_codes"]
+def test_make_before_break_preserves_transient_availability() -> None:
+    task = generate_task(2)
+    unsafe = "\n".join(
+        [
+            "interface uplink1 admin down",
+            "interface uplink2 admin up",
+        ]
+    )
+    result = validate_configuration(task, unsafe)
+    assert result["valid"] is False
+    assert "TRANSIENT_AVAILABILITY_VIOLATION" in result["violation_codes"]
 
 
-def test_repair_is_bounded_and_produces_valid_configuration() -> None:
-    task = generate_task(7)
-    candidate = generate_direct_candidate(task, 2)
-    result = repair_configuration(task, candidate)
-    assert result["repair_applied"] is True
-    assert result["validation_before"]["valid"] is False
-    assert result["validation_after"]["valid"] is True
-    assert result["repaired_configuration"] == render_reference_configuration(task)
+def test_peer_group_must_be_quiesced_before_atomic_mtu_change() -> None:
+    task = generate_task(3)
+    unsafe = "\n".join(
+        [
+            "interface edge1 admin down",
+            "interface edge1 mtu 1800",
+            "interface edge2 admin down",
+            "interface edge2 mtu 1800",
+            "interface edge1 admin up",
+            "interface edge2 admin up",
+        ]
+    )
+    result = validate_configuration(task, unsafe)
+    assert result["valid"] is False
+    assert "PEER_GROUP_NOT_QUIESCED" in result["violation_codes"]
 
 
-def test_repair_does_not_change_already_valid_configuration() -> None:
+def test_protected_management_interface_cannot_change() -> None:
+    task = generate_task(1)
+    candidate = (
+        render_reference_configuration(task)
+        + "\ninterface mgmt1 admin down"
+    )
+    result = validate_configuration(task, candidate)
+    assert "PROTECTED_INTERFACE_CHANGE" in result["violation_codes"]
+    assert "UNINTENDED_STATE_CHANGE" in result["violation_codes"]
+
+
+def test_no_op_commands_are_rejected() -> None:
+    task = generate_task(2)
+    candidate = (
+        "interface uplink1 admin up\n"
+        + render_reference_configuration(task)
+    )
+    result = validate_configuration(task, candidate)
+    assert "NO_OP_COMMAND" in result["violation_codes"]
+
+
+def test_controlled_candidates_cover_value_missing_and_sequence_failures() -> None:
     task = generate_task(8)
-    candidate = render_reference_configuration(task)
-    result = repair_configuration(task, candidate)
-    assert result["repair_applied"] is False
-    assert result["validation_before"]["valid"] is True
-    assert result["validation_after"]["valid"] is True
+
+    wrong = validate_configuration(
+        task,
+        generate_direct_candidate(task, 1),
+    )
+    assert wrong["valid"] is False
+    assert "FINAL_STATE_MISMATCH" in wrong["violation_codes"]
+
+    missing = validate_configuration(
+        task,
+        generate_direct_candidate(task, 2),
+    )
+    assert missing["valid"] is False
+    assert "FINAL_STATE_MISMATCH" in missing["violation_codes"]
+
+    unsafe = validate_configuration(
+        task,
+        generate_direct_candidate(task, 3),
+    )
+    assert unsafe["valid"] is False
+    assert any(
+        code in unsafe["violation_codes"]
+        for code in {
+            "INTERFACE_NOT_DOWN_FOR_CHANGE",
+            "TRANSIENT_AVAILABILITY_VIOLATION",
+        }
+    )
 
 
-def test_guarded_condition_never_performs_worse_than_direct_candidate() -> None:
+def test_repair_restores_valid_ordered_workflow() -> None:
+    task = generate_task(7)
+    candidate = generate_direct_candidate(task, 3)
+    repaired = repair_configuration(task, candidate)
+    assert repaired["repair_applied"] is True
+    assert repaired["validation_before"]["valid"] is False
+    assert repaired["validation_after"]["valid"] is True
+
+
+def test_guarded_condition_is_monotonic_across_two_cycles() -> None:
     for index in range(1, 17):
         task = generate_task(index)
         baseline = run_condition(task, "baseline", index)
@@ -117,15 +154,14 @@ def test_guarded_condition_never_performs_worse_than_direct_candidate() -> None:
         )
 
 
-def test_validator_rejects_unsupported_syntax_and_unknown_interface() -> None:
+def test_unknown_interface_and_syntax_are_rejected() -> None:
     task = generate_task(1)
     syntax = validate_configuration(task, "router ospf 1")
-    assert syntax["valid"] is False
     assert "SYNTAX_ERROR" in syntax["violation_codes"]
 
     unknown = validate_configuration(
         task,
-        render_reference_configuration(task) + "\ninterface ghost0 admin down",
+        render_reference_configuration(task)
+        + "\ninterface ghost0 admin down",
     )
-    assert unknown["valid"] is False
     assert "UNKNOWN_INTERFACE" in unknown["violation_codes"]

@@ -313,9 +313,9 @@ def main() -> None:
         raise SystemExit(
             "The first paid pilot is restricted to one or two tasks."
         )
-    if args.max_output_tokens <= 0 or args.max_output_tokens > 1000:
+    if args.max_output_tokens <= 0 or args.max_output_tokens > 2000:
         raise SystemExit(
-            "--max-output-tokens must be from 1 to 1000 for this pilot."
+            "--max-output-tokens must be from 1 to 2000 for this pilot."
         )
     if args.bootstrap_resamples <= 0:
         raise SystemExit("--bootstrap-resamples must be positive.")
