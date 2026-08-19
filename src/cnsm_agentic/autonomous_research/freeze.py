@@ -193,7 +193,7 @@ def create_freeze_bundle(
         output_dir
         / "framework_commit.txt"
     ).write_text(
-        commit + "\\n",
+        commit + "\n",
         encoding="utf-8",
     )
 
@@ -203,7 +203,7 @@ def create_freeze_bundle(
         ("capability_manifest.sha256", manifest.capability_manifest_sha256),
     ):
         (output_dir / filename).write_text(
-            value + "\\n",
+            value + "\n",
             encoding="utf-8",
         )
 
@@ -212,7 +212,7 @@ def create_freeze_bundle(
             output_dir
             / "paper_run_constraints.sha256"
         ).write_text(
-            manifest.paper_run_constraints_sha256 + "\\n",
+            manifest.paper_run_constraints_sha256 + "\n",
             encoding="utf-8",
         )
 
@@ -225,7 +225,7 @@ def create_freeze_bundle(
             indent=2,
             ensure_ascii=False,
         )
-        + "\\n",
+        + "\n",
         encoding="utf-8",
     )
 
