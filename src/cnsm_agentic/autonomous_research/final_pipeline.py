@@ -19,6 +19,7 @@ from .evidence_verification import (
     verify_evidence,
 )
 from .execution_adapters import (
+    register_builtin_execution_adapters,
     registered_adapter_families,
     resolve_adapter,
     validate_execution_manifest,
@@ -507,6 +508,8 @@ class FinalAutonomousResearchPipeline:
         self.development_rehearsal = (
             development_rehearsal
         )
+
+        register_builtin_execution_adapters()
 
         for agent in (
             DESIGN_REPAIR_AGENT,
