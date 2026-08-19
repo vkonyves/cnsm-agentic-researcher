@@ -1,0 +1,121 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand_01",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Deterministic verifier specification is underspecified (coverage of semantic/regression checks unclear).",
+        "Topology synthesis and heterogeneity generation lack formal definition (threat to construct validity).",
+        "Prompt/template sensitivity and LLM selection not enumerated (internal validity).",
+        "No sample-size/power calculation or explicit N per bin; risk of underpowered interaction tests.",
+        "Failure modes and false-negative verifier behavior not planned (could bias against useful fixes)."
+      ],
+      "required_design_repairs": [
+        "Provide a formal verifier spec (syntax + semantic + reachability + policy oracles) with test-suite and failure modes.",
+        "Define topology-generation procedure with parameters for size/vendor heterogeneity and release example seeds/topologies.",
+        "Specify exact hosted LLM model identifiers, temperatures, and prompt templates; freeze them in preregistration.",
+        "Add an explicit sample-size/power calculation for primary outcome and preregister per-bin Ns and random seeds.",
+        "Define conservative retry policy and logging schema; record raw outputs, verifier traces, and hashes for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_02",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Orchestration roles and message schemas are underspecified (hard to reproduce/compare).",
+        "High estimated model-call budget risks API rate/cost limits and unequal cost comparisons between styles.",
+        "Prompt-sensitivity and template tuning could drive results rather than orchestration design.",
+        "Multiple pairwise comparisons require a clear multiple-testing plan to avoid false positives."
+      ],
+      "required_design_repairs": [
+        "Precisely define orchestration protocols: message schemas, role prompts, max-turn limits, and deterministic tie-breakers; freeze templates.",
+        "Predefine cost-normalization method and limit M (iterations) so comparisons are cost-aware.",
+        "Include a multiple-comparisons correction plan and pairwise test choice in preregistration.",
+        "Run a small pilot to calibrate per-task model-call budget and ensure feasibility under API limits; report fallback policy if limits hit."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_03",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Many hosted APIs do not expose logits/probabilities; plan assumes access to reliable confidence proxies.",
+        "Calibration procedures and the train/test split for calibration are not specified (risk of optimistic estimates).",
+        "Operational gating thresholds are not anchored to a verifier baseline or real-world cost metric.",
+        "Monte Carlo uncertainty estimation increases model-call cost and variance if not budgeted."
+      ],
+      "required_design_repairs": [
+        "Enumerate supported LLM APIs and exact signals available (logits, token-probs) and include proxy procedures if unavailable (e.g., sampling/ensembles).",
+        "Specify calibration workflow: held-out calibration set, method(s) (temperature scaling, isotonic), cross-validation folds, and evaluation metrics (ECE/Brier).",
+        "Define operational gating criteria (target false-accept rates) and clearly compare to verifier-gated baseline with cost accounting.",
+        "Precompute Monte Carlo sampling budget per task and freeze random seeds to bound compute; include fallback if API rate-limited."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_04",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Simulated human-reviewer heuristics are central but may not reflect operator behavior (external validity).",
+        "Semantic-trace schema is vague; reproducibility depends on a precise format and generation rules.",
+        "Simulated review-time modeling may be arbitrary without empirical grounding or human-pilot data.",
+        "Risk of circularity if reviewer heuristics implicitly replicate verifier checks."
+      ],
+      "required_design_repairs": [
+        "Define a concrete semantic-trace JSON schema (fields, types, confidence/tags) and include generation prompt templates.",
+        "Specify the simulated-reviewer heuristic in full (rules, thresholds, time-cost model) and justify parameters or run a small human-pilot to calibrate latencies/decisions.",
+        "Ensure reviewer heuristics are independent from verifier logic (avoid duplicate checks) and document differences.",
+        "Add sensitivity analyses varying reviewer strictness and time-cost assumptions; preregister simulation parameters and seeds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_05",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.5,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Model selection is unspecified (needed to ensure diversity and avoid correlated errors).",
+        "Merging/majority-vote rules are underspecified (line-level vs semantic merge).",
+        "Cost and API-rate implications of calling multiple models may be prohibitive; cost-normalization is required.",
+        "Ensemble may fail on correlated failure modes—need subgroup analysis to surface when ensemble helps/hurts."
+      ],
+      "required_design_repairs": [
+        "List exact LLM model identifiers (2–3) and justify diversity (architecture/provider) in preregistration.",
+        "Define deterministic merging rules (line-level diff rules, semantic merge fallback) and tie-breaking policies; include examples.",
+        "Predefine cost-normalized evaluation metrics and per-task model-call caps; include fallback if API limits reached.",
+        "Include subgroup analysis plan to detect correlated failures and quantify when ensemble improves vs when it degrades correctness."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

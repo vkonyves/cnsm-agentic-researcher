@@ -1,0 +1,145 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand_01",
+      "title": "Scale-sensitivity of Generate–Verify–Repair (GVR) for LLM-driven network-configuration repair",
+      "research_question": "Does a generate–verify–repair pipeline materially reduce incorrect or unsafe configuration repairs compared to raw LLM outputs as network topology size and heterogeneity increase?",
+      "hypotheses": [
+        "H1: GVR produces a higher proportion of syntactically and semantically correct repairs than raw LLM outputs (directional, testable).",
+        "H2: The relative benefit of GVR over raw LLM decreases as topology size and cross-vendor heterogeneity grow (interaction effect)."
+      ],
+      "proposed_design": "Controlled, paired experiment using a corpus of repair tasks derived from Cornetto-style scenarios plus additional larger synthetic topologies. For each task: (a) prompt a single hosted LLM to produce a repair (raw), (b) run same LLM within a GVR loop where a deterministic verifier checks syntax/route/policy constraints and requests up to N repairs, (c) record final accepted patch. Validators implemented as deterministic config parsers and reachability/policy checks in simulation. Use fixed seeds; preregister N, retry policy, and topology-size bins (small/medium/large).",
+      "expected_data": "Per-task: raw output, GVR output(s), verifier pass/fail logs, number of repair iterations, validator-detected regressions, execution time, and binary correctness labels from deterministic checks.",
+      "primary_outcome": "Difference in proportion-correct (validator-passed without regressions) between GVR and raw LLM, stratified by topology-size bin.",
+      "analysis_outline": "Paired proportion tests (McNemar or paired bootstrap) for primary outcome; logistic regression to test interaction between method (GVR/raw) and topology size/heterogeneity; report effect sizes with 95% CIs; failure-mode taxonomy and case examples.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4409346645"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4409346645",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Deterministic verifier may not capture all operational correctness criteria (construct validity).",
+        "API rate limits or cost could constrain iterations (infrastructure).",
+        "If verifier is too strict, useful fixes may be rejected (false negatives)."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "autocand_02",
+      "title": "Comparative evaluation of orchestration styles for LLM-based repair: single-pass, iterative-tool, and multi-agent",
+      "research_question": "Which orchestration style for LLM-driven repair minimizes regressions and repair churn on common NetOps repair tasks?",
+      "hypotheses": [
+        "H1: Iterative-tool orchestration (LLM + verifier/tool loop) yields fewer regressions than single-pass generation.",
+        "H2: A lightweight multi-agent orchestration yields marginal improvement over iterative-tool at higher compute cost (testable difference in regression rates and cost)."
+      ],
+      "proposed_design": "Implement three orchestration strategies using the same hosted LLM(s): (A) single-pass: one-shot repair; (B) iterative-tool: LLM + deterministic verifier with up to M iterations and explicit repair prompts; (C) multi-agent: split roles (proposer, critic, synthesizer) using separate prompt templates and limited message exchange. Evaluate on the same benchmark task set (Cornetto + expanded scenarios). Measure correctness, regression rate, iterations, wall time, and API calls. Predefine orchestration protocols and limits in preregistration.",
+      "expected_data": "Per-task outputs from each orchestration, verifier logs, inter-agent messages (for (C)), iteration counts, cost (model calls), and binary/graded correctness and regression indicators.",
+      "primary_outcome": "Regression rate (proportion of repairs introducing a new violation) for each orchestration style; pairwise comparisons with cost-normalized metrics.",
+      "analysis_outline": "Compare proportions with pairwise tests and adjust for multiple comparisons; cost-effectiveness curves (regression-rate vs model-calls); qualitative analysis of representative failure modes per orchestration.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7163636922",
+        "https://openalex.org/W7157506260"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163777690",
+        "doi:10.2139/ssrn.7197318"
+      ],
+      "risks": [
+        "High model-call budget required for multi-agent runs; may approach API limits.",
+        "Orchestration templates (prompts) may be sensitive; prompt-sensitivity threatens internal validity.",
+        "Correlated error modes across agents could negate ensemble benefits."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "autocand_03",
+      "title": "Assessing LLM self-reported/calibrated confidence as an automated gate for NetOps actions",
+      "research_question": "Can LLM-internal or proxy confidence signals be calibrated to reliably gate automatic application of suggested NetOps repairs without external deterministic verification?",
+      "hypotheses": [
+        "H1: Raw LLM self-reported confidence (or single-response heuristic) is poorly calibrated for correctness on repair tasks.",
+        "H2: Post-hoc calibration (temperature scaling, ensemble disagreement) improves calibration but remains insufficient alone for high-assurance gating at typical operational thresholds.",
+        "H3: Combining calibrated confidence with lightweight syntactic checks yields acceptable operational trade-offs (testable)."
+      ],
+      "proposed_design": "Collect LLM repairs plus any available token/log-prob proxies or use Monte Carlo sampling to estimate uncertainty. Compute calibration metrics (ECE, Brier score) against deterministic correctness labels. Apply calibration methods (temperature scaling, Platt) and alternative proxies (ensemble/response-variance). Evaluate gating performance by plotting ROC/precision-recall for different thresholds and compare to verifier-based gating baseline.",
+      "expected_data": "Raw responses, per-response confidence proxy scores, calibrated scores, correctness labels, calibration curves, and gating-operating-point metrics (false-accept rate, false-reject rate).",
+      "primary_outcome": "Calibration effectiveness measured by reduction in ECE and operational gating performance (false-accept rate at target true-accept rate) relative to verifier baseline.",
+      "analysis_outline": "Compute calibration metrics and confidence-utility curves; compare gating trade-offs with verifier baseline; statistical tests on ECE reductions; sensitivity analysis across task difficulty and topology size.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-9291769/v1",
+        "doi:10.36227/techrxiv.176799772.28164151/v1",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411735779",
+        "doi:10.36227/techrxiv.176799772.28164151/v1"
+      ],
+      "risks": [
+        "Some hosted LLM APIs do not expose reliable logits or probability outputs; Monte Carlo proxies increase model-call cost.",
+        "Calibration on synthetic benchmarks may not generalize to production distributions.",
+        "Operational thresholds are subjective and domain-dependent."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "autocand_04",
+      "title": "Impact of semantic tracing and human-review gating on repair safety and time-to-fix",
+      "research_question": "Does integrating semantic tracing (structured justification and provenance) plus a simulated human-review gate reduce regression incidence and time-to-fix compared to ungated automated repair?",
+      "hypotheses": [
+        "H1: Repairs accompanied by machine-generated semantic traces increase detectability of risky edits and reduce regression incidence after a single human-review pass.",
+        "H2: Semantic traces reduce average reviewer triage time compared to presenting raw diffs (measurable in simulated human-review latency)."
+      ],
+      "proposed_design": "Instrument LLM repair outputs to include structured semantic traces (intent, affected objects, risk tags). Simulate a human-reviewer using a deterministic heuristic model that uses traces to accept/reject with bounded time cost; compare to baseline where reviewer sees raw diff and runs same heuristic with longer expected evaluation time. Evaluate regression rates, number of false-rejections/false-accepts, and simulated time-to-approve across tasks from Cornetto and extended scenarios.",
+      "expected_data": "Repair proposals with traces, reviewer decisions and latencies (simulated), final applied repairs, regression indicators, and counts of manual interventions or rollbacks.",
+      "primary_outcome": "Regression incidence post-review and median simulated review time per accepted repair between trace-assisted and raw-diff conditions.",
+      "analysis_outline": "Compare regression rates (proportions) and review-time distributions (nonparametric tests); sensitivity analysis on reviewer heuristic strictness; qualitative examples of trace utility/failure.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7197318",
+        "https://openalex.org/W7117487293",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7117487293",
+        "doi:10.2139/ssrn.7197318"
+      ],
+      "risks": [
+        "Simulated reviewer heuristics may not reflect real operator behavior (external validity).",
+        "Semantic-trace generation quality depends on prompt design (prompt sensitivity)."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "autocand_05",
+      "title": "Ensemble voting of multiple LLMs for configuration repair: does ensemble reduce regressions vs single-model repairs?",
+      "research_question": "Does majority-vote ensemble of multiple LLMs reduce the incidence of regressions and increase repair correctness compared to a single-model baseline on NetOps repair tasks?",
+      "hypotheses": [
+        "H1: Ensembles of diverse LLMs produce fewer regressions than the best single model in the ensemble (tested across tasks).",
+        "H2: Correlated failure modes reduce ensemble gains on certain classes of tasks (testable via subgroup analysis)."
+      ],
+      "proposed_design": "Select 2–3 hosted LLMs (subject to API availability) and produce independent repairs per task. Use deterministic merging (majority vote on line-level edits or semantic-merge rules) to produce ensemble repair; compare against each single-model repair. Validate with deterministic verifier and record regressions, correctness, and model-call cost. Predefine merging rules and tie-breaking in preregistration.",
+      "expected_data": "Per-model outputs, merged ensemble output, verifier results, regression labels, merged vs single-model correctness, and model-call counts.",
+      "primary_outcome": "Difference in regression rate and correctness between ensemble output and the single best model, with cost-normalized comparison.",
+      "analysis_outline": "Paired comparisons across tasks; subgroup analysis by task type; measure ensemble improvement vs cost (model-calls). Report examples where correlated errors nullify ensemble benefits.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7163636922"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163777690"
+      ],
+      "risks": [
+        "API cost and rate limits when calling multiple models may be prohibitive.",
+        "Models may exhibit correlated hallucinations reducing ensemble advantage."
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}
