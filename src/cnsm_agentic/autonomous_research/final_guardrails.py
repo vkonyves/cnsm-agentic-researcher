@@ -3,7 +3,14 @@ import hashlib, json
 from pathlib import Path
 from typing import Any
 
-MARKERS=("studies/development/","autonomous_discovery_v06","evidence_repair_v07")
+MARKERS=(
+    "studies/development/",
+    "autonomous_discovery_v06",
+    "evidence_repair_v07",
+    "studies/experiments/controlled-fault-frozen-plan-v1",
+    "studies/reports/controlled-fault-final-report-v1",
+    "controlled-fault-plan-v1.json",
+)
 
 def sha256_file(path:Path)->str:
     return hashlib.sha256(path.read_bytes()).hexdigest()

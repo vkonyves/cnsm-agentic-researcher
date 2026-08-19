@@ -17,6 +17,11 @@ class FrozenRunManifest(BaseModel):
     capability_manifest_sha256: str
     created_at_utc: str
     development_rehearsal: bool
+    # v1 autonomous-paper freeze extensions. Optional for backward
+    # compatibility with older manifests; required by the v1 launcher.
+    paper_run_constraints_sha256: str | None = None
+    model: str | None = None
+    run_type: str | None = None
 
     @field_validator(
         "schema_version",
