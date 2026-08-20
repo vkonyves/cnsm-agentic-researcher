@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "cand-2026-004",
+  "title": "Design and validation of an executable, rollback-aware NetOps benchmark for action-level scoring (repaired preregistration)",
+  "research_question": "Can a compact, public executable benchmark (topology + intent corpus + rollback-aware scoring) reproducibly measure action-level correctness and rollback safety for LLM-driven NetOps pipelines, and do baseline pipelines (unconstrained LLM, guarded generate→verify→repair, verifier-only gating) produce statistically separable failure and rollback-necessity rates on that benchmark?",
+  "confirmatory_hypotheses": [
+    "H0: The benchmark cannot reproducibly differentiate pipeline safety; baseline pipelines produce indistinguishable rollback-necessity rates on the confirmatory set.",
+    "H1: The benchmark can reproducibly measure differences: the three baseline pipelines (unconstrained LLM, guarded generate→verify→repair, verifier-only gating) will show statistically separable rollback-necessity rates on the confirmatory set (paired tasks).",
+    "H2: Rollback-penalty-adjusted scoring yields a different pipeline ranking than verifier-pass-only scoring with at least one pairwise rank inversion among the three baselines on the confirmatory set."
+  ],
+  "exploratory_questions": [
+    "EQ1: How sensitive are pipeline rankings to verifier fidelity (simulated false-positive/negative rates) when measured on the discovery set?",
+    "EQ2: Which intent categories (e.g., segmentation, BGP, ACL change) drive most irreversible-state occurrences under each pipeline?"
+  ],
+  "benchmark_scope": [
+    "Public synthetic + seeded corpus of device-config intents and executable sandbox topologies (6 topologies of increasing complexity).",
+    "Action-level execution semantics limited to sandboxed device command emulation (no production device connection).",
+    "Evaluation scope limited to the included protocols and command subsets modelled in the sandbox and verifier (documented per-topology)."
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) (single model family selected at execution time consistent with capability manifest).",
+    "No local GPU models; only hosted-model API calls under the manifest constraints.",
+    "Verifiers are deterministic CPU-executable tools (open-source network verification/emulation stacks) executed locally in Docker."
+  ],
+  "transformation_scope": [
+    "Intent-to-command generation (LLM output), deterministic command parsing and normalization, command-to-state emulation in sandbox, rollback-emulation semantics applied to sandbox state traces."
+  ],
+  "primary_estimand": "Paired difference in rollback-necessity rate per task between pipelines (probability that a pipeline's executed action sequence leads to a state requiring rollback-emulation).",
+  "secondary_estimands": [
+    "Verifier-pass rate per pipeline (proportion of tasks that pass verifier before/after repair attempts).",
+    "Action-impact score mean difference per pipeline (continuous score measuring deviation from expected ground-truth state).",
+    "Ranking consistency (Spearman rho) between verifier-pass ranking and rollback-penalty-adjusted ranking."
+  ],
+  "sampling_plan": "Total corpus = 360 intents distributed evenly across 6 topologies (60 intents per topology). For preregistered confirmatory evaluation we will use 300 confirmatory items (50 confirmatory intents per topology) and keep 60 discovery/development intents (10 per topology) withheld for calibration and verifier-fidelity checks. Derivation: 6 topologies * 60 intents = 360 total; confirmatory = 6 * 50 = 300; discovery = 6 * 10 = 60.",
+  "analysis_plan": "Primary analysis: paired comparison of rollback-necessity rates between pipelines on confirmatory N=300 using a paired-proportions test (McNemar or equivalent exact test) and bootstrap 95% CIs. Secondary analyses: paired comparisons for verifier-pass rates, comparison of action-impact scores using paired t-test or Wilcoxon signed-rank as appropriate, Spearman rank correlations between scoring protocols. Report exact p-values, bootstrap CIs (10,000 bootstrap resamples), and effect-size estimates. Pre-register seeds for all randomness. All analyses are deterministic given artifacts and seeds.",
+  "multiplicity_plan": "Primary confirmatory family: three pairwise comparisons of rollback-necessity rates (unconstrained vs guarded, unconstrained vs verifier-only, guarded vs verifier-only). Control familywise error using Holm-Bonferroni correction for the three primary pairwise tests. Secondary estimands reported with Benjamini-Hochberg FDR correction.",
+  "missingness_plan": "Any task run that fails for technical reasons (API outage, verifier crash) will be retried up to two times automatically (same seed); if still failing, that task is excluded from confirmatory analysis and listed with its failure reason. Exclusions and counts will be reported. Discovery set runs may be repeated for calibration; confirmatory exclusions are logged and treated as technical failures only if outside retry budget.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "CNSM-rollback-bench-v1 (public seedable artifact)",
+      "Reference public topology/intent trace used for realism: (selected public artifact referenced from allowed evidence: https://openalex.org/W4399629579) — used as one topology exemplar"
+    ],
+    "risk_factors": [
+      "Overfitting of pipelines to public confirmatory set if participants tune on full corpus.",
+      "Leakage between discovery and confirmatory items (must be strictly separated).",
+      "Verifier design choices dominating observed differences (verifier-induced artifacts)."
+    ],
+    "detection_procedures": [
+      "Hidden-test enforcement: 60 discovery intents are held out; final reported confirmatory results are computed only on confirmatory set with checksums and artifact-hash verification.",
+      "Artifact-hash verification: publish SHA256 hashes of all released files; CI scripts verify that submitted evaluation outputs match expected file-level structure for the confirmatory runs.",
+      "Automatic divergence checks: compute baseline per-task randomization fingerprints (seed+task id); detect runs whose fingerprints misalign with preregistered seeds and flag as contamination events."
+    ],
+    "item_flagging_rules": [
+      "If a pipeline's output for any confirmatory task is reproducibly different under the same seed across two independent executions, mark as 'execution nondeterminism' and exclude that task from confirmatory hypothesis testing (reported in appendices).",
+      "If discovery-set statistics indicate verifier false-positive or false-negative rates above predefined thresholds (FP > 10% or FN > 10%), treat verifier fidelity as suspect and run sensitivity analyses instead of making strong general claims."
+    ],
+    "analysis_treatment": "Contaminated or excluded items are reported; primary analyses are performed on the preregistered confirmatory set excluding only items with documented unrecoverable technical failures or nondeterminism. Sensitivity analyses report results including and excluding flagged items.",
+    "residual_uncertainty": [
+      "Residual risk that benchmark topologies do not represent production heterogeneity.",
+      "Residual risk that verifier design choices bias rankings even after discovery-set fidelity checks."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-recommended",
+      "description": "Recommended (moderate): Full preregistered plan. Confirmatory N=300 (6 topologies × 50 confirmatory intents). Discovery N=60 (6 × 10) reserved for calibration, verifier-fidelity estimation, and anti-overfitting checks. Guarded pipeline: generate→verify→repair with up to 3 LLM attempts per task. Verifier-only and unconstrained pipelines use up to 1 LLM call per task. All runs use hosted-model API; verifier runs are local CPU/Docker.",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted-llm-api (single production-hosted model family chosen at execution; hosted API available per capability manifest)"
+      ],
+      "transformations": [
+        "Intent → single-shot LLM generation (unconstrained)",
+        "Intent → LLM generation + verification + repair loop (guarded), up to 3 attempts",
+        "Intent → verifier-only gating (LLM used only to propose in development; final evaluation uses verifier outcome)"
+      ],
+      "discovery_items": 60,
+      "confirmatory_items": 300,
+      "task_cluster_count": 6,
+      "feasibility_rationale": "Model-call arithmetic: confirmatory calls = 300 tasks × (unconstrained 1 + guarded up to 3 + verifier-only 1) = 300 × 5 = 1500 model calls. Discovery calibration calls = 60 × 5 = 300 model calls. Total = 1500 + 300 = 1800 model calls. This is within the capability manifest limit (≤10000). Verifiers run locally in Docker (CPU) per manifest. Hidden-test split and artifact hashing prevent overfitting. Reference public topology (openalex W4399629579) included as one exemplar to increase realism."
+    },
+    {
+      "scenario_id": "scenario-economy",
+      "description": "Economy (reduced budget): Run only confirmatory N=240 (6 × 40 confirmatory) with guarded pipeline limited to 2 attempts to reduce API usage. Discovery set omitted (fewer anti-overfitting guarantees). Use this only if API quotas force a smaller study; less statistical power.",
+      "planned_model_calls": 960,
+      "models": [
+        "hosted-llm-api (single model family)"
+      ],
+      "transformations": [
+        "Same pipelines as recommended but guarded pipeline capped at 2 attempts; discovery runs skipped."
+      ],
+      "discovery_items": 6,
+      "confirmatory_items": 240,
+      "task_cluster_count": 6,
+      "feasibility_rationale": "Model-call arithmetic: confirmatory calls = 240 × (1 + 2 + 1) = 240 × 4 = 960. This fits manifest constraints but reduces power; omits discovery-stage verifier-fidelity calibration and hidden-test rigor."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in rollback-necessity rate between pipelines on confirmatory tasks.",
+    "target_effect": "Detect an absolute paired difference of 0.10 (10 percentage points) in rollback-necessity rate between any two pipelines with 80% power and alpha=0.05.",
+    "clustering_unit": "Task/intent (paired within-task comparisons across pipelines).",
+    "calculation_method": "Approximate paired-proportions (McNemar-style) planning. For two-sided paired proportion difference d=0.10, baseline event rate ~0.30 (conservative estimate from evidence synthesis), alpha=0.05, power=0.80, required paired N ≈ 300. Calculations use standard formulae for paired binary outcomes and validated via bootstrap simulation on synthetic-data draws during preregistration (deterministic seeds).",
+    "assumptions": [
+      "Baseline rollback-necessity rate ≈ 30% (conservative estimate based on evidence F4 and G1).",
+      "Paired within-task correlation moderate; bootstrap simulations used to validate analytic approximation.",
+      "Guarded pipeline repair attempts limited to 3 will not systematically change paired-test assumptions; all attempts counted as part of a single pipeline outcome per task (final accepted sequence or rollback-necessity)."
+    ],
+    "recommended_scenario_id": "scenario-recommended",
+    "minimum_detectable_effect_notes": "With N=300 the experiment is powered to detect ≈10 percentage-point paired differences. Smaller effects (≤5%) will be underpowered; sensitivity analyses will report observed CIs and power recalculation.",
+    "sensitivity_analyses": [
+      "Report observed effect sizes and 95% bootstrap CIs; compute achieved power post-hoc for observed baseline rates.",
+      "Report results under conservative alternative baseline rates (20% and 40%) to show robustness of MDE assumptions."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent → LLM-generated CLI/structured commands",
+      "Command normalization (AST parsing and canonicalization)",
+      "Command → sandbox-executed state transition",
+      "State diffs → action-impact scoring"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: canonicalize LLM-generated commands to AST, apply normalization, and compare semantic intent to ground-truth expected effect using deterministic emulator; mismatches logged.",
+      "Automated equivalence rules for idempotent commands (e.g., 'set interface up' repeated) documented per protocol."
+    ],
+    "automatic_rejection_rules": [
+      "Reject LLM outputs that fail parse/normalization or contain commands outside the sandbox's supported command set; count as verifier-failure for that attempt.",
+      "Reject generated sequences containing clearly forbidden operations (per pre-registered forbidden-op list) automatically, recorded as unsafe proposals."
+    ],
+    "audit_sample_policy": "From discovery set (60 items) and an automated stratified sample of 10% of confirmatory tasks, compute and publish detailed normalized traces, hashes, and example failure cases. No human annotation is introduced; auditing is deterministic script-based selection and reporting.",
+    "mapping_validation": "Provide deterministic, executable reference implementations (open-source scripts) that map LLM outputs to normalized command ASTs; include unit tests and published artifact hashes. Mapping failures counted and reported with exact failure types.",
+    "residual_risks": [
+      "Some semantic subtleties (vendor-specific command semantics) may be imperfectly modelled by the sandbox; documented per-topology limitations.",
+      "Normalization rules may not cover every real-world vendor variant; these are listed and treated as residual scope limitations."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity: benchmark topologies and intents (even with one public exemplar from https://openalex.org/W4399629579) cannot prove generalization to all production networks and vendor-specific command sets.",
+    "Verifier fidelity residuals: even after discovery-set estimation, the local verifier/emulator may not perfectly capture production device failure modes (documented as a limitation).",
+    "Rollback emulation is an approximation: some operational irreversible effects (hardware-level) are outside sandbox scope; we document these distinctions and treat them as noncritical for the confined benchmark claims.",
+    "Hosted-model nondeterminism: some hosted LLM APIs may produce run-to-run variation; nondeterminism detection and exclusion rules are pre-registered but residual nondeterminism may reduce effective sample size."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W7170714602",
+    "doi:10.26434/chemrxiv.15007535/v1",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4386385177"
+  ]
+}

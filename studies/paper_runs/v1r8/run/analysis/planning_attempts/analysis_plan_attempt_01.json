@@ -1,0 +1,31 @@
+{
+  "study_id": "cand-2026-004-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis on N=50 tasks (paired within-task). Test: exact McNemar (paired proportions) comparing rollback_required between guarded and baseline; report exact p-value and paired risk difference (guarded − baseline). No familywise correction applied (single primary comparison). Bootstrap 95% CI for paired difference using 10,000 resamples with preregistered deterministic seeds.",
+  "secondary_analyses": [
+    "Paired comparison of verifier_pass rate (exact McNemar), per-task action_impact_score comparison (paired t-test if approximately normal; otherwise Wilcoxon signed-rank), report effect sizes and exact p-values.",
+    "Compute per-pipeline mean and median action_impact_score with bootstrap 95% CIs (10,000 resamples).",
+    "Compute Spearman rho ranking-consistency between verifier-pass ordering and rollback-penalty-adjusted ordering (report rho and bootstrap CI)."
+  ],
+  "sensitivity_analyses": [
+    "Alternate failed-call treatment: complete_pair_primary_with_failure_as_zero_sensitivity (treat missing pipeline outputs as rollback_required=1 for sensitivity check).",
+    "Re-run action_impact_score comparison using robust paired median differences (Hodges–Lehmann) and report bootstrap CIs.",
+    "Include all flagged/excluded items (none excluded in execution_manifest) and report results; if any technical exclusions occur, report primary results excluding them and sensitivity including them per preregistration."
+  ],
+  "uncertainty_quantification": "Bootstrap 95% CIs via 10,000 resamples using preregistered deterministic seeds (as specified in preregistration). Report exact p-values for exact tests and two-sided bootstrap CIs for rates and differences. Report post-hoc achieved-power calculations given observed baseline rate.",
+  "multiplicity_implementation": "Per preregistration: primary confirmatory family originally defined for three pairwise comparisons (Holm-Bonferroni). For this executed pilot there is a single primary comparison (guarded vs baseline) so no FWER adjustment applied. Secondary multiple outcomes reported with Benjamini-Hochberg FDR control (q=0.05) when multiple secondary tests are summarized together.",
+  "contamination_analysis": "Follow preregistered contamination checks: verify confirmatory subset selection (first 50 confirmatory-intent IDs), publish and cross-check SHA256 hashes (execution_manifest.artifact_hashes) for task_manifest.jsonl, raw_results.jsonl, scoring JSONs, and provider_call artifacts; check per-task reproducibility by confirming both condition records and scoring JSONs exist for each task (execution shows 100 completed episodes and 50 paired tasks; failed_episode_count=0). No discovery/confirmatory leakage or nondeterminism flagged in execution_manifest; report any deviations if detected. All excluded/flagged items (none) will be enumerated with cause and hashes as required.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Summary per-pipeline aggregate rates (rollback_required rate, verifier_pass rate, N pairs=50) with bootstrap 95% CIs and paired difference (guarded − baseline) with exact p-value.",
+    "Table 2: Secondary metrics per pipeline: mean/median action_impact_score, SD/IQR, bootstrap 95% CIs, and paired-test results (test statistic, p-value, effect size).",
+    "Table 3: Per-task scoring excerpt: task_id, topology_id, seed, baseline.rollback_required, guarded.rollback_required, baseline.verifier_pass, guarded.verifier_pass, baseline.action_impact_score, guarded.action_impact_score, sha256_hash_of_record (full JSONL available as artifact).",
+    "Table 4 (Failure log): Excluded or technical-failure tasks (task_id, condition, failure_reason, attempts, artifact hashes) — empty in this run but included as a producible table."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar plot of rollback_required rates per pipeline with bootstrap 95% CIs (N=50 pairs) — data from execution/scoring/*.json.",
+    "Figure 2: Paired dot/connected plot showing per-task rollback_required (0/1) for baseline vs guarded (visualizing paired discordance).",
+    "Figure 3: Paired scatter or violin plot of action_impact_score (baseline vs guarded) with connecting lines per task; overlay median difference and bootstrap CI."
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier fidelity vs production semantics (false positives/negatives) may drive observed effects.",
+        "Synthetic intent set may not represent operator ambiguity or adversarial cases.",
+        "Repair loop may induce LLM gaming of verifier rather than genuine correctness.",
+        "Power/MDE justification for N=300 not fully specified.",
+        "Failure taxonomy and labeling rules under-specified."
+      ],
+      "required_design_repairs": [
+        "Validate verifier fidelity on a held-out set with known-ground-truth failures; report verifier false-positive/negative rates.",
+        "Broaden and document intent corpus (include real-world-like ambiguities and edge cases); provide sampling/seed list.",
+        "Specify and pre-register stopping rules and anti-gaming measures for repair loop (e.g., verifier oracle checks, diversity constraints).",
+        "Provide statistical power/MDE calculation motivating N=300 and fallback plan if effect smaller.",
+        "Define and pre-register detailed failure taxonomy and labeling procedure; store raw logs and hashes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-002",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Verbalized confidence is manipulable and may not reflect true model uncertainty.",
+        "Access to token-level logprobs may be unavailable for some hosted LLMs or inconsistent across models.",
+        "Sampling M=8 may be insufficient for stable agreement estimates and AUC estimation.",
+        "Class imbalance (safe vs unsafe) may bias AUC and thresholds.",
+        "Proxy definitions and extraction methods not fully prespecified."
+      ],
+      "required_design_repairs": [
+        "Confirm availability of required model outputs (logprobs) or define feasible proxies (e.g., ensemble agreement, edit-distance measures).",
+        "Increase sampling budget or justify M=8 with power analysis; pre-register sampling schedule and random seeds.",
+        "Pre-register exact proxy computations, calibration metrics, and multiple-comparison correction procedures.",
+        "Plan for class-imbalance handling (stratified sampling or reweighting) and report precision-recall alongside AUC.",
+        "Include sensitivity analyses across task types and LLM variants (or explicitly limit claims to tested models)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-003",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Realism and coverage of 'adversarial' intent generation is uncertain and may under- or over-estimate risk.",
+        "Simulated human-approval model may poorly approximate real operator behavior and bias results.",
+        "Mitigation effectiveness depends heavily on verifier fidelity and human-model parameters.",
+        "Ethical/operational realism constraints for adversarial content need documentation."
+      ],
+      "required_design_repairs": [
+        "Define and document adversarial-intent generation process; validate with domain experts or held-out red-team examples.",
+        "Specify and justify simulated human decision models (latency distribution, error rates); run wide sensitivity sweeps and report dependence of conclusions on these parameters.",
+        "Pre-register mitigation implementations and verifier configurations; include fidelity checks and example failure traces.",
+        "Add ethical review/checklist for adversarial experiments; ensure outputs are sandboxed and non-actionable outside test harness."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-004",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Rollback emulation may oversimplify operational rollback complexity and interdependence of actions.",
+        "Small/compact benchmark risks being gamed or overfitted by tuned pipelines.",
+        "Topology and intent diversity (6 topologies, 200 intents) may be insufficient to generalize across real deployments.",
+        "Scoring protocols need precise formalization to avoid ambiguous interpretation."
+      ],
+      "required_design_repairs": [
+        "Precisely define rollback semantics and limitations of emulation; include examples of irreversible vs reversible states.",
+        "Design benchmark anti-overfitting measures (hidden test split, challenge submissions protocol) and publish evaluation harness with seed-controlled reruns.",
+        "Increase topology/intent diversity or justify representativeness; include at least one realistic topology sourced from public traces if available.",
+        "Formally specify scoring protocols and edge cases, include reference implementations and end-to-end reproducibility checks; publish artifacts and hashes."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs are being actively integrated into intent-driven NetOps workflows (intent→configuration, multi-agent orchestration) in both research and production-facing projects.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4410359337",
+        "https://openalex.org/W4400490130",
+        "https://openalex.org/W4404602270"
+      ],
+      "evidence_type": "system_report & empirical/demo papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Reports range from academic prototypes to company-run frameworks; details of production deployment and scale vary across sources.",
+        "Some projects emphasize architecture and integration rather than broad public benchmarks of operational outcomes."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Hallucination, overconfidence, and miscalibrated uncertainty in LLM outputs are well-documented and relevant risks for NetOps tasks that require deterministic correctness.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4406679533"
+      ],
+      "evidence_type": "surveys and empirical studies on hallucination/uncertainty",
+      "confidence": 0.92,
+      "limitations": [
+        "Most analyses are cross-domain; NetOps-specific calibration studies remain fewer in number.",
+        "Calibration improvements are reported but do not eliminate all failure modes in high-stakes action-execution pipelines."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Guarded architectures that combine generation with deterministic verification/validation (generate→verify→repair) materially improve reliability for LLM-driven network actions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "tool/pipeline papers and system evaluations",
+      "confidence": 0.86,
+      "limitations": [
+        "Improvements are task- and validator-dependent; verification tools have scalability and fidelity trade-offs.",
+        "Comparisons are often against unconstrained baselines rather than a comprehensive set of mitigations."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Action-level risks exist: false or misleading model claims can trigger downstream tool calls or concrete actions at high rates unless mitigations are applied.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W7112299885",
+        "https://openalex.org/W7134266318"
+      ],
+      "evidence_type": "empirical pipeline experiments & framework analyses",
+      "confidence": 0.88,
+      "limitations": [
+        "The Claim-to-Action experiments are controlled and sandboxed; real-world operational contexts may introduce different rates but the core failure mode is demonstrated.",
+        "Mitigation effectiveness depends on exact agent/tool integration and policy phrasing."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Network verification and formal-analysis tools (e.g., Batfish, Plankton, ACORN) provide high-fidelity checks that are central to safe deployment of generated configurations, but they entail scalability and protocol-coverage trade-offs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4288028074",
+        "https://openalex.org/W4281650352"
+      ],
+      "evidence_type": "tool evolution and verification research",
+      "confidence": 0.9,
+      "limitations": [
+        "Tool performance and protocol support vary; some verification techniques require heavy engineering for industrial topologies.",
+        "Integration between LLM outputs and formal verifiers is not universally automated in existing literature."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent can LLM-generated network configurations be integrated into formal verification pipelines at Internet-scale topologies without impractical engineering effort?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4288028074",
+        "https://openalex.org/W4281650352"
+      ],
+      "evidence_type": "verification tool papers (showing capabilities and limits)",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing verification papers demonstrate scale improvements but do not fully characterize end-to-end LLM→verify deployments at operational ISP/enterprise scales.",
+        "Practical integration effort estimates are not standardized across studies."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How reliably can LLM uncertainty proxies (verbalized confidence, sampling consistency, other black-box methods) predict concrete action-safety for NetOps tasks in production?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4406679533"
+      ],
+      "evidence_type": "uncertainty/capacity calibration studies",
+      "confidence": 0.55,
+      "limitations": [
+        "Most uncertainty studies focus on QA/reasoning tasks or medical benchmarks rather than direct tool-call safety in NetOps.",
+        "Transferring proxy performance to action-safety requires task-specific validation."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What are the realistic failure rates and root causes when agentic LLMs execute network-change workflows under adversarial or ambiguous operator intents?",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W7148922398",
+        "https://openalex.org/W4386501849"
+      ],
+      "evidence_type": "red-team/attack-framework experiments and adversarial prompt literature",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing red-team experiments show high vulnerability in many domains but NetOps-specific adversarial campaign studies remain limited.",
+        "Failure rates depend strongly on agent design, tool scoping, and human oversight processes."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How representative are common NetOps benchmarks and synthetic datasets of real operator intents, topology diversity, and failure modes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "benchmark/tool papers and surveys",
+      "confidence": 0.65,
+      "limitations": [
+        "Several benchmark efforts exist, but systematic ecological-validity comparisons against production telemetry are sparse in supplied records.",
+        "Some datasets/prototypes are promising but limited in protocol/vendor/scale coverage."
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "Can human-in-the-loop oversight, as typically implemented, reliably prevent high-impact automated NetOps errors, or does oversight often function as a procedural 'ceremony' under time pressure?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W7128694542",
+        "doi:10.2139/ssrn.6685078"
+      ],
+      "evidence_type": "system reports and governance/critique literature",
+      "confidence": 0.5,
+      "limitations": [
+        "Empirical studies of human oversight in NetOps context are limited; governance/critique sources highlight conceptual risks but not comprehensive operator-in-the-loop field studies.",
+        "Effectiveness likely depends on UI, operator training, and procedural design."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a gap in executable, action-level NetOps benchmarks that deterministically evaluate whether an LLM-driven pipeline causes correct/incorrect tool actions (not just text correctness).",
+      "evidence_record_ids": [
+        "doi:10.26434/chemrxiv.15007535/v1",
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "executable-benchmark concept papers and claim-to-action experiments",
+      "confidence": 0.8,
+      "limitations": [
+        "PROBE (chemistry) demonstrates the executable benchmark concept outside networking; direct NetOps equivalents are less mature in the supplied records.",
+        "NetConfEval and Claim-to-Action show partial steps but no widely adopted standard executable NetOps benchmark yet."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Public, diverse corpora of real-world network device configurations and operator intent traces suitable for LLM training/evaluation remain limited or non-uniformly available.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "benchmark & tool literature noting dataset needs",
+      "confidence": 0.75,
+      "limitations": [
+        "Some datasets and corpora exist in research but coverage (vendor commands, enterprise topologies, intent logs) is inconsistent across sources.",
+        "Privacy and operational sensitivity constrain public release of many real configs."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Comparative evaluations of mitigation architectures (e.g., RAG + verifier + human-approval vs. strict proof-constrained action) specific to NetOps are sparse.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162893491",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "architectural surveys and proposals",
+      "confidence": 0.7,
+      "limitations": [
+        "Proposals and early system reports exist, but systematic head-to-head empirical comparisons in NetOps settings are limited in the supplied corpus.",
+        "Different proposals assume different threat models and operational constraints, complicating direct comparison."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Tooling to reliably detect and mitigate adversarial prompt attacks specifically targeted at NetOps agent pipelines needs further development and standardized evaluation.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.175416873.36395198/v1",
+        "https://openalex.org/W4404260982",
+        "doi:10.21203/rs.3.rs-10646557/v1"
+      ],
+      "evidence_type": "prompt-attack mitigation frameworks & scanner comparisons",
+      "confidence": 0.78,
+      "limitations": [
+        "Existing mitigation engines and scanners are evaluated in general LLM contexts; NetOps-specific attack taxonomies and benchmarks are underdeveloped in the supplied records.",
+        "Scanner reliability varies and benchmark datasets for attacks are nascent."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Operational metrics and scoring protocols for agentic NetOps (trace quality, bounded tool use, replayable sandbox scoring, rollback-aware scoring) are incompletely standardized.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7134266318"
+      ],
+      "evidence_type": "architectural & evaluation advocacy papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Papers argue for workflow-centred evaluation but do not converge on a single standard metric set in the supplied literature.",
+        "Implementation of proposed evaluation regimes varies by organization and research group."
+      ]
+    },
+    {
+      "claim_id": "G6",
+      "statement": "There is limited published evidence quantifying how much human oversight reduces real-world operational harms for LLM-driven NetOps versus automated verification approaches.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "doi:10.2139/ssrn.6685078"
+      ],
+      "evidence_type": "system reports and governance critique",
+      "confidence": 0.55,
+      "limitations": [
+        "Governance critique highlights conceptual weaknesses but lacks large-scale NetOps field studies measuring mitigation effect sizes.",
+        "System reports describe human-in-the-loop designs but often lack controlled comparisons isolating human oversight benefit."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs by themselves (without verification/tooling) are sufficiently reliable for unsupervised production deployment of network configuration changes.",
+    "Any single cited system is proven to be 'production-ready' across all enterprise/ISP environments; supplied records show prototypes, frameworks, or company reports but not universal production validation.",
+    "There is conclusive evidence that human oversight, as commonly implemented, reliably prevents high-impact agentic NetOps failures in all operational contexts.",
+    "A standardized, widely adopted executable NetOps benchmark that deterministically scores action-level correctness already exists and is broadly used.",
+    "Claims of absolute provable zero-risk agentic deployment in NetOps (i.e., formal guarantees that eliminate all attack success) are not supported by the supplied records."
+  ]
+}

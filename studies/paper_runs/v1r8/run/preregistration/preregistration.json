@@ -1,0 +1,71 @@
+{
+  "study_id": "cand-2026-004-prereg-v1",
+  "title": "Design and validation of an executable, rollback-aware NetOps benchmark for action-level scoring (preregistered)",
+  "research_question": "Can a compact, public executable benchmark (topology + intent corpus + rollback-aware scoring) reproducibly measure action-level correctness and rollback safety for LLM-driven NetOps pipelines, and do baseline pipelines (unconstrained LLM, guarded generate→verify→repair, verifier-only gating) produce statistically separable failure and rollback-necessity rates on that benchmark?",
+  "confirmatory_hypotheses": [
+    "H0: The benchmark cannot reproducibly differentiate pipeline safety; baseline pipelines produce indistinguishable rollback-necessity rates on the confirmatory set.",
+    "H1: The benchmark can reproducibly measure differences: the three baseline pipelines (unconstrained, guarded generate→verify→repair, verifier-only gating) will show statistically separable rollback-necessity rates on the preregistered confirmatory set (paired tasks).",
+    "H2: Rollback-penalty-adjusted scoring yields a different pipeline ranking than verifier-pass-only scoring with at least one pairwise rank inversion among the three baselines on the confirmatory set."
+  ],
+  "exploratory_questions": [
+    "EQ1: How sensitive are pipeline rankings to verifier fidelity (simulated false-positive/negative rates) when measured on the discovery set?",
+    "EQ2: Which intent categories (e.g., segmentation, BGP, ACL change) drive most irreversible-state occurrences under each pipeline?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W7170714602",
+    "doi:10.26434/chemrxiv.15007535/v1",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4386385177"
+  ],
+  "benchmark_scope": [
+    "Public synthetic + seeded corpus of device-config intents and executable sandbox topologies (6 topologies of increasing complexity).",
+    "Action-level execution semantics limited to sandboxed device command emulation (no production device connection).",
+    "Evaluation limited to the protocols and command subsets modelled in the sandbox and verifier (documented per-topology)."
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) only (single hosted-model family selected at execution time consistent with capability manifest).",
+    "No local GPU LLMs; all LLM calls via hosted API under manifest limits (≤10000 planned model calls).",
+    "Verifiers and emulators are deterministic CPU-executable open-source tools run locally in Docker."
+  ],
+  "transformation_scope": [
+    "Intent → LLM-generated CLI/structured commands.",
+    "Deterministic command parsing and normalization (AST canonicalization).",
+    "Command → sandbox-executed state transition (deterministic emulator).",
+    "Rollback-emulation semantics applied to sandbox state traces; action-impact and rollback-necessity scoring computed from state diffs."
+  ],
+  "primary_estimand": "Paired difference in rollback-necessity rate per task between pipelines (probability that a pipeline's executed action sequence leads to a state requiring rollback-emulation).",
+  "secondary_estimands": [
+    "Verifier-pass rate per pipeline (proportion of tasks that pass verifier before/after repair attempts).",
+    "Mean action-impact score per pipeline (continuous score measuring deviation from expected ground-truth state).",
+    "Ranking consistency (Spearman rho) between verifier-pass ranking and rollback-penalty-adjusted ranking."
+  ],
+  "sampling_plan": "Total corpus = 360 intents evenly across 6 topologies (60 intents per topology). Confirmatory = 300 items (50 per topology). Discovery/development = 60 items (10 per topology) held out for calibration and verifier-fidelity checks. Paired within-task design: each confirmatory task is executed under all three pipelines under the same seed.",
+  "power_and_precision_plan": "Primary estimand: detect an absolute paired difference of 0.10 (10 percentage points) between pipelines with 80% power, alpha=0.05. Analytic McNemar-style calculations and preregistered bootstrap simulations (10,000 resamples, deterministic seeds) indicate required paired N≈300 given baseline rollback rate ≈30%. Post-hoc achieved-power and sensitivity analyses will be reported; alternative baseline rates (20%,40%) will be used in sensitivity checks.",
+  "exclusion_rules": [
+    "Exclude tasks that fail for technical reasons after two automatic retries with the same seed (API outages, verifier/emulator crashes). Excluded tasks are removed from confirmatory analysis and enumerated with failure reasons.",
+    "Exclude tasks exhibiting execution nondeterminism: if the same seed+task produces non-reproducible pipeline outputs across independent runs, mark the task and exclude it from confirmatory hypothesis tests (reported).",
+    "Count LLM outputs rejected during parsing/normalization (unsupported commands) as verifier-failure for that attempt; such tasks excluded only if unrecoverable after allowed retries.",
+    "Automatically reject and record any generated sequence containing preregistered forbidden operations; these are treated as unsafe proposals and counted as pipeline failures rather than dataset exclusions."
+  ],
+  "missingness_plan": "Technical failures: retry up to two times automatically (same seed). If still failing, task excluded from confirmatory analysis and listed with cause. Discovery-set runs may be repeated for calibration. All exclusions, retry counts, and affected task IDs are reported. Sensitivity analyses report results including and excluding flagged/excluded items.",
+  "analysis_plan": "Primary analysis: paired comparison of rollback-necessity rates between pipelines on confirmatory N=300 using paired-proportions test (exact McNemar or equivalent exact test) with Holm-Bonferroni correction for the three primary pairwise comparisons; report exact p-values. Compute bootstrap 95% CIs (10,000 resamples, preregistered seeds) for rates and paired differences. Secondary analyses: paired comparisons for verifier-pass rates; compare action-impact scores using paired t-test if normal or Wilcoxon signed-rank otherwise; compute Spearman rho for ranking consistency. Report effect sizes, exact p-values, and bootstrap CIs. All random seeds, code, raw outputs, and hashes saved; analyses deterministic given artifacts and seeds.",
+  "multiplicity_plan": "Primary confirmatory family: three pairwise comparisons (unconstrained vs guarded, unconstrained vs verifier-only, guarded vs verifier-only). Control familywise error using Holm-Bonferroni across these three tests. Secondary estimands and exploratory tests corrected with Benjamini-Hochberg FDR at 0.05 when reporting multiple secondary outcomes.",
+  "contamination_plan": "Benchmark names: CNSM-rollback-bench-v1 (public seedable artifact); one exemplar public topology referenced (https://openalex.org/W4399629579). Risk factors: overfitting to public confirmatory set, leakage between discovery and confirmatory items, verifier design dominating observed differences. Detection procedures: hold out 60 discovery intents; publish SHA256 hashes of released files and CI scripts to verify structure; compute per-task randomization fingerprints (seed+task id) and detect mismatches. Item-flagging rules: reproducible output differences under same seed → mark 'execution nondeterminism' and exclude; discovery-set estimated verifier FP/FN >10% triggers sensitivity analyses rather than strong claims. Analysis treatment: contaminated/excluded items reported; primary analyses on preregistered confirmatory set excluding only documented unrecoverable technical failures or nondeterminism; sensitivity analyses include flagged items and simulated verifier-fidelity perturbations. Residual uncertainty: benchmark topologies and verifier cannot prove generalization to all production networks; verifier-induced bias may remain despite checks.",
+  "stopping_rule": "Automatic per-task stopping: for a given task, stop retrying after two automatic retries (total attempts = 3) and mark as technical exclusion. Global stopping: halt confirmatory execution early and switch to economy fallback if cumulative model-call count would exceed the planned budget (scenario-recommended: 1800 calls) or if more than 10% of confirmatory items become excluded due to technical failures/nondeterminism; in that case record the event, report reduced effective N, and run predefined sensitivity analyses. Also stop and abort the run if persistent infrastructure failure prevents completion (deterministic failure modes logged).",
+  "planned_outputs": [
+    "Preregistration document (this JSON and human-readable text).",
+    "CNSM-rollback-bench-v1 artifact: topology files, intent corpus (360 items), sandbox/emulator Docker images, verifier code, normalization scripts, and published SHA256 hashes.",
+    "Execution manifest and raw model outputs for each pipeline and task (logs, timestamps, seeds, hashes).",
+    "Analysis scripts and notebooks (deterministic, seed-fixed).",
+    "Statistical-results file: rates, paired-test outputs, bootstrap CIs, effect sizes, and multiplicity-corrected p-values.",
+    "Failure-analysis record and per-task exclusion list with reasons.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript (five pages max) and BibTeX bibliography.",
+    "Compiled PDF of manuscript (≤5 pages) including Disclosure Statement.",
+    "Autonomous revision and validation logs (methodological, statistical, reference-integrity reviews).",
+    "Final-output hash manifest for all released artifacts.",
+    "Concise NotebookLM presentation brief (machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}

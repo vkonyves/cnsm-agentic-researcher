@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-001",
+      "title": "Quantify safety gains of generate→verify→repair for LLM-derived router configs",
+      "research_question": "Does a guarded generate→verify→repair pipeline (LLM→formal verifier→automated repair) reduce unsafe executable tool actions compared to unconstrained LLM generation for intent→configuration tasks in a replayable NetOps sandbox?",
+      "hypotheses": [
+        "H0: The guarded pipeline yields the same rate of unsafe tool actions as unconstrained LLM generation.",
+        "H1: The guarded pipeline yields a statistically significantly lower rate of unsafe tool actions (e.g., causing routing blackholes, policy violations) than unconstrained LLM generation."
+      ],
+      "proposed_design": "Construct a replayable sandbox using public synthetic topologies and device-config templates. Generate N=300 operator-intent tasks (reachability, ACL change, route redistribution) derived from public benchmarks and synthesized intents. For each task, (A) unconstrained LLM generates config changes; (B) guarded pipeline: LLM generates, Batfish-like verifier checks, automated repair loop requests LLM corrections until verifier passes or max 3 iterations. Apply generated configs in sandbox (no real hardware) to produce deterministic pass/fail (verifier and execution traces). Paired design: same intents for both conditions. Record action-level unsafe events (violations, unreachable prefixes, policy breaches).",
+      "expected_data": "Per-task binary outcome (unsafe action occurred: yes/no), verifier failure types, number of repair iterations, LLM outputs, logs. Expected distribution: guarded pipeline reduces unsafe-rate from baseline p0 to p1.",
+      "primary_outcome": "Paired difference in unsafe-action rate (proportion) between unconstrained and guarded pipelines; report absolute reduction and 95% CI.",
+      "analysis_outline": "Compute paired McNemar test or paired proportion test; estimate absolute and relative risk reduction with Wilson CIs; report repair iteration histogram; analyze failure-mode categories and examples. Predefine alpha=0.05 and minimum detectable effect (MDE) for N=300.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4288028074",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Verifier mismatch with target production semantics (false positives/negatives)",
+        "LLM repeated-generation degeneracy or gaming of verifier",
+        "Synthetic intent set may not represent all operator ambiguity"
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "cand-2026-002",
+      "title": "Predicting executable-safety from LLM uncertainty proxies in NetOps",
+      "research_question": "Can black-box LLM uncertainty proxies (verbalized confidence, sampling agreement, token-level logprobs) predict the probability that an LLM-generated configuration will fail formal verification or cause unsafe actions in a NetOps sandbox?",
+      "hypotheses": [
+        "H0: Uncertainty proxies have no predictive power for verifier-flagged failures or unsafe actions (AUC≈0.5).",
+        "H1: One or more uncertainty proxies produce AUC>0.75 for predicting verifier failure/unsafe action, enabling practical triage thresholds."
+      ],
+      "proposed_design": "Use the same N=500 intent→configuration task set across diverse tasks. For each task, sample M=8 diverse LLM decodes (temperature / top-k variation). Record per-decode: verbalized confidence statement (if elicited), model-provided token logprob summary (mean/min), sampling agreement (fraction identical outputs), and cross-sample semantic similarity scores. Run verifier and sandbox execution to label each decode safe/unsafe. Train simple logistic models (held-out folds) to predict unsafe label from proxies; evaluate ROC/AUC and calibration. Pre-register proxy definitions and thresholds.",
+      "expected_data": "Per-decode records of proxies and binary safe/unsafe labels. Expected to find modest predictive signal for some proxies; variance across task types.",
+      "primary_outcome": "Predictive ROC AUC (with 95% CI) of best-performing proxy-based classifier for unsafe-action prediction on held-out tasks.",
+      "analysis_outline": "Compute AUC with bootstrapped CIs; compare proxies using DeLong test; report precision-recall at operational thresholds; perform subgroup analyses by task type; predefine multiple-comparison correction.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4406679533",
+        "https://openalex.org/W4401042444"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4412875472"
+      ],
+      "risks": [
+        "Proxy signals may be task-dependent and not generalize",
+        "Verbalized confidence may be unreliable and manipulable",
+        "Sampling budget may be insufficient for stable agreement estimates"
+      ],
+      "estimated_model_calls": 4800
+    },
+    {
+      "candidate_id": "cand-2026-003",
+      "title": "Robustness of agentic NetOps pipelines under ambiguous or adversarial operator intents",
+      "research_question": "How do ambiguous or adversarially phrased operator intents affect failure rates of agentic LLM NetOps pipelines, and which mitigation (strict verifier-only gating vs RAG+verifier+human-in-the-loop) reduces high-impact failures most effectively?",
+      "hypotheses": [
+        "H0: Ambiguous/adversarial intents do not increase high-impact failure rates relative to clear intents.",
+        "H1: Ambiguous/adversarial intents increase high-impact failure rates, and strict verifier-only gating reduces such failures more than RAG+verifier+human approval under time-limited human response.",
+        "H2: Under constrained human-in-the-loop latency (simulated), human approval yields diminishing protection compared to automated verifier gating."
+      ],
+      "proposed_design": "Assemble N=240 intents split evenly: clear (80), ambiguous (80, synthetically introduced vagueness), adversarial (80, crafted attack templates). For each, run three pipeline conditions: (1) strict verifier-only gating (block any non-verified action), (2) RAG+verifier+simulated human approval with latency budget (human approves/rejects with a stochastic correctness model), (3) unconstrained agent (baseline). Use sandbox execution to label high-impact failures (policy-violating, route leaks). Measure failure rates and operational latency metrics. Simulate multiple human-latency regimes (fast/slow) to test H2.",
+      "expected_data": "Per-intent failure labels per pipeline; time-to-decision distributions; simulated human decision correctness logs. Expected: higher failure rates on adversarial intents; verifier-only gating reduces high-impact failures at cost of more blocked legitimate changes; RAG+human trade-offs vary with latency and human error.",
+      "primary_outcome": "Reduction in high-impact failure rate for each mitigation vs baseline; secondary outcomes: false-block rate and human-latency sensitivity.",
+      "analysis_outline": "Use chi-squared or proportion tests for between-condition comparisons; model interaction effects (intent-type × mitigation) with logistic regression; report trade-off curves (failure rate vs block rate). Include sensitivity analysis over human-error models.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4404260982",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7134266318",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Designing realistic adversarial intents is challenging and may not cover real-world attack modes",
+        "Simulated human model may misrepresent operator behavior",
+        "Mitigation implementations may be highly sensitive to verifier fidelity"
+      ],
+      "estimated_model_calls": 3600
+    },
+    {
+      "candidate_id": "cand-2026-004",
+      "title": "Design and validation of an executable, rollback-aware NetOps benchmark for action-level scoring",
+      "research_question": "Can a compact, public executable benchmark (topology+intent corpus+rollback-aware scoring) reproducibly measure action-level correctness and rollback safety for LLM-driven NetOps pipelines, and what baseline failure rates do common pipelines produce on it?",
+      "hypotheses": [
+        "H0: A compact executable benchmark cannot reproducibly differentiate pipeline safety; baseline pipelines produce indistinguishable failure rates.",
+        "H1: A compact benchmark can reproducibly measure differences; baseline pipelines (unconstrained LLM, guarded pipeline, verifier-only) will show statistically separable failure rates and rollback-necessary events.",
+        "H2: Rollback-aware scoring (penalizing unrecoverable states) provides different ranking than plain verifier-pass scoring."
+      ],
+      "proposed_design": "Design a public benchmark artifact: 6 synthetic topologies of increasing size, 200 intents with ground-truth expected effects, a sandbox harness that records applied actions and supports automated rollback emulation. Define scoring: (a) verifier-pass, (b) action-impact score, (c) rollback-penalty-adjusted score. Run three baseline pipelines (unconstrained LLM, generate→verify→repair, verifier-only gating) on the corpus. Release benchmark and seed data for reproducibility. Measure per-pipeline scores and runtime metrics. Publish artifacts and exact seeds.",
+      "expected_data": "Benchmark artifacts, per-task scores across scoring protocols, logs of rollback events, per-pipeline aggregated rankings. Expect to observe rank differences when using rollback-aware scoring vs verifier-only.",
+      "primary_outcome": "Demonstration that rollback-aware scoring yields different and reproducible pipeline rankings; baseline failure-rate and rollback-need statistics reported.",
+      "analysis_outline": "Compute pairwise pipeline rank differences, bootstrap CI for scores, measure reproducibility across reruns (fixed seeds). Provide calibration and example failure cases. Make all artifacts public for external validation.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7170714602",
+        "doi:10.26434/chemrxiv.15007535/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Public benchmark may not capture full production heterogeneity",
+        "Rollback emulation may oversimplify true operational rollback complexity",
+        "Risk of overfitting pipelines to the released small benchmark"
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}
