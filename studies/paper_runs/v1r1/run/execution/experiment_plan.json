@@ -1,0 +1,29 @@
+{
+  "study_id": "study-cand-2026-01-verifier-compare-v1",
+  "adapter_family": "hosted_netops_gvr_v1",
+  "implementation_strategy": "Execute the preregistered recommended-120 scenario using the hosted_netops_gvr_v1 adapter: (1) use the adapter's hosted-model API interface for all LLM calls (single fixed model version to be recorded in the execution manifest at run start); (2) run all emulation, rendering, and verifier components inside Docker containers orchestrated by the adapter on CPU nodes; (3) perform paired within-intent runs in strict order (baseline then Verifier A then B then C) to preserve pairing; (4) enforce all deterministic checks (image-hash, prompt checksums, token-based exclusion) and automated exclusion/replacement rules without human intervention.",
+  "public_resources": [
+    "https://github.com/FRRouting/frr",
+    "https://github.com/vyos/vyos-build",
+    "https://github.com/openvswitch/ovs",
+    "https://github.com/batfish/batfish",
+    "https://github.com/Z3Prover/z3",
+    "https://doi.org/10.5753/errc.2025.17772"
+  ],
+  "model_and_version_plan": [
+    "Single hosted LLM API (one fixed version selected at run start; exact model identifier, endpoint, temperature, and API key metadata recorded in execution manifest). Temperature=0.0 for deterministic decoding where supported; fixed system+task prompts recorded and checksummed."
+  ],
+  "task_manifest_strategy": "Prepare a deterministic JSON task manifest of 150 intents: confirmatory N=120 (stratified 4 clusters: routing, ACL, NAT, VLAN => 30 intents per cluster) plus discovery N=30 (10 per cluster held-out). Each manifest record: intent_id, cluster, natural-language intent, canonical expected property checklist, intent-hash. Deterministic seeded stratified shuffle (seed=42) selects confirmatory and discovery sets from the pre-registered corpus. Each intent is executed under four conditions (Baseline, Verifier A, Verifier B, Verifier C) in paired order.",
+  "transformation_manifest_strategy": "Implement adapter-hosted deterministic transformation pipeline: (1) Intent -> vendor-agnostic template mapper (deterministic template engine with unit tests and hash); (2) Template -> CLI renderers for FRR, VyOS, OVS (renderer binaries in Docker images; unit-tested against held-out suite); (3) Normalizer: parse rendered CLI -> canonical AST/JSON for verifiers; (4) Verifier input adapters produce Batfish-style JSON for reachability, SMT constraints for Z3-based check, and structured parse for lightweight syntactic/runtime validator. All transformations include schema assertions and deterministic rejection on parse failure or disallowed tokens.",
+  "execution_batches": [
+    "Batch 1 — Discovery (30 intents, 4 conditions): 30 intents * 4 conditions * estimated 2 LLM calls/condition = 240 model calls. Purpose: prompt-sensitivity checks and dry-run validation of pipelines.",
+    "Batch 2 — Confirmatory (120 intents, 4 conditions): 120 intents * 4 conditions * estimated 2 LLM calls/condition = 960 model calls. Purpose: primary paired experiment. Paired ordering preserved for each intent across conditions.",
+    "Total planned model calls computed = Batch1(240)+Batch2(960)=1200 model calls (matches repaired_design budget)."
+  ],
+  "randomisation_plan": "All sampling and shuffling deterministic using seed=42 and SHA256-based manifest hashing. Stratified selection: per-cluster selection performed by seeded pseudo-random sampler; per-intent processing order fixed as manifest order to preserve pairing. Prompt perturbation discovery uses pre-registered perturbation set applied deterministically per discovery intent using seeded assignment.",
+  "caching_plan": "Deterministic cache keyed by (intent_id, condition, prompt_hash). Cache stored in adapter-managed Docker volume. Reuse cached LLM output for identical keys to avoid redundant calls. Verifier outputs and rendered CLIs cached by (image_hash, intent_hash, renderer_version). Cache hits logged with checksums; cache misses trigger execution.",
+  "failure_recovery_plan": "Automated recovery only: on emulator/container or verifier runtime failure, harness re-attempts up to 2 automatic re-executions. If still failing, the intent is flagged, logged with timestamp and failure code, and replaced by next pre-registered held-out intent until confirmatory N reached or model-call budget reached. Immediately abort whole run and log event if any core emulator image-hash mismatches preregistered hash. All exclusions and replacements automatically recorded in the execution manifest; no human adjudication permitted.",
+  "result_schema": "Per-intent JSON record: {\"intent_id\":string,\"cluster\":string,\"condition\":{\"Baseline\"|\"VerifierA\"|\"VerifierB\"|\"VerifierC\"->{\"rendered_cli\":string,\"renderer_hash\":string,\"verifier_input_json\":object,\"verifier_output\":object,\"connectivity_preserved\":boolean,\"policy_regression\":boolean,\"repair_iterations\":integer,\"time_ms\":integer,\"model_calls\":integer,\"flags\":[string],\"artifacts_checksum\":{ \"cli_sha256\":string,\"verifier_sha256\":string,\"emulator_trace_sha256\":string}}},\"paired_summary\":{per-condition aggregated booleans},\"run_metadata\":{\"model_identifier\":string,\"model_call_count\":integer,\"image_hashes\":{...},\"seed\":42}}",
+  "estimated_model_calls": 1200,
+  "estimated_compute_notes": "All compute runs on CPU within Docker containers managed by the adapter. Expected LLM model calls=1,200 (240 discovery + 960 confirmatory) using hosted-model API; wall-clock estimated ≤7 days with moderate parallelism (e.g., 8 concurrent worker containers) given adapter-provided hosted-API throughput. Emulation and verifiers run in containerized CPU processes; memory and CPU per container sized per adapter defaults. No local GPU required."
+}

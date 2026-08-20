@@ -1,0 +1,257 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "In a large real-world demo (21 racks), network engineers reported broadly positive utility from an LLM-based chatbot: 68.1% of participant evaluations were positive (n=105 engineers).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117"
+      ],
+      "evidence_type": "empirical case study",
+      "confidence": 0.87,
+      "limitations": [
+        "Single demonstration network and deployment; results reflect participant judgments rather than objective execution-only metrics",
+        "Details on evaluation rubric and distribution of task types are limited in the supplied record"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Structured/intent-to-CLI pipelines using LLMs can produce syntactically valid, and in digital-twin tests often functionally correct, vendor-specific CLI configurations when paired with a network digital twin for execution testing.",
+      "evidence_record_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.1109/vtc2025-fall65116.2025.11310185",
+        "doi:10.1109/icnp65844.2025.11192391"
+      ],
+      "evidence_type": "controlled experimental evaluations / system papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations performed in digital-twin/emulation environments rather than heterogeneous production networks",
+        "Generality across LLM families, vendors, and unseen topologies not established by these records"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Multi-agent LLM workflows combined with high-fidelity emulation and paired offensive-replay evaluation produce a mixed success rate: one reported framework (COHORT) achieved mitigations that both disrupted attacks and preserved connectivity in 46.7% of generated candidates, outperforming a baseline by a factor reported in the record.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "empirical emulation study",
+      "confidence": 0.78,
+      "limitations": [
+        "Results reported on a limited set of topologies (three) and attack scenarios (four); not a general production claim",
+        "Exact baseline definition and reproducibility artifacts are limited to what the record supplies"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Tool-augmented and verifier-assisted generation (generation + external tool verification/self-refinement) is an active, documented approach that can improve correctness over naive single-pass generation in domain tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416758252",
+        "https://openalex.org/W7166866531",
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W7140954429",
+        "https://openalex.org/W7161111143"
+      ],
+      "evidence_type": "surveys, method papers, verifier-assisted system papers",
+      "confidence": 0.82,
+      "limitations": [
+        "Improvements depend on tool design, verifier fidelity, and integration; not all verifier-assisted designs eliminate semantic errors",
+        "Comparative, cross-tool quantitative evaluations specific to NetOps are sparse in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Prompt-injection, tool-poisoning, and related supply-chain vulnerabilities for agentic LLM pipelines (including MCP-like integrations) are documented and constitute meaningful attack surfaces requiring layered defenses.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140954429",
+        "doi:10.2139/ssrn.6956641",
+        "https://openalex.org/W7169633964",
+        "doi:10.14722/ndss.2026.230675"
+      ],
+      "evidence_type": "threat analyses and empirical evaluations",
+      "confidence": 0.9,
+      "limitations": [
+        "Most empirical evaluations in the supplied records target client/MCP ecosystems and skill repositories; direct NetOps-specific exploit demonstrations are limited in the supplied set",
+        "Defensive efficacy varies by implementation and threat model"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "There is convergent literature documenting recurring LLM and agent failure modes and proposing taxonomies and robustness evaluation protocols for agentic systems.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6572478",
+        "doi:10.2139/ssrn.7041478",
+        "doi:10.2139/ssrn.7121598",
+        "doi:10.2139/ssrn.6484501"
+      ],
+      "evidence_type": "failure-mode taxonomy and empirical analysis papers",
+      "confidence": 0.88,
+      "limitations": [
+        "Taxonomies synthesize observed behaviors but do not by themselves quantify incidence rates across all NetOps deployments",
+        "Applicability to specific NetOps tasks requires task-level evaluation"
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Human-in-the-loop oversight is widely recommended but also critiqued empirically and conceptually; literature highlights both practical HITL frameworks and concerns that HITL can function primarily as a liability/ceremonial approval in some settings.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "doi:10.36227/techrxiv.174702077.78864934/v1",
+        "doi:10.36227/techrxiv.176118749.93102582/v1"
+      ],
+      "evidence_type": "conceptual critique and HITL frameworks",
+      "confidence": 0.81,
+      "limitations": [
+        "HITL effectiveness depends on interface design, operator training, and task framing; supplied records include both prescriptive frameworks and critical analyses but not unified empirical reconciliation"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do verifier-assisted LLM pipelines (using NetOps-specific validators such as Batfish/HSA/etc.) generalize to diverse, multi-vendor production topologies and policies?",
+      "evidence_record_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "gap question informed by system papers and emulation studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records show feasibility in emulation/digital-twin settings but do not contain large-scale multi-vendor production evaluations"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What standardized operational metrics and paired-evaluation protocols (e.g., replay-based paired comparisons) should be adopted to measure real-world NetOps safety and correctness of LLM-generated actions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7162044117",
+        "https://openalex.org/W4416758252"
+      ],
+      "evidence_type": "methodological question arising from empirical and method literature",
+      "confidence": 0.62,
+      "limitations": [
+        "Existing works propose diverse metrics (usability ratings, connectivity/regression checks, attack disruption) but lack a single standardized suite specific to NetOps correctness"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How large and diverse must empirical testbeds be (topologies, vendor images, failure modes) to robustly estimate incidence rates of harmful misconfigurations from agentic LLM NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7162044117",
+        "doi:10.5753/errc.2025.17772"
+      ],
+      "evidence_type": "experimental-design question",
+      "confidence": 0.58,
+      "limitations": [
+        "Supplied emulation and demo studies are informative but limited in scale for broad incidence estimation"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What is the empirical effectiveness of layered defenses (static skill validation, runtime verification, human-in-the-loop gating) specifically in NetOps pipelines against prompt-injection and tool-poisoning attacks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140954429",
+        "https://openalex.org/W7169633964",
+        "doi:10.2139/ssrn.6956641"
+      ],
+      "evidence_type": "security-evaluation question",
+      "confidence": 0.64,
+      "limitations": [
+        "Security analyses in supplied records often target MCP/skill ecosystems broadly; NetOps-specific attack surfaces and defense efficacy need targeted experiments"
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "How do operator trust, mental model, and workflow framing influence acceptance, error detection, and safe override behavior when interacting with LLM-generated NetOps suggestions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117",
+        "doi:10.36227/techrxiv.174702077.78864934/v1",
+        "doi:10.36227/techrxiv.176118749.93102582/v1"
+      ],
+      "evidence_type": "HCI / human-factors question",
+      "confidence": 0.66,
+      "limitations": [
+        "Existing case studies and HITL frameworks discuss trust but do not fully quantify behavioral outcomes across diverse operator populations and task types"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for a standardized, open NetOps operational-safety benchmark that emphasizes paired execution-based evaluation (e.g., replay/paired-baseline) across diverse topologies, vendor images, and adversarial scenarios.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862",
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.1109/ojcoms.2026.3680457"
+      ],
+      "evidence_type": "identified gap from literature and system papers",
+      "confidence": 0.71,
+      "limitations": [
+        "There exist benchmarks and proposed suites (e.g., 6G-Bench) but the supplied records indicate variability in evaluation style and limited paired-execution coverage for NetOps safety"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Comparative studies that quantitatively evaluate different verifier designs (e.g., Batfish-style reachability checks, formal-methods tools) when integrated into LLM-driven NetOps pipelines are limited in the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4416758252"
+      ],
+      "evidence_type": "methodological gap",
+      "confidence": 0.69,
+      "limitations": [
+        "Some verifier-guided work exists, but cross-tool head-to-head NetOps-specific comparisons appear sparse in the provided set"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Targeted empirical characterization of prompt-injection and tool-poisoning risks specific to NetOps artifacts (configuration templates, device CLIs, observability outputs) is underdeveloped in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140954429",
+        "doi:10.14722/ndss.2026.230675",
+        "https://openalex.org/W7169633964"
+      ],
+      "evidence_type": "security research gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Threat modeling and MCP analyses exist; however, direct NetOps-focused exploit/defense experiments are limited in the provided records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Evidence on long-term operator outcomes (error rates, over-reliance, skill erosion) when adopting LLM-assisted NetOps workflows is scarce in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117",
+        "doi:10.2139/ssrn.6685078"
+      ],
+      "evidence_type": "human-factors research gap",
+      "confidence": 0.63,
+      "limitations": [
+        "Case studies provide snapshots but not longitudinal measures of operator behavior or skill trajectories"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Reproducible artifact suites (public code, large multi-topology datasets, standardized emulation traces) for rigorous, repeatable evaluation of agentic NetOps pipelines are not yet sufficiently ubiquitous in the supplied record set.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7162044117",
+        "doi:10.5753/errc.2025.17772"
+      ],
+      "evidence_type": "reproducibility / infrastructure gap",
+      "confidence": 0.68,
+      "limitations": [
+        "Some projects supply artifacts, but a broadly adopted, shared corpus for cross-study replication is not evident from the supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven to be production-ready autonomous NetOps systems that can safely replace human operators without additional safeguards.",
+    "Verifier-assisted LLM pipelines eliminate hallucinations and semantic errors entirely in NetOps configuration generation.",
+    "Any single published work in the supplied records demonstrates comprehensive multi-vendor production deployment with quantified long-term safety.",
+    "Claims of \"first\" demonstrations for broad agentic NetOps capabilities where no supplied record explicitly verifies such primacy."
+  ]
+}

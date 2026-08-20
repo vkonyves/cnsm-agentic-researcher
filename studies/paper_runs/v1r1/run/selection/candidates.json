@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-01-verifier-compare",
+      "title": "Head-to-head comparison of verifier designs in LLM-driven NetOps pipelines",
+      "research_question": "When integrated into an LLM-driven intent→configuration pipeline, which verifier design (Batfish-style reachability checks, a formal-methods/SMT verifier, or lightweight syntactic/runtime validators) yields the highest operational safety (fewer harmful misconfigurations) across diverse topologies and vendor images?",
+      "hypotheses": [
+        "H0: There is no difference in the paired pass-rate (safe vs harmful) among the three verifier designs when used in a verifier-assisted generation loop versus no verifier.",
+        "H1: At least one verifier design yields a statistically higher paired pass-rate and connectivity-preservation rate than the others and than a no-verifier baseline."
+      ],
+      "proposed_design": "Preregistered paired experiment. Assemble a suite of N intents (e.g., 300) spanning routing, ACL, NAT, and VLAN tasks. For each intent: (1) generate a single-pass LLM config; (2) run verifier-assisted generation using three verifier integrations (Batfish-style reachability checks, a formal-methods/SMT verifier, and a lightweight syntactic+runtime validator), each implemented as generate→verify→repair loops with a fixed max of 3 repair iterations. Execute generated configs in a digital-twin/emulation environment (multi-vendor images where available). Compare outcomes within-intent (paired) across conditions. All code, prompts, seeds, and raw outputs preserved.",
+      "expected_data": "For each intent × condition: binary pass/fail of verifier, binary connectivity-preservation (end-to-end ping/flow tests), number of repair iterations, time per attempt, and final CLI diff. Raw CLI artifacts and execution logs retained.",
+      "primary_outcome": "Paired difference in connectivity-preservation rate (LLM + verifier design vs LLM single-pass) with 95% CI and McNemar test p-value.",
+      "analysis_outline": "Compute per-intent paired binary outcomes; use McNemar tests for pairwise comparisons vs baseline and between verifiers; estimate absolute and relative improvements with Agresti-Coull 95% CIs; analyze repair-iteration counts (median, IQR) and time with nonparametric tests; report failure-mode taxonomy (semantic mismatch, vendor-specific idiosyncrasy, verifier false-positive/negative).",
+      "novelty_evidence_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4416758252"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.1109/ojcoms.2026.3680457",
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W4416758252"
+      ],
+      "risks": [
+        "Digital-twin fidelity may not reflect some production vendor behaviors (threat to external validity).",
+        "Prompt sensitivity could change absolute rates; use fixed prompt templates and report sensitivity analyses.",
+        "Verifier implementations might differ in maturity/time-to-engineer; engineering parity must be enforced.",
+        "Potential high variance across intents requiring larger N to obtain narrow CIs."
+      ],
+      "estimated_model_calls": 3200
+    },
+    {
+      "candidate_id": "cand-2026-02-paired-benchmark",
+      "title": "Design and validation of a paired execution NetOps safety benchmark (Replay-Paired Suite)",
+      "research_question": "Can a publicly shareable, paired execution benchmark (intent + ground-truth config + digital-twin replay) reliably discriminate NetOps pipelines by operational-safety (connectivity/regression) and yield reproducible effect-size estimates across pipelines?",
+      "hypotheses": [
+        "H0: The Replay-Paired Suite will not produce reproducible rankings (low inter-run reliability) among tested pipelines.",
+        "H1: The suite will produce reproducible discrimination (ICC or rank correlation > pre-registered threshold) and will correlate with connectivity-preservation metrics (Spearman ρ > pre-registered threshold)."
+      ],
+      "proposed_design": "Construct a corpus of M intents (e.g., 200) with corresponding ground-truth configs and device/emulator topologies (multi-vendor where publicly available). Define a paired-execution protocol: for each intent, execute ground-truth change in the twin to obtain baseline traces; then apply LLM-pipeline candidate output in the same twin and record connectivity/regression metrics and side-effects. Validate benchmark by running 3 distinct pipeline variants (single-pass LLM, verifier-assisted LLM, and a rule-based synthesizer) across the corpus, repeating each pipeline run with 3 PRNG seeds to measure reproducibility. Publish dataset, scripts, and evaluation harness.",
+      "expected_data": "Per-run metrics: connectivity-preservation rate, number of broken flows, time to repair (if automated), binary harmful flag, execution traces, and per-task logs. Inter-run rank correlations and reliability statistics.",
+      "primary_outcome": "Benchmark discrimination reliability: pre-registered intraclass correlation (ICC) or median rank Spearman ρ across repeated runs and pipelines; and effect-size estimates (e.g., difference in connectivity-preservation rate) with 95% CIs.",
+      "analysis_outline": "Compute pipeline rankings per run; report ICC and Spearman rank correlations across seeds; for pipeline pair comparisons use paired proportion tests and bootstrap CIs; run ablations to show which task classes drive ranking differences; provide reproducible artifact set and evaluation script.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166901862",
+        "doi:10.5753/errc.2025.17772",
+        "doi:10.1109/ojcoms.2026.3680457"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "https://openalex.org/W7162044117",
+        "https://openalex.org/W4416758252"
+      ],
+      "risks": [
+        "Dataset curation may bias toward topologies the team can emulate (sampling bias).",
+        "Public emulators may lack vendor images for some vendors (coverage risk).",
+        "Reproducibility depends on stable emulator versions; must version-control images and provide hashes."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-2026-03-layered-defense-eval",
+      "title": "Empirical evaluation of layered defenses against prompt-injection and tool-poisoning in NetOps pipelines",
+      "research_question": "How effective are layered defenses (static skill validation, runtime verifier gating, and automated sanitizers) at preventing prompt-injection and tool-poisoning attacks in LLM-driven NetOps pipelines under controlled attack scenarios in emulation?",
+      "hypotheses": [
+        "H0: Layered defenses do not significantly reduce the success rate of prompt-injection/tool-poisoning attacks compared to no defenses.",
+        "H1: Layered defenses significantly reduce the attack success rate (pre-registered absolute reduction threshold, e.g., ≥40%) in emulated NetOps workflows.",
+        "H2: Certain single defenses (e.g., high-fidelity runtime verifier gating) outperform others but a layered combination yields the largest reduction in successful malicious commands reaching execution."
+      ],
+      "proposed_design": "Define a threat model and generate a catalogue of synthetic prompt-injection and tool-poisoning payloads (benign-appearing comments that encode malicious CLI lines, poisoned skill templates). In a safe emulation environment, run an LLM-driven pipeline on a set of intents with and without injected payloads under four defense conditions: none, static skill validation only, runtime verifier gating only, and layered (static + runtime + sanitizer). Measure the fraction of runs where a malicious CLI line would have been applied (simulated apply flagged) and the fraction caught by each defense. Use fixed seeds, publish payloads and detectors, and limit experiments to emulation (no real devices).",
+      "expected_data": "Per-trial binary successful-exploit flag, which defense caught it (if any), false-positive rates of defenses on benign inputs, time-to-detection, and sanitized vs blocked outcomes. Logs and payload corpus retained.",
+      "primary_outcome": "Absolute and relative reduction in exploit-success rate for layered defenses vs no defense with bootstrap 95% CIs and Fisher exact tests for proportions.",
+      "analysis_outline": "Estimate proportions and CIs; compare conditions pairwise with Bonferroni-corrected Fisher exact tests; compute ROC-like curves for defenses treating injected payloads as positive class; analyze false-positive tradeoffs; categorize attack types that bypass each defense.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7140954429",
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.14722/ndss.2026.230675"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7140954429",
+        "https://openalex.org/W7169633964",
+        "https://openalex.org/W4416758252"
+      ],
+      "risks": [
+        "Ethical risk of publishing attack payloads—mitigate by publishing only emulation payloads and sanitized examples, provide disclosure guidance.",
+        "Emulation limits realism of some supply-chain poisoning vectors.",
+        "Defensive implementations may be brittle and require careful engineering parity to compare fairly."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-2026-04-multi-topology-incidence",
+      "title": "Estimating incidence and topology-dependence of harmful misconfigurations from LLM pipelines across multi-topology emulation",
+      "research_question": "What is the incidence rate of harmful misconfigurations produced by an LLM-driven NetOps pipeline across a diverse synthetic suite of topologies and vendor images, and which topology or policy features predict higher risk?",
+      "hypotheses": [
+        "H0: Harmful misconfiguration incidence is uniform across topologies and unrelated to simple topology/policy features.",
+        "H1: Incidence varies systematically with topology/policy features (e.g., degree centrality, vendor heterogeneity, presence of multi-area routing) and can be predicted by a small set of features (pre-registered feature set)."
+      ],
+      "proposed_design": "Assemble a generative suite of T topologies (e.g., 100–200) covering small-to-medium ISP and enterprise shapes, multiple vendor image proxies, and varied policy sets. For a fixed set of intents per topology, generate LLM-produced changes (single-pass and verifier-assisted variants). Execute in emulation and label outcomes as harmful (connectivity loss, security regression, policy violation) vs safe. Fit logistic regression and random-forest models to predict harmful outcome from pre-registered topology/policy features. Report incidence overall and per-topology strata.",
+      "expected_data": "Per-intent/per-topology binary harmful label, topology features (node count, vendor-mix, path redundancy metrics), pipeline variant, and execution traces. Model performance metrics (AUC, calibration) and incidence estimates with CIs.",
+      "primary_outcome": "Overall harmful misconfiguration incidence estimate with 95% CI and identification of topology/policy features with significant association (adjusted odds ratios with CIs).",
+      "analysis_outline": "Estimate incidence using binomial CIs; model predictors with logistic regression (adjust for multiple comparisons) and validate using held-out topologies; report feature importances from random forest and calibration plots; sensitivity analyses by pipeline variant.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166901862",
+        "doi:10.5753/errc.2025.17772",
+        "https://openalex.org/W7162044117"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.5753/errc.2025.17772",
+        "https://openalex.org/W7166901862",
+        "doi:10.1109/icnp65844.2025.11192391"
+      ],
+      "risks": [
+        "Scale of topology generation may strain emulation resources—must pre-register compute/time budget and sample accordingly.",
+        "Emulator vendor-image coverage may bias incidence estimates.",
+        "Incidence depends on chosen LLM and prompt; report conditionality and sensitivity checks."
+      ],
+      "estimated_model_calls": 3500
+    }
+  ]
+}

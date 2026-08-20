@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-01-verifier-compare",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Digital‑twin/emulator fidelity may not reflect production vendor idiosyncrasies (threat to external validity).",
+        "Engineering parity across verifier implementations is hard and may bias comparisons.",
+        "Prompt sensitivity and repair-loop design choices could drive results rather than verifier capability.",
+        "Potential lack of available vendor images for some multi‑vendor tests."
+      ],
+      "required_design_repairs": [
+        "Pre-register a reduced, stratified intent set if full N=300 is infeasible; include power calculation for N.",
+        "Specify exact verifier implementations, versioned code, and engineering parity checklist.",
+        "Include prompt-sensitivity ablations and fixed prompt templates with seeds.",
+        "Declare emulator images, versions, and hashes and pre-validate key vendor behaviors; document known emulator limitations and their expected impact."
+      ],
+      "verdict": "pass with repairs"
+    },
+    {
+      "candidate_id": "cand-2026-02-paired-benchmark",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Risk of being judged a generic benchmark (track non-goal) unless scope emphasizes paired execution and operational-safety novelty.",
+        "Dataset curation bias toward emulatable topologies; vendor-image coverage gaps.",
+        "Reproducibility hinges on heavy artifact hosting and emulator version stability.",
+        "Five-page short paper may not allow full artifact description; risk of under-documentation."
+      ],
+      "required_design_repairs": [
+        "Narrow to a compact, demonstrative corpus (e.g., 50–100 intents/topologies) for the paper and host full corpus externally with clear hashes and reproducible scripts.",
+        "Explicitly frame contribution as design+validation of paired-execution methodology with a small public proof-of-concept dataset rather than a full-scale benchmark release.",
+        "Pre-register selection criteria and emulator/image provenance; include reproducibility checklist and CI-friendly harness.",
+        "Plan artifact hosting (DOI/repository) and include emulator image hashes and exact versions."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-03-layered-defense-eval",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.9,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk of publishing exploit payloads and enabling reuse if not properly sanitized.",
+        "Emulation may not capture real supply-chain poisoning realism.",
+        "Defense implementations must be engineered fairly to avoid biased efficacy comparisons.",
+        "Defining exploit-success and acceptable false-positive tradeoffs requires careful preregistration."
+      ],
+      "required_design_repairs": [
+        "Include responsible-disclosure policy and sanitize published payloads; publish only emulation-safe examples and detection rules.",
+        "Pre-register a precise threat model, exploit-success definition, and defense evaluation thresholds.",
+        "Ensure defense implementations parity checklist and versioned code release.",
+        "Report false-positive rates and time-to-detection; include sensitivity analyses for attack variants."
+      ],
+      "verdict": "pass with repairs"
+    },
+    {
+      "candidate_id": "cand-2026-04-multi-topology-incidence",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.4,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Scale and emulation resource demands (100–200 diverse topologies) may be infeasible within stated compute/time limits.",
+        "Incidence estimates will be conditional on emulator fidelity, vendor‑image coverage, and chosen LLM/prompt—risk of overgeneralization.",
+        "Predictor models risk confounding; observational association does not imply causation.",
+        "Reproducibility vulnerable to topology-generation stochasticity and emulator versions."
+      ],
+      "required_design_repairs": [
+        "Reduce topology sample to a pre-registered, stratified subset with power justification; provide held-out validation topologies.",
+        "Pre-register topology-feature set and modeling pipeline; use simple, interpretable models as primary analysis and random-forest as secondary.",
+        "Specify and constrain compute/time budget; provide fallback plan (smaller sample) if emulation capacity is exceeded.",
+        "Report conditionality of incidence estimates (LLM, prompt, emulator) and avoid causal language; include sensitivity analyses."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

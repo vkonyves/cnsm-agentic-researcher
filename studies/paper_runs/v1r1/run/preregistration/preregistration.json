@@ -1,0 +1,69 @@
+{
+  "study_id": "study-cand-2026-01-verifier-compare-v1",
+  "title": "Head-to-head comparison of verifier designs in LLM-driven NetOps pipelines (repaired preregistration)",
+  "research_question": "When integrated into an LLM-driven intent→configuration pipeline (open-source network OS images only), which verifier design—(A) Batfish-style reachability checks, (B) SMT/formal-methods verifier (Z3-based constraint check), or (C) lightweight syntactic+runtime validator—yields the highest operational safety (fewer harmful misconfigurations) measured by connectivity-preservation across diverse synthetic and open-source OS topologies?",
+  "confirmatory_hypotheses": [
+    "H0: There is no difference in paired connectivity-preservation rate between each verifier-assisted pipeline and the single-pass LLM baseline.",
+    "H1: At least one verifier-assisted pipeline (A, B, or C) yields a statistically higher paired connectivity-preservation rate than the single-pass LLM baseline."
+  ],
+  "exploratory_questions": [
+    "E1: How do repair-iteration counts and time-to-repair differ by verifier design?",
+    "E2: Which failure-mode categories (semantic mismatch, vendor-agnostic misrendering, verifier false-positive/negative) dominate per verifier?",
+    "E3: How sensitive are verifier advantages to small, pre-registered prompt perturbations?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.5753/errc.2025.17772",
+    "doi:10.2139/ssrn.6947162",
+    "https://openalex.org/W4416758252",
+    "doi:10.1109/ojcoms.2026.3680457",
+    "https://openalex.org/W7166901862",
+    "https://openalex.org/W7162044117",
+    "https://openalex.org/W7140954429"
+  ],
+  "benchmark_scope": [
+    "Synthetic topologies (3–12 nodes) instantiated with open-source network OS images only (FRRouting/FRR, VyOS, Open vSwitch) executed in Docker-based emulation (public images).",
+    "Tasks: intent classes: routing (static/OSPF-like), ACL/policy, NAT, VLAN/isolation."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (one fixed version; exact model identifier recorded in execution manifest).",
+    "No proprietary vendor OS images; all emulation uses public images and recorded image hashes."
+  ],
+  "transformation_scope": [
+    "Intent -> vendor-agnostic template mapping.",
+    "Template -> CLI rendering for FRR, VyOS, OVS.",
+    "Normalization/canonicalization for verifier inputs (AST/JSON)"
+  ],
+  "primary_estimand": "Per-intent paired difference in connectivity-preservation (binary) between each verifier-assisted pipeline and the single-pass LLM baseline (unit = intent).",
+  "secondary_estimands": [
+    "Per-intent paired difference in policy-regression (binary).",
+    "Distribution of repair iterations per intent (median, IQR).",
+    "Time-per-attempt (median, IQR) per condition."
+  ],
+  "sampling_plan": "Confirmatory sample: N_confirmatory = 120 intents, stratified into 4 task clusters (routing, ACL, NAT, VLAN) with 30 intents per cluster. Discovery/prompt-sensitivity sample: N_discovery = 30 (held-out). Total intents executed = 150. Fixed random seeds and frozen prompt templates. For emulator/container failure an intent is requeued up to 2 automatic re-executions; if still failing the intent is replaced by the next pre-registered held-out intent until confirmatory N reached or compute budget exhausted. All replacements, failures, and hashes are logged.",
+  "power_and_precision_plan": "Recommended scenario: N_confirmatory=120, N_discovery=30 (total 150). Primary estimand: paired connectivity-preservation difference. Target effect: absolute improvement ≈10 percentage points (e.g., 80%→90%). Family-wise alpha adjustment for three primary comparisons: Bonferroni alpha_adjusted=0.05/3=0.0167. Planned test: McNemar (two-sided) per pair; 95% Agresti–Coull CIs reported for paired differences. With N=120, adjusted-alpha McNemar planning yields power ≈0.80 for ~8–10 pp differences under conservative discordant assumptions; exact MDEs recomputed and reported alongside results. Sensitivity: recompute power under baseline rates 70% and 85%; bootstrap CIs for paired differences.",
+  "exclusion_rules": [
+    "Exclude runs whose generated CLI contains disallowed external-fetch/remote-exec tokens (e.g., curl, wget, remote shell, embedded URLs) — deterministic token-matching.",
+    "Exclude runs where container/image hash != preregistered image hash.",
+    "Exclude runs where verifier returns malformed/unexpected structured outputs (schema error) or verifier runtime fails after retries.",
+    "Exclude intents that fail emulation/verifier after 2 automatic re-executions; replaced according to sampling_plan."
+  ],
+  "missingness_plan": "Automatic retry policy: up to 2 automatic re-executions on emulator/container or verifier runtime failure. If still failing the intent is flagged, logged with timestamp/reason/hash, and replaced by next pre-registered held-out intent until confirmatory N reached or compute budget exhausted. Flagged/excluded items are removed from primary confirmatory analysis; sensitivity analyses: (a) treat flagged items as failures, (b) include flagged items (where safe) and report differences. All exclusions, replacements, and timestamps are recorded and reported.",
+  "analysis_plan": "Primary outcome per intent: connectivity-preserved (yes/no) per condition. For each pre-specified pair (Verifier A vs baseline, Verifier B vs baseline, Verifier C vs baseline) perform McNemar two-sided test using adjusted alpha=0.0167. Report paired absolute differences with 95% Agresti–Coull CIs. For repair iterations and time: report median and IQR; compare with Wilcoxon signed-rank or paired bootstrap if distributional assumptions fail. Apply pre-specified failure-mode taxonomy to logs; report counts and representative examples. All analyses run deterministically with fixed seeds; raw CLI artifacts, logs, model calls, and verifier outputs retained and checksummed for audit.",
+  "multiplicity_plan": "Primary family: three pre-specified comparisons (each verifier vs baseline) controlled via Bonferroni (alpha_adjusted=0.0167) for confirmatory claims. Secondary comparisons (verifier vs verifier) and exploratory subgroup analyses reported as exploratory; for interpretive context apply Benjamini–Hochberg FDR control but do not use for confirmatory conclusions.",
+  "contamination_plan": "Risk factors: prompt-injection in inputs, tool-chain compromise, emulator image drift, hosted-LLM nondeterminism. Detection procedures: pre-run image-hash integrity checks; deterministic token-based LLM-output filtering for disallowed patterns; per-run prompt and model-call checksum logging; runtime verifier schema assertions. Item-flagging rules: automatic exclusion on disallowed tokens or image-hash mismatch; mark verifier-assertion-fail where verifier returns malformed outputs. Analysis treatment: flagged items excluded from primary confirmatory analysis and reported; sensitivity analyses include flagged-as-failure and flagged-removed results. All detection, flags, and remediation logged automatically; no human adjudication.",
+  "stopping_rule": "Stop when confirmatory N (recommended: 120) is reached OR planned_model_calls budget exhausted OR 7-day wall-clock limit reached. Per-intent stopping: abort attempts for an intent after 2 automatic re-executions and replace per sampling_plan. Abort full run immediately on detected image-hash mismatch of a core emulation image (safety-critical contamination) until image integrity is restored; all such events are logged.",
+  "planned_outputs": [
+    "Frozen preregistration document (this record) with hashes.",
+    "Execution manifest: model identifier, image hashes, prompt templates, seeds, run timestamps.",
+    "Raw artifacts: generated CLIs, rendered configurations, verifier inputs/outputs, emulator traces, repair logs.",
+    "Statistical-results file (tests, CIs, bootstrap samples).",
+    "Failure-analysis record and failure-mode taxonomy counts with examples.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript (≤5 pages) and compiled PDF.",
+    "BibTeX bibliography and verified-reference record.",
+    "Autonomous revision log and methodological/statistical reviews.",
+    "NotebookLM presentation brief (concise).",
+    "Final-output hash manifest and reproducibility instructions."
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,170 @@
+{
+  "selected_candidate_id": "cand-2026-01-verifier-compare",
+  "title": "Head-to-head comparison of verifier designs in LLM-driven NetOps pipelines (repaired preregistration)",
+  "research_question": "When integrated into an LLM-driven intent→configuration pipeline (open-source network OS images only), which verifier design—(A) Batfish-style reachability checks, (B) SMT/formal-methods verifier (Z3-based constraint check), or (C) lightweight syntactic+runtime validator—yields the highest operational safety (fewer harmful misconfigurations) measured by connectivity-preservation across diverse synthetic and open-source OS topologies?",
+  "confirmatory_hypotheses": [
+    "H0: There is no difference in paired connectivity-preservation rate between each verifier-assisted pipeline and the single-pass LLM baseline.",
+    "H1: At least one verifier-assisted pipeline (A, B, or C) yields a statistically higher paired connectivity-preservation rate than the single-pass LLM baseline."
+  ],
+  "exploratory_questions": [
+    "E1: How do repair-iteration counts and time-to-repair differ by verifier design?",
+    "E2: Which failure-mode categories (semantic mismatch, vendor-agnostic misrendering, verifier false-positive/negative) dominate per verifier?",
+    "E3: How sensitive are verifier advantages to small, pre-registered prompt perturbations?"
+  ],
+  "benchmark_scope": [
+    "Synthetic topologies (small-to-medium: 3–12 nodes) instantiated with open-source network OS images only (FRRouting/FRR, VyOS, and Open vSwitch), executed in Docker-based emulation (public images).",
+    "Tasks: intent classes routing (static/OSPF-like), ACL/policy, NAT, VLAN/isolation."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (versioned and fixed for the run; exact identifier recorded in execution manifest) used as the generative model.",
+    "No proprietary vendor-OS images required; all emulation uses public images."
+  ],
+  "transformation_scope": [
+    "Intent -> vendor-agnostic template mapping",
+    "Template -> CLI rendering for FRR, VyOS, OVS",
+    "Normalization and canonicalization for verifier inputs (e.g., Batfish-like JSON/AST)"
+  ],
+  "primary_estimand": "Per-intent paired difference in connectivity-preservation (binary) between each verifier-assisted pipeline and the single-pass LLM baseline (unit = intent).",
+  "secondary_estimands": [
+    "Per-intent paired difference in policy-regression (binary).",
+    "Distribution of repair iterations per intent (median, IQR).",
+    "Time-per-attempt (median, IQR) per condition."
+  ],
+  "sampling_plan": "Confirmatory sample: N_confirmatory = 120 intents stratified across 4 task clusters (routing, ACL, NAT, VLAN) with equal allocation => 30 intents per cluster. Discovery/prompt-sensitivity sample: N_discovery = 30 intents (10 per cluster sampled from held-out pool). Total intents executed = 150. Task clusters count = 4. Derivation of model-call totals (used in budget planning): we estimate average LLM generation calls per intent per condition = 2 (initial generation + ~1 repair on average); there are 4 conditions (Baseline single-pass + Verifier A + Verifier B + Verifier C) => per-intent average generation calls = 4*2 = 8. Planned_model_calls_total = 150 intents * 8 calls/intent = 1,200 generation calls (expected). All runs use fixed random seeds and fixed prompt templates (frozen). If emulator/container failure occurs for an intent, the harness will automatically requeue the same intent up to 2 automatic re-executions; failure after retries is logged and the intent is replaced by the next pre-registered held-out intent until confirmatory N is met or compute budget exhausted. All replacements and failures are logged with hashes.",
+  "analysis_plan": "Per-intent paired binary outcomes (connectivity preserved: yes/no). Primary inferential tests: McNemar test (two-sided) for each pre-specified pairwise comparison (Verifier A vs baseline, Verifier B vs baseline, Verifier C vs baseline). 95% Agresti–Coull CIs for paired proportions/absolute differences. For repair counts/time: report median and IQR; compare with Wilcoxon signed-rank / paired bootstrap where appropriate. Pre-specified failure-mode taxonomy applied automatically to logs; counts reported descriptively. All analyses run with deterministic seeds; all raw outputs, CLI artifacts, and logs retained for audit.",
+  "multiplicity_plan": "Primary family: the three pre-specified comparisons (each verifier vs baseline). Control family-wise error via Bonferroni (alpha_adjusted = 0.05/3 = 0.0167) for primary claims. Secondary pairwise comparisons between verifiers and exploratory subgroup analyses are reported as exploratory with Benjamini–Hochberg FDR control for interpretive context but not for confirmatory claims.",
+  "missingness_plan": "If an intent cannot complete due to emulator/container or verifier runtime failure, the harness will automatically attempt up to 2 re-executions; if still failing, the intent is flagged and replaced by the next pre-registered held-out intent until confirmatory N is reached or compute budget is reached. All exclusions, reasons, and timestamps are recorded and reported. Sensitivity analyses will show results with and without excluded intents.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Open-source FRR/VyOS/OVS emulation corpus (versioned; image hashes recorded)",
+      "Synthetic intent corpus (versioned; intent hashes recorded)"
+    ],
+    "risk_factors": [
+      "Prompt-injection or malicious prompt templates embedded in injected inputs (supply chain contamination).",
+      "Tool-chain compromise (modified verifier binaries, malicious container images).",
+      "Emulator image drift vs public image tags (image substituted or tampered).",
+      "Non-deterministic hosted-LLM API behavior (nondeterminism affecting paired comparisons)."
+    ],
+    "detection_procedures": [
+      "Container/image integrity checks via recorded image hashes before every run (automatic abort on mismatch).",
+      "Deterministic token-based flagging of suspicious LLM outputs (automatic exclusion if outputs include disallowed remote-fetch commands, URLs, or 'curl/wget/run' patterns).",
+      "Per-run prompt and model-call checksum logging; automated comparison across replicates for anomaly detection.",
+      "Runtime verifier output assertions (expected schema); automatic failure-flagging if verifier returns malformed or unexpected structured outputs."
+    ],
+    "item_flagging_rules": [
+      "Automatically exclude and flag any sample whose generated CLI contains tokens matching the disallowed set (external-fetch, encoded payloads).",
+      "Automatically exclude any run where container/image hash != preregistered hash.",
+      "Automatically mark as 'verifier-assertion-fail' if verifier runtime returns schema error; run replaced according to missingness_plan."
+    ],
+    "analysis_treatment": "Flagged items are excluded from the primary confirmatory analysis and reported explicitly; we run sensitivity analyses that (a) include flagged items as failures and (b) report results after removal. All flagging is deterministic and automated; no human adjudication is required.",
+    "residual_uncertainty": [
+      "Residual risk that hosted-LLM nondeterminism (API side) changes absolute rates despite paired design; sensitivity analyses and seed-controlled repeats mitigate but do not eliminate this.",
+      "Residual risk that open-source images do not capture proprietary vendor idiosyncrasies (external validity limitation)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "reduced-80",
+      "description": "Reduced, low-cost confirmatory run for constrained compute/time: N_confirmatory=80, N_discovery=30 (total intents 110). Prioritizes maintainability if emulation capacity limited.",
+      "planned_model_calls": 880,
+      "models": [
+        "hosted-llm-api (single fixed version; exact identifier recorded in execution manifest)"
+      ],
+      "transformations": [
+        "intent->template mapping",
+        "template->CLI rendering for FRR/VyOS/OVS"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 80,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Per-intent average generation calls estimated at 8 (4 conditions * avg 2 calls). Planned_model_calls = (80+30)*8 = 110*8 = 880. Feasible within hosted-model call budget and 7-day wall clock when parallelized in Docker containers on available CPU nodes; reduces statistical power but preserves paired design for primary comparisons."
+    },
+    {
+      "scenario_id": "recommended-120",
+      "description": "Recommended balanced scenario: N_confirmatory=120, N_discovery=30 (total intents 150). Balances power and compute/time budget.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-llm-api (single fixed version; exact identifier recorded in execution manifest)"
+      ],
+      "transformations": [
+        "intent->template mapping",
+        "template->CLI rendering for FRR/VyOS/OVS"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Per-intent average generation calls estimated at 8. Planned_model_calls = (120+30)*8 = 150*8 = 1,200. This fits well within the capability_manifest maximum planned model calls (10,000) and expected 7-day wall clock using CPU-based Docker emulation; provides pre-registered power (see power_plan) sufficient to detect ~8–10 percentage-point absolute improvements under assumed discordant proportions."
+    },
+    {
+      "scenario_id": "ambitious-200",
+      "description": "Ambitious, higher-power scenario: N_confirmatory=200, N_discovery=30 (total intents 230).",
+      "planned_model_calls": 1840,
+      "models": [
+        "hosted-llm-api (single fixed version; exact identifier recorded in execution manifest)"
+      ],
+      "transformations": [
+        "intent->template mapping",
+        "template->CLI rendering for FRR/VyOS/OVS"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Planned_model_calls = (200+30)*8 = 230*8 = 1,840. Higher power but requires more emulation CPU time; still within hosted-model API budget but higher wall-clock and container orchestration demands. Recommended only if additional CPU/Docker parallelism is available."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in connectivity-preservation rate (per-intent binary).",
+    "target_effect": "Absolute improvement of 10 percentage points in connectivity-preservation for a verifier vs baseline (e.g., baseline preservation 80% -> verifier 90%).",
+    "clustering_unit": "Intent (paired within-intent comparisons across conditions).",
+    "calculation_method": "McNemar test-based planning for paired binary outcomes. Target power 0.80, two-sided alpha 0.05 with Bonferroni adjustment for three primary comparisons (alpha_adjusted=0.0167). Conservative sample chosen to detect approximately 8–10 pp absolute differences depending on discordant pair rates.",
+    "assumptions": [
+      "Baseline connectivity-preservation rate ≈ 80% (based on supplied emulation studies and conservative assumption).",
+      "Discordant pair proportion (cases where baseline fails but verifier succeeds or vice versa) sufficient to support detection; effect concentrated in baseline-fail/verifier-pass direction.",
+      "Per-intent independence assumption for primary estimand.",
+      "Average generation calls per intent ≈ 8 (used for budget feasibility)."
+    ],
+    "recommended_scenario_id": "recommended-120",
+    "minimum_detectable_effect_notes": "With N=120 (confirmatory intents) and two-sided McNemar at adjusted alpha=0.0167, the design is expected to detect ~8–10 percentage-point absolute improvements under conservative discordant proportions. Exact MDE depends on observed baseline discordance; final computed MDE reported alongside results.",
+    "sensitivity_analyses": [
+      "Recompute McNemar power under baseline rates of 70% and 85% and report corresponding MDEs.",
+      "Bootstrap-based confidence intervals on paired differences to capture variance not captured by asymptotic McNemar assumptions."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent -> vendor-agnostic template mapping",
+      "Template -> CLI rendering (per OS family: FRR, VyOS, OVS)",
+      "Verifier input normalization (AST/JSON)"
+    ],
+    "semantic_equivalence_checks": [
+      "Unit tests that for each intent assert that the rendered CLI for an OS produces expected abstract configuration properties (e.g., route presence, ACL entries) via deterministic analyzer; run automatically on a 10% audit sample.",
+      "Round-trip tests: parse(render(intent)) -> canonicalize -> render should be idempotent within tolerated whitespace/order variations."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated CLIs that fail syntax-parsing (parser error) for the target OS image automatically.",
+      "Reject CLIs containing disallowed external-execution tokens (curl, wget, base64 exec patterns) automatically."
+    ],
+    "audit_sample_policy": "Deterministic 10% stratified audit sample (seeded) re-executed and compared to original outputs; mismatches flagged and automatically excluded from confirmatory analysis unless they meet pre-registered repair criteria.",
+    "mapping_validation": "Mapping templates and rendering code are unit-tested against a held-out suite of 60 small intents; tests and hashes recorded and must pass before experimental runs.",
+    "residual_risks": [
+      "Transformation may fail to capture proprietary vendor-specific semantics absent in open-source OS images (external-validity limitation).",
+      "Parser/renderer bugs remaining despite unit tests; these are logged and reported."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: open-source OS images (FRR/VyOS/OVS) may not reflect proprietary vendor idiosyncrasies (Cisco IOS/XR, JunOS). Claims are explicitly bounded to the public-image/emulation scope.",
+    "Hosted-LLM API nondeterminism can affect absolute rates; the paired design and seeded repeats mitigate but do not eliminate this.",
+    "Emulation fidelity vs production timing/performance characteristics (timing-related race conditions) — out of scope for confirmatory claims."
+  ],
+  "evidence_record_ids": [
+    "doi:10.5753/errc.2025.17772",
+    "doi:10.2139/ssrn.6947162",
+    "https://openalex.org/W4416758252",
+    "doi:10.1109/ojcoms.2026.3680457",
+    "https://openalex.org/W7166901862",
+    "https://openalex.org/W7162044117",
+    "https://openalex.org/W7140954429"
+  ]
+}
