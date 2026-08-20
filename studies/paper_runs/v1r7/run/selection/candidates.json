@@ -1,0 +1,116 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "C-001",
+      "title": "Efficacy of Generate→Verify→Repair (GVR) with Batfish for Preventing High-Severity LLM-Generated Network Faults",
+      "research_question": "Does inserting a deterministic network validator (Batfish) in a generate→verify→repair pipeline significantly reduce the rate of high-severity operational faults from LLM-generated configuration changes compared to an LLM-only generation baseline?",
+      "hypotheses": [
+        "H1: A GVR pipeline using Batfish will reduce the proportion of high-severity faults (reachability breaks, route leaks, ACL mis-binds) among accepted changes by at least 50% relative to LLM-only acceptance.",
+        "H0: There is no ≥50% reduction in high-severity faults when using the GVR pipeline versus LLM-only."
+      ],
+      "proposed_design": "Preregistered, paired experimental design: construct a corpus of 200 realistic NetOps change intents (mix: ACL, BGP export/import filters, interface IP changes). For each intent, generate configuration proposals from the same LLM prompt seed. Two acceptance policies applied per proposal: (A) LLM-only (accept the top proposal without automated deterministic validation) and (B) GVR: run Batfish validator; if validator flags severity-level faults, allow up to two model-driven automated repairs (prompted repair attempts) then re-validate; if still failing, reject. Deploy proposals into an isolated simulation environment (Batfish-enabled) to label operational outcomes (severity-coded). Record accepted proposals and observed simulated execution faults.",
+      "expected_data": "Per-intent records: LLM outputs, validator results, repair attempts, final acceptance/rejection, simulated execution traces, binary/ordinal fault severity labels. Aggregate counts: accepted proposals, rejected proposals, high-severity fault incidents post-acceptance.",
+      "primary_outcome": "Relative reduction in accepted high-severity faults (percentage) for GVR versus LLM-only.",
+      "analysis_outline": "Paired comparison across the 200 intents using McNemar's test for binary high-severity fault incidence (accepted proposal causes high-severity fault yes/no). Report absolute and relative risk reduction with 95% CIs. Secondary analyses: number of repair attempts needed, rejection rate, per-task-type stratified effects (ACL vs BGP).",
+      "novelty_evidence_ids": [
+        "E3",
+        "E4",
+        "G3"
+      ],
+      "feasibility_evidence_ids": [
+        "E3",
+        "E4"
+      ],
+      "risks": [
+        "Simulator (Batfish) model mismatch to real hardware may under/overestimate real fault severity.",
+        "LLM repair loops could exploit prompt artifacts producing superficially valid but semantically incorrect changes.",
+        "Dataset of intents may not cover all production heterogeneity (external validity)."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "C-002",
+      "title": "Robustness of RAG-Based NetOps Pipelines to Retrieval Poisoning and Prompt-Injection Defenses",
+      "research_question": "How effective are lightweight sanitization and source-authentication defenses at reducing successful retrieval-poisoning / prompt-injection attacks that induce unsafe LLM-generated network changes in a RAG-enabled NetOps pipeline?",
+      "hypotheses": [
+        "H1: Applying document-level provenance-checking plus input sanitization to RAG retrievals will reduce successful adversarial manipulations of final accepted configuration changes by ≥80% relative to an unprotected RAG baseline under the same adversarial corpus.",
+        "H0: The defensive pipeline does not achieve ≥80% reduction in successful adversarial manipulations."
+      ],
+      "proposed_design": "Adversarial robustness experiment using a curated benign knowledge base (KB) of network policies plus injected adversarial poisoned documents crafted to cause dangerous config changes (e.g., open ACLs, route leaks). Use a fixed LLM with RAG retrieval. Two conditions per task: (A) baseline RAG (no sanitization), (B) defensive RAG (retrieval provenance filter that rejects low-trust sources + sanitization that strips directive-like phrases). For each condition, run 150 adversarial intents where the adversary attempts to influence the model via poisoned KB documents. Use deterministic validator (Batfish) to label whether the final accepted config (after any automated repair policy) would produce a high-severity unsafe effect. Primary metric: fraction of adversarial attempts that produce an accepted unsafe config.",
+      "expected_data": "Per-attempt records: retrieved documents, provenance/trust scores, LLM outputs, validator verdicts, whether adversarial goal succeeded. Aggregate: success rates by condition, false-reject/false-accept rates of sanitizer.",
+      "primary_outcome": "Relative reduction (%) in accepted unsafe configs caused by adversarial poisoning under defensive RAG vs baseline RAG.",
+      "analysis_outline": "Compare proportions using Fisher's exact test; compute relative risk reduction and 95% CIs. Analyze attacker success conditional on attacker document rank and on sanitizer false-rejection rate. Report attacker strategies that bypass defenses.",
+      "novelty_evidence_ids": [
+        "E2",
+        "U3",
+        "G3"
+      ],
+      "feasibility_evidence_ids": [
+        "E2",
+        "U3"
+      ],
+      "risks": [
+        "Constructed adversary may not match sophisticated real-world poisoning; defenses may be overfitted to the attack set.",
+        "Sanitization could increase false negatives, reducing utility of RAG retrievals.",
+        "Complex, adaptive attackers could evolve bypasses not covered by experiments."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "C-003",
+      "title": "Human-in-the-Loop vs Validator-Only Acceptance: Throughput and Residual Risk Tradeoffs",
+      "research_question": "Can a deterministic-validator-first acceptance policy (automated acceptance when validator signals no high-severity issues) match human-review acceptance quality while materially increasing change throughput in simulated NetOps workflows?",
+      "hypotheses": [
+        "H1: Validator-first automatic acceptance (no human review if validator passes) will yield residual high-severity fault rates not statistically higher than human-review acceptance (non-inferiority margin: +1% absolute) while increasing throughput (changes/hour) by ≥100%.",
+        "H0: Validator-first policy is either inferior on residual faults beyond the non-inferiority margin or does not materially increase throughput."
+      ],
+      "proposed_design": "Non-inferiority paired experiment with 180 realistic change intents. For each intent, record three decision outcomes: (A) human reviewer accepts/rejects the LLM proposal (simulated expert panel using deterministic decision rules), (B) validator-only automated acceptance (Batfish pass → auto-accept; failure → require human), (C) combined GVR+human as conservative benchmark. Measure simulated execution outcomes (high-severity faults) and time-to-accept (model call time + validator time + human review latency sampled from distribution). Evaluate non-inferiority of residual faults and compare throughput (accepted changes per hour).",
+      "expected_data": "Per-intent: human decision, validator result, final acceptance, simulated execution fault label, latency components. Aggregates: residual fault rates per policy, throughput estimates under modeled human-latency distribution.",
+      "primary_outcome": "Non-inferiority outcome on residual high-severity fault rate and relative throughput improvement (ratio) for validator-first vs human-review.",
+      "analysis_outline": "Compute absolute difference in fault rates with one-sided 95% CI for non-inferiority test; compare throughput distributions using bootstrapped CI for ratio. Secondary: analysis of cases where validator passes but human would have rejected (and vice versa).",
+      "novelty_evidence_ids": [
+        "E5",
+        "E4",
+        "E3"
+      ],
+      "feasibility_evidence_ids": [
+        "E4",
+        "E5"
+      ],
+      "risks": [
+        "Simulated human reviewer behavior may not represent real operator risk thresholds.",
+        "Latency and throughput modeling assumptions might not generalize to varied operational contexts.",
+        "Validator false-negatives could make automated acceptance riskier than simulated results indicate."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "C-004",
+      "title": "A Compact Safety Score for LLM-Generated Network Configs: Predicting Operational Failure from Validator Signals",
+      "research_question": "Can a compact, validator-derived Safety Score computed from deterministic-check outputs reliably predict simulated operational failures of LLM-generated configurations (correlation r ≥ 0.7)?",
+      "hypotheses": [
+        "H1: A Safety Score aggregated from features (number of violated invariants, control-plane reachability failures, ACL conflict counts, etc.) will correlate with observed simulated failure severity at Pearson r ≥ 0.7 on a held-out test set.",
+        "H0: The Safety Score does not achieve Pearson correlation r ≥ 0.7 with observed failure severity."
+      ],
+      "proposed_design": "Create a dataset of 300 LLM-generated configuration proposals across varied intents and topologies. For each proposal, run a deterministic validator suite (Batfish + invariant checks) producing a feature vector (binary/ordinal metrics). Simulate execution to assign continuous failure-severity scores (weighted by affected prefixes, downtime equivalents). Train a simple interpretable regression model (e.g., LASSO) to map validator features to failure-severity; evaluate held-out Pearson correlation and calibration.",
+      "expected_data": "Per-proposal: validator feature vector, simulated failure-severity numeric label, Safety Score predictions, residuals. Aggregate metrics: Pearson r, RMSE, calibration slope/intercept.",
+      "primary_outcome": "Pearson correlation between Safety Score predictions and simulated failure-severity on held-out test set.",
+      "analysis_outline": "Train/validate using 5-fold CV; report Pearson r with 95% CI via bootstrap, RMSE, and decision-threshold analysis (sensitivity/specificity for high-severity cutoffs). Perform ablation to identify most predictive validator features.",
+      "novelty_evidence_ids": [
+        "G1",
+        "G3",
+        "E4"
+      ],
+      "feasibility_evidence_ids": [
+        "G1",
+        "E4"
+      ],
+      "risks": [
+        "Measures derived from deterministic validators may omit dynamic or stateful failure modes, limiting predictive power.",
+        "Correlation target depends on simulated severity weighting decisions (subjectivity).",
+        "Model overfitting to the curated dataset could overestimate real-world performance."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

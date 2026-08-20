@@ -1,0 +1,92 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "C-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator (Batfish) mismatch to real hardware may bias measured severity; baseline “LLM-only accept top proposal” is a weak/possibly unrealistic comparator; severity taxonomy and mapping from Batfish outputs to operational high-severity labels is underspecified; repair-loop design may enable degenerate prompt-driven repairs that superficially pass checks.",
+        "Single-model results risk overclaiming generality."
+      ],
+      "required_design_repairs": [
+        "Define and preregister a clear severity taxonomy and exact mapping rules from Batfish outputs to high-severity labels (with examples).",
+        "Replace or justify the LLM-only baseline (e.g., top-1 vs top-k, human-reviewed baseline) to reflect realistic acceptance policies.",
+        "Predefine exact prompts, seeds, model identifiers, and Batfish configuration; release these artifacts for reproducibility.",
+        "Add sensitivity analyses: multiple LLMs or temperature settings and an analysis of repair-loop failure modes (e.g., prompt-gaming).",
+        "Preregister stopping/retry rules for repair attempts and how rejected proposals are treated."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C-002",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Realism of the adversary corpus and poisoning strategies is critical but underdefined; a narrow set of attacks risks overfitting defenses.",
+        "Sanitization/provenance defenses may be implementation-specific and brittle; defense evaluation needs adaptive attackers.",
+        "RAG stack details (indexing, retriever, chunking) are not fully specified, harming reproducibility."
+      ],
+      "required_design_repairs": [
+        "Specify and publish the retrieval pipeline (retriever model, embedding method, index, chunking), the poisoned-document generation process, and the full poisoned KB so experiments are reproducible.",
+        "Include multiple attacker strategies (static poisoned docs, rank-manipulation, crafted prompts in retrieved snippets) and at least one adaptive attacker evaluation.",
+        "Precisely define provenance-trust scoring and sanitization rules (with thresholds) and preregister them; report false-reject/utility tradeoffs.",
+        "Consider evaluating across two retrieval configurations or two LLMs to test generality and avoid overfitting to a single pipeline."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C-003",
+      "novelty": 0.6,
+      "falsifiability": 0.85,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Simulated human-reviewer behavior and latency distributions are central to conclusions but currently rely on deterministic/synthetic rules that may not reflect operational practice.",
+        "Non-inferiority margin (+1%) is not justified; results sensitive to this choice.",
+        "Throughput modeling assumptions (parallelism, batching, human availability) are underspecified."
+      ],
+      "required_design_repairs": [
+        "Ground simulated human reviewer behavior using empirical latency/decision data or clearly justify and preregister the decision rules and latency distributions; publish the simulator code and distributions.",
+        "Justify and preregister the non-inferiority margin and run sensitivity analyses across plausible margins.",
+        "Clarify operational throughput modeling assumptions (concurrency, queueing) and include alternative realistic scenarios; preregister them.",
+        "Report case-level disagreements between validator and human decisions and analyze root causes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C-004",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Failure-severity labeling depends on subjective weighting of impacts (affecting correlation target).",
+        "Predictive models show association not causation; causal claims must be avoided.",
+        "Potential overfitting to curated dataset; external validity unclear."
+      ],
+      "required_design_repairs": [
+        "Preregister and publish the severity-weighting methodology (including alternative weightings) and run sensitivity analyses to show robustness of Pearson r to weighting choices.",
+        "Emphasize predictive (not causal) framing and add calibration and decision-threshold analyses (sensitivity/specificity) for operational use.",
+        "Hold out an external validation set or perform temporal/topology generalization tests to demonstrate robustness; publish feature-extraction code and validator configs for reproducibility.",
+        "Include ablation studies to show which validator-derived features drive predictive performance and report uncertainty (bootstrap CIs)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

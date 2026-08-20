@@ -1,0 +1,167 @@
+{
+  "selected_candidate_id": "C-001",
+  "title": "Efficacy of Generate→Verify→Repair (GVR) with Batfish for Preventing High-Severity LLM-Generated Network Faults — Preregistered Study",
+  "research_question": "Does inserting a deterministic network validator (Batfish) in a generate→verify→repair (GVR) pipeline significantly reduce the rate of high-severity operational faults from LLM-generated configuration changes compared to a parsable-accept LLM-only baseline?",
+  "confirmatory_hypotheses": [
+    "H1: Under a paired intent design (N=200), the GVR pipeline using Batfish (with up to two automated repair attempts per flagged proposal) will reduce the proportion of accepted proposals that cause simulated high-severity faults by at least 50% relative to the LLM-only parsable-accept baseline.",
+    "H0: There is no ≥50% relative reduction in accepted high-severity faults by GVR versus LLM-only."
+  ],
+  "exploratory_questions": [
+    "Q1: How many automated repair attempts are required on average for successful repair when Batfish flags issues?",
+    "Q2: Are effects heterogeneous by task type (ACL, BGP filter, interface IP change)?",
+    "Q3: How sensitive are results to model stochasticity (temperature) and to using a different hosted LLM?"
+  ],
+  "benchmark_scope": [
+    "Isolated Batfish-enabled simulation of single-vendor (vendor-neutral) configs covering ACL changes, BGP import/export filter changes, and interface IP changes.",
+    "Corpus of 200 realistic change intents constructed from public NetOps examples (synthetic/curated) and published NetOps patterns (see evidence_record_ids)."
+  ],
+  "model_scope": [
+    "Primary hosted LLM: openai/gpt-4o (model identifier string: \"openai/gpt-4o\") — deterministic generation via temperature=0.0, seed=42.",
+    "Secondary hosted LLM (sensitivity): openai/gpt-3.5-turbo (model identifier string: \"openai/gpt-3.5-turbo\") — stochastic generation temperature=0.7, seed=123."
+  ],
+  "transformation_scope": [
+    "Canonicalization: vendor-neutral canonical parser that converts generated text to Batfish-understandable vendor config using deterministic parsing rules.",
+    "Normalization: whitespace and token normalization, removal of non-config commentary.",
+    "Semantic equivalence checks: re-parse and compare ASTs; compare intended intents vs parsed config via deterministic rule-set."
+  ],
+  "primary_estimand": "Paired absolute and relative reduction in the per-intent probability that the accepted configuration (under the acceptance policy) produces a Batfish-labeled high-severity fault in simulation (binary outcome per accepted proposal).",
+  "secondary_estimands": [
+    "Average number of repair attempts per intent when repairs were attempted.",
+    "Per-task-type (ACL, BGP, interface) absolute risk reductions.",
+    "Rejection rate under GVR (fraction of intents with no accepted proposal after allowed repairs)."
+  ],
+  "sampling_plan": "Paired design with N=200 distinct NetOps change intents. For each intent: (1) single initial generation from the primary LLM (seed=42, temp=0.0); that generated proposal is used by both arms (LLM-only and GVR). LLM-only acceptance policy: accept the top proposal if it is syntactically parsable by the canonical parser; if unparsable, mark as 'rejected-unparsable' and record (no human intervention). GVR policy: run Batfish validator on parsed proposal; if Batfish detects issues of any severity, invoke up to two automated repair attempts (repair prompts use temperature=0.7, seed incremented deterministically: 42->43->44). After each repair attempt re-parse and re-validate; if after two repairs an acceptable (Batfish-passing or non-high-severity) proposal is not produced, mark intent as rejected. All simulation/execution outcomes are produced by Batfish deterministically and recorded. Total planned confirmatory item count = 200 intents (paired comparisons).",
+  "analysis_plan": "Primary confirmatory analysis: McNemar's paired test on binary high-severity outcome per intent comparing accepted-proposal outcome under LLM-only vs GVR (alpha=0.05, two-sided). Report absolute risk reduction, relative risk reduction, and 95% CIs using Wilson score intervals for proportions and exact McNemar p-value. Secondary analyses (pre-registered as exploratory but reported): per-task-type stratified estimates, mean repair attempts with 95% CI (bootstrap, 10,000 resamples), rejection rates, and diagnostics of repair convergence. Sensitivity analyses: (a) exclude reformulations flagged by the prompt-gaming detector (see contamination plan) and re-run primary analysis; (b) rerun on 20% (randomly chosen 40 intents) using secondary LLM and compare directionality and magnitude. Multiple comparisons: primary estimand is sole confirmatory test; secondary and exploratory tests will be labelled exploratory and p-values reported without confirmatory claims. For exploratory multiplicity, apply Benjamini–Hochberg when presenting post-hoc q-values.",
+  "multiplicity_plan": "Only the primary outcome (paired reduction in high-severity faults) is confirmatory. All other analyses are exploratory and will be explicitly labelled. Exploratory p-values will be presented with FDR-controlling Benjamini–Hochberg q-values where multiple exploratory comparisons are aggregated (e.g., per-task-type tests).",
+  "missingness_plan": "If a generated proposal is unparsable by the canonical parser, that proposal is treated as 'rejected-unparsable' and recorded. For the LLM-only arm unparsable proposals count as rejected and contribute to denominators accordingly; they are not human-rewritten. For GVR, unparsable initial proposals trigger an automated reparsing attempt with a structured normalization step; if still unparsable, the intent proceeds to repair prompts. Missingness due to API failures will follow the retry policy (two automatic retries with exponential backoff). If API calls ultimately fail, the intent is recorded as 'technical failure' and excluded from the primary confirmatory analysis; technical failures and their counts will be reported and analyzed for bias (sensitivity analysis: worst-case imputation treating technical failures as high-severity).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Batfish-enabled NetOps simulation (internal canonical configuration corpus)"
+    ],
+    "risk_factors": [
+      "Prompt-gaming: repair prompts that exploit validator-sensitivity to produce syntactically altered but semantically dangerous proposals that pass Batfish checks.",
+      "Model-output template overfitting: generated proposals containing out-of-band markers or repeated templates indicating non-generalizable repair heuristics.",
+      "Shared-generation contamination across arms if generation is re-run non-deterministically."
+    ],
+    "detection_procedures": [
+      "Deterministic mapping: map specific Batfish output categories to severity levels (see mapping rules below).",
+      "Prompt-gaming detector (automated): compute normalized edit-distance and structural AST-similarity between initial proposal and repaired proposals; if repairs produce minimal structural edits yet change Batfish outcome from failing to passing, flag as \"suspect-prompt-gaming\" when (AST_similarity > 0.95) AND (validator_status changes from failing to passing).",
+      "Template marker detector (automated): regex-based scan for injected template tokens or non-config comments; proposals containing non-config tokens are flagged."
+    ],
+    "item_flagging_rules": [
+      "If a repair is flagged as 'suspect-prompt-gaming', automatically mark the intent as 'suspect' and compute primary analysis both including and excluding suspect intents (sensitivity analysis).",
+      "If a proposal contains non-config markers or unparsable sections that required >1 automated normalization step, mark as 'artifacted' and include in a descriptive diagnostics table; these are not manually adjudicated.",
+      "If more than 20% of repaired proposals are flagged suspect across the corpus, report conservatively that results may reflect validator-escape behaviors and treat this as a pre-specified sensitivity boundary."
+    ],
+    "analysis_treatment": "Primary analysis: include all intents except those excluded for technical failures. Secondary sensitivity: re-run primary test excluding suspect and artifacted intents to assess robustness. All flagging and exclusion decisions are deterministic and implemented in code; no human adjudication is used.",
+    "residual_uncertainty": [
+      "Automated detectors may not identify all subtle prompt-gaming cases; residual contamination may remain and is reported as a noncritical uncertainty and examined in exploratory diagnostics."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_RECOMMENDED",
+      "description": "Recommended: paired N=200, primary-run with conservative worst-case repair budget (plans for up to 2 repair attempts per flagged intent) plus sensitivity 20% re-run on secondary LLM.",
+      "planned_model_calls": 720,
+      "models": [
+        "openai/gpt-4o (primary, seed=42, temp=0.0 for initial generations; repairs use temp=0.7, seeds 43/44)",
+        "openai/gpt-3.5-turbo (secondary sensitivity, seed=123, temp=0.7)"
+      ],
+      "transformations": [
+        "canonical_parse_and_normalize",
+        "repair_prompt_template_application",
+        "AST_semantic_equivalence_check"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model-call budget calculation: initial generation for 200 intents = 200 calls. Worst-case repairs for all intents (up to 2 each) = 400 calls. Secondary-model sensitivity re-run on 20% (40 intents) includes initial secondary generations (40) plus up to 2 repairs each (80) = 120 calls. Total planned model calls = 200 + 400 + 120 = 720, well within the manifest maximum_planned_model_calls=10000. All validation runs use Batfish locally (CPU/Docker) with no human labour required."
+    },
+    {
+      "scenario_id": "S2_CONSTRAINED",
+      "description": "Constrained budget: paired N=200, repairs allowed only for intents flagged by Batfish but budget assumes only 50% of intents flagged (operational mid-case). No secondary-model sensitivity re-run.",
+      "planned_model_calls": 400,
+      "models": [
+        "openai/gpt-4o (primary, seed=42, temp=0.0; repairs temp=0.7, seeds 43/44)"
+      ],
+      "transformations": [
+        "canonical_parse_and_normalize",
+        "repair_prompt_template_application"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model-call budget calculation: initial generation 200 calls. Estimated 50% flagged -> up to 100 intents with repairs -> up to 200 repair calls. Total = 200 + 200 = 400. No secondary-model runs in this constrained scenario. Within manifest model-call cap."
+    },
+    {
+      "scenario_id": "S3_LARGE",
+      "description": "Optional expanded simulation: paired N=200 + full secondary-model re-run (100% of intents) for robustness assessment and additional reproducibility artifacts.",
+      "planned_model_calls": 1120,
+      "models": [
+        "openai/gpt-4o",
+        "openai/gpt-3.5-turbo"
+      ],
+      "transformations": [
+        "canonical_parse_and_normalize",
+        "repair_prompt_template_application",
+        "AST_semantic_equivalence_check"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Initial generation 200 + repairs worst-case 400 = 600 for primary. Secondary model full re-run initial 200 + repairs 400 = 600. Total = 1200. We budget 1120 here by capping secondary repairs to 360 (reasonable operational cap). Still within manifest limits but higher resource usage; recommended only if compute budget permits."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired reduction in proportion of accepted proposals causing Batfish-labeled high-severity faults (binary).",
+    "target_effect": "Relative reduction of ≥50% in high-severity fault rate (e.g., from 20% to 10% absolute).",
+    "clustering_unit": "Per-intent paired observations (each intent yields two accepted-proposal outcomes: LLM-only and GVR).",
+    "calculation_method": "McNemar paired test (exact). Power justification: with N=200 pairs, for an assumed baseline high-severity probability under LLM-only of 20% and GVR target of 10% (absolute difference 0.10), the expected number of discordant pairs is ~24 (based on conservative partitioning: p01 ≈ 0.11, p10 ≈ 0.01), giving approximate power >80% at alpha=0.05 for detecting the hypothesized paired difference. We will report exact post-hoc achieved power given observed discordant counts. Sensitivity analyses will present minimal detectable absolute reductions across a range of baseline rates (5%–40%).",
+    "assumptions": [
+      "Paired independence across intents (intents treated as independent experimental units).",
+      "Primary confirmatory test is McNemar's exact test (alpha=0.05, two-sided).",
+      "Worst-case repair budget provisioned but not assumed in power calculation; power depends on actual observed discordant counts.",
+      "No human adjudication; parser-based accept/reject rules deterministic."
+    ],
+    "recommended_scenario_id": "S1_RECOMMENDED",
+    "minimum_detectable_effect_notes": "With N=200, detectable absolute reductions (approx.) at 80% power vary with baseline: baseline 10% -> detect ~5% absolute (relative 50%); baseline 20% -> detect ~10% absolute (relative 50%); baseline 30% -> detect ~12–13% absolute. Exact MDCs will be computed and reported conditioned on observed discordant counts.",
+    "sensitivity_analyses": [
+      "Re-run primary analysis excluding intents flagged by automated prompt-gaming detector.",
+      "Recompute primary test on the 20% secondary-model re-run to assess sensitivity to model choice and stochasticity (S1).",
+      "Worst-case imputation: treat technical-failure intents as high-severity and re-run McNemar to bound effect estimates."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "vendor-neutral canonical parsing",
+      "AST-based semantic equivalence",
+      "text normalization and comment stripping"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip parse: generated text -> AST -> rendered canonical config -> re-parse; require AST equality for acceptance of 'semantically identical' transformations.",
+      "Intent-coverage check: deterministic rules verify that declared intent fields (e.g., ACL entries, BGP filter terms, interface IP) appear in parsed config AST with syntactic mapping."
+    ],
+    "automatic_rejection_rules": [
+      "Reject proposals that fail to parse after one deterministic normalization pass.",
+      "Reject proposals whose ASTs lack any mapping to the declared intent fields (e.g., ACL entries absent).",
+      "Reject proposals that include non-config tokens or templated placeholders remaining after normalization."
+    ],
+    "audit_sample_policy": "Deterministic audit logs produced for 100% of accepted proposals. Additional structured debug traces for a 10% random sample (seeded) of accepted proposals are archived for reproducibility; these are code-auditable artifacts (no human annotation).",
+    "mapping_validation": "Publish canonical parser configuration and Batfish configuration snapshots. Validation: apply canonical parser to a held-out synthetic set of 50 human-authored reference configs and confirm 100% round-trip parse fidelity prior to main experiment.",
+    "residual_risks": [
+      "Edge-case vendor syntax not covered by parser may cause false unparsable markings; this is a noncritical operational limitation and will be reported."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Batfish simulation fidelity to production hardware and vendor-specific nuances — this limits external generalizability to live production networks and is a noncritical external-validity limitation given the preregistered scope (simulation-backed evaluation).",
+    "Automated prompt-gaming detectors may not catch all sophisticated validator-escape strategies; residual contamination risk remains.",
+    "Choice of hosted LLM identifiers (openai/gpt-4o and openai/gpt-3.5-turbo) reflects available hosted APIs per capability_manifest but exact provider availability may vary; execution manifest will record the exact provider endpoints used."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4402128637",
+    "https://openalex.org/W4403172155"
+  ]
+}

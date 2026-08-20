@@ -1,0 +1,180 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models and agentic LLM systems are actively being applied to network operations (intent translation, configuration generation, multi-agent NetOps frameworks) and substantial survey and prototype work documents this trend.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403172155",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "surveys + system prototypes",
+      "confidence": 0.9,
+      "limitations": [
+        "Most evidence is surveys, prototypes, or internal reports rather than independent production-scale evaluations.",
+        "Heterogeneous scopes across papers (some conceptual, some prototype)."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "LLM-driven NetOps and agentic LLM deployments face concrete safety/security failure modes (hallucination, prompt injection/goal hijacking, indirect prompt-injection), which are documented in the LLM security literature and discussed in NetOps-focused works.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6740060",
+        "https://openalex.org/W4387500346",
+        "https://openalex.org/W4388886073",
+        "doi:10.3390/electronics14101907",
+        "https://openalex.org/W4407163436"
+      ],
+      "evidence_type": "security analyses / attack studies / surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Most attack demonstrations are in general LLM application contexts; NetOps-specific exploit studies are limited in the supplied records.",
+        "Defence effectiveness in real NetOps pipelines is not yet comprehensively validated."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Architectural mitigation patterns—generate→verify→repair (GVR) or generate-validate-repair—are proposed and empirically studied as a way to interpose deterministic validators between stochastic LLM generation and acceptance.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4402128637",
+        "https://openalex.org/W4403172155"
+      ],
+      "evidence_type": "architecture proposals and case studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Empirical evaluations are preliminary and often from single-case or non-NetOps domains (e.g., regulated code generation).",
+        "End-to-end efficacy in broad NetOps workloads remains to be demonstrated."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Deterministic/formal network-verification tools (e.g., Batfish and related formal methods) are recognized as plausible validators to check LLM-generated configs or changes.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W3190832025",
+        "https://openalex.org/W4384202063"
+      ],
+      "evidence_type": "tool integration proposals + formal verification literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Papers mention or integrate verification tools in prototypes, but large-scale validated integrations with agentic LLM pipelines are not extensively reported in the supplied records.",
+        "Coverage of all relevant validator classes (e.g., Batfish vs NetKAT) varies by source."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Human-in-the-loop oversight is extensively recommended (and critiqued) as a governance and safety mechanism for LLM/agentic deployments, including in NetOps contexts; however, there is discussion about its practical limits.",
+      "evidence_record_ids": [
+        "doi:10.70670/sra.v4i1.1708",
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4406928793"
+      ],
+      "evidence_type": "governance analyses / surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Debate exists about whether human oversight meaningfully reduces certain risks (some works argue it functions largely as liability architecture).",
+        "Empirical evidence about human oversight effectiveness in live NetOps deployments is limited in the supplied records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what extent LLM-based and agentic NetOps systems generalize to production-scale, heterogeneous network environments and outperform or match human operators in reliability across diverse failure modes remains unresolved.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "production-claiming prototypes + surveys",
+      "confidence": 0.4,
+      "limitations": [
+        "Some reports (e.g., Confucius) claim production usage, but external, reproducible evaluation data across diverse operators/networks are not supplied.",
+        "Heterogeneity of network environments complicates generalization."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "How effective generate-verify-repair pipelines are at eliminating high-severity operational faults (including adversarially induced errors) in live NetOps workflows is not yet established.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4402128637",
+        "https://openalex.org/W4403172155"
+      ],
+      "evidence_type": "architectural proposals and early evaluations",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing empirical studies are preliminary and often outside NetOps or on small-case studies.",
+        "Adversarial failure modes specific to retrieval/agentic stacks need focused experiments."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "The robustness of current prompt-injection and retrieval-poisoning defenses within RAG/agentic NetOps pipelines remains an open question.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6740060",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4387500346"
+      ],
+      "evidence_type": "attack/defense analyses",
+      "confidence": 0.5,
+      "limitations": [
+        "Attack literature documents vulnerabilities; defensive countermeasures are proposed but lack comprehensive operational validation in NetOps contexts within the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for standardized, operationally meaningful benchmarks and metrics for safety/correctness of LLM-generated network configurations beyond existing prototype benchmarks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "benchmark + survey gap statements",
+      "confidence": 0.85,
+      "limitations": [
+        "NetConfEval exists as an initial benchmark but surveys call for broader, safety-focused, validator-grounded metrics."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Large-scale, independently replicable evaluations of agentic LLM NetOps systems (multi-vendor, multi-protocol, adversarial scenarios) are sparse and would address external-validity gaps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4403172155"
+      ],
+      "evidence_type": "prototype reports + surveys highlighting gaps",
+      "confidence": 0.7,
+      "limitations": [
+        "Some organizations report in-house production frameworks, but public reproducible datasets and independent audits are limited in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Best-practice integration patterns and failure-mode taxonomies for combining LLM agents with deterministic network validators (Batfish/NetKAT/HSA) are underdeveloped in the literature provided.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4403172155",
+        "https://openalex.org/W3190832025"
+      ],
+      "evidence_type": "tool-integration mentions and formal verification literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing papers discuss combinations but do not converge on standardized integration architectures, failure taxonomies, or reproducible toolchains."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Claims that LLM-based NetOps systems are universally production-ready and superior to human operators across diverse, real-world networks (unsupported by supplied records).",
+    "Claims that prompt-injection and adversarial vulnerabilities in LLM/agentic stacks have been solved or that defenses are complete (no supplied record provides such definitive evidence).",
+    "Claims that generate-verify-repair pipelines have been proven to guarantee zero-defect deterministic acceptance of LLM outputs in NetOps without reliance on external validators or human oversight (unsupported by supplied records)."
+  ]
+}
