@@ -304,6 +304,71 @@ def resolve_adapter(
         None,
     )
 
+def adapter_compatibility_issues(
+    plan: dict[str, Any],
+) -> list[str]:
+    """
+    Return deterministic compatibility failures for the explicitly
+    requested registered execution adapter.
+
+    Used during autonomous experiment planning so that an incompatible
+    plan is repaired before preregistration is sealed.
+    """
+    requested_family = str(
+        plan.get("adapter_family") or ""
+    ).strip()
+
+    if not requested_family:
+        return [
+            "adapter_family must identify one registered execution adapter."
+        ]
+
+    matching_adapter = None
+
+    for adapter in _ADAPTERS:
+        identifiers = {
+            str(adapter.family),
+            *[
+                str(alias)
+                for alias in getattr(
+                    adapter,
+                    "aliases",
+                    (),
+                )
+            ],
+        }
+
+        if requested_family in identifiers:
+            matching_adapter = adapter
+            break
+
+    if matching_adapter is None:
+        return [
+            "No registered execution adapter matches adapter_family "
+            f"{requested_family!r}."
+        ]
+
+    compatibility_method = getattr(
+        matching_adapter,
+        "compatibility_issues",
+        None,
+    )
+
+    if callable(compatibility_method):
+        return sorted(
+            {
+                str(issue)
+                for issue in compatibility_method(plan)
+                if str(issue).strip()
+            }
+        )
+
+    if matching_adapter.supports(plan):
+        return []
+
+    return [
+        "The requested execution adapter does not support this plan."
+    ]
 
 def _sha256_file(
     path: Path,

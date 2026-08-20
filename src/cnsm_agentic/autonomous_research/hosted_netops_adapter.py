@@ -214,11 +214,17 @@ class HostedNetOpsGVRAdapter:
     ) -> None:
         self.provider = provider
 
-    def supports(self, plan: dict[str, Any]) -> bool:
-        return not hosted_netops_plan_issues(
+    def compatibility_issues(
+        self,
+        plan: dict[str, Any],
+    ) -> list[str]:
+        return hosted_netops_plan_issues(
             plan,
             maximum_task_count=self.maximum_task_count,
         )
+
+    def supports(self, plan: dict[str, Any]) -> bool:
+        return not self.compatibility_issues(plan)
 
     def _provider_for(self, output_dir: Path, plan: dict[str, Any]):
         if self.provider is not None:

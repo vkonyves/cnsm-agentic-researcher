@@ -769,3 +769,52 @@ def test_netops_generate_validate_repair_rehearsal(
     assert trace["validation_before"]["valid"] is False
     assert trace["repair_applied"] is True
     assert trace["validation_after"]["valid"] is True
+
+
+def test_adapter_compatibility_issues_exposes_requested_adapter_failures():
+    from cnsm_agentic.autonomous_research.execution_adapters import (
+        adapter_compatibility_issues,
+        clear_registered_adapters,
+        register_builtin_execution_adapters,
+    )
+
+    clear_registered_adapters()
+    register_builtin_execution_adapters()
+
+    plan = {
+        "adapter_family": "hosted_netops_gvr_v1",
+    }
+
+    issues = adapter_compatibility_issues(plan)
+
+    assert issues
+    assert any(
+        "scientific_pilot" in issue
+        for issue in issues
+    )
+    assert any(
+        "paired_binary" in issue
+        for issue in issues
+    )
+
+
+def test_adapter_compatibility_issues_rejects_unknown_family():
+    from cnsm_agentic.autonomous_research.execution_adapters import (
+        adapter_compatibility_issues,
+        clear_registered_adapters,
+        register_builtin_execution_adapters,
+    )
+
+    clear_registered_adapters()
+    register_builtin_execution_adapters()
+
+    issues = adapter_compatibility_issues(
+        {
+            "adapter_family": "nonexistent_adapter_v1",
+        }
+    )
+
+    assert issues == [
+        "No registered execution adapter matches adapter_family "
+        "'nonexistent_adapter_v1'."
+    ]

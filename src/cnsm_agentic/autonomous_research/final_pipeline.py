@@ -19,6 +19,7 @@ from .evidence_verification import (
     verify_evidence,
 )
 from .execution_adapters import (
+    adapter_compatibility_issues,
     register_builtin_execution_adapters,
     registered_adapter_families,
     resolve_adapter,
@@ -457,14 +458,37 @@ async def create_feasible_experiment_plan(
             plan_dict,
         )
 
-        final_feasibility = (
-            feasibility_report(
-                design=plan_dict,
-                capability_manifest=(
-                    capability_manifest
-                ),
+        generic_feasibility = feasibility_report(
+            design=plan_dict,
+            capability_manifest=capability_manifest,
+        )
+
+        combined_issues = list(
+            generic_feasibility.get(
+                "issues",
+                [],
             )
         )
+
+        combined_issues.extend(
+            adapter_compatibility_issues(
+                plan_dict
+            )
+        )
+
+        combined_issues = sorted(
+            set(combined_issues)
+        )
+
+        final_feasibility = {
+            "status": (
+                "passed"
+                if not combined_issues
+                else "failed"
+            ),
+            "issue_count": len(combined_issues),
+            "issues": combined_issues,
+        }
 
         write_json(
             attempts_dir
