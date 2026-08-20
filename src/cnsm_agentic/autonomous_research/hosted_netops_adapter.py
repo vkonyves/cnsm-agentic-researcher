@@ -44,6 +44,63 @@ HOSTED_NETOPS_ADAPTER_ALIASES = ("hosted-netops-gvr-v1",)
 SUPPORTED_PROVIDER = "openai_responses"
 
 
+def hosted_netops_planning_contract() -> dict[str, Any]:
+    """
+    Return the machine-readable execution contract that an autonomous
+    planner must satisfy when selecting hosted_netops_gvr_v1.
+    """
+    return {
+        "adapter_family": HOSTED_NETOPS_ADAPTER_FAMILY,
+        "execution_mode": "scientific_pilot",
+        "design": "paired_binary",
+        "conditions": [
+            "baseline",
+            "guarded",
+        ],
+        "task_families": [
+            TASK_FAMILY,
+        ],
+        "transformations": {
+            "baseline": BASELINE_TRANSFORMATION,
+            "guarded": GUARDED_TRANSFORMATION,
+        },
+        "result_schema_id": (
+            PAIRED_BINARY_RESULT_SCHEMA_ID
+        ),
+        "result_schema_version": (
+            PAIRED_BINARY_RESULT_SCHEMA_VERSION
+        ),
+        "model_provider": SUPPORTED_PROVIDER,
+        "deterministic_automated_scoring": True,
+        "requires_human_scientific_labour": False,
+        "task_count": {
+            "minimum": 1,
+            "maximum": 50,
+        },
+        "task_indices": (
+            "Exactly task_count unique positive integers."
+        ),
+        "estimated_model_calls": (
+            "Exactly task_count * 2."
+        ),
+        "maximum_model_calls": (
+            "Exactly task_count * 2."
+        ),
+        "reasoning_effort": "minimal",
+        "maximum_attempts_per_call": 1,
+        "max_output_tokens": {
+            "minimum": 1,
+            "maximum": 2000,
+        },
+        "model_name": (
+            "Required non-empty hosted model name."
+        ),
+        "model_version": (
+            "Required non-empty hosted model version."
+        ),
+    }
+
+
 def hosted_netops_plan_issues(
     plan: dict[str, Any],
     *,
@@ -213,6 +270,11 @@ class HostedNetOpsGVRAdapter:
         provider: HostedModelProvider | None = None,
     ) -> None:
         self.provider = provider
+
+    def planning_contract(
+        self,
+    ) -> dict[str, Any]:
+        return hosted_netops_planning_contract()
 
     def compatibility_issues(
         self,

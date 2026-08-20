@@ -58,12 +58,48 @@ class PreregistrationDocument(BaseModel):
         return self
 
 class ExperimentPlan(BaseModel):
-    study_id:str; adapter_family:str; implementation_strategy:str
-    public_resources:list[str]; model_and_version_plan:list[str]
-    task_manifest_strategy:str; transformation_manifest_strategy:str
-    execution_batches:list[str]; randomisation_plan:str; caching_plan:str
-    failure_recovery_plan:str; result_schema:str
-    estimated_model_calls:int=Field(gt=0); estimated_compute_notes:str
+    study_id: str
+    adapter_family: str
+
+    # Machine-readable execution contract consumed by registered adapters.
+    execution_mode: str
+    design: str
+    conditions: list[str]
+    task_families: list[str]
+    transformations: dict[str, str]
+
+    result_schema_id: str
+    result_schema_version: str
+
+    model_provider: str
+    model_name: str
+    model_version: str
+
+    deterministic_automated_scoring: bool
+    requires_human_scientific_labour: bool
+
+    task_count: int = Field(gt=0)
+    task_indices: list[int]
+
+    estimated_model_calls: int = Field(gt=0)
+    maximum_model_calls: int = Field(gt=0)
+
+    reasoning_effort: str
+    maximum_attempts_per_call: int = Field(gt=0)
+    max_output_tokens: int = Field(gt=0)
+
+    # Human-readable scientific and provenance description.
+    implementation_strategy: str
+    public_resources: list[str]
+    model_and_version_plan: list[str]
+    task_manifest_strategy: str
+    transformation_manifest_strategy: str
+    execution_batches: list[str]
+    randomisation_plan: str
+    caching_plan: str
+    failure_recovery_plan: str
+    result_schema: str
+    estimated_compute_notes: str
 
 class AnalysisPlan(BaseModel):
     study_id: str

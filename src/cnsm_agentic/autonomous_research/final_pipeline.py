@@ -22,6 +22,7 @@ from .execution_adapters import (
     adapter_compatibility_issues,
     register_builtin_execution_adapters,
     registered_adapter_families,
+    registered_adapter_planning_contracts,
     resolve_adapter,
     validate_execution_manifest,
 )
@@ -293,6 +294,9 @@ async def create_feasible_experiment_plan(
             "available_adapter_families": (
                 registered_adapter_families()
             ),
+            "available_adapter_contracts": (
+                registered_adapter_planning_contracts()
+            ),
             "planning_attempt": attempt,
             "maximum_planning_attempts": (
                 maximum_attempts
@@ -406,7 +410,13 @@ async def create_feasible_experiment_plan(
                 "expand, rename, or decorate the identifier. The "
                 "implementation strategy, resources, batches, and "
                 "result schema must fit the selected registered "
-                "adapter's actual scope."
+                "adapter's actual scope. "
+                "The input also contains available_adapter_contracts. "
+                "When selecting an adapter_family, populate every "
+                "machine-readable execution-contract field in "
+                "ExperimentPlan so that it satisfies that adapter's "
+                "contract exactly. Do not encode required adapter "
+                "contract values only in prose fields."
             ),
         }
 

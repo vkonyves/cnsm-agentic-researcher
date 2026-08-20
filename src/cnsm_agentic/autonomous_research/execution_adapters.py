@@ -277,6 +277,27 @@ def clear_registered_adapters() -> None:
     _ADAPTERS.clear()
 
 
+def registered_adapter_planning_contracts(
+) -> dict[str, dict[str, Any]]:
+    """
+    Return machine-readable planning contracts for registered
+    execution adapters that expose one.
+    """
+    contracts: dict[str, dict[str, Any]] = {}
+
+    for adapter in _ADAPTERS:
+        method = getattr(
+            adapter,
+            "planning_contract",
+            None,
+        )
+
+        if callable(method):
+            contracts[str(adapter.family)] = method()
+
+    return contracts
+
+
 def registered_adapter_families() -> list[str]:
     return sorted(
         adapter.family
