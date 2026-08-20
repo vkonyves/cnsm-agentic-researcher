@@ -120,16 +120,24 @@ class AnalysisPlan(BaseModel):
     table_specifications: list[str]
     figure_specifications: list[str]
 
+class ManuscriptSections(BaseModel):
+    introduction: str
+    related_work: str
+    methodology: str
+    results: str
+    discussion: str
+    conclusion: str
+
+
 class ManuscriptPackage(BaseModel):
-    title:str; abstract:str; sections:dict[str,str]; figure_captions:list[str]
-    table_captions:list[str]; cited_record_ids:list[str]
-    disclosure_statement:str; limitations:list[str]
-    @model_validator(mode='after')
-    def sections_present(self):
-        req={'introduction','related_work','methodology','results','discussion','conclusion'}
-        missing=req-{k.lower().strip() for k in self.sections}
-        if missing: raise ValueError(f'Missing sections: {sorted(missing)}')
-        return self
+    title: str
+    abstract: str
+    sections: ManuscriptSections
+    figure_captions: list[str]
+    table_captions: list[str]
+    cited_record_ids: list[str]
+    disclosure_statement: str
+    limitations: list[str]
 
 class PeerReviewReport(BaseModel):
     summary:str; novelty_score:int=Field(ge=1,le=5)
