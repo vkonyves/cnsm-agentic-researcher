@@ -1,0 +1,218 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Large language models (LLMs) can translate high-level operator intent into network configuration drafts, but their raw outputs frequently contain syntax, topology, or semantic errors that require verification or human correction.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4404602270"
+      ],
+      "evidence_type": "empirical + case-study",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence comes from benchmarks, prototypes, and case studies rather than large-scale production deployments.",
+        "Degree of error and corrections varies by task, prompt, and model; measured leverage depends on human-in-the-loop definitions."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Integrating deterministic verifiers or formal/network-analysis tools (e.g., Batfish) into a generate-then-verify or generate–verify–repair loop reduces unsafe or incorrect final artifacts compared with LLM-only generation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4388629193",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "tool-paper + empirical",
+      "confidence": 0.87,
+      "limitations": [
+        "Most reported results are from controlled experiments or single-case studies; scalability and end-to-end automation cost trade-offs are task-dependent.",
+        "Verifier effectiveness depends on having an appropriate formal specification/oracle for the target property."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "LLM outputs and LLM-agent behavior are highly sensitive to prompt formulation and model-specific prompt coupling, causing large variability in correctness and behavior across prompts and models.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404782660",
+        "doi:10.2139/ssrn.6267262",
+        "https://openalex.org/W4414677042"
+      ],
+      "evidence_type": "survey + empirical analysis",
+      "confidence": 0.92,
+      "limitations": [
+        "Most sensitivity studies are task- and model-specific; results may change with instruction-tuning, few-shot examples, or tool augmentation.",
+        "Quantitative magnitudes of sensitivity vary across datasets and settings."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Tool-augmented and closed-loop agent architectures (separating proposer and verifier, explicit provenance, typed artifacts, or tool orchestration) are proposed and shown in prototypes to improve reliability, auditability, and failure handling for agentic systems.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "10.2139/ssrn.7186738",
+        "10.20944/preprints202604.1820.v1",
+        "10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "architectural proposals + prototype evaluations",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence is largely architectural, prototype, or survey-level; quantitative universal gains across diverse NetOps tasks are not established.",
+        "Operational cost, latency, and tooling complexity trade-offs are reported but not standardized."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Generate–verify–repair or similar iterative repair loops (demonstrated in program repair, decompilation, and code-generation domains) can substantially increase the fraction of verifiably-correct outputs when oracles/verifiers are available and used to provide localized feedback.",
+      "evidence_record_ids": [
+        "doi:10.1145/3728958",
+        "https://openalex.org/W4389161628",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4411523093"
+      ],
+      "evidence_type": "empirical (cross-domain)",
+      "confidence": 0.86,
+      "limitations": [
+        "Most demonstrations are in software/program-repair or protocol-fuzzing domains; direct transfer to complex multi-vendor network configs requires domain-specific verification oracles.",
+        "Repair success depends on the quality and granularity of verifier diagnostics."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Survey literature and systematic reviews highlight hallucination, benchmark limitations, and external-validity concerns for LLM applications, implying caution when extrapolating small-scale evaluations to operational NetOps settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W4416457592",
+        "https://openalex.org/W4388184238"
+      ],
+      "evidence_type": "surveys/reviews",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize available studies but do not provide unified quantitative operational metrics.",
+        "Field is rapidly evolving; newer mitigation techniques may alter conclusions over time."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent can verifier-augmented LLM-agent pipelines achieve production-grade, fully automated NetOps change workflows (including multi-device, multi-vendor, and runtime safety properties) without human approval?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "open research question (motivated by prototypes and case studies)",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing work demonstrates feasibility in constrained use cases but does not provide evidence for broad production deployment across diverse networks."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How well do current evaluation benchmarks for LLM-based NetOps (e.g., NetConfEval) capture operational safety metrics (e.g., time-to-repair, rollback risk, catastrophic action rate) important to network operators?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4404534210",
+        "doi:10.2139/ssrn.6816161"
+      ],
+      "evidence_type": "benchmark critique / survey evidence",
+      "confidence": 0.68,
+      "limitations": [
+        "Benchmarks exist but often focus on translation/correctness tasks rather than end-to-end operational safety metrics.",
+        "Mapping between benchmark tasks and real-world operator risk profiles is underexplored."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What are the adversarial and security failure modes specific to LLM-driven NetOps agents (e.g., tool-registry manipulation, prompt-injection leading to unsafe changes) and practical mitigations under operational constraints?",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6607420",
+        "https://openalex.org/W4384573554",
+        "https://openalex.org/W4416457592"
+      ],
+      "evidence_type": "emerging-security analyses + surveys",
+      "confidence": 0.62,
+      "limitations": [
+        "Security analyses exist for agent/tool registries and prompt attacks, but concrete exploit studies focused on NetOps pipelines are limited in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "How robust are verifier-feedback-driven repair loops to distribution shift, multi-vendor syntax heterogeneity, and incomplete or imprecise specifications in real networks?",
+      "evidence_record_ids": [
+        "doi:10.1145/3728958",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "partial empirical evidence; open question",
+      "confidence": 0.58,
+      "limitations": [
+        "Existing demonstrations show improvement under controlled distributions; systematic evaluation under real-world heterogeneity is not present in supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A standardized operational benchmark suite that measures NetOps-specific safety and reliability metrics (e.g., rollback risk, catastrophic-action rate, time-to-repair) for LLM-agent pipelines is lacking in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4404534210",
+        "doi:10.2139/ssrn.6816161"
+      ],
+      "evidence_type": "benchmark/landscape analysis",
+      "confidence": 0.8,
+      "limitations": [
+        "NetConfEval and related benchmarks exist but focus on translation/correctness; explicit operational-safety benchmark definitions appear absent in supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Practical, open, reproducible integrations and standardized interfaces between LLMs and established network verifiers (e.g., Batfish/NetKAT) for multi-device change validation are underdeveloped in public literature provided here.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4400072049"
+      ],
+      "evidence_type": "tool + prototype gap analysis",
+      "confidence": 0.79,
+      "limitations": [
+        "Batfish and translation/proof-of-concept integrations are discussed, but end-to-end reproducible connector artifacts for broad multi-vendor deployment are not shown in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Operationally meaningful metrics and evaluation protocols that connect LLM prompt sensitivity and prompt-coupling phenomena to NetOps risk (e.g., how prompt variance maps to misconfiguration probability) are insufficiently specified.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404782660",
+        "doi:10.2139/ssrn.6267262",
+        "https://openalex.org/W4414677042"
+      ],
+      "evidence_type": "methodological gap",
+      "confidence": 0.77,
+      "limitations": [
+        "Prompt-sensitivity literature documents variability but does not uniformly translate that variability into operational NetOps risk measures in the supplied corpus."
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "Empirical studies measuring the human–agent supervision trade-off (operator effort vs. safety gains) specifically for LLM-driven NetOps change workflows are sparse in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4220952823",
+        "doi:10.36227/techrxiv.177205043.39321579/v1"
+      ],
+      "evidence_type": "evidence gap (human-in-loop measurement)",
+      "confidence": 0.75,
+      "limitations": [
+        "Some architectural proposals include human-in-the-loop and mention operator approval, but systematic quantitative trade-off studies are not present among supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-only pipelines are production-ready for fully autonomous, unsupervised multi-device NetOps change without human oversight.",
+    "There is evidence in the supplied records that any single mitigation (e.g., verifier insertion alone) guarantees zero catastrophic-action risk across all NetOps tasks.",
+    "Any supplied record demonstrates comprehensive, multi-vendor, large-scale production deployment with measured operator-level safety metrics."
+  ]
+}
