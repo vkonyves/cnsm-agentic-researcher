@@ -1,0 +1,97 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "C2026-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Deterministic validator coverage may be incomplete (false negatives/positives).",
+        "Synthetic task bank may limit external validity to production heterogeneity.",
+        "Single automated repair iteration may understate benefits/limits of iterative workflows.",
+        "Need clear protocol to control LLM run-to-run stochasticity and ordering."
+      ],
+      "required_design_repairs": [
+        "Characterize/validate validator coverage (unit tests, known-failure injection).",
+        "Include multi-iteration repair arm (and report cost/latency tradeoffs).",
+        "Broaden task bank/vendor templates or justify representativeness; document generation rules.",
+        "Preregister precise pairing/ordering and randomness controls; log model settings and seeds.",
+        "Specify criteria for labeling regressions and ensure blinded labeling where possible."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C2026-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Paired-evaluation depends on matched ordering rather than true RNG seeding with hosted APIs—possible residual nondeterminism.",
+        "High run counts increase model-call budget pressure; power justification needed.",
+        "Prompt-framing selection may omit realistic operator styles; coverage risk.",
+        "Potential confounding from context leakage across runs if state not isolated."
+      ],
+      "required_design_repairs": [
+        "Preregister exact matching protocol for paired runs (ordering preservation, request batching).",
+        "Perform power analysis to justify N and optionally reduce runs with stratified sampling.",
+        "Define prompt selection process with operator-derived exemplars or literature-grounded templates.",
+        "Ensure stateless isolation between runs and log full context, temperature, and other API params."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C2026-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Rubric scoring may be subjective—risk of low inter-annotator agreement.",
+        "Possible circularity if same validator informs rubric component and outcome measurement.",
+        "Automated scoring rules need specification to avoid post-hoc tuning.",
+        "Risk that observed correlations depend strongly on chosen validator strength."
+      ],
+      "required_design_repairs": [
+        "Provide deterministic rubric scoring rules, examples, and annotation guide; preregister annotator selection and blinding.",
+        "Measure and report inter-annotator agreement; include reconciliation procedure.",
+        "Ensure rubric components are independent of the validator used for outcome (use separate validators or hold-out checks).",
+        "Include sensitivity analysis across validator strengths and report robustness."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C2026-004",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk of releasing adversarial prompts that enable misuse; disclosure must be handled carefully.",
+        "Adversarial prompt generation may tempt pre-lock human tuning—must be automated/preregistered.",
+        "Attack transferability may be model- and prompt-template-specific, limiting generality.",
+        "Validator gaps may dominate results; need to separate exploit vs validator weakness."
+      ],
+      "required_design_repairs": [
+        "Define ethics-safe disclosure policy (abstract/obfuscated examples, redacted exploit templates) and justify in preregistration.",
+        "Preregister automated adversarial-generation procedures and forbid post-hoc manual crafting.",
+        "Test across multiple models or prompt templates to assess transferability; report model-specific effects.",
+        "Characterize validator coverage and attribute adversarial success to either generator failure or validator gap via controlled probes."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

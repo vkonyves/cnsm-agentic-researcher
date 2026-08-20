@@ -1,0 +1,183 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Large language models can synthesize network-configuration templates and translate high-level intents into low-level configurations with promising accuracy in controlled/emulated tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "doi:10.1002/nem.2313",
+        "doi:10.3390/info16080631"
+      ],
+      "evidence_type": "empirical_system_evaluation_and_prototype_reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are primarily on controlled tasks, limited topologies, or exercise-focused profiles rather than heterogeneous production networks",
+        "Human-provided critical information or few-shot examples often remained part of the workflow"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "When asked to repair misconfigured networks, LLMs can produce fixes but frequently introduce regressions and their performance degrades with scale or complexity unless integrated into verifier-guided workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7202179524",
+        "https://openalex.org/W7163413045"
+      ],
+      "evidence_type": "benchmark_and_agent_evaluation_studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Cornetto and WirelessOptBench use synthesized or bench-simulated scenarios; exact behavior in diverse production settings is not established",
+        "Model set and exact prompting choices materially affect outcomes"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Architectures that combine LLM generation with deterministic validators, sandboxed/simulated execution, RAG, and iterative repair/self-correction materially improve operational reliability compared to generator-only pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7202179524",
+        "https://openalex.org/W7163413045",
+        "doi:10.1049/ell2.70575",
+        "https://openalex.org/W7106650998"
+      ],
+      "evidence_type": "architectural_surveys_and_prototype_evaluations",
+      "confidence": 0.9,
+      "limitations": [
+        "Improvements are shown in experimental/sandboxed settings; integration cost, latency, and operator workflow implications vary by deployment",
+        "Degree of improvement depends on specificity and strength of the validator/simulator used"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Current benchmarks and evaluation practices for LLM-driven NetOps risk weak construct validity unless they explicitly tie tasks to operational metrics (e.g., reachability, policy compliance, unsafe-apply rate) and execution-time evidence checks.",
+      "evidence_record_ids": [
+        "doi:10.31234/osf.io/2q49t_v3",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7202179524"
+      ],
+      "evidence_type": "methodological_critique_and_benchmark_studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Construct-validity critique is general; concrete alternative metrics and standardized protocols remain underdeveloped",
+        "Some recent benchmarks (e.g., Cornetto, WirelessOptBench) already move toward functional/operational metrics but are not yet comprehensive"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "How well do LLM-driven generation-and-repair workflows generalize to large-scale, heterogeneous production topologies and multi-vendor environments?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4408567138"
+      ],
+      "evidence_type": "open_empirical_question_informed_by_benchmark_limits_and_NDT_surveys",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing evidence shows scale-related degradation in benchmarks but relies on synthesized problems or NDT proposals rather than extensive production deployments"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Which evaluation metrics, validators, and canary/rollback protocols best map to real operational safety (e.g., minimizing unsafe APPLYs, preserving reachability/policy) across NetOps tasks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7106650998",
+        "doi:10.3390/app16073583",
+        "https://openalex.org/W7202179524"
+      ],
+      "evidence_type": "methodological_and_tool_survey_plus_benchmark_examples",
+      "confidence": 0.5,
+      "limitations": [
+        "Surveys and individual benchmarks propose metrics but do not converge on a standardized, widely validated operational metric set"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "To what extent can LLM self-correction loops avoid specification-gaming, cognitive-camouflage behaviors, or subtle validator-evasion in complex NetOps tasks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4409346645",
+        "doi:10.2139/ssrn.6512960",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "adversarial_and_program_repair_studies_highlighting_specification_gaming_risks",
+      "confidence": 0.4,
+      "limitations": [
+        "Cognitive-camouflage and specification-gaming evidence is cross-domain; dedicated NetOps adversarial studies remain limited"
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "How sensitive are NetOps task outcomes to prompt framing, run-to-run stochasticity, and paired vs isolated evaluation designs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406779522",
+        "doi:10.32388/be0zbc"
+      ],
+      "evidence_type": "reproducibility_and_prompt_sensitivity_studies",
+      "confidence": 0.5,
+      "limitations": [
+        "Studies demonstrate prompt/run sensitivity in related domains; explicit, systematic NetOps prompt-sensitivity experiments are sparse"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A need remains for standardized, execution-time benchmarks that simulate telemetry faults, stale evidence, and action-constraint checking (i.e., benchmarks that measure unsafe-apply reduction and repair efficacy under telemetry faults).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7202179524",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "benchmark_design_and_gap_identification",
+      "confidence": 0.6,
+      "limitations": [
+        "WirelessOptBench and Cornetto begin to address this but neither provides a single, broadly adopted standard covering telemetry-fault dynamics across NetOps tasks"
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Insufficient integrated datasets/pipelines that pair LLM prompt–response artifacts with formal verification traces (e.g., Batfish/HSA results) and failure-mode labels to support reproducible training/evaluation of verifier-guided LLM workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7106650998",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "tool_survey_and_generation_frameworks",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys and prototype papers propose combinations, but publicly available, standardized corpora coupling LLM artifacts with verification traces are limited"
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "A formal construct-validity framework tailored to NetOps benchmarks is needed to ensure evaluation evidence maps to operational claims (distinguish ecological/construct/external validity).",
+      "evidence_record_ids": [
+        "doi:10.31234/osf.io/2q49t_v3",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "methodological_gap_identification",
+      "confidence": 0.6,
+      "limitations": [
+        "EVE-CV articulates general construct-validity criteria, but domain-specific operational instantiation for NetOps is not yet standardized"
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "Limited published work systematically testing adversarial robustness of LLM-generated network configurations (targeted perturbations, prompt-injection, or crafted corner cases that induce unsafe changes).",
+      "evidence_record_ids": [
+        "doi:10.1007/s44163-026-01546-z",
+        "doi:10.2139/ssrn.6512960",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "adversarial_evaluation_and_gap_observation",
+      "confidence": 0.5,
+      "limitations": [
+        "There is broad adversarial LLM literature, but explicit adversarial NetOps config-generation studies remain nascent"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous NetOps without deterministic validators, sandbox checks, or rollback/canary controls.",
+    "LLM-generated repairs rarely introduce regressions or new faults at scale.",
+    "Existing benchmarks already provide fully construct-valid evidence tying LLM outputs to real production operational safety across vendors and topologies.",
+    "This record set supports claims about specific single-model superiority across all NetOps tasks (no evidence of blanket model-wide dominance)."
+  ]
+}

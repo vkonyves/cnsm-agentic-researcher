@@ -1,0 +1,155 @@
+{
+  "selected_candidate_id": "C2026-001",
+  "title": "Verifier-guided vs. generator-only repair under simulated telemetry faults",
+  "research_question": "Does integrating a deterministic validator with an LLM repair pipeline reduce unsafe-apply rates and regressions when telemetry is faulty (stale / missing / noisy) compared to an LLM-only repair pipeline?",
+  "confirmatory_hypotheses": [
+    "H1: A verifier-guided LLM pipeline yields a lower unsafe-apply rate than LLM-only across the preregistered task set and telemetry-fault variants.",
+    "H2: The relative benefit (unsafe-apply reduction) of verifier guidance increases as telemetry corruption severity increases (stale → missing → noisy).",
+    "H3: Some classes of semantic regressions persist despite verifier guidance (e.g., incorrect policy intent interpretation); these will remain observable but reduced in frequency."
+  ],
+  "exploratory_questions": [
+    "E1: How do multi-iteration automated repair limits (1 vs up to 3 automated iterations) trade off unsafe-apply reduction vs. additional LLM calls and latency?",
+    "E2: Which telemetry-fault class (stale / missing / noisy) yields the largest absolute and relative benefit from verifier guidance?",
+    "E3: Sensitivity of outcomes to prompt framing and LLM stochasticity under the stateless isolation protocol."
+  ],
+  "benchmark_scope": [
+    "Synthetic intent→configuration repair task bank (120 unique intents), multi-vendor syntactic templates (documented generation rules).",
+    "Telemetry-fault injection simulated per-task into network-state artifacts (three variants: stale, missing, noisy).",
+    "Sandboxed deterministic reachability/policy validator traces (Batfish-style checks implemented deterministically in CPU/docker)."
+  ],
+  "model_scope": [
+    "Hosted-model API (single hosted LLM provider; exact provider-model-id will be logged in execution manifest and Disclosure Statement).",
+    "All model calls occur through the hosted API under the capability manifest limits (maximum planned model calls per scenario)."
+  ],
+  "transformation_scope": [
+    "Automated telemetry-fault injections (staleness, field omission, additive noise), canonical configuration parsing & templating, and deterministic canonicalization of outputs prior to validator input."
+  ],
+  "primary_estimand": "Paired difference in unsafe-apply rate (percentage points) between LLM+Validator (single automated iteration) and LLM-only pipelines, computed across the preregistered set of task-variants (task-variant = one intent × one telemetry-fault variant).",
+  "secondary_estimands": [
+    "Per-fault-type paired unsafe-apply differences (stale / missing / noisy).",
+    "Reduction in regression count per task-variant (paired).",
+    "Average number of LLM calls per applied repair (cost/latency)."
+  ],
+  "sampling_plan": "Confirmatory population: 120 unique intent tasks × 3 telemetry-fault variants = 360 task-variants. Paired design: for each task-variant we run both pipelines in randomized but matched order (ordering preserved across the pair) under stateless isolation. Discovery/pilot set: 12 tasks × 3 variants = 36 task-variants reserved for prompt tuning and validator unit tests; pilot outputs are excluded from confirmatory analysis. Multi-iteration arm: exploratory subset of 60 tasks (180 task-variants) selected by deterministic hash (documented seed) from the 120 tasks. All selection, ordering, and deterministic sampling use documented pseudorandom seeds recorded in the execution manifest to ensure reproducibility and stateless isolation.",
+  "analysis_plan": "Primary confirmatory test: paired binary outcome (unsafe-apply) aggregated across all 360 task-variants; McNemar's exact test (paired) or paired permutation test if McNemar assumptions marginally fail. Compute paired difference in unsafe-apply rate and bootstrap 95% CI. Secondary analyses: subgroup (per-fault-type) paired tests; regression-count paired comparisons (Wilcoxon signed-rank or paired permutation test); descriptive failure-mode taxonomy and frequency counts. Report exact p-values, effect sizes, and two-sided 95% CIs. All confirmatory analyses use only the preregistered confirmatory data (pilot excluded). Exploratory analyses (multi-iteration, prompt sensitivity) are labeled exploratory and presented with confidence intervals but not claimed as confirmatory.",
+  "multiplicity_plan": "Primary confirmatory hypothesis (H1 across all task-variants) is pre-specified and unadjusted. Secondary subgroup tests (per-fault-type) and multiple exploratory analyses will use Benjamini–Hochberg FDR correction for reported q-values; any post-hoc contrasts will be explicitly labeled exploratory.",
+  "missingness_plan": "Deterministic exclusion rules: if a pipeline run fails due to technical errors (API failure, parser crash, validator runtime exception), the run is retried up to the preregistered retry policy (one automatic retry for transient infrastructure/API errors). If repeated failure persists, the task-variant is flagged and excluded from confirmatory analysis; exclusions and reasons are logged and reported. Missing telemetry fields produced by the injection are a designed condition (missingness is part of the experimental condition) and are not treated as missing data. Sensitivity analysis: report results with (a) excluded items removed and (b) worst-case imputation (treating excluded items as unsafe-apply for LLM-only and safe for LLM+Validator) to bound effects.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Autonomous synthetic task bank (CNSM-2026 synthetic intent→config corpus, created for this run)"
+    ],
+    "risk_factors": [
+      "Pre-lock development artifacts (rehearsals) may overlap with candidate tasks if not checked.",
+      "Seeding or prompt-tuning using pilot outputs could leak into confirmatory items if selection controls fail."
+    ],
+    "detection_procedures": [
+      "Hash-based provenance checks for all task-generation artifacts and pilot outputs; compute SHA-256 fingerprints and compare against pre-lock development artifact hashes to detect overlap.",
+      "Automated string-similarity screening (deterministic threshold) between confirmatory items and any pre-lock artifact corpora; flagged items excluded automatically if similarity exceeds threshold."
+    ],
+    "item_flagging_rules": [
+      "Automatically exclude any confirmatory task whose artifact hash matches a pre-lock artifact set.",
+      "Automatically exclude any task with deterministic textual similarity > 0.95 (exact threshold preregistered) to a pre-lock artifact."
+    ],
+    "analysis_treatment": "Contaminated items are removed from the confirmatory dataset. Removed-item counts, identities, and provenance reasons are logged and reported. Sensitivity analyses will report confirmatory results both including (if contamination is minor and adjudicated by deterministic rules) and excluding contaminated items.",
+    "residual_uncertainty": [
+      "Residual risk that pre-lock rehearsal influenced generation rules in undetectable ways (documented in remaining_noncritical_uncertainties)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_FULL_RECOMMENDED",
+      "description": "Full confirmatory run: 120 tasks × 3 telemetry variants (360 task-variants) confirmatory paired comparison (LLM-only vs LLM+Validator single iteration). Pilot discovery: 12 tasks (36 variants) excluded from confirmatory analysis for prompt/validator tuning. Multi-iteration exploratory arm on a deterministic subset of 60 tasks (180 variants) with up to 3 automated LLM iterations permitted (worst-case budget).",
+      "planned_model_calls": 1332,
+      "models": [
+        "hosted LLM API (single hosted model; provider-model-id logged in execution manifest)"
+      ],
+      "transformations": [
+        "telemetry-fault injection (stale / missing / noisy)",
+        "configuration canonicalization",
+        "output canonicalization before validator input"
+      ],
+      "discovery_items": 12,
+      "confirmatory_items": 360,
+      "task_cluster_count": 120,
+      "feasibility_rationale": "Model-call arithmetic: pilot discovery = 12 tasks ×3 variants = 36 variants; pilot calls assumed 2 pipeline runs per variant = 72 LLM calls. Confirmatory paired runs = 360 variants × 2 pipelines (LLM-only + LLM+Validator single iteration) = 720 LLM calls. Multi-iteration exploratory subset = 60 tasks ×3 variants = 180 variants × up to 3 LLM calls (worst-case iterations) = 540 calls. Total worst-case LLM calls = 72 + 720 + 540 = 1,332 calls, which is within the capability manifest cap (maximum_planned_model_calls = 10,000). All validator executions are deterministic CPU/docker runs and do not consume hosted-model-call budget. Deterministic seeding and stateless isolation preserve paired comparisons and reproducibility."
+    },
+    {
+      "scenario_id": "S2_REDUCED_LOW_BUDGET",
+      "description": "Reduced confirmatory run to conserve model-call budget: 60 tasks × 3 telemetry variants = 180 confirmatory task-variants (paired). Same pilot of 12 tasks for prompt tuning. Multi-iteration exploratory arm on 30 tasks (90 variants) with up to 3 iterations permitted.",
+      "planned_model_calls": 702,
+      "models": [
+        "hosted LLM API (single hosted model; provider-model-id logged in execution manifest)"
+      ],
+      "transformations": [
+        "telemetry-fault injection (stale / missing / noisy)",
+        "configuration canonicalization",
+        "output canonicalization before validator input"
+      ],
+      "discovery_items": 12,
+      "confirmatory_items": 180,
+      "task_cluster_count": 60,
+      "feasibility_rationale": "Model-call arithmetic: pilot discovery = 36 variants × 2 pipelines = 72 calls. Confirmatory paired runs = 180 variants × 2 pipelines = 360 calls. Multi-iteration exploratory subset = 30 tasks ×3 variants = 90 variants × up to 3 iterations = 270 calls. Total worst-case LLM calls = 72 + 360 + 270 = 702 calls, within the capability manifest limit."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in unsafe-apply rate (percentage points) between LLM+Validator (single automated iteration) and LLM-only across all confirmatory task-variants.",
+    "target_effect": "Detect an absolute reduction of ≈10 percentage points in unsafe-apply rate (preregistered target effect for sample-size interpretability).",
+    "clustering_unit": "task-variant (one intent × one telemetry-fault variant); paired within task-variant across pipelines.",
+    "calculation_method": "Paired-proportions test planning (McNemar's test approximation) and bootstrap for CI estimation. With N=360 paired observations, the design provides adequate sensitivity to detect modest absolute differences (order of single-digit percentage points) in paired proportions under plausible baseline unsafe-apply rates (see assumptions). Exact formal power calculations will be reported in the execution manifest using the observed baseline unsafe-apply rate from a preregistered baseline estimate from pilot data (pilot excluded from confirmatory analysis).",
+    "assumptions": [
+      "Baseline unsafe-apply rate for LLM-only ~30% (pilot-informed; pilot used only to set expectations not included in confirmatory analysis).",
+      "Paired differences independent across task-variants (task design enforces task independence to the extent possible).",
+      "Two-sided testing, alpha = 0.05 for primary hypothesis."
+    ],
+    "recommended_scenario_id": "S1_FULL_RECOMMENDED",
+    "minimum_detectable_effect_notes": "With N=360 paired items, under a baseline 30% unsafe-apply rate, the design is expected to detect ≈8–12 percentage-point absolute paired differences with ~80% power depending on discordant-pair distribution. Exact MDE will be computed in the execution manifest using the pilot-observed marginal rates.",
+    "sensitivity_analyses": [
+      "Recompute effect-size and CI under alternative baseline unsafe-apply rates (20%, 40%).",
+      "Bootstrap-based paired-permutation sensitivity to account for dependence patterns.",
+      "Re-run primary analysis excluding any automatically-flagged contaminated items and report the difference."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent→configuration templating and instantiation",
+      "Telemetry-fault injections (stale timestamps, omitted fields, additive noise to numeric telemetry)",
+      "Configuration parse & canonicalization (normalize whitespace, ordering, canonical ACL representation)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip canonicalization check: parse→canonicalize→serialize→parse must yield isomorphic AST; failures are deterministically rejected.",
+      "Validator input consistency check: canonicalized configuration and telemetry must satisfy schema validation before the validator run; otherwise the item is auto-rejected and logged."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated or transformed artifact that fails schema validation or round-trip canonicalization.",
+      "Reject any LLM output that does not parse to a syntactically valid configuration according to the preregistered grammar; such outputs are counted as 'invalid output' and treated as unsafe-apply for LLM-only pipeline analysis (preregistered rule)."
+    ],
+    "audit_sample_policy": "Deterministic audit sample: 5% of all confirmatory runs selected by documented seed for deeper automated checks (additional independent validator pass). All audits are automated; selection and results are logged.",
+    "mapping_validation": "Mapping rules from intent fields to configuration templates are programmatically specified and unit-tested. The mapping table and tests are included in the execution manifest. Any ambiguous mapping cases are resolved by deterministic tie-breaking rules encoded in the template engine.",
+    "residual_risks": [
+      "Semantic-equivalence gaps where canonicalization may hide meaningful operator intent deviations.",
+      "Validator blind-spots where the deterministic checks do not cover a class of semantic policy violations; addressed by unit-test injection but residuals remain (documented in remaining_noncritical_uncertainties)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: generalization to large-scale heterogeneous production topologies and multi-vendor environments beyond the synthetic templates (UQ1).",
+    "Residual validator coverage gaps despite unit-test injections; some adversarial or unexpected generator behaviors may exploit untested validator gaps.",
+    "Hosted-model API nondeterminism and rate limits may increase variance across runs; stateless isolation and seeded ordering mitigate but do not eliminate provider-side nondeterminism.",
+    "Prompt sensitivity: results may vary under different prompt framings; preregistered prompt is one defensible choice but alternative prompts could change outcomes (UQ4)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7163413045",
+    "https://openalex.org/W7202179524",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7106650998",
+    "https://openalex.org/W4411015066",
+    "doi:10.1002/nem.2313",
+    "doi:10.3390/info16080631",
+    "doi:10.31234/osf.io/2q49t_v3",
+    "https://openalex.org/W4408567138",
+    "https://openalex.org/W4406779522",
+    "doi:10.32388/be0zbc"
+  ]
+}

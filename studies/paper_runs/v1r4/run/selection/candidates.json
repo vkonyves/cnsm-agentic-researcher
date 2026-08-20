@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "C2026-001",
+      "title": "Verifier-guided vs. generator-only repair under simulated telemetry faults",
+      "research_question": "Does integrating a deterministic validator with an LLM repair pipeline reduce unsafe-apply rates and regressions when telemetry is faulty (stale/missing/noisy) compared to an LLM-only repair pipeline?",
+      "hypotheses": [
+        "H1: A verifier-guided LLM pipeline yields a lower unsafe-apply rate than LLM-only under all tested telemetry-fault conditions.",
+        "H2: The relative benefit of verifier guidance increases as telemetry corruption (staleness/missing fields/noise) increases.",
+        "H3: Some classes of regressions persist even with verifier guidance (e.g., semantic policy misinterpretation)."
+      ],
+      "proposed_design": "Build a controlled task bank of 120 intent->configuration repair tasks (multi-vendor syntactic templates) derived from public benchmarks and synthetic topologies. For each task create 3 telemetry-fault variants: stale, missing, noisy. Implement two pipelines: (A) LLM-only: generate repair and output config; (B) LLM+Validator: LLM proposes repair, deterministic validator (Batfish-style reachability/policy checks) verifies and rejects or requests repair; allow one automated repair iteration. Execute both pipelines across tasks and fault variants. Record raw outputs, validator traces, and labelled outcomes. Adhere to preregistered retry policy and seeds for orchestration; cap total model calls.",
+      "expected_data": "Per-task raw LLM outputs, validator pass/fail traces, final applied-config candidate, binary unsafe-apply label (would violate reachability/policy), regression taxonomy labels, per-task latency and number of iterations. Aggregate counts by pipeline and telemetry-fault level.",
+      "primary_outcome": "Reduction in unsafe-apply rate (percentage points) of LLM+Validator vs LLM-only, with 95% CI across tasks and fault conditions.",
+      "analysis_outline": "Compute per-task paired differences in unsafe-apply (binary) and regression counts; use McNemar's test or paired permutation test for unsafe-apply differences, bootstrap CIs for percent-reduction, subgroup analyses by fault type, and descriptive failure-mode taxonomy. Report exact p-values and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163413045",
+        "https://openalex.org/W7202179524"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7106650998"
+      ],
+      "risks": [
+        "Deterministic validator may be weaker than assumed (coverage gaps) causing false negatives/positives.",
+        "Synthetic task bank may not represent production heterogeneity; external validity limited.",
+        "Hosted model API rate limits or outages could force reruns within budget constraints."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "C2026-002",
+      "title": "Prompt framing and run stochasticity: paired vs isolated evaluation effects on NetOps outcomes",
+      "research_question": "How sensitive are NetOps safety outcomes (unsafe-apply rate, regression rate) to prompt framing and LLM run-to-run stochasticity, and does a paired-evaluation design reduce apparent variance in comparative assessments?",
+      "hypotheses": [
+        "H1: Prompt framing (instruction wording, examples) materially changes unsafe-apply and regression rates for the same tasks.",
+        "H2: Run-to-run stochasticity produces nontrivial variability; paired evaluation (same random seeds/ordering per task across conditions) reduces measured variance and Type I error in model comparisons.",
+        "H3: Some prompt variations produce systematic bias (e.g., aggressive 'apply' framing increases unsafe-apply rate)."
+      ],
+      "proposed_design": "Select 80 NetOps repair/change tasks. Define 6 prompt framings (neutral, conservative, aggressive, with example, without example, explicit-validator-instruction). For each task and framing, execute N=10 independent LLM runs (to capture stochasticity). Implement two evaluation designs: (1) isolated: compare aggregate metrics per framing; (2) paired: for each task, compare outputs across framings using matched-run indices. Measure unsafe-apply and regression labels via a deterministic validator. Pre-register prompt templates, run counts, and comparison tests.",
+      "expected_data": "Per-task, per-framing sets of N LLM outputs, validator traces, binary unsafe-apply labels, regression counts, and per-run tokens/latency. Variance estimates within framing and paired differences across framings.",
+      "primary_outcome": "Quantified prompt-framing effect sizes on unsafe-apply rate and reduction in variance/Type I error afforded by paired evaluation (e.g., change in standard error or p-value stability).",
+      "analysis_outline": "Estimate within-framing variance (binomial proportion CI) and between-framing differences using paired McNemar/permutation tests; compute intraclass correlation and repeatability. Simulate false-positive rates under both isolated and paired analysis via resampling. Report sensitivity to number of runs N.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406779522",
+        "doi:10.32388/be0zbc",
+        "https://openalex.org/W7202179524"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163413045"
+      ],
+      "risks": [
+        "High run counts increase model-call cost; must balance N within model-calls budget.",
+        "Deterministic-seed control is limited by hosted API stochasticity; pairing relies on matched ordering rather than true RNG seeding.",
+        "Prompt-space is large; chosen framings may not cover all practical operator styles."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "C2026-003",
+      "title": "A compact construct-validity rubric predicting execution-time safety",
+      "research_question": "Can a compact, operational construct-validity rubric for NetOps tasks predict execution-time safety outcomes (unsafe-apply rate) measured by validators, and which rubric components are most predictive?",
+      "hypotheses": [
+        "H1: A multi-component rubric (metrics: validator-coverage, task-complexity, telemetry-fidelity, action-criticality) will correlate significantly with observed unsafe-apply rates (negative correlation for higher rubric quality).",
+        "H2: Validator-coverage and telemetry-fidelity are the strongest single predictors of operational safety.",
+        "H3: The rubric enables prioritization (rank-order) of tasks for human review with better precision than naive heuristics (e.g., complexity alone)."
+      ],
+      "proposed_design": "Design a 4-component rubric with discrete scores per task (0–3 each): validator-coverage, task-complexity, telemetry-fidelity, action-criticality. Assemble a 100-task corpus (mix of repair/change tasks used in other candidates). For each task, collect LLM-generated repairs (one strong prompt) and validator outcomes to compute observed unsafe-apply rates. Independently score each task using the rubric by blinded annotators following clear rules (automated where possible). Correlate rubric scores and components with observed unsafe-apply rate and compute predictive metrics for prioritization.",
+      "expected_data": "Per-task rubric component scores, aggregate rubric total scores, observed unsafe-apply rates from validator traces, and prioritization precision/recall curves for human-review triage at various thresholds.",
+      "primary_outcome": "Correlation coefficient (Spearman rho) between rubric total score and observed unsafe-apply rate, plus component-wise predictive importance (e.g., via logistic regression coefficients).",
+      "analysis_outline": "Compute Spearman/Pearson correlations, fit logistic regression for unsafe-apply~rubric components, cross-validated AUC for triage thresholds, and report bootstrapped CIs. Perform ablation to measure component contribution.",
+      "novelty_evidence_ids": [
+        "doi:10.31234/osf.io/2q49t_v3",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7106650998"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7163413045"
+      ],
+      "risks": [
+        "Rubric scoring may require human judgment and introduce subjectivity; inter-annotator agreement must be measured.",
+        "Observed correlations may depend on the validator strength used; weak validators reduce signal.",
+        "Construct validity of rubric itself must be defended and may need iteration."
+      ],
+      "estimated_model_calls": 500
+    },
+    {
+      "candidate_id": "C2026-004",
+      "title": "Adversarial prompt-injection against verifier-guided NetOps pipelines",
+      "research_question": "Can targeted adversarial prompts or crafted corner-case inputs induce unsafe configuration changes in LLM-generated NetOps outputs, and to what extent does a deterministic validator mitigate these adversarial successes?",
+      "hypotheses": [
+        "H1: Carefully crafted adversarial prompts increase unsafe-apply rates for LLM-only pipelines compared to benign prompts.",
+        "H2: Deterministic validators reduce but do not eliminate adversarially induced unsafe applies; some adversarial cases exploit validator coverage gaps.",
+        "H3: Adversarial prompts have transferability across prompt templates and model seeds to a measurable degree."
+      ],
+      "proposed_design": "Construct 60 adversarial prompt variants using automated perturbation strategies (e.g., addition of conflicting instructions, obfuscated constraints, incentive framing) and 60 matched benign prompts. For a set of 80 NetOps tasks, run each prompt variant under two pipelines: LLM-only and LLM+Validator (single verification iteration). Label unsafe-apply outcomes via an independent validator and analyze transferability by testing adversarial prompts across multiple prompt templates and multiple LLM runs.",
+      "expected_data": "Per-task, per-prompt-label outputs, validator pass/fail traces, adversarial-success rate (increase in unsafe-apply vs benign), examples of adversarial patterns that evade validator, and transferability statistics across prompts and runs.",
+      "primary_outcome": "Adversarial success rate (increase in unsafe-apply probability) for LLM-only and residual success rate after validator, with statistical comparison (e.g., risk ratio and CI).",
+      "analysis_outline": "Compare adversarial vs benign unsafe-apply rates using paired tests, compute risk ratios with bootstrap CIs, analyze successful adversarial cases for common patterns and validator-coverage gaps, and test transferability by cross-applying adversarial prompts. Report exact counts and qualitative taxonomy of evasions.",
+      "novelty_evidence_ids": [
+        "doi:10.1007/s44163-026-01546-z",
+        "doi:10.2139/ssrn.6512960",
+        "https://openalex.org/W7157506260"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163413045",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Generating realistic adversarial prompts may require iterative human-in-the-loop development during design (allowed pre-lock only); post-lock automated generation must be carefully constrained by preregistration.",
+        "Ethical concerns: must avoid publishing adversarial prompts that enable harmful misuse—redact or abstract attack patterns in final outputs if necessary.",
+        "Adversarial effects may be model-specific; transferability may be limited, constraining generality."
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}
