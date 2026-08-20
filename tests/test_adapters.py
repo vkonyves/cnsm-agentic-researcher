@@ -789,7 +789,7 @@ def test_adapter_compatibility_issues_exposes_requested_adapter_failures():
 
     assert issues
     assert any(
-        "scientific_pilot" in issue
+        "scientific_confirmatory" in issue
         for issue in issues
     )
     assert any(

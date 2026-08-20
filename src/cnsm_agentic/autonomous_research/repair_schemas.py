@@ -6,7 +6,7 @@ class ContaminationRiskPlan(BaseModel):
     item_flagging_rules:list[str]; analysis_treatment:str; residual_uncertainty:list[str]
 class BudgetScenario(BaseModel):
     scenario_id:str; description:str; planned_model_calls:int=Field(gt=0)
-    models:list[str]; transformations:list[str]; discovery_items:int=Field(gt=0)
+    models:list[str]; transformations:list[str]; discovery_items:int=Field(ge=0)
     confirmatory_items:int=Field(gt=0); task_cluster_count:int=Field(gt=0); feasibility_rationale:str
 class PowerPlanningBrief(BaseModel):
     primary_estimand:str; target_effect:str; clustering_unit:str; calculation_method:str

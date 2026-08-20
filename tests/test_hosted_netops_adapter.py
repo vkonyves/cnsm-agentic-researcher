@@ -86,7 +86,7 @@ def _plan(task_count: int = 2):
         "model_version": "gpt-test-2026-08-02",
         "deterministic_automated_scoring": True,
         "requires_human_scientific_labour": False,
-        "execution_mode": "scientific_pilot",
+        "execution_mode": "scientific_confirmatory",
         "maximum_attempts_per_call": 1,
         "max_output_tokens": 200,
         "reasoning_effort": "minimal",
@@ -102,7 +102,7 @@ def test_hosted_plan_rejects_inexact_call_ceiling() -> None:
     plan = _plan()
     plan["maximum_model_calls"] = 3
     assert any(
-        "exact pilot ceiling" in issue
+        "exact planned ceiling" in issue
         for issue in hosted_netops_plan_issues(plan)
     )
 

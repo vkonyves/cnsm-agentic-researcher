@@ -51,7 +51,7 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
     """
     return {
         "adapter_family": HOSTED_NETOPS_ADAPTER_FAMILY,
-        "execution_mode": "scientific_pilot",
+        "execution_mode": "scientific_confirmatory",
         "design": "paired_binary",
         "conditions": [
             "baseline",
@@ -75,7 +75,10 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
         "requires_human_scientific_labour": False,
         "task_count": {
             "minimum": 1,
-            "maximum": 50,
+            "maximum": (
+                "Bounded by the frozen capability manifest "
+                "and model-call budget."
+            ),
         },
         "task_indices": (
             "Exactly task_count unique positive integers."
@@ -104,7 +107,7 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
 def hosted_netops_plan_issues(
     plan: dict[str, Any],
     *,
-    maximum_task_count: int = 50,
+    maximum_task_count: int | None = None,
 ) -> list[str]:
     issues: list[str] = []
 
@@ -115,14 +118,16 @@ def hosted_netops_plan_issues(
     ):
         issues.append("Adapter family is incompatible.")
 
-    if plan.get("execution_mode") != "scientific_pilot":
-        issues.append("Hosted adapter currently supports scientific_pilot only.")
+    if plan.get("execution_mode") != "scientific_confirmatory":
+        issues.append(
+            "Hosted adapter requires scientific_confirmatory execution mode."
+        )
     if plan.get("design") != "paired_binary":
-        issues.append("Hosted NetOps pilot requires paired_binary design.")
+        issues.append("Hosted NetOps study requires paired_binary design.")
     if plan.get("conditions") != ["baseline", "guarded"]:
         issues.append("Conditions must be exactly baseline and guarded.")
     if plan.get("task_families") != [TASK_FAMILY]:
-        issues.append("Hosted NetOps pilot requires the NetOps task family.")
+        issues.append("Hosted NetOps study requires the NetOps task family.")
     if plan.get("transformations") != {
         "baseline": BASELINE_TRANSFORMATION,
         "guarded": GUARDED_TRANSFORMATION,
@@ -136,7 +141,7 @@ def hosted_netops_plan_issues(
     ):
         issues.append("Result schema version is incompatible.")
     if plan.get("model_provider") != SUPPORTED_PROVIDER:
-        issues.append("Hosted NetOps pilot requires openai_responses.")
+        issues.append("Hosted NetOps study requires openai_responses.")
     if not isinstance(plan.get("model_name"), str) or not str(
         plan.get("model_name")
     ).strip():
@@ -151,15 +156,29 @@ def hosted_netops_plan_issues(
         issues.append("Human scientific labour must not be required.")
 
     task_count = plan.get("task_count")
-    if (
+    invalid_task_count = (
         not isinstance(task_count, int)
         or isinstance(task_count, bool)
         or task_count <= 0
-        or task_count > maximum_task_count
+    )
+
+    if (
+        not invalid_task_count
+        and maximum_task_count is not None
+        and task_count > maximum_task_count
     ):
-        issues.append(
-            f"task_count must be an integer from 1 to {maximum_task_count}."
-        )
+        invalid_task_count = True
+
+    if invalid_task_count:
+        if maximum_task_count is None:
+            issues.append(
+                "task_count must be a positive integer."
+            )
+        else:
+            issues.append(
+                "task_count must be an integer from 1 to "
+                f"{maximum_task_count}."
+            )
     else:
         task_indices = plan.get("task_indices")
         if (
@@ -183,16 +202,16 @@ def hosted_netops_plan_issues(
             )
         if plan.get("maximum_model_calls") != expected_calls:
             issues.append(
-                "maximum_model_calls must equal the exact pilot ceiling."
+                "maximum_model_calls must equal the exact planned ceiling."
             )
 
     if plan.get("reasoning_effort") != "minimal":
         issues.append(
-            "The first scientific pilot requires minimal reasoning effort."
+            "The hosted scientific study requires minimal reasoning effort."
         )
     if plan.get("maximum_attempts_per_call") != 1:
         issues.append(
-            "The first scientific pilot requires one attempt per provider call."
+            "The hosted scientific study requires one attempt per provider call."
         )
     max_output = plan.get("max_output_tokens")
     if (
@@ -263,7 +282,7 @@ def _repair_prompt(
 class HostedNetOpsGVRAdapter:
     family = HOSTED_NETOPS_ADAPTER_FAMILY
     aliases = HOSTED_NETOPS_ADAPTER_ALIASES
-    maximum_task_count = 50
+    maximum_task_count: int | None = None
 
     def __init__(
         self,
@@ -312,7 +331,7 @@ class HostedNetOpsGVRAdapter:
         )
         if issues:
             raise ValueError(
-                "Unsupported hosted NetOps pilot plan: " + "; ".join(issues)
+                "Unsupported hosted NetOps study plan: " + "; ".join(issues)
             )
 
         output_dir.mkdir(parents=True, exist_ok=True)

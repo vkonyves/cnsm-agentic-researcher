@@ -237,6 +237,29 @@ def create_failure_report(
         final_state=final_state,
     )
 
+def required_confirmatory_task_count(
+    repaired_design: RepairedStudyDesign,
+) -> int:
+    """Resolve the autonomous design's selected confirmatory sample size."""
+    recommended_id = (
+        repaired_design.power_plan.recommended_scenario_id
+    )
+
+    matches = [
+        scenario
+        for scenario in repaired_design.budget_scenarios
+        if scenario.scenario_id == recommended_id
+    ]
+
+    if len(matches) != 1:
+        raise ValueError(
+            "Exactly one budget scenario must match "
+            "power_plan.recommended_scenario_id."
+        )
+
+    return int(matches[0].confirmatory_items)
+
+
 async def create_feasible_experiment_plan(
     *,
     master_prompt: str,
@@ -266,6 +289,12 @@ async def create_feasible_experiment_plan(
     attempts_dir.mkdir(
         parents=True,
         exist_ok=True,
+    )
+
+    required_task_count = (
+        required_confirmatory_task_count(
+            repaired_design
+        )
     )
 
     previous_plan: dict[str, Any] | None = None
@@ -303,6 +332,9 @@ async def create_feasible_experiment_plan(
             ),
             "available_execution_models": (
                 available_execution_models
+            ),
+            "required_confirmatory_task_count": (
+                required_task_count
             ),
             "planning_attempt": attempt,
             "maximum_planning_attempts": (
@@ -430,7 +462,14 @@ async def create_feasible_experiment_plan(
                 "a hosted model identifier. Set model_version equal "
                 "to the selected model_name unless an explicitly "
                 "different version is supplied by the capability "
-                "contract."
+                "contract. "
+                "The input contains required_confirmatory_task_count, "
+                "which is the machine-readable sample size selected by "
+                "the repaired scientific design. Set task_count exactly "
+                "to required_confirmatory_task_count. Do not reduce the "
+                "confirmatory sample size merely to fit an adapter. If "
+                "the required sample cannot fit the frozen capabilities, "
+                "the plan is infeasible rather than a smaller study."
             ),
         }
 
@@ -456,7 +495,10 @@ async def create_feasible_experiment_plan(
                 "question and estimands where executable. Set "
                 "adapter_family to exactly one identifier from "
                 "available_adapter_families; never invent or decorate "
-                "an adapter identifier."
+                "an adapter identifier. Preserve "
+                "required_confirmatory_task_count exactly; do not repair "
+                "a capability conflict by silently reducing the sealed "
+                "scientific sample size."
             )
 
         experiment_plan = await run_agent(
@@ -499,6 +541,19 @@ async def create_feasible_experiment_plan(
                 plan_dict
             )
         )
+
+        if plan_dict.get("study_id") != preregistration.study_id:
+            combined_issues.append(
+                "ExperimentPlan.study_id must equal the "
+                "preregistration study_id exactly."
+            )
+
+        if plan_dict.get("task_count") != required_task_count:
+            combined_issues.append(
+                "task_count must equal the machine-readable "
+                "required_confirmatory_task_count "
+                f"({required_task_count})."
+            )
 
         if plan_dict.get("model_name") not in available_execution_models:
             combined_issues.append(

@@ -16,7 +16,7 @@ def test_experiment_plan_can_represent_hosted_adapter_contract():
         study_id="test-study",
         adapter_family="hosted_netops_gvr_v1",
 
-        execution_mode="scientific_pilot",
+        execution_mode="scientific_confirmatory",
         design="paired_binary",
         conditions=["baseline", "guarded"],
         task_families=[
@@ -51,7 +51,7 @@ def test_experiment_plan_can_represent_hosted_adapter_contract():
         maximum_attempts_per_call=1,
         max_output_tokens=1000,
 
-        implementation_strategy="Hosted paired pilot.",
+        implementation_strategy="Hosted paired confirmatory study.",
         public_resources=[],
         model_and_version_plan=["gpt-5-mini"],
         task_manifest_strategy="Deterministic.",
