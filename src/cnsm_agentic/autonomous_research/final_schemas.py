@@ -57,6 +57,11 @@ class PreregistrationDocument(BaseModel):
         if self.unresolved_critical_issues: raise ValueError('Critical issues prevent sealing')
         return self
 
+class ExperimentTransformations(BaseModel):
+    baseline: str
+    guarded: str
+
+
 class ExperimentPlan(BaseModel):
     study_id: str
     adapter_family: str
@@ -66,7 +71,7 @@ class ExperimentPlan(BaseModel):
     design: str
     conditions: list[str]
     task_families: list[str]
-    transformations: dict[str, str]
+    transformations: ExperimentTransformations
 
     result_schema_id: str
     result_schema_version: str
