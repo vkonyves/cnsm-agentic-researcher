@@ -1,0 +1,83 @@
+{
+  "study_id": "cand-427a",
+  "title": "Verifier‑Augmented LLM for Intent→Configuration Safety (Repaired Preregistration)",
+  "research_question": "Does integrating a deterministic network verifier into an LLM-driven intent→configuration loop reduce the proportion of unsafe/configurations that fail deterministic validation compared to an LLM-only single-pass baseline on a 300-task synthetic, mixed-vendor NetOps task suite?",
+  "confirmatory_hypotheses": [
+    "H0: Verifier-augmentation does not change the proportion of tasks that achieve a final verifier-pass within the prespecified repair budget versus LLM-only.",
+    "H1: Verifier-augmentation (generate→verify→repair loop, ≤2 repairs) produces a ≥30% relative reduction in verifier-failure proportion versus LLM-only on the prespecified task set."
+  ],
+  "exploratory_questions": [
+    "Q1: How many repair iterations are typically required to reach verifier-pass?",
+    "Q2: Which verifier-assertion categories account for remaining unsafe failures after repairs?",
+    "Q3: How sensitive are primary outcomes to one alternate prompt template and to an alternate hosted LLM (subset ablations)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404240614",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W4396723768",
+    "https://openalex.org/W4389518608",
+    "doi:10.1109/noms59830.2024.10575237",
+    "doi:10.1002/nem.2313",
+    "doi:10.2139/ssrn.7203631",
+    "https://openalex.org/W4399803256"
+  ],
+  "benchmark_scope": [
+    "Synthetic task suite of 300 intent→target-state tasks",
+    "Three vendor-CLI families: Cisco IOS, Juniper Junos, Arista EOS (synthetic templates)",
+    "10 synthetic topologies (30 tasks per topology), CPU-executable deterministic verifiers and reachability simulators"
+  ],
+  "model_scope": [
+    "Primary: hosted LLM API (single model identifier to be recorded at execution time and logged immutably)",
+    "Alternate-ablation: different hosted LLM API (subset ablations; model identifier recorded)",
+    "All model calls limited by capability_manifest max planned_model_calls (10000)"
+  ],
+  "transformation_scope": [
+    "Intent → vendor-specific CLI configuration synthesis",
+    "Verifier-guided repair insertion (LLM ingests verifier failure assertions as prompt context)",
+    "Vendor templating and syntax normalization"
+  ],
+  "primary_estimand": "Per-task proportion of tasks with final verifier-pass within the repair budget (binary: pass/fail), averaged across the 300 prespecified tasks (paired comparison between pipelines).",
+  "secondary_estimands": [
+    "Mean model calls per task among tasks that reach verifier-pass",
+    "Distribution of remaining failing assertion categories",
+    "Time-to-pass (wall-time) per task"
+  ],
+  "sampling_plan": "Construct 300 confirmatory tasks: generate 10 synthetic topologies (varied sizes/connectivity) via internal topology generator; per topology sample 30 intent→target-state tasks equally across three vendor-CLI families (100 tasks per vendor). Use fixed RNG seed stream. If a task triggers an irrecoverable technical failure, replace it (resample) to preserve 300 successful task attempts. Task_cluster_count=10; confirmatory_items=300; discovery_items=0.",
+  "power_and_precision_plan": "Primary estimand: paired per-task verifier-pass proportion (LLM-only vs LLM+Verifier). Target effect: ≥30% relative reduction in verifier-failure proportion. Alpha=0.05 two-sided; paired McNemar primary inference; N=300 chosen to exceed conservative unpaired approximation sample-size bound (assumed baseline p0=0.50, absolute difference 0.15 → unpaired n≈170). N=300 provides >0.8 power under stated assumptions; sensitivity analyses for p0∈{0.30,0.40,0.60} and paired-exact-power reported post-hoc.",
+  "exclusion_rules": [
+    "If primary verifier fails to parse config: run automatic syntax-normalizer up to 1 sanitizer pass; if still unparsable => exclude task and resample replacement (no human intervention).",
+    "If deterministic verifier crashes (parser/runtime) and sanitizer cannot recover => mark excluded and resample.",
+    "If a task triggers irrecoverable technical failure (model/API/provider/infrastructure) after allowed retries => mark technical failure and resample to preserve N=300."
+  ],
+  "missingness_plan": "Per-task wall-time timeout = 5 minutes. Per-model-call timeout = provider default or 120 seconds, whichever is smaller. Retry policy: for transient infrastructure/model API failures allow up to 2 automatic retries per model call with exponential backoff. Verifier parser errors: automatic sanitizer attempt up to 1 pass; if still failing mark excluded and resample. All exclusions, retries, and replacements logged and hashed; confirmatory N=300 maintained via deterministic resampling policy.",
+  "analysis_plan": "Primary confirmatory test: paired McNemar test on per-task final pass/fail (LLM-only vs LLM+Verifier) two-sided alpha=0.05; report risk difference with 95% Wilson CIs. For model-call counts use paired Wilcoxon signed-rank test; report median and IQR. Provide failure-mode taxonomy counts, per-assertion-type breakdown, time-to-pass descriptive stats, and paired discordant-pair counts. Preserve pairing by running both pipelines on each task. All analysis code, seeds, raw outputs, and verifier logs recorded with immutable hashes.",
+  "multiplicity_plan": "Primary inference is the single prespecified estimand (McNemar). Secondary endpoints are exploratory; report raw p-values and 95% CIs. Any additional/post-hoc hypothesis tests labeled exploratory; where multiple exploratory tests are summarized provide Benjamini–Hochberg FDR-adjusted q-values for context.",
+  "contamination_plan": "Benchmark names: Synthetic Intent→Configuration Task Suite (this study). Risk factors: possible training-data leakage in hosted LLMs (unknown), task-sampling overlap if seeds misused, verifier incompleteness (false negatives). Detection procedures: log and hash all prompts and outputs; flag verbatim matches; maintain held-out ground-truth set of 30 tasks with canonical configs and run both verifiers; run secondary verifier/simulator on 10% audit sample of passing configs to detect cross-verifier disagreement. Item-flagging rules: cross-verifier disagreement => 'residual_uncertainty'; exact matches to canonical configs for different tasks => 'potential_contamination'. Analysis treatment: report counts of flagged items; primary analysis uses verifier-pass labels; sensitivity analyses exclude flagged items and report effect-size differences.",
+  "stopping_rule": "Per-task wall-time timeout = 5 minutes. Per-model-call timeout = provider default or 120s, whichever is smaller. Model-call transient failures: up to 2 automatic retries per call (exponential backoff). Verifier repair budget: ≤2 LLM repair iterations per task; after budget exhausted mark final status=FAIL. If infrastructure provider enforces hard limits causing run interruption, stop and record progress; resume only per the frozen retry policy and record restart metadata.",
+  "planned_outputs": [
+    "final research-selection record",
+    "literature-search record",
+    "verified bibliography record",
+    "nearest-work comparison matrix",
+    "preregistration / frozen experiment plan",
+    "experiment code and configuration",
+    "raw experiment artifacts (prompts, model outputs, verifier logs)",
+    "execution manifest (logs, hashes, seeds)",
+    "statistical-results file",
+    "failure-analysis record",
+    "evidence-to-claim table",
+    "complete IEEE LaTeX manuscript",
+    "BibTeX bibliography",
+    "compiled PDF (≤5 pages)",
+    "autonomy and human-involvement disclosure record",
+    "internal methodological review",
+    "statistical-consistency review",
+    "reference-integrity review",
+    "novelty and overclaiming review",
+    "page-count and IEEE-format validation report",
+    "autonomous revision log",
+    "final-output hash manifest",
+    "concise NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,33 @@
+{
+  "study_id": "cand-427a",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis using per-task final verifier-pass labels (baseline vs guarded) from execution/scoring/*.json. Test: paired McNemar (two-sided, alpha=0.05). Report: contingency counts (both-pass, baseline-only, guarded-only, neither), exact McNemar p-value, risk difference (guarded − baseline) with 95% Wilson confidence interval. Preserve pairing by using task_id alignment in execution/raw_results.jsonl and execution/task_manifest.jsonl. Apply failed-call treatment as specified in failed_call_treatment.",
+  "secondary_analyses": [
+    "Paired Wilcoxon signed-rank test on model_call_count (report median, IQR per pipeline and p-value) using result model_call_count fields in execution/raw_results.jsonl.",
+    "Failure-mode taxonomy: counts and percentages of verifier-assertion categories and top-3 assertion types causing failures (use execution/scoring/*.json assertions).",
+    "Time-to-pass descriptive statistics (wall_time_seconds distribution per pipeline): median, IQR, min/max; report distribution plots.",
+    "Discordant-pair analysis: list and sample examples (hashed artifact paths) of tasks where pipelines disagree, with verifier assertions pre/post-repair for guarded pipeline."
+  ],
+  "sensitivity_analyses": [
+    "Exclude tasks flagged with 'residual_uncertainty' or 'potential_contamination' in per-task records and repeat primary McNemar analysis (report effect-size difference vs primary).",
+    "Alternate failed-call handling sensitivity: rerun primary analysis treating any technical/failed model call pairs per task as baseline-fail/guarded-fail=0 according to contract id 'complete_pair_primary_with_failure_as_zero_sensitivity' and report difference from primary.",
+    "Multiplicity-context sensitivity: report Benjamini–Hochberg FDR-adjusted q-values across secondary hypothesis tests (labelled exploratory)."
+  ],
+  "uncertainty_quantification": "Exact McNemar p-value for primary inferential test; 95% Wilson CIs for per-pipeline pass proportions and for risk difference; paired Wilcoxon p-values for model-call counts; report median/IQR for nonparametric summaries. For exploratory summaries report raw p-values and BH-adjusted q-values.",
+  "multiplicity_implementation": "Primary estimand is single prespecified confirmatory test (paired McNemar). All other tests are exploratory: report raw p-values and 95% CIs; when summarizing multiple exploratory tests present Benjamini–Hochberg FDR-adjusted q-values for context.",
+  "contamination_analysis": "Use flags embedded in per-task result records ('residual_uncertainty', 'potential_contamination') from execution/raw_results.jsonl and execution/scoring/*.json. Produce counts of flagged items. Run cross-verifier audit on a 10% sample of passing configs using verifier outputs in execution/scoring to detect cross-verifier disagreement; mark disagreements as 'residual_uncertainty'. Detect verbatim matches to canonical held‑out configs (repository artifact referenced in preregistration) and mark as 'potential_contamination'. Primary analysis uses original verifier-pass labels; sensitivity analysis excludes flagged items and reports effect-size shifts. All prompt/response artifacts and hashes (execution/artifact_hashes paths) used for detection and logged.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired contingency table (both-pass, baseline-only, guarded-only, neither) with exact McNemar p-value and risk-difference (95% Wilson CI). Source: execution/scoring/task-*.json.",
+    "Table 2: Model-call counts per task (baseline vs guarded): median, IQR, paired Wilcoxon p-value. Source: execution/raw_results.jsonl model_call_count fields.",
+    "Table 3: Failure-mode taxonomy: counts and percentages by verifier-assertion category and top-3 assertion types. Source: execution/scoring/*.json verifier assertions.",
+    "Table 4: Contamination and audit summary: counts of 'residual_uncertainty' and 'potential_contamination' flags, cross-verifier disagreement counts, and effect on primary estimand when excluded. Source: execution/raw_results.jsonl and audit outputs."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of per-pipeline verifier-pass proportions with 95% Wilson CIs (baseline vs guarded). Data from execution/scoring/*.json aggregated by task_id.",
+    "Figure 2: Histogram of model_call_count per task (separate series for baseline and guarded). Source: execution/raw_results.jsonl.",
+    "Figure 3: Stacked bar / relative-frequency chart of failure assertion categories (per-pipeline and post-repair). Source: execution/scoring/*.json assertion fields.",
+    "Figure 4: Violin/box plot of wall_time_seconds per pipeline (showing median and IQR). Source: execution/raw_results.jsonl wall_time_seconds."
+  ]
+}

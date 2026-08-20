@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-427a",
+      "title": "Verifier-Augmented LLM for Intent→Configuration Safety",
+      "research_question": "Does integrating a deterministic network verifier into an LLM-driven intent→configuration loop reduce the rate of unsafe/validator-failing configurations compared to an LLM-only baseline under realistic topology and vendor-CLI mixtures?",
+      "hypotheses": [
+        "H0: Verifier-augmentation does not change the proportion of configurations that fail deterministic validation vs LLM-only.",
+        "H1: Verifier-augmentation (generate→verify→repair loop) reduces validator-failure rate by ≥30% relative to LLM-only on the chosen task set."
+      ],
+      "proposed_design": "Assemble a task set of 300 intent→target-state tasks across synthetic but realistic topologies and mixed vendor CLIs. Implement two pipelines: (A) LLM-only: single-pass prompt→config; (B) LLM+Verifier: LLM generates config, deterministic network verifier checks; on failure, request LLM repair with verifier feedback for up to two repair iterations. Use the same LLM model/version and fixed prompts/seeds. Record verifier pass/fail, number of model calls, and latency.",
+      "expected_data": "Per-task records: intent, generated config(s) per attempt, verifier result (pass/fail + failing assertions), model-call counts, repair attempts, final pass status, time stamps.",
+      "primary_outcome": "Proportion of tasks with final verifier-pass within allowed repair budget (compare pipelines). Secondary: mean model calls per successful task, time-to-pass, and distribution of remaining unsafe failures.",
+      "analysis_outline": "Compute proportions with 95% Wilson CIs; compare pipelines via paired McNemar test on per-task pass/fail and paired Wilcoxon on model-call counts. Report effect size (risk difference) and failure-mode breakdown (verifier-assertion categories).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4404240614"
+      ],
+      "risks": [
+        "Deterministic verifier may be incomplete (false negatives): underestimates residual unsafe behavior.",
+        "Repair loop may oscillate producing more model calls than budget permits.",
+        "Synthetic topology/CLI set may not fully capture production diversity (external validity risk)."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "cand-b9d1",
+      "title": "Verification-Aware Confidence Score for Predicting Config Correctness",
+      "research_question": "Can a combined score that fuses deterministic-verifier feedback and LLM-derived uncertainty better predict whether a generated network configuration is actually correct (verifier-pass) than LLM-only confidence metrics?",
+      "hypotheses": [
+        "H0: A combined verifier+LLM uncertainty score does not improve prediction AUC of verifier-pass vs LLM-only confidence.",
+        "H1: The combined score yields a statistically significant higher AUC (≥0.08 increase) in predicting verifier-pass on held-out tasks compared to LLM confidence alone."
+      ],
+      "proposed_design": "Generate N=1000 LLM-produced configurations from a diverse set of intents (mixed vendors/topologies). For each sample, record LLM internal uncertainty signals (token-level entropy, log-prob, top-k gap), and deterministic-verifier outputs (binary pass, assertion counts, specific failed assertions). Construct features from both sources and train a simple logistic or isotonic regressor (train/validation/test splits) to predict verifier-pass. Compare baseline predictor using only LLM uncertainty vs combined predictor using verifier-derived features available pre-repair (e.g., failed-assertion types) and uncertainty.",
+      "expected_data": "Feature vectors per sample, ground-truth verifier-pass label, model-predicted probabilities, ROC curves, calibration plots, and AUC/precision-recall metrics.",
+      "primary_outcome": "AUC (ROC) for predicting verifier-pass on held-out test split; report ΔAUC between combined and LLM-only predictors with 95% CI via bootstrap.",
+      "analysis_outline": "Train repeated cross-validation; compute mean AUCs and bootstrap CIs; test ΔAUC significance with DeLong or bootstrap; present calibration (Brier) and precision@k analyses; analyze feature importances and failure cases where verifier features dominated.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202607.1999.v1",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404240614"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4399803256"
+      ],
+      "risks": [
+        "Verifier outputs may be unavailable or costly for large-scale sampling, limiting dataset size.",
+        "LLM internal uncertainty signals may be poorly correlated with correctness for some prompt styles.",
+        "Overfitting to verifier-specific failure signatures may reduce generalization to other verifiers."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-8f3c",
+      "title": "Adversarial Robustness Benchmark for LLM-Generated Network Configurations",
+      "research_question": "Are LLM-based intent→configuration generators brittle to small, systematic adversarial perturbations of intent or context, and which perturbation classes most increase unsafe/validator-failing outputs?",
+      "hypotheses": [
+        "H0: Small adversarial perturbations to intents do not increase the verifier-failure rate vs unperturbed intents.",
+        "H1: Specific perturbation classes (negation flips, constraint elisions, ambiguous phrasing) increase verifier-failure rate by ≥25% relative to baseline.",
+        "H2: Tool-augmented (RAG/verifier-feedback) pipelines are more robust (smaller increase) to the same perturbations than LLM-only pipelines."
+      ],
+      "proposed_design": "Construct a benchmark of 400 seed intents; apply a suite of automated perturbation operators (synonym substitution, negation insertion, clause deletion, constraint paraphrase) producing adversarial variants. Run baseline LLM-only and LLM+tool (retrieval/verifier) pipelines on seed and perturbed intents. Use deterministic verifier to label safety. Report adversarial success rate per operator and pipeline.",
+      "expected_data": "Per-sample results: seed intent, perturbed intent(s) with operator tags, generated configs, verifier outcomes, per-operator adversarial-success statistics.",
+      "primary_outcome": "Adversarial success rate (increase in verifier-failure proportion) per operator and pipeline; rank operators by impact and compute pipeline robustness score.",
+      "analysis_outline": "Estimate per-operator Δfailure with 95% CIs; compare pipelines using paired tests over same seeds; analyze operator × pipeline interactions; present qualitative examples of high-impact perturbations and typical failure modes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392353733",
+        "doi:10.2139/ssrn.6696178",
+        "https://openalex.org/W4389518608"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7203631",
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4404240614"
+      ],
+      "risks": [
+        "Adversarial operators may produce unnatural inputs not representative of real operator errors.",
+        "Benchmark conclusions may depend on chosen LLM and prompt templates (prompt-sensitivity threat).",
+        "High model-call budget required for broad operator coverage (cost/time risk)."
+      ],
+      "estimated_model_calls": 6000
+    },
+    {
+      "candidate_id": "cand-2ea7",
+      "title": "Cross-Vendor Generalization Evaluation for Intent→CLI Translation",
+      "research_question": "To what extent do contemporary LLMs generalize zero-shot to unseen vendor CLIs for intent→configuration translation, and how much labeled fine-tuning data is required to achieve operationally acceptable accuracy?",
+      "hypotheses": [
+        "H0: A single LLM zero-shot produces correct vendor-specific CLI configurations at the same rate for seen vs unseen vendors.",
+        "H1: Zero-shot accuracy on unseen vendor CLIs is substantially lower (≥20 percentage points) than on seen vendors; modest fine-tuning with ≤200 labeled examples per vendor reduces the gap by ≥50% of the difference.",
+        "H2: Few-shot prompting (≤8 examples) yields intermediate gains but underperforms small fine-tuning in sample-efficiency terms."
+      ],
+      "proposed_design": "Create a dataset mapping 600 intents to correct vendor-specific CLI sequences for three vendors (A, B, C). Hold out one vendor as unseen for zero-shot evaluation. Evaluate: (1) zero-shot LLM on unseen vendor; (2) few-shot prompting (1–8 shots); (3) fine-tune (or continued instruction-tuning) with varying labeled sizes (50,100,200 examples). Use deterministic verifier to assess correctness. Report accuracy and sample-efficiency curves.",
+      "expected_data": "Per-task correctness labels (verifier-pass), token-level diffs, accuracy curves vs fine-tune sample size, and failure examples showing vendor-specific idioms missed.",
+      "primary_outcome": "Verifier-pass accuracy on the unseen vendor under zero-shot, few-shot, and fine-tune regimes; report sample-efficiency (accuracy vs labeled examples) and statistical comparisons.",
+      "analysis_outline": "Compare accuracies with exact binomial CIs; test differences with two-proportion z-tests or corrected McNemar where paired; plot learning curves; analyze common cross-vendor error classes (syntax vs semantics).",
+      "novelty_evidence_ids": [
+        "doi:10.1109/noms59830.2024.10575237",
+        "https://openalex.org/W4364302295",
+        "https://openalex.org/W4389160107"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4389518608",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Synthetic dataset may not capture full vendor CLI quirks or enterprise policies.",
+        "Fine-tuning may exceed allowed compute or policy constraints for some hosted models.",
+        "Imperfect verifier alignment across vendors may bias accuracy estimates. "
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}

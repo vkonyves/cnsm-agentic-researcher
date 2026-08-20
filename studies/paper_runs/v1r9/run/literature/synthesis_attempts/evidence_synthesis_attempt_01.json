@@ -1,0 +1,175 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can be used to translate high-level network intents into low-level network/NFV configurations with encouraging accuracy in published prototypes and experiments.",
+      "evidence_record_ids": [
+        "doi:10.1109/noms59830.2024.10575237",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4364302295",
+        "https://openalex.org/W4389160107"
+      ],
+      "evidence_type": "empirical_prototype_and_evaluation_reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are primarily prototype-scale or limited-scope experiments (NFV or specific IBN cases).",
+        "Vendor/device diversity and large production topologies are not comprehensively evaluated in these records."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Augmenting LLMs with external tools (APIs, specialized toolkits, retrieval, or domain analyzers) improves task grounding, correctness, and capability for complex domain workflows in multiple published systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4389518608",
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4389984066",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "system_builds_and_benchmark_reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Most demonstrations are in non-NetOps domains (chemistry, drilling, multi-API benchmarks) or general tool-agent runtimes; direct NetOps impact is implied but not fully measured end-to-end in production networks."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–validate–repair (localize–fix–validate) is a recommended architectural approach for automated configuration repair, drawing on analogies to automated program repair and explicit proposals for network configuration repair.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4324373918",
+        "https://openalex.org/W3160155705",
+        "https://openalex.org/W4384345708"
+      ],
+      "evidence_type": "methodological_proposals_and_related_APR_literature",
+      "confidence": 0.75,
+      "limitations": [
+        "Proposals and analogies exist; few large-scale NetOps deployments demonstrating end-to-end automated repair under realistic operational constraints are reported in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "LLMs exhibit hallucinations and unreliable outputs; entropy/verification-based uncertainty estimators and retrieval/verification augmentation can detect or reduce such failures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "doi:10.20944/preprints202607.1999.v1",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4410343193"
+      ],
+      "evidence_type": "evaluation_and_uncertainty_detection_studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Techniques reduce but do not eliminate hallucinations; calibration and cross-judge agreement remain challenges per supplied clinical-evaluation analogues."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Agent/tool/runtime configuration can materially change safety and correctness outcomes of tool-using LLM agents (configuration-level semantic brittleness documented experimentally).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7203631"
+      ],
+      "evidence_type": "empirical_red-teaming_study",
+      "confidence": 0.8,
+      "limitations": [
+        "Findings are from structured red-teaming experiments across multiple models; transfer to specific NetOps deployments needs domain-specific evaluation."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM-based intent→configuration translators generalize across vendor-specific CLIs, diverse protocols, and large production topologies without vendor-specific tailoring?",
+      "evidence_record_ids": [
+        "doi:10.1109/noms59830.2024.10575237",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4364302295"
+      ],
+      "evidence_type": "limited-scope_evaluations_indicating_open_generalization_issue",
+      "confidence": 0.5,
+      "limitations": [
+        "Records demonstrate feasibility on selected cases but do not provide comprehensive cross-vendor, cross-protocol generalization data."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How effectively and at what operational cost can deterministic network verifiers and simulators be integrated into closed-loop LLM toolchains at production scale to prevent unsafe configuration commits?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4404240614"
+      ],
+      "evidence_type": "architectural_proposals_and_surveys_implying_integration_need",
+      "confidence": 0.5,
+      "limitations": [
+        "Surveys and proposals suggest integration; supplied records lack large-scale production measurements of verifier-augmented LLM loops in NetOps."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What is the quantitative effect of tool-augmentation (RAG, specialized APIs, verification tools) on reducing real-world NetOps misconfiguration and incident rates?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4396723768",
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "cross-domain_tool-augmentation_demos_but_no_direct_NetOps_incident_stats",
+      "confidence": 0.4,
+      "limitations": [
+        "Empirical evidence of operational incident-rate reduction is not present in the supplied NetOps-specific records; most measured gains are in other domains or at prototype scale."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Absence of a standardized, public benchmark and dataset suite for LLM-based network-intent translation, configuration synthesis, and automated configuration repair that pairs realistic topologies, vendor CLIs, and deterministic validators.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4393119065"
+      ],
+      "evidence_type": "inference_from_existing_domain_benchmarks_and_methodology_papers_showing_benchmark_value_but_no_NetOps_equivalent_in_records",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records include domain benchmarks and benchmark-building examples in other areas (API-Bank, RAG surveys) and proposals for ACR but do not show a NetOps LLM benchmark; absence is inferred from the provided corpus rather than an exhaustive external search."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Need for verification-based confidence estimators tailored to LLM-generated network configurations (combining symbolic/verifier checks with LLM-derived uncertainty signals).",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202607.1999.v1",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404240614"
+      ],
+      "evidence_type": "transfer_of_verification_and_uncertainty_methods_to_NetOps_context",
+      "confidence": 0.5,
+      "limitations": [
+        "Verification-based confidence methods are demonstrated in clinical and general LLM settings; specific designs for network-config outputs remain to be developed and validated."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Systematic adversarial/robustness evaluation targeted at LLM-generated network configurations (attacks that lead to unsafe network behavior) is underexplored in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392353733",
+        "doi:10.2139/ssrn.6696178",
+        "https://openalex.org/W4389518608"
+      ],
+      "evidence_type": "adversarial_ml_and_benchmarking_literature_indicating_gap_when_applied_to_NetOps",
+      "confidence": 0.5,
+      "limitations": [
+        "Adversarial ML surveys exist; concrete NetOps-targeted adversarial datasets and evaluations are not present among the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already production-ready to autonomously operate and fully manage real-world NetOps without human oversight (unsupported by supplied records).",
+    "Tool-augmenting an LLM guarantees zero misconfigurations or eliminates the need for deterministic verification (no supplied record demonstrates elimination of all failures).",
+    "There exists a public, standardized NetOps LLM benchmark encompassing vendor CLIs, topologies, and validators (no such benchmark is present in the supplied records).",
+    "Any single LLM family or model consistently outperforms others across all NetOps tasks and safety metrics (supplied records do not support such a universal superiority claim).",
+    "The supplied corpus contains a deployed, large-scale field study showing incident-rate reduction from LLM-driven automated configuration in production networks (no such field study is in the provided records)."
+  ]
+}

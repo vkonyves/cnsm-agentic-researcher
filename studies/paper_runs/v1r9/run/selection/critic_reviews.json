@@ -1,0 +1,93 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-427a",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Deterministic verifier completeness uncertain (false negatives may hide unsafe behavior).",
+        "Synthetic topology/CLI set may not capture production diversity (external validity).",
+        "Single-model evaluation limits claims of generality; prompt sensitivity not addressed.",
+        "Repair-loop budget/stop criteria could lead to oscillation or excessive model calls."
+      ],
+      "required_design_repairs": [
+        "Assess verifier coverage (add multiple verifiers or known-ground-truth tests) and report verifier limitations.",
+        "Expand topology/vendor diversity or justify representativeness; include dataset specification for reproducibility.",
+        "Include prompt-sensitivity ablation and evaluate at least one alternate LLM or prompt variant.",
+        "Preregister repair iteration budget, retry policy, and stopping rules; include model-call budget accounting."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-b9d1",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Design statement implies using verifier-derived features pre-repair (logical inconsistency: verifier output requires running verifier on generated config).",
+        "Risk of overfitting to verifier-specific failure signatures; may not generalize to other verifiers.",
+        "Cost and latency of running verifier at scale may limit practical deployment; dataset collection may be constrained."
+      ],
+      "required_design_repairs": [
+        "Clarify precisely which features are available at prediction time (only LLM-side signals vs light-weight static checks) and ensure no leakage from future-repair steps.",
+        "Evaluate generalization by training/ testing across different verifier implementations or holding out verifier assertion types.",
+        "Provide cost/latency analysis for verifier runs and simulate deployment scenario (pre-commit vs post-commit checks).",
+        "Prespecify train/val/test splits and use bootstrap/DeLong tests as planned; include calibration analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-8f3c",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Automated perturbation operators may produce unrealistic or unnatural intents (threat to construct validity).",
+        "Results likely sensitive to chosen LLM/prompt; prompt-sensitivity needs control.",
+        "Large operator × seed matrix increases model-call and analysis complexity; power analysis missing."
+      ],
+      "required_design_repairs": [
+        "Define and justify perturbation operator taxonomy; include human validation of realism for a subset of perturbations.",
+        "Include prompt-sensitivity controls (alternate prompts/models) or show robustness metrics across at least one alternate model/prompt.",
+        "Perform a power/sample-size analysis to justify 400 seeds and per-operator coverage; prespecify multiple-comparison corrections.",
+        "Add mitigation/defense baseline(s) (e.g., verifier-feedback or constrained prompting) to make results actionable."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2ea7",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.4,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Fine-tuning may be infeasible on hosted models or exceed available compute/policy constraints (practical execution risk).",
+        "Synthetic dataset of three vendors may not capture real-world CLI idiosyncrasies (external validity).",
+        "'Operationally acceptable accuracy' is unspecified (ambiguous success criterion)."
+      ],
+      "required_design_repairs": [
+        "Verify fine-tuning capability on target model(s); if unavailable, replace fine-tune arm with simulated continued-instruction-tuning via in-context or lightweight local models and document differences.",
+        "Specify acceptability thresholds in advance (e.g., target verifier-pass rate) and justify them with operational references or expert input.",
+        "Improve dataset realism: include more vendors or real CLI snippets, document vendor-specific idioms, and ensure verifier alignment across vendors.",
+        "If fine-tuning retained, include compute-cost estimate and fallback plan (few-shot/adapter tuning) in preregistration."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

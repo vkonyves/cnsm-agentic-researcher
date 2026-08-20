@@ -1,0 +1,177 @@
+{
+  "selected_candidate_id": "cand-427a",
+  "title": "Verifier‑Augmented LLM for Intent→Configuration Safety (Repaired Preregistration)",
+  "research_question": "Does integrating a deterministic network verifier into an LLM-driven intent→configuration loop reduce the proportion of unsafe/configurations that fail deterministic validation compared to an LLM-only single-pass baseline on a 300-task synthetic, mixed-vendor NetOps task suite?",
+  "confirmatory_hypotheses": [
+    "H0: Verifier-augmentation does not change the proportion of tasks that achieve a final verifier-pass within the prespecified repair budget versus LLM-only.",
+    "H1: Verifier-augmentation (generate→verify→repair loop, ≤2 repairs) produces a ≥30% relative reduction in verifier-failure proportion versus LLM-only on the prespecified task set."
+  ],
+  "exploratory_questions": [
+    "Q1: How many repair iterations are typically required to reach verifier-pass?",
+    "Q2: Which verifier-assertion categories account for remaining unsafe failures after repairs?",
+    "Q3: How sensitive are primary outcomes to one alternate prompt template and to an alternate hosted LLM (subset ablations)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic task suite of 300 intent→target-state tasks",
+    "Three vendor-CLI families: Cisco IOS, Juniper Junos, Arista EOS (synthetic templates)",
+    "10 synthetic topologies (30 tasks per topology), CPU-executable deterministic verifiers and reachability simulators"
+  ],
+  "model_scope": [
+    "Primary: hosted LLM API (single model identifier to be recorded at execution time and logged immutably)",
+    "Alternate-ablation: different hosted LLM API (subset of tasks; model identifier to be recorded)",
+    "All model calls limited by the capability_manifest maximum planned_model_calls (10000)"
+  ],
+  "transformation_scope": [
+    "Intent → vendor-specific CLI configuration synthesis",
+    "Verifier-guided repair insertion (LLM takes verifier failure assertions as additional prompt context)",
+    "Vendor templating and syntax normalization"
+  ],
+  "primary_estimand": "Per-task proportion of tasks with final verifier-pass within the repair budget (binary: pass/fail), averaged across the 300 prespecified tasks (paired comparison between pipelines)",
+  "secondary_estimands": [
+    "Mean model calls per task among tasks that reach verifier-pass",
+    "Distribution of remaining failing assertion categories",
+    "Time-to-pass (wall-time) per task"
+  ],
+  "sampling_plan": "Construct 300 confirmatory tasks as follows: generate 10 synthetic topologies (varied sizes and connectivity patterns) via the internal topology generator; for each topology sample 30 intent→target-state tasks distributed equally across three vendor-CLI families (100 tasks per vendor). Use a fixed RNG seed stream for topology and task sampling; if a task triggers an irrecoverable technical failure, replace it (resample) to preserve 300 successful task attempts. Task cluster count = 10 topologies; confirmatory_items = 300; discovery_items = 0.",
+  "analysis_plan": "Primary confirmatory test: paired McNemar test on per-task final pass/fail (LLM-only vs LLM+Verifier) with two-sided alpha=0.05; report risk difference with 95% Wilson CIs. For model-call counts use paired Wilcoxon signed-rank test; report median and IQR. Provide failure-mode taxonomy counts and descriptive stats. Preserve pairing by running both pipelines on each task. All analysis code, seeds, raw outputs, and verifier logs will be recorded with hashes.",
+  "multiplicity_plan": "Primary inference is the single prespecified estimand above (McNemar). Secondary endpoints are exploratory; report raw p-values and 95% CIs. For any additional hypothesis tests (post-hoc subgroup tests) label as exploratory and, where multiple exploratory tests are summarized, provide Benjamini–Hochberg FDR-adjusted q-values for interpretive context.",
+  "missingness_plan": "Per-task timeouts and technical failures: per-task wall-time timeout = 5 minutes; per-model-call timeout = provider default or 120 seconds, whichever is smaller. Retry policy: for transient infrastructure/model API failures, allow up to 2 automatic retries per model call following exponential backoff; if unrecoverable after retries mark as technical failure and resample a replacement task. Tasks with deterministic verifier crashes (parser errors) trigger automatic sanitizer attempts (syntax-normalization routine) up to 1 automatic sanitizer pass; if still failing mark as excluded and resample. All exclusions and replacements logged and counts reported; confirmatory N=300 is maintained by replacement sampling (no manual adjudication).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic Intent→Configuration Task Suite (this study)"
+    ],
+    "risk_factors": [
+      "Possible training-data leakage in hosted LLMs (unknown proprietary corpora)",
+      "Task-sampling overlap across phases if seeds are reused incorrectly",
+      "Verifier incompleteness (false negatives) leading to optimistic pass counts"
+    ],
+    "detection_procedures": [
+      "Log and hash all prompts and model outputs; detect verbatim matches between prompts and outputs and flag (deterministic flagging).",
+      "Maintain a held-out ground-truth set of 30 tasks with canonical correct configs; run both verifiers and compare to detect verifier false negatives.",
+      "Run secondary verifier/simulator on 10% audit sample of passing configs to detect residual unsafe behavior (automated cross-verifier disagreement flags)."
+    ],
+    "item_flagging_rules": [
+      "If a passing config causes cross-verifier disagreement (primary verifier PASS, secondary verifier FAIL) mark as 'residual_uncertainty' and include in failure-mode breakdown.",
+      "If generated config exactly equals any canonical config in the held-out ground-truth set for a different task, flag as potential contamination (deterministic flagging)."
+    ],
+    "analysis_treatment": "Report flagged items counts and treat flagged items as residual uncertainty; primary analysis remains on verifier-pass labels but sensitivity analyses will exclude flagged items and report effect-size differences.",
+    "residual_uncertainty": [
+      "Potential training-data leakage in hosted-models (cannot be fully eliminated)",
+      "Verifier false negatives beyond those detected by held-out checks"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scen-min",
+      "description": "Minimal confirmatory run: single hosted LLM, single prompt template, no ablations. Conservative worst-case repair iterations (≤2).",
+      "planned_model_calls": 1200,
+      "models": [
+        "primary_hosted_llm"
+      ],
+      "transformations": [
+        "intent→config (single prompt)",
+        "LLM+Verifier repair loop (≤2 repairs)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 300,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Model-call total = 300 calls for LLM-only (1 per task) + 900 worst-case for LLM+Verifier (3 per task) = 1,200 calls; this is within the capability_manifest max 10,000 model calls and CPU logging/verification is available."
+    },
+    {
+      "scenario_id": "scen-rec",
+      "description": "Recommended: prespecified confirmatory run plus limited ablations: alternate prompt on 100 disjoint tasks and alternate hosted LLM on another disjoint 100 tasks (both ablations run for both pipelines). Includes verifier-coverage held-out tests and 10% cross-verifier audit.",
+      "planned_model_calls": 2000,
+      "models": [
+        "primary_hosted_llm",
+        "alternate_hosted_llm (subset ablation)"
+      ],
+      "transformations": [
+        "intent→config (primary prompt for all tasks)",
+        "intent→config (alternate prompt on 100 tasks)",
+        "alternate_hosted_llm (alternate-model ablation on 100 tasks)",
+        "LLM+Verifier repair loop (≤2 repairs across all runs)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 300,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Planned calls = primary full-run (300 + 900) = 1,200 + alternate-prompt subset (100 + 300) = 400 + alternate-LLM subset (100 + 300) = 400; total = 2,000 calls. Fits within 10,000-call limit and allows measurement of prompt/model sensitivity while preserving primary confirmatory power."
+    },
+    {
+      "scenario_id": "scen-robust",
+      "description": "Robust/full ablation: run alternate prompt and alternate LLM across the full 300 tasks (max coverage). Includes full secondary-verifier runs on 30% of passing configs.",
+      "planned_model_calls": 3600,
+      "models": [
+        "primary_hosted_llm",
+        "alternate_hosted_llm (full)",
+        "primary_prompt_variant"
+      ],
+      "transformations": [
+        "intent→config (primary + alternate prompts across all tasks)",
+        "alternate_hosted_llm (full)",
+        "LLM+Verifier repair loop (≤2 repairs)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 300,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Full-run calls = 1,200 per configuration (primary + L+V) * 3 run variants (primary prompt, alternate prompt, alternate LLM) = 3,600 worst-case. Within 10,000-call limit; higher assurance but higher cost and latency."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Per-task verifier-pass proportion (paired comparison LLM-only vs LLM+Verifier)",
+    "target_effect": "≥30% relative reduction in verifier-failure proportion under assumed baseline",
+    "clustering_unit": "Task (each task is paired across pipelines); clustering = none beyond per-task pairing; task clusters (topologies) recorded for subgroup analyses.",
+    "calculation_method": "Conservative unpaired two-proportion approximation used for sample-size bound; primary inference will use paired McNemar test. Two-sided alpha=0.05, power target ≥0.8 for detectably large effect; chosen N=300 to provide margin.",
+    "assumptions": [
+      "Conservative assumed baseline verifier-pass rate for LLM-only p0 = 0.50 (no direct numeric baseline in supplied evidence; assumption documented for power calc).",
+      "Target relative reduction = 30% → absolute p1 = 0.35 (absolute risk difference = 0.15).",
+      "Using unpaired approximate formula yields required n ≈ 170 per arm; with paired design N=170 tasks would be sufficient, so chosen N=300 provides increased power and robustness against assumption misspecification."
+    ],
+    "recommended_scenario_id": "scen-rec",
+    "minimum_detectable_effect_notes": "With N=300 and assumptions above, the conservative unpaired approximation implies achieved power ≈96% for absolute risk difference = 0.15 (p0=0.50 → p1=0.35). If baseline verifier-pass is higher (p0>0.50) detectable absolute difference reduces; report sensitivity curves in results.",
+    "sensitivity_analyses": [
+      "Recompute achieved power for alternative baseline rates p0 ∈ {0.30, 0.40, 0.60} and show minimum detectable relative reduction at N=300.",
+      "Paired-sample exact-power approximation reported post-hoc using observed discordant-pair counts."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent-to-configuration translation",
+      "Vendor templating and syntax normalization",
+      "Verifier-feedback incorporation for repairs"
+    ],
+    "semantic_equivalence_checks": [
+      "Primary deterministic verifier assertions (syntax + safety + reachability checks) on each generated config",
+      "Secondary reachability simulator on 10% audit sample of passing configs (cross-verifier check)",
+      "Unit tests on a held-out canonical set of 30 tasks with known correct configs (semantic equivalence expectation)"
+    ],
+    "automatic_rejection_rules": [
+      "If primary verifier fails to parse config => run automatic syntax-normalizer; if still unparsable => automatic exclusion and replacement (no human intervention).",
+      "If primary verifier returns any safety assertion FAIL => automatically request LLM repair with verifier feedback (up to 2 repair iterations).",
+      "If after repair budget the config still fails => mark final status = FAIL (confirmatory count recorded)."
+    ],
+    "audit_sample_policy": "Run secondary verifier/simulator on 10% of passing configs (random deterministic seed) and on all held-out canonical 30 tasks; any cross-verifier disagreements are flagged and included in residual uncertainty analysis.",
+    "mapping_validation": "30 held-out canonical tasks with authoritative configs (generated by deterministic templates) used to measure mapping correctness and to estimate primary verifier false-negative modes; report per-assertion-type coverage.",
+    "residual_risks": [
+      "Verifier false negatives beyond held-out detection (conservative interpretation of passes required).",
+      "Semantic-liveness issues not modeled by deterministic reachability checks (e.g., device-specific runtime behaviors)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: representativeness of synthetic topologies and synthetic vendor-CLI templates for all production networks.",
+    "Hosted LLM training-data leakage (unknown proprietary corpora) cannot be fully excluded; treated as residual uncertainty and flagged when detected.",
+    "Deterministic verifier incompleteness (false negatives) despite held-out testing; impacts interpretation of verifier-pass as a proxy for operational safety.",
+    "Model nondeterminism and provider-internal updates during the run; mitigated by immutable logging of model identifier and response hashes but not fully eliminable for hosted services."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404240614",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W4396723768",
+    "https://openalex.org/W4389518608",
+    "doi:10.1109/noms59830.2024.10575237",
+    "doi:10.1002/nem.2313",
+    "doi:10.2139/ssrn.7203631",
+    "https://openalex.org/W4399803256"
+  ]
+}
