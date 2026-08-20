@@ -119,6 +119,145 @@ async def _run_agent_with_retry(
     ) from last_error
 
 
+async def _generate_candidate_set_with_repair(
+    *,
+    payload: dict[str, Any],
+    attempts_dir: Path,
+    attempts: int = MAX_AGENT_ATTEMPTS,
+) -> CandidateSet:
+    """
+    Generate a complete CandidateSet with bounded structural repair.
+
+    Scientific candidate content remains autonomous. On a rejected model
+    output, only the deterministic validation/serialization failure is
+    supplied to the next attempt.
+    """
+    attempts_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    previous_error: str | None = None
+    last_error: Exception | None = None
+
+    for attempt in range(1, attempts + 1):
+        attempt_payload = dict(payload)
+
+        if previous_error is not None:
+            attempt_payload[
+                "candidate_generation_repair"
+            ] = {
+                "previous_output_rejected": True,
+                "deterministic_validation_error": (
+                    previous_error
+                ),
+                "repair_instruction": (
+                    "Return a complete replacement CandidateSet. "
+                    "Preserve autonomous scientific freedom, but repair "
+                    "the structural/schema failure. Return 3 to 6 complete "
+                    "candidates. Do not emit commentary, fragments, "
+                    "placeholders, duplicate candidate fields, empty "
+                    "required fields, embedded candidate fields inside "
+                    "hypotheses, missing evidence-ID lists, or nonpositive "
+                    "estimated_model_calls. Every candidate must satisfy "
+                    "the declared CandidateSet schema independently."
+                ),
+            }
+
+        try:
+            result = await Runner.run(
+                CANDIDATE_GENERATOR,
+                json.dumps(
+                    attempt_payload,
+                    ensure_ascii=False,
+                ),
+            )
+
+            output = result.final_output
+
+            if not isinstance(
+                output,
+                CandidateSet,
+            ):
+                raise TypeError(
+                    "Candidate generation returned "
+                    f"{type(output).__name__}, expected "
+                    "CandidateSet"
+                )
+
+            validation = _validate_candidate_set(
+                output
+            )
+
+            _write_json(
+                attempts_dir
+                / (
+                    "candidate_generation_attempt_"
+                    f"{attempt:02d}_status.json"
+                ),
+                {
+                    "status": "passed",
+                    "attempt": attempt,
+                    "candidate_validation": validation,
+                },
+            )
+
+            return output
+
+        except Exception as exc:
+            last_error = exc
+
+            full_error = str(exc)
+
+            _write_json(
+                attempts_dir
+                / (
+                    "candidate_generation_attempt_"
+                    f"{attempt:02d}_status.json"
+                ),
+                {
+                    "status": "failed",
+                    "attempt": attempt,
+                    "error_type": (
+                        type(exc).__name__
+                    ),
+                    "error": full_error,
+                },
+            )
+
+            # Do not feed an enormous malformed model response back into
+            # the next attempt. The tail normally contains the concrete
+            # Pydantic/JSON validation failures.
+            previous_error = full_error[-6000:]
+
+            if attempt >= attempts:
+                break
+
+            delay_seconds = (
+                5 * (2 ** (attempt - 1))
+            )
+
+            print(
+                "Candidate generation failed on "
+                f"attempt {attempt}/{attempts}: "
+                f"{previous_error}"
+            )
+            print(
+                "Retrying candidate generation with "
+                "deterministic repair feedback in "
+                f"{delay_seconds} seconds..."
+            )
+
+            await asyncio.sleep(
+                delay_seconds
+            )
+
+    raise RuntimeError(
+        "Candidate generation failed after "
+        f"{attempts} repair-aware attempts"
+    ) from last_error
+
+
 def _compact_record(
     record: LiteratureRecord,
 ) -> dict[str, Any]:
@@ -804,9 +943,8 @@ class AutonomousDiscoveryPipeline:
                 )
 
                 candidates = (
-                    await _run_agent_with_retry(
-                        CANDIDATE_GENERATOR,
-                        {
+                    await _generate_candidate_set_with_repair(
+                        payload={
                             "programme": (
                                 programme
                             ),
@@ -815,11 +953,9 @@ class AutonomousDiscoveryPipeline:
                                 .model_dump()
                             ),
                         },
-                        expected_type=(
-                            CandidateSet
-                        ),
-                        stage_name=(
-                            "Candidate generation"
+                        attempts_dir=(
+                            selection_dir
+                            / "candidate_generation_attempts"
                         ),
                     )
                 )
@@ -837,20 +973,17 @@ class AutonomousDiscoveryPipeline:
 
         else:
             candidates = (
-                await _run_agent_with_retry(
-                    CANDIDATE_GENERATOR,
-                    {
+                await _generate_candidate_set_with_repair(
+                    payload={
                         "programme": programme,
                         "evidence_synthesis": (
                             synthesis
                             .model_dump()
                         ),
                     },
-                    expected_type=(
-                        CandidateSet
-                    ),
-                    stage_name=(
-                        "Candidate generation"
+                    attempts_dir=(
+                        selection_dir
+                        / "candidate_generation_attempts"
                     ),
                 )
             )

@@ -23,7 +23,22 @@ CANDIDATE_GENERATOR = Agent(
     name="Research Candidate Generator",
     model="gpt-5-mini",
     output_type=CandidateSet,
-    instructions="Generate 3 to 6 distinct, feasible, falsifiable candidates grounded in evidence IDs. Do not use predetermined candidate IDs or preferred methods.",
+    instructions=(
+        "Generate 3 to 6 distinct, feasible, falsifiable research "
+        "candidates grounded in supplied evidence IDs. Do not use "
+        "predetermined candidate IDs or preferred methods. Return one "
+        "complete CandidateSet only. Every candidate must have complete "
+        "non-empty research_question, hypotheses, proposed_design, "
+        "expected_data, primary_outcome, analysis_outline, risks, novelty "
+        "evidence IDs, feasibility evidence IDs, and a positive "
+        "estimated_model_calls value. Keep hypotheses as hypothesis text "
+        "only; never embed other candidate fields inside hypotheses. Never "
+        "emit placeholders, partial candidates, duplicate JSON fields, "
+        "commentary, or prose outside the structured output. If the input "
+        "contains candidate_generation_repair, use its deterministic "
+        "validation error only to repair schema/serialization defects; do "
+        "not treat it as scientific steering."
+    ),
 )
 
 CANDIDATE_CRITIC = Agent(
