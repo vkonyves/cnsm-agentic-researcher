@@ -109,6 +109,7 @@ class ExperimentPlan(BaseModel):
 class AnalysisPlan(BaseModel):
     study_id: str
     analysis_executor: str
+    estimand: str
     primary_analysis: str
     secondary_analyses: list[str]
     sensitivity_analyses: list[str]

@@ -58,6 +58,9 @@ def test_analysis_plan_accepts_registered_executor_field() -> None:
     plan = AnalysisPlan(
         study_id="study-1",
         analysis_executor="paired_binary_analysis_v1",
+        estimand=(
+            "paired_success_rate_difference_guarded_minus_baseline"
+        ),
         primary_analysis=(
             "Paired difference in binary success rates."
         ),

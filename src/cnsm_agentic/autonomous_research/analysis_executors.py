@@ -543,6 +543,96 @@ def validate_analysis_results(
         )
     )
 
+def paired_binary_analysis_planning_contract() -> dict[str, Any]:
+    """Return the machine-readable paired-analysis planning contract."""
+    return {
+        "analysis_executor": PAIRED_BINARY_ANALYSIS_FAMILY,
+        "estimand": (
+            "paired_success_rate_difference_guarded_minus_baseline"
+        ),
+        "failed_call_treatment": [
+            "complete_pair_primary",
+            (
+                "complete_pair_primary_"
+                "with_failure_as_zero_sensitivity"
+            ),
+        ],
+        "compatible_execution_adapter_families": list(
+            COMPATIBLE_EXECUTION_ADAPTER_FAMILIES
+        ),
+        "result_schema_id": COMPATIBLE_RESULT_SCHEMA_ID,
+        "result_schema_versions": list(
+            COMPATIBLE_RESULT_SCHEMA_VERSIONS
+        ),
+    }
+
+
+def registered_analysis_planning_contracts(
+) -> dict[str, dict[str, Any]]:
+    """Return planning contracts exposed by registered executors."""
+    contracts: dict[str, dict[str, Any]] = {}
+
+    for executor in _ANALYSIS_EXECUTORS:
+        method = getattr(
+            executor,
+            "planning_contract",
+            None,
+        )
+
+        if callable(method):
+            contracts[str(executor.family)] = method()
+
+    return contracts
+
+
+def analysis_compatibility_issues(
+    *,
+    analysis_plan: dict[str, Any],
+    execution_manifest: dict[str, Any],
+) -> list[str]:
+    """Return deterministic compatibility issues for a selected executor."""
+    requested = analysis_plan.get(
+        "analysis_executor"
+    )
+
+    for executor in _ANALYSIS_EXECUTORS:
+        if analysis_family_matches(
+            requested,
+            family=executor.family,
+            aliases=getattr(
+                executor,
+                "aliases",
+                (),
+            ),
+        ):
+            method = getattr(
+                executor,
+                "compatibility_issues",
+                None,
+            )
+
+            if callable(method):
+                return method(
+                    analysis_plan=analysis_plan,
+                    execution_manifest=execution_manifest,
+                )
+
+            if executor.supports(
+                analysis_plan=analysis_plan,
+                execution_manifest=execution_manifest,
+            ):
+                return []
+
+            return [
+                "Selected analysis executor does not support "
+                "the analysis plan and execution manifest."
+            ]
+
+    return [
+        "analysis_executor does not match a registered "
+        "analysis executor."
+    ]
+
 
 def paired_binary_analysis_compatibility_issues(
     *,
@@ -686,6 +776,22 @@ def _write_summary_svg(
 class PairedBinaryAnalysisExecutor:
     family = PAIRED_BINARY_ANALYSIS_FAMILY
     aliases = ("paired-binary-analysis-v1",)
+
+    def planning_contract(
+        self,
+    ) -> dict[str, Any]:
+        return paired_binary_analysis_planning_contract()
+
+    def compatibility_issues(
+        self,
+        *,
+        analysis_plan: dict[str, Any],
+        execution_manifest: dict[str, Any],
+    ) -> list[str]:
+        return paired_binary_analysis_compatibility_issues(
+            analysis_plan=analysis_plan,
+            execution_manifest=execution_manifest,
+        )
 
     def supports(
         self,

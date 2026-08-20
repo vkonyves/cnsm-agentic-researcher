@@ -56,7 +56,9 @@ from .pipeline import (
 )
 from .analysis_executors import (
     register_builtin_analysis_executors,
+    analysis_compatibility_issues,
     registered_analysis_families,
+    registered_analysis_planning_contracts,
     resolve_analysis_executor,
     validate_analysis_results,
 )
@@ -1623,31 +1625,143 @@ class FinalAutonomousResearchPipeline:
 
             return report
 
-        analysis_plan = await run_agent(
-            ANALYSIS_PLANNER,
-            {
-                "master_prompt": (
-                    master_prompt
-                ),
-                "capability_manifest": (
-                    capability_manifest
-                ),
-                "preregistration": (
-                    preregistration.model_dump()
-                ),
-                "experiment_plan": (
-                    experiment_plan.model_dump()
-                ),
-                "execution_manifest": (
-                    execution_manifest
-                ),
+        analysis_attempts_dir = (
+            run_dir
+            / "analysis"
+            / "planning_attempts"
+        )
+        analysis_attempts_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        available_analysis_contracts = (
+            registered_analysis_planning_contracts()
+        )
+
+        previous_analysis_plan: dict[str, Any] | None = None
+        previous_analysis_issues: list[str] = []
+        analysis_plan: AnalysisPlan | None = None
+
+        for attempt in range(1, 4):
+            analysis_payload: dict[str, Any] = {
+                "master_prompt": master_prompt,
+                "capability_manifest": capability_manifest,
+                "preregistration": preregistration.model_dump(),
+                "experiment_plan": experiment_plan.model_dump(),
+                "execution_manifest": execution_manifest,
                 "available_analysis_families": (
                     available_analysis_families
                 ),
-            },
-            expected_type=AnalysisPlan,
-            stage_name="Analysis planning",
-        )
+                "available_analysis_contracts": (
+                    available_analysis_contracts
+                ),
+            }
+
+            if previous_analysis_plan is not None:
+                analysis_payload[
+                    "rejected_previous_analysis_plan"
+                ] = previous_analysis_plan
+                analysis_payload[
+                    "deterministic_analysis_issues"
+                ] = previous_analysis_issues
+                analysis_payload[
+                    "repair_instruction"
+                ] = (
+                    "Repair every deterministic analysis compatibility "
+                    "failure while preserving the sealed preregistration. "
+                    "Use exact machine-readable identifiers from the "
+                    "selected available_analysis_contracts entry. Do not "
+                    "paraphrase estimand or failed-call-treatment "
+                    "identifiers."
+                )
+
+            candidate_analysis_plan = await run_agent(
+                ANALYSIS_PLANNER,
+                analysis_payload,
+                expected_type=AnalysisPlan,
+                stage_name=(
+                    "Analysis planning "
+                    f"attempt {attempt}"
+                ),
+            )
+
+            candidate_dict = (
+                candidate_analysis_plan.model_dump()
+            )
+
+            write_json(
+                analysis_attempts_dir
+                / (
+                    "analysis_plan_attempt_"
+                    f"{attempt:02d}.json"
+                ),
+                candidate_dict,
+            )
+
+            issues = analysis_compatibility_issues(
+                analysis_plan=candidate_dict,
+                execution_manifest=execution_manifest,
+            )
+
+            write_json(
+                analysis_attempts_dir
+                / (
+                    "analysis_plan_attempt_"
+                    f"{attempt:02d}_compatibility.json"
+                ),
+                {
+                    "compatible": not issues,
+                    "issues": issues,
+                },
+            )
+
+            if not issues:
+                analysis_plan = candidate_analysis_plan
+                break
+
+            previous_analysis_plan = candidate_dict
+            previous_analysis_issues = list(issues)
+
+        if analysis_plan is None:
+            report = create_failure_report(
+                passed_gates=[
+                    "execution_completed",
+                ],
+                failed_gate=(
+                    "The autonomous analysis planner could not "
+                    "produce an executor-compatible analysis plan "
+                    "after bounded repair attempts."
+                ),
+                final_state=(
+                    "AUTONOMOUS_ANALYSIS_PLAN_REPAIR_REQUIRED"
+                ),
+                warnings=previous_analysis_issues,
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "analysis_compatibility_issues": (
+                        previous_analysis_issues
+                    ),
+                },
+            )
+
+            return report
 
         write_json(
             run_dir
