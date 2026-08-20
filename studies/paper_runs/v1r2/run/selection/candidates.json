@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c4f9b2a7",
+      "title": "Quantify safety gains of a generate–verify–repair (GVR) pipeline with deterministic network validators",
+      "research_question": "Does interposing a deterministic network validator between LLM-generated configurations and deployment materially reduce unsafe/invalid configuration acceptance rates compared with LLM-only intent-to-configuration pipelines?",
+      "hypotheses": [
+        "H1: A GVR pipeline (generation → deterministic validation → automated repair suggestions) yields a lower proportion of configurations that would be flagged as unsafe/invalid by the validator than a direct LLM-to-apply baseline.",
+        "H2: The majority of validator-rejected cases from the baseline can be automatically repaired by the GVR loop within a bounded number of repair iterations (e.g., ≤3) without human intervention."
+      ],
+      "proposed_design": "Preregistered paired evaluation using a held-out corpus of 600 intent+state tasks (multi-vendor syntactic variants synthesized from public config examples). For each task: (1) baseline LLM produces a configuration; (2) GVR pipeline produces config, validator checks it, and repair loop invoked up to 3 iterations. Deterministic validator is a sandboxed static-check tool (validator outputs pass/fail + counterexample). Record acceptance by validator, number of repair iterations, and semantic correctness on replayed simulator. Baselines: (A) direct LLM output; (B) LLM with simple post-check (no repair). Fixed prompts, seeds, and retry policy. Metrics and stopping rules frozen prior to execution.",
+      "expected_data": "Per-task records: baseline validator-accept flag; GVR validator-accept flag; number of repairs; semantic-simulation pass/fail; per-task logs and hashes. Aggregate rates (acceptance, semantic pass) with CIs.",
+      "primary_outcome": "Absolute reduction in validator-accepted-but-unsafe (or validator-rejected) rate: proportion difference between baseline and GVR pipelines (validator acceptance + semantic simulation pass).",
+      "analysis_outline": "Paired proportion comparison (McNemar test) for validator acceptance; bootstrap 95% CIs for difference in semantic-pass rates; descriptive repair-iteration distribution; subgroup analysis by vendor-syntax and task complexity; report exact p-values and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7170714602",
+        "10.2139/ssrn.6754899",
+        "https://openalex.org/W4411015066"
+      ],
+      "feasibility_evidence_ids": [
+        "10.2139/ssrn.6754899",
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W7170714602"
+      ],
+      "risks": [
+        "Validator may not cover semantic runtime failures (false negatives) leading to overestimated safety gains.",
+        "Synthesized tasks could bias toward repairable errors, inflating effectiveness.",
+        "Model- or API-rate limits could cause experiment truncation; preregistered retry policy required."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "d1e3c5f2",
+      "title": "Measure prevalence and taxonomy of tool-execution hallucinations in agentic NetOps pipelines",
+      "research_question": "How often do NetOps-capable agents (LLM-orchestrated tool-calling workflows) select incorrect tools, call tools with malformed arguments, or misinterpret deterministic tool outputs (tool-execution hallucinations), and what are the dominant failure modes?",
+      "hypotheses": [
+        "H1: Tool-execution hallucinations occur at non-negligible rates (>5%) in unguarded agent pipelines across realistic NetOps tasks.",
+        "H2: Failures cluster into a small set of categories (wrong-tool selection, malformed-args, misparsed outputs) that can be reliably labelled and quantified."
+      ],
+      "proposed_design": "Construct an agentic tool-playground that exposes three deterministic NetOps tools (state-query, syntax-check, sandbox-apply) with instrumented, canonical interfaces. Use a corpus of 800 natural-language intents across common NetOps actions. Run multiple agent orchestration strategies (plain LLM agent, LLM+prompted tool-selection clarifier) under fixed seeds. Log tool selection, arguments, tool outputs, and agent interpretation. Human annotation of failures on a randomly sampled subset for taxonomy validation; rest auto-labeled via deterministic heuristics. Preregister failure definitions and annotation protocol.",
+      "expected_data": "Per-call logs: intended tool vs selected tool, arguments, tool output, agent follow-up action, annotated failure label (sample). Aggregate counts and per-task rates by failure category.",
+      "primary_outcome": "Measured rate (%) of tool-execution hallucinations (any defined failure) per agent run, with taxonomy breakdown and 95% CIs.",
+      "analysis_outline": "Compute overall failure rate and category proportions with binomial CIs; compare agent variants using proportion tests (chi-squared or Fisher exact as appropriate); inter-annotator agreement (Cohen’s kappa) on taxonomy labels; error-case examples and rooted-failure analysis.",
+      "novelty_evidence_ids": [
+        "10.36227/techrxiv.177219979.94060974/v1",
+        "https://openalex.org/W7161915107"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161915107",
+        "10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Human annotation bottleneck could limit taxonomy validation size; automated heuristics may mislabel edge cases.",
+        "Results depend on chosen tool interface design, reducing generalizability.",
+        "Model-call budget and API variability may affect repeatability."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "b8a7f91c",
+      "title": "Evaluate canary+rollback scoring effectiveness for preventing propagation of erroneous agentic NetOps changes",
+      "research_question": "Does integrating canary deployment scoring (automated verification on limited-scope canaries plus rollback triggers) reduce the rate of full-network propagation of erroneous changes introduced by LLM-generated configurations compared with no-canary deployments?",
+      "hypotheses": [
+        "H1: Canary+rollback reduces propagated-error incidence (full-deployment semantic failures) compared with direct full deployment.",
+        "H2: A simple canary success threshold (e.g., zero critical alerts over N minutes/replay checks) yields a measurable tradeoff between safety and deployment latency."
+      ],
+      "proposed_design": "Simulated topology testbed with replayable traffic traces (public trace-derived or synthesized) and 400 intent-driven change tasks. Two pipelines: (A) naive full-apply of LLM-produced config; (B) staged canary apply on subset of nodes + automated verification window + rollback policy. Use deterministic simulation/emulation to detect semantic failures after apply. Predefine canary thresholds and latency metrics. Record propagated failures, false positive rollbacks, and deployment times.",
+      "expected_data": "Per-task: canary pass/fail, rollback events, final propagated-failure flag, latency to deploy, false-rollbacks. Aggregates for safety vs latency tradeoff curves.",
+      "primary_outcome": "Relative reduction in propagated failures (proportion) for canary pipeline vs naive full-apply, with associated deployment-latency cost.",
+      "analysis_outline": "Compare proportions with two-sided proportion tests and bootstrap CIs; ROC-style curve of canary threshold vs propagated-failure rate and false-rollback rate; cost-benefit summary (safety gain per unit latency).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7170714602",
+        "10.2139/ssrn.6476019",
+        "https://openalex.org/W4411015066"
+      ],
+      "feasibility_evidence_ids": [
+        "10.2139/ssrn.6476019",
+        "https://openalex.org/W7170714602",
+        "10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "risks": [
+        "Simulation fidelity may misestimate real-world canary signal quality.",
+        "Choice of canary subset and thresholds may be operator-specific; results may not generalize.",
+        "Time-window selection could bias latency/safety tradeoffs."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "9d2e6b4f",
+      "title": "Create and evaluate a public multi-vendor intent→configuration dataset to assess LLM generalization and failure modes",
+      "research_question": "Can a publicly releasable, synthetic yet operator-realistic multi-vendor intent-to-configuration dataset expose LLM generalization failures and support reproducible evaluation of NetOps pipelines?",
+      "hypotheses": [
+        "H1: A curated dataset containing multi-vendor syntax variants, topology contexts, and labeled failure scenarios will reveal systematic generalization gaps in current LLMs (e.g., vendor-specific syntax errors, constraint violations).",
+        "H2: Benchmarking LLMs and GVR pipelines on this dataset will produce reproducible, falsifiable metrics that differentiate model+pipeline combinations."
+      ],
+      "proposed_design": "Assemble a 1,000-task dataset by adapting public vendor configuration examples, operator intent templates, and injected failure scenarios (constraint conflicts, missing routes, ACL mistakes). Provide machine-readable state snapshots and oracle-correct configs. Release dataset with provenance and privacy filters. Evaluate several LLM prompting strategies and a representative GVR pipeline on the dataset; record syntactic correctness, validator acceptance, and semantic simulation pass. Preregister dataset schema, inclusion/exclusion rules, and evaluation metrics.",
+      "expected_data": "Dataset artifacts (intent, state, ground-truth config), evaluation logs for each model/pipeline run, and aggregated metrics for syntactic/semantic correctness and validator acceptance.",
+      "primary_outcome": "Benchmark score suite (syntactic accuracy, validator-pass rate, semantic-pass rate) for models/pipelines; dataset release with reproducibility artifacts.",
+      "analysis_outline": "Report descriptive dataset statistics; compare model/pipeline scores with ANOVA or nonparametric tests across groups; item-level analysis to identify failure pattern frequencies; release reproducible scripts and hashes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4400611559",
+        "doi:10.2139/ssrn.6816161"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7125775240",
+        "10.2139/ssrn.6754899",
+        "https://openalex.org/W4400611559"
+      ],
+      "risks": [
+        "Licensing or provenance issues around public vendor examples—mitigate via synthetic derivation and attribution.",
+        "Dataset may leak sensitive operator patterns if not properly sanitized.",
+        "Synthetic tasks may not capture all production complexities, limiting external validity."
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}

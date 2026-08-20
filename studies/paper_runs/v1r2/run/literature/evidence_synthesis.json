@@ -1,0 +1,176 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Large language models (LLMs) frequently produce fluent but incorrect or unjustified assertions (hallucinations / confabulations), a systematic failure mode documented across domains and surveys.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6504272",
+        "https://openalex.org/W4413800076",
+        "doi:10.3390/computers14080332"
+      ],
+      "evidence_type": "Survey / empirical analyses",
+      "confidence": 0.95,
+      "limitations": [
+        "Most sources are surveys, preprints, or controlled experiments; failure rates vary by model, prompt, and grounding data."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Prompt-injection vectors and clarification-seeking interactions substantially increase vulnerability of LLM agents to adversarial manipulation in agentic/tool-using settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W7161915107",
+        "https://doi.org/10.36227/techrxiv.176551675.52333626/v1"
+      ],
+      "evidence_type": "Empirical benchmark and review",
+      "confidence": 0.9,
+      "limitations": [
+        "Attack success depends on agent interface, retrieval/RAG design, and defense layers; exact amplification varies by model and scenario."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Generate–verify–repair (GVR) or generate–validate–repair architectures that interpose deterministic verifiers between stochastic generation and acceptance improve detection of mechanically verifiable faults in generated artifacts (demonstrated in code and proposed for high-assurance domains).",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6754899",
+        "https://openalex.org/W4406779522"
+      ],
+      "evidence_type": "Methodological study / case evidence",
+      "confidence": 0.85,
+      "limitations": [
+        "Primary empirical demonstrations are in code-generation or single-case studies; direct results for network-configuration pipelines are proposed but limited."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "LLM-based intent-to-configuration translation is feasible in controlled evaluations; fine-tuning / PEFT and in-context learning can produce deployable configuration templates in experimental settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7125775240",
+        "10.1002/nem.2313",
+        "https://openalex.org/W4400611559"
+      ],
+      "evidence_type": "Empirical / system papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are dataset- or exercise-based (e.g., Cisco exercises); generalization to heterogeneous production vendors, topologies, and constraints is not established."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Operational reliability of agentic NetOps depends critically on surrounding infrastructure (validators, simulators/sandboxes, canary/rollback policies, audit trails), not on the base LLM alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "10.2139/ssrn.6476019",
+        "10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "Survey / architectural proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Architectural recommendations are well-motivated across literature but comprehensive, large-scale production evidence remains limited."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Common LLM benchmarks have external-validity limitations and user-skill dependence; benchmark scores alone poorly predict real-world operational reliability.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6816161",
+        "https://openalex.org/W4413016958"
+      ],
+      "evidence_type": "Theoretical / empirical critique",
+      "confidence": 0.85,
+      "limitations": [
+        "Benchmarks vary widely; some domain-specific evaluation frameworks exist but no single accepted NetOps benchmark with high external validity is established in the supplied records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent can GVR-style pipelines combined with deterministic network validators (e.g., Batfish/NetPlumber/Veriflow) produce production-grade, near-zero-defect automated NetOps changes at scale?",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6754899",
+        "10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "Open empirical question (supported by method-transfer evidence)",
+      "confidence": 0.5,
+      "limitations": [
+        "GVR evidence is mainly from code-generation or small-case demonstrations; supplied NetOps papers propose similar pipelines but do not provide large-scale production trials."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How prevalent and severe are tool-execution-specific hallucinations (agent selecting/calling wrong tool or misinterpreting tool output) in NetOps agent pipelines, and how best to benchmark them?",
+      "evidence_record_ids": [
+        "10.36227/techrxiv.177219979.94060974/v1",
+        "https://openalex.org/W7161915107"
+      ],
+      "evidence_type": "Emerging taxonomy / benchmark need",
+      "confidence": 0.45,
+      "limitations": [
+        "Taxonomies and initial analyses exist, but domain-specific quantitative measures for NetOps are not supplied."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What human-in-the-loop governance patterns reliably prevent operator approval from becoming a mere liability ceremony in high-throughput agentic NetOps workflows?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W7162893770"
+      ],
+      "evidence_type": "Governance / sociotechnical question",
+      "confidence": 0.6,
+      "limitations": [
+        "Conceptual and survey literature highlight risks; empirical, context-specific NetOps studies demonstrating effective HITL designs are not provided in the record set."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "Lack of workflow-centered evaluation suites for agentic NetOps that combine (1) realistic intent+state prompts, (2) sandbox replay, (3) deterministic validator integration, (4) canary/rollback scoring, and (5) audit-trace checks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4411015066",
+        "doi:10.2139/ssrn.6476019"
+      ],
+      "evidence_type": "Methodological gap identified in surveys and system papers",
+      "confidence": 0.75,
+      "limitations": [
+        "Individual components are discussed across records but an integrated public benchmark/testbed combining them for NetOps is not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Insufficient publicly available, operator-realistic datasets for intent-to-configuration tasks covering multi-vendor syntaxes, topology variability, constraints, and failure scenarios.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4400611559",
+        "doi:10.2139/ssrn.6816161"
+      ],
+      "evidence_type": "Data gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Some experimental datasets and adapted exercise sets exist, but broad multi-vendor, large-scale datasets (with provenance and failure labels) are not evident among supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Need for integrated, privacy-preserving, auditable Explainable Audit Trail (EAT) designs tailored to agentic NetOps that balance provenance, operator privacy, and external auditability.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6476019",
+        "10.2139/ssrn.7046079",
+        "10.2139/ssrn.6103587"
+      ],
+      "evidence_type": "Architectural / governance gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Proposals exist for secure EATs and zero-knowledge verification, but end-to-end implementations for NetOps with evaluated privacy/audit tradeoffs are not present in the supplied set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous NetOps without validators, canaries, or human oversight (unsupported by supplied records).",
+    "LLMs achieve negligible hallucination rates in NetOps out-of-the-box (no supplied empirical evidence).",
+    "Any single supplied record demonstrates large-scale, production deployment proving safety of autonomous NetOps agents (no such production trial is provided)."
+  ]
+}

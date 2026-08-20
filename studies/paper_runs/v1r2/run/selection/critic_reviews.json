@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c4f9b2a7",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Deterministic validator coverage may miss runtime semantic failures (false negatives).",
+        "Synthesized tasks risk biasing toward repairable errors, inflating effect size.",
+        "Repair heuristics underspecified; could leak human tuning post-hoc.",
+        "Simulator fidelity for semantic correctness not fully justified."
+      ],
+      "required_design_repairs": [
+        "Select and document a concrete validator (e.g., Batfish/Veriflow) and its coverage limits.",
+        "Specify repair algorithms precisely and freeze them in preregistration.",
+        "Strengthen dataset realism (multi-vendor syntax, diverse failure types) and justify synthesis rules.",
+        "Include semantic runtime replay tests with documented fidelity and failure-mode mapping.",
+        "Predefine seeds, retry policy, and hash-all artifacts for reproducibility."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "d1e3c5f2",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Results highly sensitive to instrumented tool API design—limits generalizability.",
+        "Human annotation bottleneck may undermine statistical claims if underspecified.",
+        "Automated heuristics for failure labelling risk systematic misclassification."
+      ],
+      "required_design_repairs": [
+        "Define canonical, minimal deterministic tool interfaces and publish schemas.",
+        "Pre-register annotation protocol, sample sizes, and inter-annotator agreement targets.",
+        "Reserve sufficient human-annotation budget or calibrate heuristics against a held-out validated sample.",
+        "Include multiple agent orchestration variants and seed control to test sensitivity."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "b8a7f91c",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Simulation/canary signal fidelity may not reflect production observability.",
+        "Canary subset selection and thresholding are operator-specific and can drive results.",
+        "Latency-safety tradeoffs depend on time-window choices—risk of cherry-picking."
+      ],
+      "required_design_repairs": [
+        "Provide justification and validation of the simulation/emulation fidelity (compare to public traces or prior studies).",
+        "Pre-register canary selection heuristics and multiple threshold sweep for sensitivity analysis.",
+        "Define false-rollback cost model and include it in the analysis.",
+        "Report deployment-latency distribution and not only mean/aggregate metrics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "9d2e6b4f",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Legal/provenance and potential leakage risks from vendor example adaptation.",
+        "Synthetic realism may not capture production constraint interactions.",
+        "Dataset scope (1,000 tasks) may be insufficient to support broad generalization claims."
+      ],
+      "required_design_repairs": [
+        "Provide a clear provenance, licensing, and sanitization pipeline; document transformations applied to source configs.",
+        "Increase task diversity or stratify dataset by difficulty/vendor and justify chosen sizes.",
+        "Include baseline runs and validation by domain experts to demonstrate dataset utility.",
+        "Publish dataset schema, evaluation scripts, and hashes to ensure reproducibility."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
