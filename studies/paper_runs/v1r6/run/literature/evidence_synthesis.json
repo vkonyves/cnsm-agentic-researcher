@@ -1,0 +1,256 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Research prototypes and studies demonstrate that large language models can be used to translate high-level network intent or natural-language requirements into low-level network configurations or configuration-generating code.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "Prototype / Experimental Study",
+      "confidence": 0.85,
+      "limitations": [
+        "Most works report prototypes or limited-scope evaluations rather than large-scale production deployments.",
+        "Heterogeneity of evaluated tasks and lack of standard operational benchmarks limit cross-study comparability."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Agentic and tool-augmented architectures (e.g., retrieval-augmented generation, Model Context Protocol / MCP, multi-agent orchestration with simulation checks) are proposed and prototyped to combine LLM generation with validation and human-in-the-loop checks for network changes.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.2139/ssrn.7138608"
+      ],
+      "evidence_type": "Architectural Proposal / Prototype",
+      "confidence": 0.8,
+      "limitations": [
+        "Proposals emphasize human oversight and simulator/validator gating; few works report fully autonomous, validated deployment.",
+        "Performance claims (latency, success rates) are from resource-constrained or laboratory settings and may not generalize."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Formal verification and reachability-analysis tools and synthesis systems (e.g., Propane/AT, AWS reachability tools) exist and are used to reason about network configuration correctness, policy compliance, and connectivity properties.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2725434906",
+        "https://openalex.org/W2962604136"
+      ],
+      "evidence_type": "Formal-methods / Industrial Case Study",
+      "confidence": 0.9,
+      "limitations": [
+        "These tools target specific properties (e.g., BGP policy, cloud reachability) and may not cover all NetOps semantics (vendor CLIs, device-specific behaviors).",
+        "Scaling to very large, heterogeneous networks can require abstraction and may lose concrete-device detail."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Constrained-generation and grammar-constrained decoding techniques and query languages (e.g., grammar-constrained decoding, LMQL) provide practical mechanisms to enforce structured, schema-conformant outputs from LLMs without full model fine-tuning.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W4367185264"
+      ],
+      "evidence_type": "Methodological / Systems Work",
+      "confidence": 0.82,
+      "limitations": [
+        "Demonstrations are on structured NLP/code tasks; direct evaluation on vendor-specific network CLI generation is limited in the supplied records.",
+        "Constraint enforcement reduces but does not eliminate semantic errors that require domain validation."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Iterative self-critique and repair workflows for LLM agents improve repair and debugging outcomes in non-network engineering domains (e.g., Simulink model repair, program-repair paradigms), suggesting a transferable pattern for NetOps configuration repair workflows.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "doi:10.20944/preprints202510.0587.v1",
+        "https://openalex.org/W4385572867"
+      ],
+      "evidence_type": "Empirical / Method Transfer Evidence",
+      "confidence": 0.7,
+      "limitations": [
+        "Evidence of success is from other engineering domains (Simulink, program repair); direct empirical validation on network configuration artifacts is not present in the supplied records.",
+        "Network configs involve device semantics and runtime effects that may complicate repair compared with textual/model-repair tasks."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Community literature and surveys identify safety, trustworthiness, verification/validation, and agent failure modes as central concerns for LLM-based autonomous systems, motivating verifier-assisted pipelines, runtime monitoring, and human oversight.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4393065402",
+        "doi:10.2139/ssrn.6572478"
+      ],
+      "evidence_type": "Survey / Taxonomy",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize broad challenges but do not by themselves quantify mitigation efficacy in NetOps-specific experiments.",
+        "Rapidly evolving literature means new mitigation techniques may emerge after these surveys."
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Network emulation and simulation platforms (Mininet, Mininet-WiFi, ns-3) are established evaluation environments that are commonly used to validate network configurations and to test automation workflows in controlled settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W3005228016",
+        "https://openalex.org/W3094502228"
+      ],
+      "evidence_type": "Tooling / Evaluation Practice",
+      "confidence": 0.9,
+      "limitations": [
+        "Emulation/simulation may not capture all vendor-specific behaviors or real-world operational heterogeneity.",
+        "Scale and fidelity trade-offs exist between emulators (Mininet) and simulators (ns-3)."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-based intent-to-configuration pipelines perform across diverse, real-world vendor CLIs, protocols, and complex topologies in production environments?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "Gap Identified by Prototypes and Surveys",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing prototypes show feasibility in constrained settings; surveys flag the production-readiness gap but do not quantify cross-vendor reliability."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do constrained-generation techniques (grammar constraints, LMQL) plus formal verification suffice to prevent unsafe or out-of-spec network changes in end-to-end workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W4367185264",
+        "https://openalex.org/W2725434906"
+      ],
+      "evidence_type": "Method-combination Question",
+      "confidence": 0.7,
+      "limitations": [
+        "A principled empirical evaluation combining these components on network-device semantics is not present in the provided records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Do iterative self-critique and repair loops for LLM agents converge to correct network configurations as reliably as they do in other engineering domains, and what bounds or stopping criteria are appropriate for NetOps?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "doi:10.20944/preprints202510.0587.v1",
+        "https://openalex.org/W4385572867"
+      ],
+      "evidence_type": "Transferability / Convergence Question",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing empirical evidence for iterative repair is domain-specific; network-side convergence properties are untested in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What benchmark(s) and task definitions best capture operational correctness, safety, and trustworthiness for LLM-driven NetOps (beyond intent-to-config accuracy), including runtime verification and rollback semantics?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "Benchmarking / Evaluation Question",
+      "confidence": 0.8,
+      "limitations": [
+        "NetConfEval and related works propose tasks but do not fully cover runtime/execution safety properties and rollback behaviors."
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "How robust are LLM-based NetOps pipelines to adversarial or malformed intents and to distribution shifts (e.g., unseen vendor commands, policy updates)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4404239715",
+        "https://openalex.org/W4406928793"
+      ],
+      "evidence_type": "Robustness / Security Question",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys flag adversarial risk and robustness issues broadly; direct adversarial evaluations specific to network-config generation are sparse in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Absence of standardized, operationally grounded benchmarks that measure end-to-end safety: generation -> formal verification -> emulation execution -> human-approval latency and rollback costs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W3005228016"
+      ],
+      "evidence_type": "Benchmarking Gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Some task suites (e.g., NetConfEval) exist but do not implement integrated verification+execution+approval metrics across vendors and runtime."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Limited empirical evaluations that combine constrained-decoding, formal verification, and emulation execution to measure practical false-negative/false-positive rates for unsafe changes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W2725434906",
+        "https://openalex.org/W2479024932"
+      ],
+      "evidence_type": "Integration Evaluation Gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Individual components have been studied; integrated pipeline evaluations on representative network stacks are not evident in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Scarcity of public, large-scale, vendor-annotated configuration corpora and mutation-based fault benchmarks tailored for LLM-driven config generation and repair.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W3094502228"
+      ],
+      "evidence_type": "Data Gap",
+      "confidence": 0.82,
+      "limitations": [
+        "Some datasets and benchmarks exist for related tasks, but publicly available, curated corpora with device-vendor labels and fault-injection protocols are limited in the provided set."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Need for empirically validated operator-in-the-loop protocols: how much human review is needed at which pipeline stages to achieve acceptable operational risk?",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "Human-Operator Protocol Gap",
+      "confidence": 0.77,
+      "limitations": [
+        "Proposals stress human oversight but do not quantify operator burden versus risk reduction in representative NetOps workflows."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Limited study of adversarial testing methods specifically targeting network-config generation and validators (attacks that produce plausible-but-unsafe configs that evade checkers).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4404239715"
+      ],
+      "evidence_type": "Security Evaluation Gap",
+      "confidence": 0.74,
+      "limitations": [
+        "Adversarial robustness is discussed in surveys; concrete, published adversarial benchmarks targeting NetOps pipelines are not present among supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are currently production-ready to autonomously manage and deploy network configurations end-to-end without human oversight (unsupported by the supplied prototype/survey records).",
+    "There is conclusive evidence that iterative self-repair loops for LLMs achieve production-grade correctness on network device configurations (no direct NetOps-specific convergence evidence in supplied records).",
+    "Grammar-constrained decoding or LMQL alone guarantees semantic correctness of device-specific configurations without additional verification or execution testing (no integrated-evaluation evidence supplied)."
+  ]
+}

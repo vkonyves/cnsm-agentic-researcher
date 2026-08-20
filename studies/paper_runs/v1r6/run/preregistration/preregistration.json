@@ -1,0 +1,69 @@
+{
+  "study_id": "c3d4f581",
+  "title": "NetOps Safety Testbed v1 — Integrated Generation→Verify→Emulate Benchmark (Preregistration)",
+  "research_question": "Can a compact, public NetOps safety testbed combining intent-to-config generation, grammar-constrained decoding, formal verification, and emulation-execution metrics provide reproducible baseline measurements and expose recurrent failure modes of LLM-driven NetOps pipelines?",
+  "confirmatory_hypotheses": [
+    "H1: Constrained-decoding + verifier gating reduces the per-intent unsafe-change rate (absolute) by ≥10 percentage points compared with single-shot prompting (paired estimand).",
+    "H2: Iterative verifier-guided repair decreases residual unsafe-change rate relative to single-shot generation, but with diminishing returns after K=2 repair iterations; recurrent failure patterns will concentrate in a small set of categories (vendor-syntax, missing state, policy-violation)."
+  ],
+  "exploratory_questions": [
+    "E1: Which failure categories dominate across vendor clusters and prompting methods?",
+    "E2: How often do verifier false negatives (unsafe change accepted) occur compared with emulator-observed unsafe outcomes?",
+    "E3: What is the distribution of model-call cost vs. residual unsafe rate for the iterative repair method (cost-effectiveness frontier)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W3094502228",
+    "https://openalex.org/W2479024932",
+    "https://openalex.org/W4389520385"
+  ],
+  "benchmark_scope": [
+    "Synthetic, sanitized, multi-vendor intent set (abstracted CLI templates for four vendor-clusters: vendorA, vendorB, vendorC, vendorD).",
+    "End-to-end pipeline: generation → grammar/LMQL constraint → formal verifier (reachability + policy) → Mininet emulation execution → automatic rollback-cost metric.",
+    "Public artifacts limited to synthetic, redacted, template-based command sequences and machine-readable evaluation scripts (no real customer data)."
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint available under the run capability.",
+    "Three prompting strategies applied to the hosted LLM: (1) single-shot baseline, (2) constrained-decoding (grammar/LMQL wrapper), (3) iterative verifier-guided repair (bound K=2)."
+  ],
+  "transformation_scope": [
+    "Intent → reference-config mapping via deterministic template expansion (synthetic state parameters).",
+    "Grammar-constrained decoding (LMQL-like) to enforce CLI token-level schema.",
+    "Automatic sanitizer transforming any detected sensitive tokens into abstract placeholders during dataset generation and output sanitization."
+  ],
+  "primary_estimand": "Paired per-intent difference in unsafe-change indicator (unsafe after emulation execution) between constrained-decoding (method 2) and single-shot baseline (method 1).",
+  "secondary_estimands": [
+    "Per-method residual unsafe rate after verifier gating (proportion of emulation runs producing unsafe outcome).",
+    "Average model-calls per successful safe configuration (cost-effectiveness).",
+    "Distribution (frequency) of failure categories across vendor clusters."
+  ],
+  "sampling_plan": "Total 240 synthetic intents: 200 confirmatory intents (50 per vendor-cluster) + 40 exploratory/adversarial intents. For each intent, run three methods (methods 1–3). Per-intent per-method replicates: 3 seeded stochastic generations. Iterative method (method 3) allowed up to K=2 repair iterations; per-replicate model-call usage recorded. All intents and RNG seeds recorded; synthetic templates sanitized to remove any identifying tokens. Flagged/public-release exclusions deterministically replaced from the same template seed pool to preserve confirmatory n=200.",
+  "power_and_precision_plan": "Primary estimand power target: detect absolute paired reduction Δ=0.10 with α=0.05, power≈0.8. Assumptions: baseline single-shot unsafe≈20%; paired n=200 confirmatory intents chosen based on conservative paired/paired-equivalent approximation (sample-size calc ≈196). Per-intent replicates collapsed via logical OR to a single per-method unsafe indicator. Sensitivity analyses: recompute CIs under baseline rates 15% and 25%; per-cluster exploratory estimates reported with wider CIs. Nonconvergent iterative runs counted as unsafe (conservative) and alternate available-pair sensitivity reported.",
+  "exclusion_rules": [
+    "Exclude any synthetic intent or generated output that fails the sanitization regex checks (IP, domain, email, credential-like patterns) from public release; deterministic replacement intent drawn to maintain confirmatory sample size.",
+    "Exclude any generated config that fails grammar parse or contains unresolved redaction placeholders from public artifact set; include such replicates in internal logs only for diagnostic analysis.",
+    "If a replicate suffers infrastructure/API technical failure (API error, timeout) the replicate is marked technical-failure and excluded from primary paired analysis as specified in missingness_plan; counts and reasons published."
+  ],
+  "missingness_plan": "Model/API errors or timeouts recorded as 'technical failure' and excluded from primary confirmatory analysis; counts and causes published. For iterative-method runs aborted by infrastructure failure, the affected per-intent replicate is marked missing and the entire intent replicate excluded from paired primary analysis; publish sensitivity analysis using available-pair approach. No human imputation or manual annotation. All exclusions and replacements are deterministic and logged with hashes.",
+  "analysis_plan": "Primary analysis: per-intent paired comparison (method2 vs method1) of binary unsafe indicator (emulation result) using McNemar's test (two-sided, α=0.05); report exact p-value and 95% CI for paired risk difference. Collapse 3 replicates per intent by logical OR to form per-method unsafe indicator; nonconvergent iterative runs counted as unsafe in primary analysis. Secondary analyses: per-method residual unsafe rates with binomial CIs, model-calls per safe outcome and cost-effectiveness frontier, contingency tables of failure categories by vendor cluster, descriptive verifier FP/FN rates (verifier vs emulation). All analyses computed deterministically by published code; exploratory tests reported unadjusted and labeled exploratory. Pre-specified sensitivity analyses per power_plan are executed and reported.",
+  "multiplicity_plan": "Primary confirmatory test is the single pre-specified paired comparison (controls multiplicity for main claim). Secondary and exploratory analyses are labeled exploratory; unadjusted p-values reported. When multiple secondary comparisons are presented, Bonferroni-adjusted p-values provided in published auxiliary artifacts (appendix).",
+  "contamination_plan": "{\"benchmark_names\": [\"NetOps Safety Testbed v1\"], \"risk_factors\": [\"Leakage of realistic/identifying command tokens in released artifacts.\", \"Dataset contamination by unintentionally reusing real-world vendor-specific payloads.\", \"Adversarially constructed intents that could be misused if too detailed.\"], \"detection_procedures\": [\"Regex scanners for IPs, domains, emails, UUIDs; automatic redaction triggers.\", \"Entropy/token-pattern heuristics to flag credential-like strings.\", \"Deterministic provenance tags embedded in every synthetic artifact; mismatches reject release.\"], \"item_flagging_rules\": [\"Regex match → redact tokens and replace with placeholders before release.\", \"Missing/malformed provenance tag → exclude artifact from public release (quarantine).\", \"Generated outputs containing vendor CLI tokens not in sanitized template vocabulary → exclude that replicate from public release; retain in internal logs for analysis only.\"], \"analysis_treatment\":\"Flagged items excluded from public confirmatory set; deterministic replacements drawn to preserve sample size. All sanitization/redaction steps recorded and published.\", \"residual_uncertainty\": [\"Sanitized synthetic templates may not perfectly reflect production CLI richness.\", \"Automated detectors may have false negatives for novel sensitive formats.\"]}",
+  "stopping_rule": "Stop conditions (apply during execution): (1) stop the run if cumulative model calls reach the planned model-call budget for the selected scenario plus 5% buffer (recommended_full planned_model_calls=2880 → hard stop at 3024 calls). (2) stop and abort confirmatory run if infrastructure/API outage prevents progress for >24 continuous hours; record as technical failure and report. (3) stop early and switch to contingency minimal scenario if >15% of confirmatory intents require deterministic replacement due to contamination/sanitization (indicates template pool insufficiency); document and publish rationale and replacement protocol. (4) safety stop: if any generated config produces an emulator-observed outcome outside the defined emulation safety envelope that could indicate emulator or verifier bug (not intended in synthetic scope), pause and investigate before proceeding; document any deviation.",
+  "planned_outputs": [
+    "Final preregistration JSON and human-readable preregistration text (this document).",
+    "Full experiment code and Dockerized testbed with exact dependency versions and deterministic seeds.",
+    "Synthetic intent templates, deterministic seed pool, and sanitized public dataset artifacts.",
+    "Prompt templates and LMQL-style grammar wrappers used for constrained decoding.",
+    "Raw model outputs, verifier outputs, emulation logs, and all intermediate artifacts (public subset redacted per contamination_plan).",
+    "Execution manifest with model-call counts, RNG seeds, timestamps, and hashes for all published artifacts.",
+    "Statistical-results code and output (analysis scripts, test results, CIs, p-values).",
+    "Failure-analysis record and failure-mode taxonomy.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE-format LaTeX manuscript source and BibTeX bibliography (≤5 pages including Disclosure Statement).",
+    "Compiled PDF manuscript (≤5 pages) and Disclosure Statement embedded.",
+    "Autonomous revision log, methodological and statistical-consistency reviews, reference-integrity review outputs.",
+    "NotebookLM-style concise presentation brief for post-acceptance use.",
+    "Final-output hash manifest and reproducible-run instructions."
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,155 @@
+{
+  "selected_candidate_id": "c3d4f581",
+  "title": "NetOps Safety Testbed v1 — Integrated Generation→Verify→Emulate Benchmark (Preregistration)",
+  "research_question": "Can a compact, public NetOps safety testbed combining intent-to-config generation, grammar-constrained decoding, formal verification, and emulation-execution metrics provide reproducible baseline measurements and expose recurrent failure modes of LLM-driven NetOps pipelines?",
+  "confirmatory_hypotheses": [
+    "H1: Constrained-decoding + verifier gating reduces the per-intent unsafe-change rate (absolute) by ≥10 percentage points compared with single-shot prompting (paired estimand).",
+    "H2: Iterative verifier-guided repair decreases residual unsafe-change rate relative to single-shot generation, but with diminishing returns after K=2 repair iterations; recurrent failure patterns will concentrate in a small set of categories (vendor-syntax, missing state, policy-violation)."
+  ],
+  "exploratory_questions": [
+    "E1: Which failure categories dominate across vendor clusters and prompting methods?",
+    "E2: How often do verifier false negatives (unsafe change accepted) occur compared with emulator-observed unsafe outcomes?",
+    "E3: What is the distribution of model-call cost vs. residual unsafe rate for the iterative repair method (cost-effectiveness frontier)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic, sanitized, multi-vendor intent set (abstracted CLI templates for four vendor-clusters: vendorA, vendorB, vendorC, vendorD).",
+    "End-to-end pipeline: generation → grammar/LMQL constraint → formal verifier (reachability + policy) → Mininet emulation execution → automatic rollback-cost metric.",
+    "Public artifacts limited to synthetic, redacted, template-based command sequences and machine-readable evaluation scripts (no real customer data)."
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint available under the run capability (hosted_model_api_available).",
+    "Three prompting strategies applied to the hosted LLM: (1) single-shot baseline, (2) constrained-decoding (grammar/LMQL wrapper), (3) iterative verifier-guided repair (bound K=2)."
+  ],
+  "transformation_scope": [
+    "Intent → reference-config mapping via deterministic template expansion (synthetic state parameters).",
+    "Grammar-constrained decoding (LMQL-like) to enforce CLI token-level schema.",
+    "Automatic sanitizer transforming any detected sensitive tokens into abstract placeholders during dataset generation and output sanitization."
+  ],
+  "primary_estimand": "Paired per-intent difference in unsafe-change indicator (unsafe after emulation execution) between constrained-decoding (method 2) and single-shot baseline (method 1).",
+  "secondary_estimands": [
+    "Per-method residual unsafe rate after verifier gating (proportion of emulation runs producing unsafe outcome).",
+    "Average model-calls per successful safe configuration (cost-effectiveness).",
+    "Distribution (frequency) of failure categories across vendor clusters."
+  ],
+  "sampling_plan": "Intent corpus: total 240 synthetic intents (200 confirmatory intents, 40 exploratory/adversarial intents). Confirmatory intents: balanced across four vendor-clusters (50 intents per cluster). For each intent we run three prompting strategies (methods 1–3). Per-intent per-method stochastic replicates: 3 independent generations (seeded). For iterative method (method 3) we allow up to K=2 repair iterations; average expected extra model calls per replicate assumed =1 (initial + avg 1 repair). Execution summary: total intents 240; confirmatory_items=200; discovery_items=40; task_cluster_count=4. Exact intent selection rules: all intents are synthetic, generated from abstracted templates with randomized but bounded parameters; inclusion excludes any template yielding direct-identifying tokens (IPs, customer names) via sanitization check. All seeds, template seeds, and generation RNGs will be recorded and published.",
+  "analysis_plan": "Primary analysis: paired comparison of unsafe-change proportions (per-intent paired indicator: unsafe after emulation for method A vs method B) between constrained-decoding and single-shot baseline using McNemar's test (paired binary outcomes) with alpha=0.05; report exact two-sided p-value and 95% confidence interval for paired risk difference. Secondary analyses: estimate residual unsafe rates (binomial CIs) per method; cost-effectiveness curves (model calls per safe outcome); failure-mode frequency counts and per-cluster contingency tables. Exploratory analyses: verifier false-negative rate (verifier accepted but emulation unsafe) and verifier false-positive rate (verifier rejected but emulation safe) reported descriptively. All tests and intervals computed with deterministic code (no manual adjudication). Pre-specified handling for nonconvergence (iterative method reaching K without verifier acceptance): count as 'nonconvergent' and include in intention-to-evaluate primary estimand as unsafe (conservative). All raw logs and hashes will be published.",
+  "multiplicity_plan": "Primary confirmatory hypothesis: single pre-specified paired comparison (constrained-decoding vs single-shot) — controls multiplicity for the main claim. Secondary and exploratory tests are explicitly labeled exploratory; report unadjusted p-values and effect sizes. Where multiple secondary comparisons are reported, report Bonferroni-adjusted p-values in an appendix artifact.",
+  "missingness_plan": "All failures to obtain model output (API error, timeout) are recorded as 'technical failure' and excluded from primary scientific analysis after transparent reporting; counts of excluded cases and reasons published. For iterative method runs aborted by infrastructure failure, the paired outcomes for that intent-method replicate will be marked missing and the whole intent replicate excluded from paired primary analysis; a sensitivity analysis using available-pair analysis will be reported. No human imputation or manual annotation is used.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "NetOps Safety Testbed v1"
+    ],
+    "risk_factors": [
+      "Leakage of realistic/identifying command tokens in released artifacts.",
+      "Dataset contamination by unintentionally reusing real-world vendor-specific payloads.",
+      "Adversarially constructed intents that could be misused if too detailed."
+    ],
+    "detection_procedures": [
+      "Regex-based scanners for IP addresses, domain names, email addresses, UUID patterns; any match triggers automatic redaction.",
+      "Entropy and token-pattern heuristics to flag sequences resembling real credentials or keys.",
+      "Deterministic template provenance tags embedded in every synthetic artifact; mismatched provenance flags rejection."
+    ],
+    "item_flagging_rules": [
+      "If any regex detects an IP, domain, email, or credential-like token → automatically redact tokens and replace with safe placeholders before release.",
+      "If provenance tag is missing or malformed → exclude artifact from public release and place in internal 'quarantined' container for audit logs (not released).",
+      "If a generated output contains vendor CLI tokens not present in the sanitized template vocabulary → flag and exclude that replicate from public artifact set; include the replicate in internal logs for verifier analysis only."
+    ],
+    "analysis_treatment": "Flagged items are automatically excluded from public release; counts and reasons are published. For primary analyses, flagged items are excluded from the public confirmatory set (replacement intents from the same vendor-cluster drawn deterministically from the template seed pool to preserve sample size). All sanitization and redaction operations are deterministic and recorded.",
+    "residual_uncertainty": [
+      "Sanitized synthetic templates may not perfectly reflect production CLI richness (external-validity limitation).",
+      "Automated detectors may have false negatives for novel sensitive formats (residual risk)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal",
+      "description": "Minimal confirmatory pilot to validate pipeline and measure baseline unsafe rates with reduced scope.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted LLM API (single endpoint)",
+        "constrained-decoding wrapper"
+      ],
+      "transformations": [
+        "template-based intent expansion",
+        "LMQL-style grammar constraint"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 80,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Model-call budget 600 fits well within maximum_planned_model_calls=10000; uses 100 intents (80 confirmatory + 20 exploratory), two methods (single-shot + constrained-decoding), 3 replicates per intent → 100*2*3 = 600 model calls. Dockerized testbed and verifier run locally (CPU)."
+    },
+    {
+      "scenario_id": "recommended_full",
+      "description": "Recommended registered scenario: full preregistered benchmark run providing confirmatory power for primary estimand and richer exploratory coverage.",
+      "planned_model_calls": 2880,
+      "models": [
+        "hosted LLM API (single endpoint)"
+      ],
+      "transformations": [
+        "template-based intent expansion",
+        "LMQL-style grammar constraint",
+        "iterative verifier-guided repair (K=2)"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Planned model calls computed as: total intents 240 * 3 methods * 3 replicates per method * average calls factor for iterative method (method3 avg 2 calls per replicate) resulting in: method1 240*3=720, method2 240*3=720, method3 240*3*2=1440 → total 2880 model calls. This is ≤ the candidate estimated_model_calls (3000) and well under maximum_planned_model_calls (10000). All tooling packed in Docker with exact dependency versions for reproducible runs on CPU."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired per-intent difference in unsafe-change incidence between constrained-decoding and single-shot baseline.",
+    "target_effect": "Absolute reduction of 10 percentage points (e.g., from 20% unsafe to 10% unsafe) in paired unsafe indicator.",
+    "clustering_unit": "Per-intent (each intent is a single cluster unit, paired across methods).",
+    "calculation_method": "Paired binary-outcome power approximation using McNemar/paired proportion reasoning with conservative variance approximation. Approximated sample-size calculation: (Z_{1-α/2}+Z_{1-β})^2 * (p1(1-p1)+p2(1-p2)) / (Δ^2) with α=0.05, power=0.8; for p1=0.20, p2=0.10, Δ=0.10 → n≈196. Accounting for paired design and potential exclusions, we preregister confirmatory n=200 intents.",
+    "assumptions": [
+      "Baseline unsafe rate (single-shot) ≈20% (pilot-informed conservative prior).",
+      "Paired correlation between methods moderate (assumed 0.5) — this reduces required n relative to unpaired calculation; we use conservative unpaired-equivalent calculation then set n=200 to be robust.",
+      "Alpha=0.05 two-sided, power=0.8.",
+      "Per-intent replicates = 3 stochastic generations reduce within-intent measurement noise; primary analysis collapses replicates to per-method per-intent unsafe indicator via logical OR.",
+      "Nonconvergent iterative runs are counted as unsafe (conservative)."
+    ],
+    "recommended_scenario_id": "recommended_full",
+    "minimum_detectable_effect_notes": "With n=200 paired confirmatory intents, the preregistered design targets an MDE of ~10 percentage points under conservative variance assumptions; smaller effects (e.g., 5%) are underpowered in this budget and would require substantially larger confirmatory sets (>700 intents).",
+    "sensitivity_analyses": [
+      "Recompute paired effect CIs under assumptions of lower baseline unsafe rate (15%) and higher rate (25%).",
+      "Perform per-cluster power checks (n≈50 intents per vendor-cluster) and report clusterwise effect estimates with wider CIs (exploratory).",
+      "Report results under two treatments for nonconvergence: (A) conservative (count as unsafe) and (B) available-pair analysis (exclude missing pairs)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Grammar-constrained decoding (LMQL-like) to enforce token-level CLI schema.",
+      "Template-based deterministic intent→config expansion (synthetic templates).",
+      "Automated sanitizer/redactor transforming detected sensitive tokens to placeholders."
+    ],
+    "semantic_equivalence_checks": [
+      "Unit tests in emulation: for each generated config, run deterministic Mininet-based execution and assert reachability and policy predicates defined by the intent; outcomes are binary (pass/fail).",
+      "Verifier cross-check: formal verifier run prior to emulation to check reachability/policy; verifier output compared with emulation outcome to quantify verifier false-negative/false-positive rates."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (exclude from public release) any generated config that fails grammar parse or contains redacted placeholders left unresolved.",
+      "If verifier rejects config but emulation shows safety, retain for diagnostic logs only (not used to claim safe outcome); if verifier accepts but emulation detects unsafe outcome, mark as verifier false-negative for analysis.",
+      "If sanitizer detects sensitive-token patterns in an output, automatically redact and re-run generation with adjusted template; if repeated, exclude that replicate and deterministically replace intent from seed pool."
+    ],
+    "audit_sample_policy": "Automated deterministic audit: 5% of all generated outputs (stratified by vendor-cluster and method) are subject to additional static-analysis heuristics (pattern matching, grammar trees) and full verifier→emulation cross-checks to validate automation pipelines; audit selection and results are fully reproducible and published.",
+    "mapping_validation": "Deterministic intent→reference-config mapping code is unit-tested; reference configs embedded in the dataset are generated by the same template engine and validated in Mininet before inclusion.",
+    "residual_risks": [
+      "Emulator fidelity may not capture all vendor-specific runtime quirks (residual coverage gap).",
+      "Grammar constraints enforce surface syntax but do not guarantee semantic correctness under all vendor semantics."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: synthetic, template-based intents may not capture full production CLI heterogeneity; conclusions explicitly bounded to synthetic benchmark scope.",
+    "Verifier false negatives: formal verifier coverage is limited to declared predicates (reachability, simple policy); complex device behaviors may elude checks.",
+    "Emulation fidelity: Mininet-based emulation abstracts vendor hardware and OS-level quirks; emulation may under- or over-estimate real-world unsafe outcomes.",
+    "Single hosted LLM endpoint: results do not generalize to other model families or vendors absent further evaluation."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W3094502228",
+    "https://openalex.org/W2479024932",
+    "https://openalex.org/W4389520385"
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "a8f3b2c1",
+      "title": "Effectiveness of Constrained-Generation Plus Formal Verification for Preventing Unsafe Network Changes",
+      "research_question": "Does a pipeline combining grammar-constrained LLM decoding with formal verification and emulation execution reduce unsafe network-change proposals compared with unconstrained LLM generation?",
+      "hypotheses": [
+        "H1: Constrained-generation + formal verification yields a lower proportion of unsafe configs (that would violate specified safety properties) than unconstrained LLM outputs.",
+        "H2: A non-negligible fraction of unsafe configs remain undetected by the formal verifier (false negatives) and are caught only by emulation execution."
+      ],
+      "proposed_design": "Paired experimental design. Use a public/synthetic set of high-level intents -> target-config tasks (multiple vendors simulated). For each intent, produce two outputs from the same LLM seed: (A) unconstrained generation, (B) grammar-constrained generation. Feed both into a formal verifier (reachability/policy checks). Execute both passing and verifier-failed configs in Mininet emulation to observe runtime safety violations. Measure per-intent unsafe rates at three checkpoints: raw output, post-verifier, post-emulation/rollback.",
+      "expected_data": "Per-intent binary labels for violation at raw output, verification pass/fail, and emulation-observed violation; counts and timestamps; per-model prompt and seed; verifier error logs.",
+      "primary_outcome": "Difference in unsafe-change rate (proportion) at the verification checkpoint and residual unsafe rate after emulation between constrained and unconstrained conditions.",
+      "analysis_outline": "Compute paired proportions and differences; McNemar's test for paired binary outcomes; estimate 95% CIs for reduction; analyze false-negative rate of verifier (configs flagged safe but failing emulation); stratify by vendor/command-category.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W2725434906",
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W2725434906",
+        "https://openalex.org/W2479024932"
+      ],
+      "risks": [
+        "Formal verifier may not model vendor-specific semantics causing inflated false-negative/positive rates.",
+        "Emulation (Mininet) may not reproduce certain device behaviors, limiting external validity.",
+        "Prompt sensitivity may cause results to depend on prompting idiosyncrasies."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "d1b9e74a",
+      "title": "Convergence and Efficiency of Iterative Self-Critique and Repair for Network-Config Generation",
+      "research_question": "Do bounded iterative self-critique and repair loops reliably converge to correct, verifier-approved network configurations within practical iteration limits for typical NetOps intents?",
+      "hypotheses": [
+        "H1: Iterative repair with verifier feedback increases verifier-approved configs relative to single-shot generation.",
+        "H2: Most convergent cases succeed within a small number of iterations (e.g., <=5); a long tail of nonconvergent cases exists for complex intents."
+      ],
+      "proposed_design": "Select a representative intent set. For each intent, generate initial config; run up to K repair iterations where the LLM ingests verifier counterexamples/error messages and attempts repair. Stop on verifier approval or K iterations. Record iteration-to-success, total model calls, and final emulation outcome.",
+      "expected_data": "Iteration counts per intent, verifier decision per iteration, intermediate generated configs, emulation outcomes, failure-mode annotations.",
+      "primary_outcome": "Convergence rate within K iterations and distribution of iterations-to-success; proportion of verifier-approved configs that still fail in emulation.",
+      "analysis_outline": "Estimate Kaplan–Meier-like survival curve (iterations-to-success); report median iterations among successes; logistic regression to predict convergence from intent complexity; compute proportion of verifier-approved-but-failing emulation cases.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "doi:10.20944/preprints202510.0587.v1",
+        "https://openalex.org/W2725434906"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W2725434906",
+        "https://openalex.org/W4389520385"
+      ],
+      "risks": [
+        "Repair iterations may exploit prompt artifacts (overfitting to verifier messages) rather than genuinely correcting semantics.",
+        "Verifier feedback may be uninformative for LLM-driven repair, causing nonconvergence.",
+        "Compute budget and API rate limits if iterations per intent are large."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "f47c6d2e",
+      "title": "Adversarial Intent and Plausible-but-Unsafe Config Generation: Evaluating Verifier Robustness",
+      "research_question": "How susceptible are grammar-constrained + verifier pipelines to adversarial or malformed intents that elicit plausible-but-unsafe configurations that evade automated checks?",
+      "hypotheses": [
+        "H1: Adversarially-crafted intents can significantly increase the rate of unsafe configs that pass the verifier (escape rate) compared with benign intents.",
+        "H2: Increasing verifier strictness and constrained-decoding reduces escape rate but may increase false positives (blocking safe changes)."
+      ],
+      "proposed_design": "Create adversarial-intent mutations (lexical ambiguity, negation flips, vendor-specific synonyms, crafted prompts) from benign intents. For each intent variant, run constrained-generation + verifier pipeline and measure whether unsafe configs are produced and whether the verifier flags them. Vary verifier rule-sets (strict/medium/lenient).",
+      "expected_data": "Per-intent-variant labels: unsafe_by_emulation (yes/no), verifier_flag (pass/fail), mutation type, model outputs.",
+      "primary_outcome": "Escape rate: proportion of adversarial variants producing unsafe configs that pass verifier; escape-rate difference vs benign baseline.",
+      "analysis_outline": "Compare escape rates using exact binomial tests; model escape probability as function of mutation type and verifier strictness; report CI and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4404239715",
+        "https://openalex.org/W4389520385"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4389520385",
+        "https://openalex.org/W2479024932"
+      ],
+      "risks": [
+        "Adversarial mutation generation may be heuristic and not fully representative of real attacker behavior.",
+        "Ethical considerations: must avoid releasing exploit patterns that enable unsafe production misuse.",
+        "High verifier strictness settings may produce impractically high false-positive rejection rates."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "b6e2a90f",
+      "title": "Quantifying Operator Burden vs. Residual Risk for Staged Human-in-the-Loop Approval Protocols",
+      "research_question": "What is the trade-off between operator time/burden and residual unsafe-change probability under different human-in-loop approval policies in an LLM-driven NetOps pipeline?",
+      "hypotheses": [
+        "H1: Selective human review (e.g., review only verifier-failed or sampled outputs) achieves most risk reduction of full-review at substantially lower operator time.",
+        "H2: Blind or no-review policies yield unacceptably high residual unsafe-change probabilities for moderate-complexity intents."
+      ],
+      "proposed_design": "Simulate three approval policies on same generated outputs: (1) full human review, (2) verifier-gated review (only verifier-failed cases reviewed), (3) sampled review (random p%). Use time-per-review estimates from literature or operator-survey proxies; compute residual unsafe-change probability after each policy using emulation labels.",
+      "expected_data": "Per-policy: operator-hours, number of reviews, residual unsafe-change proportion, latency metrics.",
+      "primary_outcome": "Pareto frontier: operator time (hours) vs residual unsafe-change probability; identification of diminishing-returns regions.",
+      "analysis_outline": "Compute expected operator-time per intent; compare residual risk across policies with bootstrap CIs; sensitivity analysis over review time assumptions.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W4408167800"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W2479024932"
+      ],
+      "risks": [
+        "Operator time estimates may be imprecise without field measurements.",
+        "Simulated operator decisions (binary accept/reject) may not capture real cognitive processes or partial fixes.",
+        "Ethical/operational acceptability of policies depends on organization risk tolerance, limiting generalizability."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "c3d4f581",
+      "title": "NetOps Safety Testbed and Baseline Benchmark: Integrated Generation→Verify→Execute Metrics and Public Dataset Release",
+      "research_question": "Can a compact, public NetOps safety testbed combining intent-to-config tasks, formal verification checks, emulation execution, and rollback metrics provide reproducible baseline measurements and expose common failure modes of LLM-driven NetOps pipelines?",
+      "hypotheses": [
+        "H1: An integrated testbed and dataset will reveal baseline unsafe-change rates for common LLM prompting strategies and serve as a reproducible benchmark.",
+        "H2: Baseline experiments will identify a small set of recurrent failure patterns (vendor-syntax errors, missing state assumptions, security-policy violations)."
+      ],
+      "proposed_design": "Construct a proof-of-concept testbed: curated intent set (multi-vendor synthetic + annotated), verification rule-set (reachability and policy), Mininet scenarios for execution, and metrics (raw unsafe rate, post-verifier residual, emulation rollback cost, operator-review effort). Run selected LLM prompting baselines and report benchmark results; publish dataset and evaluation scripts.",
+      "expected_data": "Released dataset (intents, reference configs, vendor labels), evaluation scripts, baseline model outputs, verifier logs, emulation traces, metric summaries.",
+      "primary_outcome": "Availability of the benchmark and baseline numeric results (unsafe rates at each pipeline stage) enabling future comparisons.",
+      "analysis_outline": "Report descriptive baseline metrics; categorize failure modes with frequency counts; provide reproducible scripts and instructions; include guidance on metric interpretation.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W3094502228",
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W4389520385"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W3094502228",
+        "https://openalex.org/W2479024932",
+        "https://openalex.org/W4389520385"
+      ],
+      "risks": [
+        "Dataset may not capture real-world vendor heterogeneity at production scale.",
+        "Risk of inadvertently releasing sensitive command templates — must ensure all artifacts are synthetic or sanitized.",
+        "Maintaining and curating benchmark over time requires resources beyond initial release."
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}

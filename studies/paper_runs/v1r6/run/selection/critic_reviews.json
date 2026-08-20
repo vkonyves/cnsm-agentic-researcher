@@ -1,0 +1,112 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "a8f3b2c1",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Formal verifier may not model vendor-specific semantics (inflated FN/FP).",
+        "Mininet/emulation fidelity may miss real-device behaviors limiting external validity.",
+        "Prompt sensitivity and LLM stochasticity could dominate measured effects."
+      ],
+      "required_design_repairs": [
+        "Preregister precise verifier coverage and limitations; include vendor-mapping or abstraction layer.",
+        "Specify emulation scenarios that maximize fidelity and document gaps.",
+        "Freeze and publish exact prompts, seeds, and decoding constraints; include prompt-sensitivity ablation.",
+        "Define statistical power / sample-size targets and paired-sampling rules."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "d1b9e74a",
+      "novelty": 0.75,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Repair loops risk overfitting to verifier messages instead of fixing semantics.",
+        "Nonconvergence cases and long tails may consume budget and bias results.",
+        "Measurement of 'correctness' depends on verifier fidelity and emulation coverage."
+      ],
+      "required_design_repairs": [
+        "Preregister iteration bound K, retry policy, and stopping criteria; justify K with pilot data.",
+        "Standardize verifier feedback format (machine-readable counterexamples) to reduce prompt-engineering variance.",
+        "Include control arms (single-shot and oracle) and seeds; plan analysis for censored/nonconvergent cases.",
+        "Budget cap per intent and explicit handling of infrastructure failures in logs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "f47c6d2e",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Ethical risk: publishing adversarial mutations may enable misuse.",
+        "Adversarial-generation heuristics may be brittle and nonrepresentative.",
+        "Verifier strictness trade-offs may be organization-specific, limiting generality."
+      ],
+      "required_design_repairs": [
+        "Add IRB/ethics-style review and explicit non-actionable release policy (redact exploit details).",
+        "Preregister adversarial mutation generation procedures with reproducible scripts and constraints to avoid accidental leaks.",
+        "Define and freeze verifier rule-sets and justify strict/medium/lenient thresholds; include sensitivity analyses.",
+        "Limit published adversarial examples to abstracted summaries and safe-to-release patterns only."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "b6e2a90f",
+      "novelty": 0.75,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Operator-time estimates may be speculative without field data.",
+        "Simulated binary-review decisions oversimplify real operator behavior.",
+        "Risk that conclusions depend strongly on assumed review-time distributions."
+      ],
+      "required_design_repairs": [
+        "Preregister review-time assumptions and run sensitivity analyses across realistic ranges; cite empirical sources if available.",
+        "Model human reviewer behavior probabilistically (allow partial fixes) or justify the binary model.",
+        "Include latency and throughput metrics and show Pareto frontier under multiple plausible operator-time models."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3d4f581",
+      "novelty": 0.85,
+      "falsifiability": 0.9,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.85,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Risk of releasing sensitive or realistic vendor commands; dataset representativeness may be limited.",
+        "Maintaining benchmark and dataset curation beyond initial release may be resource-constrained.",
+        "Synthetic dataset may not capture production heterogeneity."
+      ],
+      "required_design_repairs": [
+        "Enforce strict sanitization and synthetic-data provenance; document redaction steps in release.",
+        "Provide containerized testbed (Docker) and exact dependency versions to maximize reproducibility.",
+        "Preregister dataset composition, inclusion/exclusion rules, and evaluation scripts; include guidance on external validity and limitations."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}
