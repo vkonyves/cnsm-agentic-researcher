@@ -55,6 +55,7 @@ from .pipeline import (
     AutonomousDiscoveryPipeline,
 )
 from .analysis_executors import (
+    register_builtin_analysis_executors,
     registered_analysis_families,
     resolve_analysis_executor,
     validate_analysis_results,
@@ -544,6 +545,7 @@ class FinalAutonomousResearchPipeline:
         )
 
         register_builtin_execution_adapters()
+        register_builtin_analysis_executors()
 
         for agent in (
             DESIGN_REPAIR_AGENT,
