@@ -243,6 +243,7 @@ async def create_feasible_experiment_plan(
     repaired_design: RepairedStudyDesign,
     records: list[dict[str, Any]],
     run_dir: Path,
+    available_execution_models: list[str],
     maximum_attempts: int = 3,
 ) -> tuple[
     ExperimentPlan | None,
@@ -297,6 +298,9 @@ async def create_feasible_experiment_plan(
             ),
             "available_adapter_contracts": (
                 registered_adapter_planning_contracts()
+            ),
+            "available_execution_models": (
+                available_execution_models
             ),
             "planning_attempt": attempt,
             "maximum_planning_attempts": (
@@ -417,7 +421,14 @@ async def create_feasible_experiment_plan(
                 "machine-readable execution-contract field in "
                 "ExperimentPlan so that it satisfies that adapter's "
                 "contract exactly. Do not encode required adapter "
-                "contract values only in prose fields."
+                "contract values only in prose fields. "
+                "The input also contains available_execution_models. "
+                "Set model_name to exactly one identifier from that "
+                "list. Do not invent, rename, qualify, or substitute "
+                "a hosted model identifier. Set model_version equal "
+                "to the selected model_name unless an explicitly "
+                "different version is supplied by the capability "
+                "contract."
             ),
         }
 
@@ -486,6 +497,22 @@ async def create_feasible_experiment_plan(
                 plan_dict
             )
         )
+
+        if plan_dict.get("model_name") not in available_execution_models:
+            combined_issues.append(
+                "model_name must be exactly one identifier from "
+                "available_execution_models."
+            )
+
+        if (
+            plan_dict.get("model_name")
+            and plan_dict.get("model_version")
+            != plan_dict.get("model_name")
+        ):
+            combined_issues.append(
+                "model_version must equal model_name for the "
+                "currently available hosted execution model."
+            )
 
         combined_issues = sorted(
             set(combined_issues)
@@ -1278,6 +1305,9 @@ class FinalAutonomousResearchPipeline:
             repaired_design=repaired_design,
             records=records,
             run_dir=run_dir,
+            available_execution_models=[
+                self.model
+            ],
             maximum_attempts=3,
         )
 
