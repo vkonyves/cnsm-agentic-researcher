@@ -1,0 +1,186 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Large language models (LLMs) exhibit diverse hallucination and miscalibration failure modes (confident factual errors, tool-execution errors, omission, etc.) that are recurrent across domains and agentic pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7131898328",
+        "https://openalex.org/W4412158322"
+      ],
+      "evidence_type": "literature_survey",
+      "confidence": 0.9,
+      "limitations": [
+        "Derived from surveys and taxonomy papers spanning multiple domains; not all failure-mode frequencies are quantified specifically for NetOps tasks.",
+        "Surveys synthesize published reports and may emphasize observed failures without uniform measurement protocols."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Operational reliability of LLM-driven NetOps/ AIOps depends heavily on the surrounding machinery (retrieval, validators, assurance contracts, sandboxing, canary/staged rollouts) rather than on the model alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "literature_survey_and_applied_system",
+      "confidence": 0.85,
+      "limitations": [
+        "Principles and architecture recommendations are well argued in surveys; applied-system evidence (e.g., MeshAgent) is limited in scope and may not represent large-scale production deployments.",
+        "Exact effectiveness of specific machinery (e.g., particular canary policies) varies by context and is not exhaustively quantified in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "There exist formal, deterministic approaches for network-change validation (e.g., Relational NetKAT) that can certify post-change packet-trace properties and produce counterexamples.",
+      "evidence_record_ids": [
+        "doi:10.1145/3776656"
+      ],
+      "evidence_type": "formal_method_tool",
+      "confidence": 0.95,
+      "limitations": [
+        "Relational NetKAT is a specification/verification framework evaluated on benchmarks; integration effort and runtime characteristics for large, heterogeneous production networks require separate assessment.",
+        "Verifier expressiveness and scalability constraints depend on the properties encoded and network size."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Verifier-grounded generate–validate–repair workflows improve semantic correctness of model-generated artifacts in domain-specific generation tasks when explicit contracts and counterexamples are used.",
+      "evidence_record_ids": [
+        "doi:10.31224/7995",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "applied_experiment_and_system",
+      "confidence": 0.8,
+      "limitations": [
+        "Primary experimental evidence is from domain-specific work (e.g., StruSpec for music-program generation) and from configuration-template synthesis prototypes; transferability and absolute effect sizes for NetOps configurations remain to be established.",
+        "Repair success depends on quality of counterexamples, model repair strategy, and verifier coverage."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Retrieval-augmented generation (RAG) and knowledge-grounding strategies consistently improve factual grounding and domain-specific accuracy compared to unguided generation in applied domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4410600121",
+        "https://openalex.org/W4415400381"
+      ],
+      "evidence_type": "method_survey_and_empirical",
+      "confidence": 0.85,
+      "limitations": [
+        "Improvements are task- and dataset-dependent; retrieval latency and index structure can affect operator QoE in real-time NetOps scenarios.",
+        "RAG reduces but does not eliminate hallucination; effectiveness depends on retrieval precision and freshness of the knowledge source."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Current benchmark practice and evaluation protocols have validity gaps for safety-critical agentic systems; niche and workflow-centered benchmarks are needed to expose operational failure modes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166900660",
+        "doi:10.2139/ssrn.6664738"
+      ],
+      "evidence_type": "meta-evaluation_survey",
+      "confidence": 0.9,
+      "limitations": [
+        "Arguments are conceptual and based on audits/surveys; specific new benchmark designs and their empirical properties must be developed and validated for NetOps.",
+        "Calls for niche benchmarks do not prescribe a single accepted metric set for NetOps workflows."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what degree do combined LLM + deterministic network-change validators (e.g., NetKAT) generalize to diverse, production-scale NetOps tasks without excessive false positives/negatives or unacceptable latency?",
+      "evidence_record_ids": [
+        "doi:10.1145/3776656",
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "gap_identified_from_literature",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records present validators and separately present LLM-assisted NetOps architectures; they do not report large-scale, integrated evaluations demonstrating generalization.",
+        "Practical trade-offs (runtime, coverage, alerting thresholds) are context-dependent and underreported in the provided literature."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "What are effective, decision-calibrated uncertainty-quantification and abstention policies for LLM outputs in cost-sensitive NetOps (when to auto-apply, when to escalate to humans, when to abstain)?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6675077",
+        "https://openalex.org/W4406679533",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "methodological_question_supported_by_calibration_and_system_papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Calibration frameworks exist in other domains and prototypes (e.g., decision-calibrated uncertainty) but concrete NetOps-specific abstention thresholds and their operational costs/benefits are not established in the supplied records.",
+        "Operator acceptance and human-escalation workflows affect practical policy design."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "Which benchmark designs, metrics, and dataset collection practices best capture end-to-end agentic NetOps safety (including sandbox replayability, canary/rollback scoring, and trace quality) for comparative evaluation?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "evaluation_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys recommend workflow-centred evaluation but do not converge on a standard benchmark specification for NetOps.",
+        "Designing benchmarks that balance realism, reproducibility, and safety constraints remains an open engineering and governance task."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a lack of published, reproducible empirical studies that integrate formal network-change verifiers (e.g., Relational NetKAT) with LLM-generated configuration proposals at production-representative scale.",
+      "evidence_record_ids": [
+        "doi:10.1145/3776656",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "identified_research_gap",
+      "confidence": 0.5,
+      "limitations": [
+        "Evidence shows the existence of verifiers and separate LLM-based config synthesis work; absence of explicit integrated large-scale experiments in the supplied records supports this gap but does not prove such experiments do not exist outside the supplied set.",
+        "The gap assessment is limited to the provided record collection."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "NetOps-specific benchmarking workloads that jointly measure retrieval-quality, tail latency, validator coverage, and rollback-aware safety scoring (for real-time operator workflows) are underdeveloped.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W4410600121",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "benchmark_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Quality–latency studies exist for log-template retrieval and RAG surveys detail benefits, but a unified NetOps benchmark combining these dimensions is not present in the supplied literature.",
+        "Designing such benchmarks requires access to representative operator logs and change traces that may be proprietary."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Practical, decision-calibrated abstention/escalation policies (linking model confidence to concrete operator actions) remain to be validated empirically in NetOps contexts.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6675077",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "operational_research_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Calibration frameworks and a prototype system reporting abstention exist, but systematic studies quantifying operational outcomes (e.g., reduced incidents, operator burden) are not included in the supplied records.",
+        "Human factors (trust, latency tolerance) will shape practical policy effectiveness."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs alone are sufficient for production-ready autonomous NetOps without validators, sandboxes, or operator-in-the-loop safeguards.",
+    "There is published evidence that LLM-based NetOps systems have already achieved production-scale, operator-trustworthy autonomous change deployment across heterogeneous enterprise networks.",
+    "Retrieval-augmented generation (RAG) eliminates hallucination entirely in NetOps configuration synthesis.",
+    "Current benchmarks conclusively show that LLMs reach human-level performance across all NetOps tasks and failure modes."
+  ]
+}

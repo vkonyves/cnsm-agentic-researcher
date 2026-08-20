@@ -1,0 +1,32 @@
+{
+  "study_id": "candidate-7f4a-prereg-2026",
+  "adapter_family": "hosted_netops_gvr_v1",
+  "implementation_strategy": "Execute the preregistered paired experiment end-to-end using the hosted_netops_gvr_v1 adapter: (1) all LLM calls via the adapter's hosted-model API; (2) deterministic prompt templates (temperature=0) for baseline and pipeline initial proposals; (3) repair iterations invoked as additional hosted-model calls using adapter repair-prompt templates (≤3 per task); (4) Relational NetKAT verifier run as a CPU Dockerized service invoked by the adapter to verdict ASTs; (5) deterministic canonicalization and syntactic parsing into ACL-like ASTs before verification; (6) fully automated logging of request/response IDs, checksums, timestamps, and hashes into the execution manifest. No human labor or external partners involved.",
+  "public_resources": [
+    "doi:10.1145/3776656",
+    "doi:10.31224/7995",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4410600121",
+    "Public intent→configuration corpus (RFC/vendor snippets + seeded synthetic topologies) — provenance hashes published",
+    "Relational NetKAT implementation (tool referenced in doi:10.1145/3776656)"
+  ],
+  "model_and_version_plan": [
+    "Single hosted LLM API accessed via hosted_netops_gvr_v1 (exact runtime model identifier recorded in execution manifest).",
+    "Prompt settings fixed: temperature=0, top_p=1.0, max_tokens configured for full-configuration outputs; identical templates for baseline and pipeline initial generation.",
+    "Repair calls: same model interface; repair prompt template supplies verifier counterexample and explicit bounded instruction; ≤3 repairs per task.",
+    "All model-call metadata (request id, response id, elapsed time) recorded in execution manifest."
+  ],
+  "task_manifest_strategy": "Deterministic discovery: run deterministic candidate generator (seeded graph generator + corpus enumerator) to produce up to 400 candidate intent→configuration tasks; run automated verifier-encodability test on each candidate; accept first 200 encodable tasks as confirmatory set. Record SHA-256 for each input, selection seed, and provenance. Excluded candidates listed with checksum and reason.",
+  "transformation_manifest_strategy": "Canonical prompt templates for intent→configuration; repair-prompt template: include counterexample (trace), failing goal, and concrete repair budget instructions. Deterministic canonicalization: whitespace/token normalization, language-grammar token whitelist, parse into ACL-like AST. Automatic_rejection rules: reject outputs failing parse or containing out-of-grammar tokens (trigger repair or log unrecoverable parse failure).",
+  "execution_batches": [
+    "Batch 0 — Discovery screening (deterministic): generate and encoder-test up to 400 candidates; record encodability verdicts and exclusions.",
+    "Batch 1 — Confirmatory runs (paired per-task): for each of 200 tasks: (a) Baseline generation: 1 hosted-model call; canonicalize + parse + verifier run; (b) Pipeline generation: initial proposer: 1 hosted-model call; parse + verify; if verify fails, launch up to 3 repair iterations (each = 1 hosted-model call) until verifier pass or budget exhausted. Record all model outputs, ASTs, verifier logs, and per-call latency.",
+    "Batch 2 — Audit sample (deterministic 10% seed-based sample of passing configs): run secondary semantic validator (packet-trace sandbox) in Docker on CPU for those items; record semantic validation logs."
+  ],
+  "randomisation_plan": "No randomized arm assignment (paired within-task design). Deterministic sampling: fixed RNG seed used for candidate generation and for selection of audit 10% sample; seed and sampling code published. All pseudo-random draws reproducible from recorded seed. Any flagged contamination leads to deterministic exclusion from confirmatory set per contamination_plan.",
+  "caching_plan": "Cache all model responses indexed by input+prompt SHA-256; if adapter returns identical byte-level outputs across distinct inputs, flag as potential provider-side caching and record; reuse cached verifier/AST results only when input+prompt checksum identical; record cache hits in manifest. Do not substitute cached outputs for fresh calls except for deterministic replays required by retry policy.",
+  "failure_recovery_plan": "Deterministic retry policy for model-call/network failures: up to 2 automated retries per failed call; if retries fail, label task pair as 'technical failure' and exclude from confirmatory McNemar analysis; include in technical-failure report. Parser/verification failures trigger repair-prompt retry sequence per repair budget; unrecoverable syntactic or verifier runtime errors are logged and handled per exclusion rules. All recovery actions and timestamps recorded in manifest.",
+  "result_schema": "JSON per-task record: {task_id, input_checksum, topology_seed, baseline: {model_call_ids[], output_text, canonicalized_text, parse_success(bool), AST|null, verifier_verdict{pass|fail|error}, verifier_log, latency_ms}, pipeline: {initial: same fields as baseline}, repairs: [{iteration,k, model_call_id, output_text, parse_success, AST|null, verifier_verdict, verifier_log, latency_ms}], final_verdict{pass|fail|timeout|technical_failure}, repair_iterations_used:int, end_to_end_latency_ms, contamination_flags:[], hashes:{input, prompts, outputs}, semantic_audit:{audit_run(bool), sandbox_results|null} }",
+  "estimated_model_calls": 600,
+  "estimated_compute_notes": "Planned (recommended scenario): 200 confirmatory tasks × (1 baseline call + 1 pipeline initial call + 1 average repair call) = 600 hosted-model calls. Discovery screening and parser/verifier work run on CPU within Docker; verifier invocations per output are CPU-only and expected to complete rapidly per task. Adapter-level automated retries (≤2) may increase actual model calls but are bounded by capability manifest maximum_planned_model_calls=10000. Wall-clock expected: single-run sequencing with hosted calls and verifier runs completes within the provided 7-day limit (typical live run estimated in hours)."
+}

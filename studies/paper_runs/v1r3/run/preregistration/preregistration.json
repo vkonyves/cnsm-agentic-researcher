@@ -1,0 +1,74 @@
+{
+  "study_id": "candidate-7f4a-prereg-2026",
+  "title": "Verifier-anchored generate–validate–repair for LLM-proposed NetOps changes (preregistered, repaired)",
+  "research_question": "Does integrating an LLM proposer with a formal network-change verifier (Relational NetKAT) plus a bounded model repair loop reduce the rate of verifier-failing (unsafe) configuration proposals relative to LLM generation alone?",
+  "confirmatory_hypotheses": [
+    "H0: The proportion of verifier-passing proposals from the LLM+verifier+repair pipeline equals that of the unguided LLM (no improvement).",
+    "H1: The LLM+verifier+repair pipeline yields a strictly higher verifier-pass proportion than the unguided LLM within the same repair budget (falsifiable)."
+  ],
+  "exploratory_questions": [
+    "RQ1: Distribution of repair iterations required to reach verifier pass (0..3).",
+    "RQ2: Latency/repair-tradeoff: how much end-to-end latency is added per successful repair.",
+    "RQ3: Qualitative failure-mode taxonomy for repairs that either do not converge within 3 iterations or produce syntactically plausible but semantically incorrect fixes (captured by secondary semantic validators)."
+  ],
+  "evidence_record_ids": [
+    "doi:10.1145/3776656",
+    "doi:10.31224/7995",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4410600121"
+  ],
+  "benchmark_scope": [
+    "Public intent→configuration task collection assembled from public RFC examples, vendor configuration snippets, and deterministically generated synthetic topologies (all sources recorded and checksummed).",
+    "Synthetic topology instances generated deterministically with fixed RNG seeds and canonical topology templates (seeded graph generators).",
+    "Verification targets encoded as packet-trace and reachability safety properties expressible in Relational NetKAT (see doi:10.1145/3776656)."
+  ],
+  "model_scope": [
+    "Single hosted LLM accessed via provider API (exact model identifier recorded in execution manifest at runtime).",
+    "Identical prompt templates and temperature/seed policies used for baseline and pipeline arms; repair iterations are additional model generations under the same model interface.",
+    "No local GPU execution; all model calls via hosted API (per capability manifest)."
+  ],
+  "transformation_scope": [
+    "Prompt templates: canonical intent→configuration template used for baseline and pipeline initial generation.",
+    "Repair-prompt templates: counterexample + instruction → revised configuration (bounded to at most 3 repair iterations per task).",
+    "Deterministic canonicalization of model outputs (whitespace/token normalization) and syntactic parsing into router ACL/ACL-like ASTs before verification."
+  ],
+  "primary_estimand": "Within-task paired difference in verifier-pass binary outcome: proportion_pass_pipeline − proportion_pass_baseline (primary confirmatory estimand).",
+  "secondary_estimands": [
+    "Mean number of repair iterations required among tasks that eventually pass within ≤3 repairs.",
+    "Proportion of tasks fixed within k repairs for k ∈ {0,1,2,3}.",
+    "Median and 95th-percentile end-to-end latency per arm and per repair iteration."
+  ],
+  "sampling_plan": "Paired design on N = 200 intent→configuration tasks eligible for Relational NetKAT encoding. Deterministic sampling from public sources and seeded synthetic topology generators. Screening: automated verifier-coverage test (encodability and property expressibility); sample deterministically up to 400 candidates until 200 eligible tasks accepted. All seeds, selection code, and provenance hashes published. Inclusion: tasks with expressible targeted safety properties and valid verifier verdict. Exclusion: tasks failing automated encodability test (flagged, excluded from confirmatory N, cause recorded). Confirmatory N fixed at 200; discovery sampling cap = 400 (automated only).",
+  "power_and_precision_plan": "Primary estimand: paired difference in verifier-pass proportion (pipeline − baseline). Target detectable absolute effect ≈ 0.10 (10 percentage points). Primary test: exact McNemar paired test at α=0.05 (two-sided). Report exact p-value and effect-size Δ with bootstrap 95% CI (10k resamples). Pre-registered simulation scripts compute minimum detectable effects (MDE) across baseline pass rates {0.30,0.40,0.50,0.60} before data collection; with N=200 expected power ≈0.80 for Δ in the ~0.08–0.15 range depending on baseline. Sensitivity analyses: MDE grid, bootstrap CIs, and post-hoc conditional power scan if discordant counts differ markedly from assumptions.",
+  "exclusion_rules": [
+    "Exclude tasks failing automated verifier-encodability or property-expressibility test (record checksum and reason).",
+    "Exclude task pairs with unresolved technical failures after deterministic retry policy (see missingness_plan) from confirmatory paired test; include them in a technical-failure report.",
+    "Automatically reject any model output that fails syntactic parse into the expected AST; such outputs trigger repair-prompt retries up to the per-task repair budget, and are logged if unrecoverable.",
+    "Reject repair outputs that introduce tokens outside the allowed configuration language grammar or that cause verifier runtime errors; log and treat per the retry/repair rules."
+  ],
+  "missingness_plan": "Deterministic automated retry policy for technical failures: up to 2 automated retries per failed model call. If retries fail, log task pair as 'technical failure' and exclude from confirmatory paired analysis; include in technical-failure summary. Tasks excluded at screening for encodability do not count toward N=200 and are listed with checksum and reason. No human adjudication; all missingness/exclusions deterministic and logged.",
+  "analysis_plan": "Primary test: exact paired McNemar test on 2×2 paired contingency (baseline vs pipeline pass/fail) at α=0.05 (two-sided). Report exact p-value and Δ = proportion_pass_pipeline − proportion_pass_baseline with bootstrap 95% CI (10k resamples). Secondary analyses (exploratory): discrete-time survival over repair iterations, descriptive latency statistics (median, 90th, 95th), failure-mode counts from automated semantic validators, and stratified sensitivity analyses (baseline pass-probability strata, topology-size tertiles). Report all secondary endpoints as exploratory with raw and Benjamini-Hochberg FDR-adjusted p-values where multiple tests are presented. Publish all code, seeds, raw outputs, and analysis notebooks. Label exploratory findings explicitly.",
+  "multiplicity_plan": "One pre-specified primary confirmatory test (McNemar) only. Secondary endpoints are exploratory: report raw p-values and Benjamini-Hochberg FDR-adjusted p-values when performing multiple secondary hypothesis tests. No alpha-spending for exploratory endpoints; exploratory status explicitly flagged.",
+  "contamination_plan": "Provenance and contamination mitigation: (1) Provenance hashing — SHA-256 checksums for all input tasks, prompts, and selected outputs; automated duplicate detection on hashes. (2) Pre-lock leakage check — cross-check sample checksums against pre-lock artifact manifest; any collision triggers automatic exclusion from confirmatory set. (3) Model-call determinism check — log provider-returned request/response identifiers and timestamps; flag identical outputs across distinct seeds/inputs for analysis (possible caching). Flagging rules: automatically flag tasks whose input/prompt checksum matches any pre-lock artifact; flag identical byte-level model outputs across different tasks; flag verifier-encoding failures and record as excluded. Analysis treatment: exclude flagged contaminated items from confirmatory paired analysis; report exclusions and run sensitivity analysis with worst-case imputation (treat excluded pipeline outcomes as failures and baseline as observed) to bound effect sizes. Residual uncertainty: verifier expressiveness blindspots documented and treated as external-validity limitation for properties outside Relational NetKAT expressiveness.",
+  "stopping_rule": "Stop sampling when 200 eligible (encodable) tasks are accepted or when 400 candidates have been screened (whichever comes first). For each task, stop repair iterations when verifier pass achieved or when the per-task repair budget of 3 iterations is exhausted. Stop model-call retries on a given failed call after 2 deterministic retries. If a technical/system failure prevents completion of the prespecified runs within operational limits, log and report as technical failures per missingness_plan.",
+  "planned_outputs": [
+    "Full preregistration document and machine-readable plan (this file).",
+    "Selection and literature-search record with provenance hashes.",
+    "Verified bibliography record and nearest-work comparison matrix.",
+    "Deterministic sampling and selection code plus provenance hashes.",
+    "Execution manifest: model identifiers, API metadata, request/response IDs, timestamps, seeds, and hashes.",
+    "Raw model outputs for baseline and each repair iteration per task.",
+    "Canonicalized ASTs and parser logs for all outputs (including parse failures).",
+    "Relational NetKAT verifier inputs and verdict logs per run.",
+    "Secondary semantic validator logs (packet-trace sandbox replays) and audit-sample summaries.",
+    "Complete analysis notebooks and scripts reproducing primary and secondary analyses.",
+    "Statistical-results file including McNemar test, bootstrap CIs, latency summaries, and survival statistics.",
+    "Failure-mode taxonomy and counts from automated classifiers.",
+    "Disclosure Statement complying with CNSM Agentic AI Researcher track.",
+    "IEEE-formatted short-paper LaTeX source and BibTeX.",
+    "Compiled PDF of manuscript (≤5 pages) and page-count validation report.",
+    "Autonomous revision log and final-output hash manifest.",
+    "NotebookLM presentation brief (concise machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}

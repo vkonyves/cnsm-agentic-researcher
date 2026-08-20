@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "candidate-7f4a",
+      "title": "Verifier‑anchored generate–validate–repair for LLM‑proposed NetOps changes",
+      "research_question": "Does integrating an LLM proposer with a formal network‑change verifier (Relational NetKAT) plus a bounded model repair loop reduce the rate of verifier‑failing (unsafe) configuration proposals relative to LLM generation alone?",
+      "hypotheses": [
+        "H0: The proportion of verifier‑passing proposals from the LLM+verifier+repair pipeline equals that of the unguided LLM (no improvement).",
+        "H1: The LLM+verifier+repair pipeline yields a strictly higher verifier‑pass proportion than the unguided LLM within the same repair budget (falsifiable)."
+      ],
+      "proposed_design": "Preregistered paired evaluation on N=200 intent→configuration tasks derived from public NetOps task collections and synthetic topology instances. For each intent: (A) call hosted LLM baseline to generate config; (B) call same LLM but run generated config through Relational NetKAT verifier (doi:10.1145/3776656). If verifier fails, provide counterexample+prompt and allow up to 3 repair iterations. Record pass/fail, number of repairs, and latency. Use the same random seeds/prompts where applicable.",
+      "expected_data": "Per‑task records (N≈200): baseline pass (binary), pipeline pass after 0..3 repairs, repairs used (0–3), end‑to‑end latency, verifier counterexamples, raw model texts; aggregated pass rates and repair success distribution.",
+      "primary_outcome": "Difference in verifier‑pass proportion (pipeline vs baseline) with 95% CI; success defined as a statistically significant increase in pass rate using paired proportion test (McNemar or exact binomial paired test).",
+      "analysis_outline": "Compute paired pass/fail contingency; perform McNemar test and estimate effect size (Δ proportion) with bootstrap CIs. Secondary analyses: repair iteration survival curve (Kaplan–Meier style), latency/repair tradeoff descriptive stats, qualitative failure‑mode taxonomy from counterexamples. Report exact p‑values and uncertainty.",
+      "novelty_evidence_ids": [
+        "doi:10.1145/3776656",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4411015066"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3776656",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4410600121"
+      ],
+      "risks": [
+        "Verifier expressiveness may not cover intended safety properties → false negatives/false positives.",
+        "Repair loop may not converge within 3 iterations for some classes of errors.",
+        "Model hallucination could produce syntactically plausible but semantically incorrect repairs that still pass superficial checks.",
+        "End‑to‑end latency might be impractically high for real‑time deployment."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "candidate-b3c1",
+      "title": "Decision‑calibrated abstention and escalation policy for cost‑sensitive NetOps",
+      "research_question": "Can a decision‑calibrated abstention policy that combines model uncertainty, verifier signals, and cost modeling reduce unsafe auto‑deploys while maintaining acceptable operator escalation rates and throughput?",
+      "hypotheses": [
+        "H0: A decision‑calibrated abstention policy does not reduce unsafe auto‑deploys relative to a baseline thresholding policy on raw model confidence.",
+        "H1: A decision‑calibrated policy (calibrated uncertainty + verifier signal + cost threshold) yields a lower unsafe‑auto‑deploy rate at equal or lower operator escalation than raw‑confidence thresholding (falsifiable)."
+      ],
+      "proposed_design": "Simulated workload (N≈300 change intents) with assigned deployment costs and human‑escalation time penalty. Implement three policies: (1) raw‑confidence threshold; (2) verifier‑gated autoapply; (3) decision‑calibrated policy using temperature scaling/conformal calibration (doi:10.2139/ssrn.6675077) on model scores plus verifier signals to decide auto‑apply vs escalate vs canary. Run each policy using the same LLM outputs (RAG optional), measure unsafe‑auto‑deploys, operator escalations, mean time‑to‑deploy, and simulated cost. Calibration performed on a held‑out calibration set.",
+      "expected_data": "Per‑policy metrics over N tasks: unsafe auto‑deploy count/rate, escalation count/rate, average simulated deployment cost/time, confusion matrices for decision outcomes, calibration curves (reliability diagrams).",
+      "primary_outcome": "Pareto comparison: whether decision‑calibrated policy achieves strictly lower unsafe‑deploy rate for the same or lower escalation rate compared to baselines. Quantify with differences in proportions and bootstrapped CIs.",
+      "analysis_outline": "Estimate rates and 95% CIs; compare policies with paired tests for proportions (McNemar) and for continuous costs (paired Wilcoxon or t‑test depending on distribution). Produce calibration error metrics (ECE/MCE). Perform sensitivity analysis across cost‑model parameter sweeps.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6675077",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W7170714602"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4410600121",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Simulated cost/human‑penalty model may not reflect operator realities (external validity).",
+        "Calibration may overfit small calibration sets, degrading transfer.",
+        "Model confidence estimates may be unreliable without temperature/conformal methods.",
+        "Decision thresholds require careful tuning; misconfiguration could increase unsafe behavior."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "candidate-2e9d",
+      "title": "Rollback‑aware NetOps benchmark combining retrieval quality, validator coverage, and safety scoring",
+      "research_question": "Does a compact, reproducible benchmark that jointly measures retrieval precision, validator coverage, tail latency, and rollback‑aware safety score reveal operational failure modes missed by conventional verifier‑pass metrics?",
+      "hypotheses": [
+        "H0: Adding rollback‑aware safety scoring and retrieval/latency dimensions does not change relative model ordering compared to verifier‑pass rate alone.",
+        "H1: The multi‑axis benchmark produces different model/defense rankings and exposes failure modes (e.g., high verifier pass but high rollback cost) that single‑metric evaluations miss (falsifiable)."
+      ],
+      "proposed_design": "Assemble a benchmark of M≈150 curated change intents with: retrieval corpus (public RFCs/config templates), deterministic verifier properties (NetKAT), and simulated canary rollback mechanics that assign a rollback cost when a change causes a simulated incident. Define metrics: retrieval precision@k, median and 95th‑percentile latency, verifier coverage (properties exercised), and rollback‑aware safety score (weighted function of incident probability × rollback cost). Evaluate several model/defense configurations (unguided LLM, RAG+LLM, LLM+verifier+repair). Publish dataset, scoring script, and reproducible runbook.",
+      "expected_data": "Per model/config: retrieval precision/recall, latency distribution, verifier pass rate, verifier coverage map, rollback incidents and aggregated safety score; ranking tables and scatterplots showing tradeoffs.",
+      "primary_outcome": "Demonstration that at least one model/defense pair changes ordering when evaluated by safety score vs verifier‑pass alone; quantify disagreement proportion and characterize exposed failure modes.",
+      "analysis_outline": "Compute Kendall/Tau and Spearman rank correlation between metrics; test for significant reordering (bootstrap). Report case studies of high‑disagreement tasks and sensitivity of safety score to weighting. Validate reproducibility by rerunning a subset with different seeds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W4410600121",
+        "https://openalex.org/W7164168895"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3776656",
+        "https://openalex.org/W4410600121"
+      ],
+      "risks": [
+        "Public dataset realism and representativeness may be limited; synthetic canary simulation may not capture all production dynamics.",
+        "Scoring weights in safety score are subjective and affect rankings.",
+        "Creating a retrieval corpus that is both representative and non‑proprietary may limit realism."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "candidate-c9b8",
+      "title": "RAG versus unguided LLM: latency–correctness Pareto analysis under deterministic verification",
+      "research_question": "Does retrieval‑augmented generation (RAG) materially increase verifier‑pass rates for NetOps configuration proposals compared to unguided LLMs, and what are the latency tradeoffs for real‑time operator workflows?",
+      "hypotheses": [
+        "H0: RAG does not produce a higher verifier‑pass rate than unguided LLMs after accounting for equal prompt/seed budgets.",
+        "H1: RAG increases verifier‑pass rate by a measurable margin (>δ) but also increases median latency; there exists a Pareto frontier where some operators prefer RAG and others do not (falsifiable)."
+      ],
+      "proposed_design": "Paired experiment on N≈240 intents using the same LLM model. Build a public retrieval corpus (RFCs/config templates/public NetOps guides). For each intent run: (A) unguided prompt; (B) RAG prompt with top‑k retrieved passages. Pass each generated config to Relational NetKAT verifier; if failing, allow identical bounded repair procedure. Measure verifier pass rate, number of repairs required, median and 95th‑pct latency (retrieval+model+verifier), and end‑to‑end success within latency caps (e.g., 1s, 3s, 10s).",
+      "expected_data": "Per‑intent paired records: pass/fail, repairs, latency components (retrieval, model, verify), and qualitative notes on retrieval usefulness. Aggregated pass rates, latency CDFs, and Pareto curves.",
+      "primary_outcome": "Estimate Δ pass rate (RAG − unguided) with 95% CI and report latency median difference. Declare operational preference regions based on latency caps and pass‑rate thresholds.",
+      "analysis_outline": "Paired proportion tests for pass rate (McNemar), bootstrap CIs for Δ, Kaplan‑style analysis for repair iterations, latency CDF comparison (Kolmogorov–Smirnov), and construct Pareto frontier plots. Perform ablation on retrieval k and corpus subsets.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4410600121",
+        "doi:10.31224/7995",
+        "doi:10.1145/3776656"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4410600121",
+        "doi:10.1145/3776656"
+      ],
+      "risks": [
+        "Retrieval corpus quality limits RAG benefits; measured latency depends on hosted API variability.",
+        "RAG may increase superficial correctness without addressing deep semantic errors uncovered by verifier.",
+        "API rate limits/latency variability could confound latency measurements."
+      ],
+      "estimated_model_calls": 1800
+    }
+  ]
+}

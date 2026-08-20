@@ -1,0 +1,169 @@
+{
+  "selected_candidate_id": "candidate-7f4a",
+  "title": "Verifier-anchored generate–validate–repair for LLM-proposed NetOps changes (preregistered, repaired)",
+  "research_question": "Does integrating an LLM proposer with a formal network-change verifier (Relational NetKAT) plus a bounded model repair loop reduce the rate of verifier-failing (unsafe) configuration proposals relative to LLM generation alone?",
+  "confirmatory_hypotheses": [
+    "H0: The proportion of verifier-passing proposals from the LLM+verifier+repair pipeline equals that of the unguided LLM (no improvement).",
+    "H1: The LLM+verifier+repair pipeline yields a strictly higher verifier-pass proportion than the unguided LLM within the same repair budget (falsifiable)."
+  ],
+  "exploratory_questions": [
+    "RQ1: Distribution of repair iterations required to reach verifier pass (0..3).",
+    "RQ2: Latency/repair-tradeoff: how much end-to-end latency is added per successful repair.",
+    "RQ3: Qualitative failure-mode taxonomy for repairs that either do not converge within 3 iterations or produce syntactically plausible but semantically incorrect fixes (captured by secondary semantic validators)."
+  ],
+  "benchmark_scope": [
+    "Public intent→configuration task collection assembled from public RFC examples, vendor configuration snippets, and deterministically generated synthetic topologies (all sources recorded and checksummed).",
+    "Synthetic topology instances generated deterministically with fixed RNG seeds and canonical topology templates (seeded graph generators).",
+    "Verification targets encoded as packet-trace and reachability safety properties expressible in Relational NetKAT (see doi:10.1145/3776656)."
+  ],
+  "model_scope": [
+    "A single hosted LLM accessible via provider API (exact model identifier will be recorded in the execution manifest).",
+    "Identical prompt templates and temperature/seed policies used for baseline and pipeline arms; repair iterations are additional model generations under the same model interface.",
+    "No local GPU execution; all model calls via hosted API (capability manifest)."
+  ],
+  "transformation_scope": [
+    "Prompt templates (intent→configuration) and repair-prompt templates (counterexample + instruction → revised configuration).",
+    "Deterministic canonicalization of model outputs (whitespace/token normalization) and syntactic parsing into router ACL/ACL-like ASTs before verification."
+  ],
+  "primary_estimand": "Within-task paired difference in verifier-pass binary outcome: proportion_pass_pipeline − proportion_pass_baseline (primary confirmatory estimand).",
+  "secondary_estimands": [
+    "Mean number of repair iterations required among tasks that eventually pass within ≤3 repairs.",
+    "Proportion of tasks fixed within k repairs for k ∈ {0,1,2,3}.",
+    "Median and 95th-percentile end-to-end latency per arm and per repair iteration."
+  ],
+  "sampling_plan": "Paired design on N = 200 intent→configuration tasks that are eligible for Relational NetKAT encoding. Tasks will be drawn deterministically from public sources and seeded synthetic topology generators. Screening: automatically run a verifier-coverage test (verifier encodability and property expressibility) on candidate tasks; continue deterministic sampling up to 400 candidates until 200 eligible tasks are accepted. All sampling seeds, selection code, and provenance hashes will be published. Inclusion: tasks for which the targeted safety properties are expressible and the verifier returns a valid verdict; Exclusion: tasks failing the automated encodability test are flagged, excluded from confirmatory N, and reported with cause. Confirmatory item count = 200 (paired). Discovery items (screened candidates) cap = 400 (automated screening only).",
+  "analysis_plan": "Primary test: exact paired test (McNemar exact test) on the 2×2 paired contingency (baseline vs pipeline pass/fail) to test H0 at α=0.05 (two-sided). Report exact p-value and effect-size Δ = proportion_pass_pipeline − proportion_pass_baseline with bootstrap 95% CI (10k bootstrap resamples). Secondary analyses: empirical survival curve over repair iterations (discrete-time survival), descriptive latency statistics (median, 90th, 95th), and failure-mode counts from automated semantic validators. All code, seeds, raw outputs, and analysis notebooks will be published. Sensitivity analyses: repeat primary test stratified by baseline pass probability strata and by topology size tertiles. All secondary outcomes are labelled exploratory; multiplicity adjustments described below.",
+  "multiplicity_plan": "One pre-specified primary confirmatory test (McNemar) only. Secondary endpoints reported as exploratory; when reporting multiple secondary hypothesis tests, report both raw p-values and Benjamini-Hochberg FDR-adjusted p-values and clearly mark exploratory status. No alpha-spending on exploratory endpoints.",
+  "missingness_plan": "Technical failures (API/network) trigger automatic deterministic retry policy: up to 2 automated retries per failed model call. If retries fail, the task is logged as 'technical failure' and the pair is excluded from the confirmatory paired test but included in a technical-failure report. If a task is excluded due to verifier-encodability discovered at screening, it does not count toward N=200 and is listed in exclusion logs with checksum and reason. No human annotation or adjudication; all exclusions are deterministic and logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public intent→configuration collection (public RFC/vendor snippets, synthetic seeded topologies)"
+    ],
+    "risk_factors": [
+      "Pre-lock development artifacts contaminating task pool or prompts",
+      "Duplicate tasks across sampled items",
+      "Seed reuse or nondeterministic sampling",
+      "Model output caching or provider-side reuse across calls"
+    ],
+    "detection_procedures": [
+      "Provenance hashing: all input tasks, prompts, and selected outputs will be checksummed (SHA-256) and recorded; automated duplicate detection on hashes.",
+      "Pre-lock leakage check: cross-check checksums of samples against stored pre-lock artifact manifest; any checksum collision triggers automatic exclusion.",
+      "Model-call determinism check: log provider-returned request/response identifiers and timestamps; flag repeated identical outputs across distinct seeds/inputs for analysis."
+    ],
+    "item_flagging_rules": [
+      "Automatically flag tasks whose input or prompt checksum matches any pre-lock artifact checksum.",
+      "Flag model outputs identical in byte-level content across different tasks and record for analysis (possible caching).",
+      "Flag tasks where verifier-encoding fails or returns 'unsupported property' and record as excluded."
+    ],
+    "analysis_treatment": "Exclude flagged contaminated items from the confirmatory paired analysis; report exclusions and conduct sensitivity analysis including a worst-case imputation (treat excluded pipeline outcomes as failures and baseline as observed) to bound effect sizes.",
+    "residual_uncertainty": [
+      "Possible verifier blindspots (false negatives) that arise from properties not expressible in Relational NetKAT; these are documented in verifier-property enumeration and counted as non-critical external-validity limitations unless they remove testability for the declared estimand."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "optimistic-avg0.5",
+      "description": "Optimistic: average repairs per task = 0.5 (most initial pipeline generations pass).",
+      "planned_model_calls": 500,
+      "models": [
+        "hosted LLM API (single model; exact id logged in execution manifest)"
+      ],
+      "transformations": [
+        "intent→configuration prompt (1 call per arm per task)",
+        "repair prompt (0.5 average calls per task)"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Baseline generation (200) + pipeline initial generation (200) + repairs (200*0.5=100) → total 500 model calls; fits well under maximum_planned_model_calls=10000 and within a short-wallclock run using hosted API with automated verifier on CPU."
+    },
+    {
+      "scenario_id": "recommended-avg1.0",
+      "description": "Recommended (balanced): average repairs per task = 1.0.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted LLM API (single model; exact id logged in execution manifest)"
+      ],
+      "transformations": [
+        "intent→configuration prompt (1 call per arm per task)",
+        "repair prompt (1 average call per task)"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Baseline generation (200) + pipeline initial generation (200) + repairs (200*1=200) → total 600 model calls. Balanced trade-off between resource cost and expected repair utility; selected as recommended because it leaves margin under 10k model-call limit and limits API cost while supporting planned analyses."
+    },
+    {
+      "scenario_id": "pessimistic-avg3.0",
+      "description": "Pessimistic/worst-case: average repairs per task = 3.0 (repair budget exhausted often).",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted LLM API (single model; exact id logged in execution manifest)"
+      ],
+      "transformations": [
+        "intent→configuration prompt (1 call per arm per task)",
+        "repair prompt (3 calls per task maximum)"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Baseline generation (200) + pipeline initial generation (200) + repairs (200*3=600) → total 1000 model calls (explicit worst-case upper bound). Still within maximum_planned_model_calls and executable within the capability manifest, though with higher API cost and latency."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in verifier-pass proportion (pipeline − baseline).",
+    "target_effect": "Absolute increase in pass proportion of interest for detection: approximately 0.10 (10 percentage points).",
+    "clustering_unit": "Task (intent→configuration); paired within-task comparisons.",
+    "calculation_method": "Pre-registered primary test is exact McNemar paired test; effect-size reported as Δ proportion with bootstrap 95% CI. Sensitivity analyses (simulation-style) will be used to report minimum detectable effect (MDE) under a range of baseline pass rates (0.30–0.60).",
+    "assumptions": [
+      "Paired independence across tasks (no repeated intents).",
+      "Screening ensures tasks are encodable by the verifier (see sampling_plan).",
+      "Two-sided α = 0.05, desired power ≈ 0.80 for primary detection target.",
+      "Baseline pass rates are uncertain; MDE depends on baseline. With N=200, the study is powered to detect approximate absolute improvements in the ~0.08–0.15 range depending on baseline and discordant-case distribution; exact MDEs will be computed and reported using pre-registered simulation scripts before data collection."
+    ],
+    "recommended_scenario_id": "recommended-avg1.0",
+    "minimum_detectable_effect_notes": "Given paired design and N=200, detectable absolute increases (Δ) will be reported as a small table across baseline pass-rate assumptions (30%, 40%, 50%, 60%) using the pre-registered exact-McNemar simulation; we explicitly preregister that the study is primarily powered to detect Δ ≳ 0.10 under common baseline assumptions. Sensitivity analyses will be published.",
+    "sensitivity_analyses": [
+      "Compute MDEs by parametric simulation across baseline pass rates (0.30,0.40,0.50,0.60) and discordant-case ratios.",
+      "Bootstrap 95% CIs for Δ with 10k resamples.",
+      "Post-hoc conditional power scan if realized discordant counts differ substantially from assumptions (reported as exploratory)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent→configuration generation (baseline and pipeline initial generation).",
+      "Counterexample-anchored repair generation (repair iterations).",
+      "Canonicalization/syntax-parsing transformations (output normalization → AST) prior to verification."
+    ],
+    "semantic_equivalence_checks": [
+      "Syntactic parse: automated parser that converts model text into canonical AST; outputs failing parse are automatically rejected and logged.",
+      "Deterministic verifier-equivalence checks where possible: for toy subcases, use NetKAT equivalence engine to check behavioral equivalence between model output and reference config when a reference exists.",
+      "Secondary semantic validators: automated packet-trace sandbox replay (simulator) for a prespecified set of test traces per task to detect semantically incorrect yet syntactically plausible repairs."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any model output that does not parse into the expected AST (automated, deterministic).",
+      "Reject outputs that cause verifier runtime errors (automated exclusion and re-prompt according to repair policy).",
+      "Reject repair outputs that introduce syntactic tokens outside the allowed configuration language grammar (automated)."
+    ],
+    "audit_sample_policy": "Deterministic, reproducible audit sample: 10% of passing configurations (randomly selected with fixed seed) undergo the full secondary semantic validation pipeline (packet-trace simulations) and are included in automated failure-mode classification. All audits are deterministic and reproducible; no human review.",
+    "mapping_validation": "All prompt→input mappings use canonicalized templates and fixed RNG seeds; mapping code includes unit tests (parser round-trips) that run in CI/docker prior to execution. Mapping validation results (unit-test hashes) recorded in execution manifest.",
+    "residual_risks": [
+      "Semantic correctness gaps not caught by syntactic/secondary validators (false negatives remain possible).",
+      "Verifier expressiveness limits: some operational safety properties may not be expressible in Relational NetKAT and will be excluded from the confirmatory estimand (documented list)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity: transferability of results from public/synthetic topology instances to heterogeneous production networks remains untested (noncritical if claims are bounded to benchmark scope).",
+    "Verifier false-negative/false-positive rates on large production-scale properties: we will estimate these experimentally on held-out encodable cases but cannot guarantee coverage for properties outside Relational NetKAT expressiveness.",
+    "Operator QoE and production latency budgets are organization-specific; measured end-to-end latency in this study may not match every production tolerance (report as noncritical external limitation).",
+    "Model-provider nondeterminism or caching behaviour might vary across vendors; execution manifest will record provider metadata but reproducibility depends on provider stability."
+  ],
+  "evidence_record_ids": [
+    "doi:10.1145/3776656",
+    "doi:10.31224/7995",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4410600121"
+  ]
+}

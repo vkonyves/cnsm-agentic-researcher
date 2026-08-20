@@ -1,0 +1,92 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "candidate-7f4a",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier coverage may miss relevant safety properties (false negatives/positives).",
+        "Repair prompting strategy is underspecified; model may produce syntactically plausible but semantically incorrect repairs.",
+        "Latency and end‑to‑end cost not bounded for operational use.",
+        "Task set realism and public-data sourcing need clarification to avoid pre‑lock artifacts."
+      ],
+      "required_design_repairs": [
+        "Explicitly enumerate verifier properties and limitations; add tests to measure verifier false‑negative/positive rates.",
+        "Specify repair prompting template, temperature/seed policy, and failure/no‑improvement stopping rules.",
+        "Add latency budgets and measure components; report impact of repair iterations on latency.",
+        "Publish the public intent→configuration dataset, seeds, and all prompts; ensure no pre‑lock data leakage."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-b3c1",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulated cost and human‑penalty models are subjective and may drive results.",
+        "Calibration set size and overfitting risks not quantified.",
+        "Raw model confidence may be poorly calibrated for the chosen LLM without robust calibration methods.",
+        "Operational human factors (acceptance, latency tolerance) are not measured."
+      ],
+      "required_design_repairs": [
+        "Define and justify the simulated cost model; include sensitivity sweeps across reasonable cost parameters.",
+        "Specify calibration method, held‑out set size, and regularization to avoid overfitting; report ECE/MCE.",
+        "Predefine human‑escalation latency/capacity assumptions or evaluate multiple realistic scenarios.",
+        "Log all model scores, thresholds, and seeds; provide reproducible policy code and decision thresholds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-2e9d",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Representativeness of public retrieval corpus and synthetic canary simulation may be limited.",
+        "Safety‑score weighting is subjective and will affect rankings.",
+        "Benchmark construction may unintentionally favor certain defenses (design bias)."
+      ],
+      "required_design_repairs": [
+        "Publish corpus curation criteria and make corpus and scoring code public for reproducibility.",
+        "Provide multiple predefined weighting schemes and sensitivity analyses to show ranking robustness.",
+        "Describe canary/rollback simulation mechanics precisely and validate with small real‑world traces if possible (or justify absence)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-c9b8",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Retrieval corpus quality and topical coverage determine RAG benefit; corpus construction is underspecified.",
+        "Latency measurements can be confounded by API/network variability.",
+        "Repair allowance parity between RAG and unguided conditions must be enforced to ensure fair comparison."
+      ],
+      "required_design_repairs": [
+        "Specify corpus sources, indexing/retrieval method, and retrieval hyperparameters (k, reranker).",
+        "Predefine latency measurement protocol (multiple runs, median/95th, environment control) and report variance.",
+        "Ensure identical repair loop and prompt templates for both arms; preregister exact experimental pairing and seeds."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
