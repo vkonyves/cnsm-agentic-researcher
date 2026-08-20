@@ -1,0 +1,147 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "Large language models (LLMs) can be used to translate high-level network intents into low-level network configurations or code and several prototype systems/benchmarks demonstrate variable empirical success.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "empirical/prototype evaluations and demonstrations",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations are primarily on benchmarks or prototypes rather than wide production deployments",
+        "Performance varies by task, prompt, and model; results are not uniform across vendors or settings"
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Generate–verify–repair (GVR) and iterative self-refinement / chain-of-verification patterns reduce hallucinations and improve correctness in multiple domain tasks when paired with deterministic oracles or verifier stages.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4402670429",
+        "https://openalex.org/W4404239715",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4389161628"
+      ],
+      "evidence_type": "cross-domain empirical and architectural studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Most demonstrations are in code, simulation, or non-NetOps domains; direct NetOps-specific verification evidence is limited",
+        "Effectiveness depends on strength and coverage of the verifier/oracle used"
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Tool-assisted agent architectures (Toolformer / RAG / external-tool use) and retrieval augmentation enable LLMs to call external validators, solvers, or live data sources and thereby expand capabilities and improve factual grounding.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4389984066",
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4396723768"
+      ],
+      "evidence_type": "architectural demonstrations, surveys, and prototypes",
+      "confidence": 0.8,
+      "limitations": [
+        "Tool integration introduces security, access, and trust challenges; many systems remain research prototypes",
+        "RAG/tool effectiveness depends on retrieval quality and tool reliability"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what degree do LLM-assisted configuration-generation pipelines (including GVR or verifier loops) prevent catastrophic or unsafe actions when deployed against real production networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4406137434"
+      ],
+      "evidence_type": "absence-of-evidence / open empirical question",
+      "confidence": 0.4,
+      "limitations": [
+        "Supplied records report benchmarks, prototypes, and surveys but do not document large-scale production deployments with measured safety outcomes"
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What standardized benchmarks, datasets, and operational validity metrics adequately capture real-world NetOps construct/ecological validity for LLM evaluation?",
+      "evidence_record_ids": [
+        "doi:10.31234/osf.io/ybde5_v1",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406137434"
+      ],
+      "evidence_type": "methodological gap / unresolved benchmarking question",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing benchmark work (e.g., NetConfEval) is useful but limited in scope; surveys call for richer operational datasets"
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "How effective are deterministic network-verification tools (or production emulators) when integrated into LLM GVR loops specifically for network-configuration correctness and safety?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "applied-methodology gap",
+      "confidence": 0.4,
+      "limitations": [
+        "GVR success is demonstrated in other domains, but direct published evaluations combining LLMs with canonical network verifiers in operational scenarios are not present in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a shortage of large, public, operationally realistic NetOps datasets (real config histories, change outcomes, and failure labels) suitable for training and evaluating LLM-driven NetOps systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "empirical/benchmarking gap (inferred from surveys and benchmark papers)",
+      "confidence": 0.6,
+      "limitations": [
+        "Claim is inferred from multiple surveys and limited benchmark descriptions rather than an explicit census of all datasets"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Few published studies couple LLM-generated configurations with realistic network emulators/testbeds to measure operational impact (latency, availability, forwarding correctness) at scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4321483987",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "experimental-evidence gap",
+      "confidence": 0.5,
+      "limitations": [
+        "Testbed/emulator papers exist (e.g., Gotham) and NetOps prototypes exist, but integrated, large-scale experiments are scarce in the supplied corpus"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Practical, secure guardrails and authorization frameworks for agentic LLM tool use in NetOps are underdeveloped in published prototypes despite conceptual proposals.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4320165837"
+      ],
+      "evidence_type": "design/implementation gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Several technical proposals and prototypes discuss guardrails, but operational evaluations and standardized secure frameworks for NetOps are limited"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready for fully autonomous network configuration without human oversight (no supplied records document large-scale production deployments or safety validation).",
+    "Deterministic claims about specific model accuracy on real-world networks (e.g., 'GPT-4 achieves X% correctness on production network configs') — not supported by the supplied records.",
+    "The assertion that generate-verify-repair guarantees elimination of all hallucinations or unsafe actions in NetOps — supplied evidence shows reduction/improvement but not absolute elimination."
+  ]
+}

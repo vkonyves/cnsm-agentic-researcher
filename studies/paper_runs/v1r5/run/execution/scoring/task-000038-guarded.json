@@ -1,0 +1,93 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000038-guarded",
+  "normalized_reference_answer": "interface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+  "normalized_response": null,
+  "pair_id": "pair-000038",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "803796cbc5ce258a744347325c1d0be9141ca4a6e32ec18fdc918afba3bfe579",
+  "repair_provider_trace_path": "execution/provider_calls/task-000038-guarded-repair.json",
+  "repair_provider_trace_sha256": "978e335481ed4468a3b8c349e5b22762b73d9ae0a0b750c1153c2bf32b14e325",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000038-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "de5139de19b2853d47b48e86cdf3a96ca1f0b90029130a42d6c10f6893012a67",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000038",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "2335892bd8c0523522f07e544cc80d93ced3becc38108197dbbea66773b33960",
+    "shared_initial_candidate": "```\ninterface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up\n```",
+    "shared_initial_candidate_sha256": "8268ecd9dc7043445208e2d95a180822131e0a8e3db4beff6c01ad714eef1116",
+    "shared_initial_response_path": "execution/responses/task-000038-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "rolling_access_vlan_migration",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 50
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 60
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 8,
+          "message": "Unsupported command: ```"
+        }
+      ]
+    }
+  }
+}

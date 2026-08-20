@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-1a9f",
+      "title": "Verifier‑Augmented Generate–Verify–Repair (GVR) to Prevent Unsafe Network Configurations",
+      "research_question": "Does integrating a deterministic network verifier into an LLM-driven generate–verify–repair loop reduce the rate of safety‑violating network configurations compared to LLM-only generation?",
+      "hypotheses": [
+        "H1: An LLM+verifier GVR loop produces a lower proportion of configurations that violate specified safety properties than LLM-only generation.",
+        "H0: There is no difference in the proportion of safety violations between LLM+verifier and LLM-only outputs."
+      ],
+      "proposed_design": "Preregistered, paired-task experiment. Create N intent-to-configuration tasks (N≥200) derived from public NetOps task templates. For each intent, obtain two outputs: (A) LLM-only configuration (single-pass prompt) and (B) LLM output subjected to a GVR loop that invokes a deterministic network verifier (e.g., reachability/policy checker) to detect violations and requests repairs until verifier passes or max iterations reached. Apply identical prompts, seeds, and time budgets. Record verifier results and final configs. Use only public datasets/tools and hosted LLM API per manifest.",
+      "expected_data": "For each task: initial LLM config, verifier pass/fail flags per iteration, repaired configs, number of repair iterations, final verifier outcome, and binary safety label (violation/no violation).",
+      "primary_outcome": "Paired difference in safety‑violation rate (proportion of tasks with final configs violating safety properties) between LLM-only and LLM+verifier GVR.",
+      "analysis_outline": "Compute paired proportions and 95% CIs; perform McNemar's test for paired binary outcomes; report absolute and relative reduction in violation rate, distribution of iterations to repair, and failure-mode categorization (verifier false negatives, unresolved repairs). Report uncertainty and effect sizes; predefine significance α=0.05 and stopping N. Perform sensitivity analysis varying verifier property set.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402670429",
+        "https://openalex.org/W4404239715",
+        "https://openalex.org/W4389161628"
+      ],
+      "risks": [
+        "Verifier may miss properties (false negatives) producing false security signal",
+        "LLM may game verifier producing brittle repairs tuned to verifier but unsafe in execution",
+        "API/infrastructure failures could bias paired comparisons"
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "cnd-2b3e",
+      "title": "Operational Impact of LLM‑Generated Configurations in an Emulated Network Testbed",
+      "research_question": "When LLM-generated configurations are applied to an emulated network, do they cause measurable service disruptions (reachability loss, latency spikes, or downtime) at higher rates than human-derived or oracle configurations?",
+      "hypotheses": [
+        "H1: LLM-generated configurations produce a higher rate of measurable service disruption in an emulator than validated (oracle/human-curated) configurations.",
+        "H0: No difference in disruption rates between LLM and oracle configurations."
+      ],
+      "proposed_design": "Controlled experiment using a lightweight network emulator (e.g., Mininet/Docker-based topologies) and a corpus of intent tasks (N≥150) mapping to configuration changes (routing, ACLs, VLANs). For each intent, generate config via LLM (with and without GVR in an exploratory arm) and obtain a validated oracle config where possible from public templates. Apply configs to emulator, run traffic tests (reachability matrix, latency, simulated failure scenarios) and record service-impact metrics pre/post-change.",
+      "expected_data": "Per-task measurements: reachability matrix changes, latency percentiles, packet loss, service downtime duration, whether change caused unintended route/blackhole, and whether automated rollback required.",
+      "primary_outcome": "Proportion of tasks producing any service-impact event (binary) within a fixed observation window after applying configuration.",
+      "analysis_outline": "Compare proportions (chi-square or Fisher exact), and continuous metrics (latency) using paired t-tests or Wilcoxon signed-rank where appropriate. Estimate effect sizes and compute time-to-recovery distributions. Report cases where emulator outcome diverges from verifier verdicts. Subgroup analysis by change type (ACL vs routing).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4321483987",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4320165837"
+      ],
+      "risks": [
+        "Emulator fidelity may not capture production side effects (external validity)",
+        "Applying unsafe configs could corrupt emulator state—require automated rollback safeguards",
+        "Resource limits (CPU/docker) constrain scale and task diversity"
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cnd-3c7d",
+      "title": "Policy‑Guarded LLM Action Filtering: Safety–Utility Tradeoffs for Autonomous NetOps Actions",
+      "research_question": "Can a declarative policy‑guardrail that filters or blocks LLM-proposed NetOps actions reduce unsafe actions while preserving a useful fraction of successful configuration changes?",
+      "hypotheses": [
+        "H1: A policy filter reduces unsafe outputs relative to unconstrained LLM proposals.",
+        "H2: The policy filter reduces task success rate (utility) relative to unconstrained proposals, quantifying a measurable safety–utility tradeoff.",
+        "H0: No difference in safety or utility between filtered and unfiltered outputs."
+      ],
+      "proposed_design": "Between‑conditions experiment on a public set of intent-change tasks (N≥300): (1) Unconstrained LLM proposals, (2) LLM proposals passed through a declarative policy filter (deny-list and safety predicates), (3) LLM proposals filtered plus automated minimal repair attempts. The policy engine uses explicit safety predicates (e.g., deny default route changes on core nodes, limit ACL wide-open rules). Measure safety violations (predicate breaches), final success (task executed as intended in emulator/verifier), and false-block rates where safe proposals are blocked.",
+      "expected_data": "Per-proposal: policy decision (allow/block), detected predicate triggered, whether proposal would have produced harm in emulator/verifier, and task success if allowed or repaired.",
+      "primary_outcome": "Safety reduction (proportion of unsafe proposals blocked) and utility retention (proportion of allowed proposals that achieve intended outcome). Report the tradeoff curve.",
+      "analysis_outline": "Estimate precision/recall of policy filter for unsafe proposals, compute ROC-like curve by thresholding policy strictness, perform paired comparisons where possible, and quantify blocked-but-safe (false positives). Use bootstrap CIs to quantify uncertainty.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4320165837"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Overly conservative policy causes operational utility loss",
+        "Policy predicates may be incomplete, creating blind spots",
+        "Perceived safety from policy may be undermined by LLM proposing semantically equivalent but syntactically different unsafe actions"
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnd-4d2b",
+      "title": "Operationally‑Realistic NetOps Task Bank and Evaluation Suite (public benchmark for safety/validity)",
+      "research_question": "Can a curated public task bank of intent→configuration change pairs, emulator outcomes, and labeled failure modes improve the reproducibility and ecological validity of LLM NetOps evaluations?",
+      "hypotheses": [
+        "H1: A curated benchmark exposing real-world‑like failure modes reveals higher and more diverse LLM failure rates than existing small-scale benchmarks.",
+        "H2: Using the benchmark for standardized evaluation reduces variance in cross-study comparisons by providing common tasks and labels.",
+        "H0: The curated benchmark does not materially change measured failure rates or cross-study variance compared to existing benchmarks."
+      ],
+      "proposed_design": "Data‑curation and evaluation study. Collect public network configuration artifacts and templates (synthetic augmentation to ensure privacy) to produce M≥500 intent→config-change tasks across categories (routing, ACLs, VLANs, QoS). For each task, provide: canonical intended outcome, emulator-executed ground-truth outcome, labeled failure modes (reachability loss, security breach, performance regression). Release dataset, accompanying verifier scripts, and an evaluation harness. Validate dataset by running baseline LLM evaluations and comparing observed failure-mode distribution to prior benchmarks.",
+      "expected_data": "Benchmark artifacts: intent text, candidate configs, emulator outcomes, labeled failure modes, and baseline LLM performance metrics (safety violation rates, repair counts).",
+      "primary_outcome": "Demonstrable shift in measured LLM failure-mode prevalence and improved cross-evaluation reproducibility (reduced inter-study metric variance) when using the task bank.",
+      "analysis_outline": "Describe dataset construction, measure baseline LLM metrics, compare to published benchmark metrics using standardized tests, compute inter-run variance across repeated evaluations, and report qualitative taxonomy of newly surfaced failure modes. Release reproducible harness and metadata.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4321483987",
+        "https://openalex.org/W4320165837"
+      ],
+      "risks": [
+        "Sourcing public artifacts while preserving privacy/legal constraints",
+        "Synthetic augmentation may bias task distribution away from true production patterns",
+        "Maintaining benchmark neutrality to avoid optimizing to the benchmark"
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-1a9f",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier coverage may miss safety properties (false negatives)",
+        "LLM could learn to produce repairs that only satisfy the verifier without being operationally safe",
+        "Need precise, operationally meaningful safety predicates",
+        "Risk of paired-design bias if retries/timeouts differ between conditions"
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic network verifier(s) and formalize the safety property set used (reachability, ACL semantics, default-route policies)",
+        "Define verifier oracle behavior and known blind spots; include tests to measure verifier false-negative rate",
+        "Predefine max repair iterations and repair-prompting policy; log all intermediate outputs and hashes",
+        "Include a small human/oracle baseline for context and clarify seed/timeout/retry policies"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-2b3e",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator fidelity to production is limited (external validity)",
+        "Applying unsafe configs can corrupt emulator state and bias later trials",
+        "Obtaining canonical/oracle configurations for comparison may be nontrivial",
+        "Resource limits (CPU/docker) constrain topology diversity and scale"
+      ],
+      "required_design_repairs": [
+        "Specify emulator(s) (Mininet/container images) and a set of representative topologies and failure scenarios",
+        "Implement automated snapshot/rollback per task to avoid state bleed and document rollback success rates",
+        "Define oracle/human baseline sourcing method (public templates or curated expert edits)",
+        "Limit per-task runtime and preregister time windows, seeds, and traffic-generation profiles"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-3c7d",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Policy predicates may be incomplete and produce blind spots",
+        "LLMs can bypass syntactic predicates via semantic rewrites (evasion)",
+        "Measuring utility requires a clear definition of 'intended outcome' per task",
+        "Tradeoff curve depends strongly on chosen policy thresholds—risk of cherry-picking"
+      ],
+      "required_design_repairs": [
+        "Formalize the policy language and predicate test-suite; publish predicate implementations",
+        "Add semantic-equivalence checks to detect syntactic evasion (e.g., normalization/AST comparison for configs)",
+        "Define utility metric precisely and preregister how intended outcome is measured (verifier/emulator contract)",
+        "Prespecify multiple policy strictness levels and report full tradeoff curve"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-4d2b",
+      "novelty": 0.6,
+      "falsifiability": 0.6,
+      "evidence_support": 0.4,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.4,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Sourcing public, realistic artifacts while preserving privacy/legal constraints is challenging",
+        "Synthetic augmentation risks producing tasks unrepresentative of production distributions",
+        "Claim that the benchmark reduces cross-study variance requires community adoption (external dependency)",
+        "Curation effort and maintenance may exceed available resources/time window"
+      ],
+      "required_design_repairs": [
+        "Provide a documented, privacy-preserving sourcing strategy and legal vetting plan for public artifacts",
+        "Describe augmentation methods and quantify how augmentation alters task distributions (ablation)",
+        "Preregister baseline LLM evaluation protocol and reproducibility harness to enable independent replication",
+        "Clarify maintenance/governance plan and licensing for release"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

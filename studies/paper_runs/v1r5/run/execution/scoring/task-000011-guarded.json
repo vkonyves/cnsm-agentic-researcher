@@ -1,0 +1,93 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000011-guarded",
+  "normalized_reference_answer": "interface edge5 admin down\ninterface edge6 admin down\ninterface edge5 mtu 1800\ninterface edge6 mtu 1800\ninterface edge5 admin up\ninterface edge6 admin up",
+  "normalized_response": null,
+  "pair_id": "pair-000011",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "d3b876e3063e17c63dc17693d42136a843407fb9b6149d8129f4097396aa5968",
+  "repair_provider_trace_path": "execution/provider_calls/task-000011-guarded-repair.json",
+  "repair_provider_trace_sha256": "1685f17d33f3505e1e35fd2419498064ef89037d9bde1a04315eb6a56c7b6118",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000011-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "4968b0f31d4a2816d5d5c3547ae150d6084c2f33ed118b7c9c23eaff9c0f7d42",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000011",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "3421750f893cf2859efc22d12eca11243f10b0d1b0b36d0d16f05aed57591695",
+    "shared_initial_candidate": "```\ninterface edge5 admin down\ninterface edge6 admin down\ninterface edge5 mtu 1800\ninterface edge6 mtu 1800\ninterface edge5 admin up\ninterface edge6 admin up\n```",
+    "shared_initial_candidate_sha256": "4a68fd5a7cba0ed2f1a71118261c7a2dd5a530266d216f76245f78a8d989699a",
+    "shared_initial_response_path": "execution/responses/task-000011-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink4": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge5 admin down\ninterface edge6 admin down\ninterface edge5 mtu 1800\ninterface edge6 mtu 1800\ninterface edge5 admin up\ninterface edge6 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 8,
+          "message": "Unsupported command: ```"
+        }
+      ]
+    }
+  }
+}

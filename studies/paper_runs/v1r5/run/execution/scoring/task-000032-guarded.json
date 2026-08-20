@@ -1,0 +1,93 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000032-guarded",
+  "normalized_reference_answer": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 220\ninterface uplink7 mtu 9300\ninterface uplink7 admin up\ninterface uplink8 admin down\ninterface edge13 admin down\ninterface edge13 vlan 70\ninterface edge13 admin up",
+  "normalized_response": null,
+  "pair_id": "pair-000032",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "145303eeecab62c19763113bd8384d1519c5bc7f36e84a2ebf177d06799a802f",
+  "repair_provider_trace_path": "execution/provider_calls/task-000032-guarded-repair.json",
+  "repair_provider_trace_sha256": "9bb513f03137e4ef1cfeebca9a96dd000bc75149f2c4bc359f1fc0ae1565b9f7",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000032-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "26c443404487c76a9b8033cb83ab5f5c27899f5ded5b075cf47d4563e7b383f0",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000032",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "a74cbbc223f97c611e691779302eb32017a5b1ea5eafe4c0ec4d18b208928535",
+    "shared_initial_candidate": "```\ninterface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 220\ninterface uplink7 mtu 9300\ninterface uplink7 admin up\ninterface uplink8 admin down\ninterface edge13 admin down\ninterface edge13 vlan 70\ninterface edge13 admin up\n```",
+    "shared_initial_candidate_sha256": "55db75c5eadb234f0abb301f84b001a13dc1d46c4e633b6599c6f4a23694c17a",
+    "shared_initial_response_path": "execution/responses/task-000032-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 70
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 220\ninterface uplink7 mtu 9300\ninterface uplink7 admin up\ninterface uplink8 admin down\ninterface edge13 admin down\ninterface edge13 vlan 70\ninterface edge13 admin up",
+      "observed_touched_field_count": 6,
+      "parsed_command_count": 9,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 11,
+          "message": "Unsupported command: ```"
+        }
+      ]
+    }
+  }
+}

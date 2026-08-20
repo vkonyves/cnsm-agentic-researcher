@@ -1,0 +1,93 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000023-guarded",
+  "normalized_reference_answer": "interface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink5 mtu 9200\ninterface uplink5 admin up\ninterface uplink6 admin down",
+  "normalized_response": null,
+  "pair_id": "pair-000023",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "f84597c901d0f71ca50359df59cebfcb5c288ec96933ea1dd70b6e7c9bce3d50",
+  "repair_provider_trace_path": "execution/provider_calls/task-000023-guarded-repair.json",
+  "repair_provider_trace_sha256": "fb194eeac7ddde9f54f5ab5e532cdb0e93ba0ca2d2ef1864756943908af6e16c",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000023-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "a497cd6ac1d27993b482d7d2bb26b67da94356d40c84a7b40cd44190ab4de373",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000023",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "7d2dd2a22cb099d53d51cde71b8f11a74d044045e5a0289e3cf96fc471740ae9",
+    "shared_initial_candidate": "```\ninterface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink5 mtu 9200\ninterface uplink5 admin up\ninterface uplink6 admin down\n```",
+    "shared_initial_candidate_sha256": "9c29508c510b1dfc6cfe3c2887f8efa37e95628888c78a1e36bdebe71eb50a7f",
+    "shared_initial_response_path": "execution/responses/task-000023-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 3,
+        "level": "very_hard",
+        "pattern": "redundant_uplink_maintenance_window",
+        "required_command_count": 5,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge10": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "edge9": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "mgmt3": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink5": {
+          "admin": "up",
+          "mtu": 9200,
+          "vlan": 200
+        },
+        "uplink6": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink5 mtu 9200\ninterface uplink5 admin up\ninterface uplink6 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 5,
+      "required_command_count": 5,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 7,
+          "message": "Unsupported command: ```"
+        }
+      ]
+    }
+  }
+}

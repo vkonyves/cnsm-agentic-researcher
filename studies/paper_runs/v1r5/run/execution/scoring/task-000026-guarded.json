@@ -1,0 +1,105 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000026-guarded",
+  "normalized_reference_answer": "interface uplink8 admin up\ninterface uplink7 admin down",
+  "normalized_response": null,
+  "pair_id": "pair-000026",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "77dffd26f99be23a7dd4214f882026af9101544c4eca0ccbe9a2383759be87d7",
+  "repair_provider_trace_path": "execution/provider_calls/task-000026-guarded-repair.json",
+  "repair_provider_trace_sha256": "0e19d5d3cca6f4d964f1f863bde13cabad878dfab2ddfda59ca89d17b0cae0d5",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000026-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "941b621a9cb5a1075fcb4b269b704b3840013a6356e9f88c9674271bfa7aa7cc",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000026",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "65e23ba843466ee7dc174a532b7d8577a351e3d6d857774df75016224502b370",
+    "shared_initial_candidate": "```\ninterface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink8 vlan 200\n```",
+    "shared_initial_candidate_sha256": "af81fe33a324866ea56532781d0f156ce97fa5632b7624a4d669a0051d2e8be4",
+    "shared_initial_response_path": "execution/responses/task-000026-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "make_before_break_uplink_switchover",
+        "required_command_count": 2,
+        "transient_rule_count": 1
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink8 vlan 200",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 2,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR",
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 4,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 5,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 4,
+          "message": "Command modifies a field outside the permitted workflow: uplink8 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink8 vlan ended as 200; expected 201."
+        }
+      ]
+    }
+  }
+}

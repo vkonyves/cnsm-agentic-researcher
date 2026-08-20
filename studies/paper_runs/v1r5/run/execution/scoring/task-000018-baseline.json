@@ -1,0 +1,177 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000018-baseline",
+  "normalized_reference_answer": "interface uplink6 admin up\ninterface uplink5 admin down",
+  "normalized_response": "```\ninterface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink6 vlan 200\n```",
+  "pair_id": "pair-000018",
+  "raw_response_sha256": "ca215e42b6319c2c9af2acff8be892e7161e5e372a6e6cb5fc5babb3549629e3",
+  "reference_answer_sha256": "5a68be7e9a91ae633b759bcf2f5b5b29151e8b014c396855dbeb735836f794bd",
+  "repair_provider_trace_path": null,
+  "repair_provider_trace_sha256": null,
+  "schema_version": "1.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000018-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "908da6a8fac20c4945aff99ff664e686b6335a833b50a81dfb25917f09f89b5d",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000018",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "```\ninterface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink6 vlan 200\n```",
+    "repair_applied": false,
+    "repair_prompt_sha256": null,
+    "shared_initial_candidate": "```\ninterface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink6 vlan 200\n```",
+    "shared_initial_candidate_sha256": "ca215e42b6319c2c9af2acff8be892e7161e5e372a6e6cb5fc5babb3549629e3",
+    "shared_initial_response_path": "execution/responses/task-000018-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "make_before_break_uplink_switchover",
+        "required_command_count": 2,
+        "transient_rule_count": 1
+      },
+      "final_state": {
+        "edge10": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "edge9": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "mgmt3": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink5": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink6": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink6 vlan 200",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 2,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR",
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 4,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 5,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 4,
+          "message": "Command modifies a field outside the permitted workflow: uplink6 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink6 vlan ended as 200; expected 201."
+        }
+      ]
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "make_before_break_uplink_switchover",
+        "required_command_count": 2,
+        "transient_rule_count": 1
+      },
+      "final_state": {
+        "edge10": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "edge9": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "mgmt3": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink5": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink6": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink6 admin up\ninterface uplink5 admin down\ninterface uplink6 vlan 200",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 2,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR",
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 4,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 5,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 4,
+          "message": "Command modifies a field outside the permitted workflow: uplink6 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink6 vlan ended as 200; expected 201."
+        }
+      ]
+    }
+  }
+}

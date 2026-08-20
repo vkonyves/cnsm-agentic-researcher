@@ -1,0 +1,93 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000001-guarded",
+  "normalized_reference_answer": "interface edge1 admin down\ninterface edge1 mtu 1600\ninterface edge1 vlan 30\ninterface edge1 admin up",
+  "normalized_response": null,
+  "pair_id": "pair-000001",
+  "raw_response_sha256": null,
+  "reference_answer_sha256": "b67998af8ce6471bc11460eebc61cf6994ecfe7ca85ea97763002d885bc844f8",
+  "repair_provider_trace_path": "execution/provider_calls/task-000001-guarded-repair.json",
+  "repair_provider_trace_sha256": "b4b61a55e466479b72330fb6cedabb6ecb64253a97526026b61734799a048b58",
+  "schema_version": "1.0",
+  "score": null,
+  "score_reason_code": "CALL_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "NOT_SCORED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000001-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "6b070c9acbce5442981822e473fe341b6a970c7313ff02f2f68e04d780c64c7d",
+  "study_id": "study-cnd-1a9f-2026-08",
+  "task_id": "task-000001",
+  "terminal_error_type": "RuntimeError",
+  "validator_trace": {
+    "final_configuration": null,
+    "repair_applied": true,
+    "repair_prompt_sha256": "baf50986d4baa4a9b9659ec17000324fecdd232ada1951b318269bdeb67d94bd",
+    "shared_initial_candidate": "```\ninterface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up\n```",
+    "shared_initial_candidate_sha256": "8db934329a6307eebc064aa5a859f94e5c609c12a95b9748abeb4bf46748ed0d",
+    "shared_initial_response_path": "execution/responses/task-000001-shared-initial.txt",
+    "validation_after": null,
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 1,
+        "dependency_rule_count": 1,
+        "level": "medium",
+        "pattern": "shutdown_configure_restore",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge1": {
+          "admin": "up",
+          "mtu": 1600,
+          "vlan": 30
+        },
+        "edge2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt1": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink1": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink2": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "SYNTAX_ERROR"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 1,
+          "message": "Unsupported command: ```"
+        },
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 6,
+          "message": "Unsupported command: ```"
+        }
+      ]
+    }
+  }
+}

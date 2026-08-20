@@ -1,0 +1,162 @@
+{
+  "selected_candidate_id": "cnd-1a9f",
+  "title": "Verifier‑Augmented Generate–Verify–Repair (GVR) to Prevent Unsafe Network Configurations — Preregistered Reparations",
+  "research_question": "Does integrating a deterministic network verifier into an LLM-driven generate–verify–repair loop reduce the rate of safety‑violating network configurations compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1: An LLM+verifier GVR loop produces a lower proportion of configurations that violate the preregistered safety property set than LLM-only single‑pass generation (paired comparison).",
+    "H0: There is no difference in the proportion of safety violations between LLM+verifier GVR and LLM-only generation."
+  ],
+  "exploratory_questions": [
+    "EQ1: What is the distribution of repair iterations required before the verifier accepts a configuration?",
+    "EQ2: What failure modes remain (verifier false negatives, unresolved repairs, verifier-induced brittle repairs)?",
+    "EQ3: How do different verifier property‑sets (strict vs. permissive) change the tradeoff between safety violations and successful repair convergence?"
+  ],
+  "benchmark_scope": [
+    "Intent-to-configuration tasks derived from public NetOps task templates and configuration snippets (public datasets and templates only).",
+    "Safety properties defined over reachability, ACL semantics, and default-route constraints as implemented in the chosen verifier(s)."
+  ],
+  "model_scope": [
+    "Hosted LLM API (single hosted LLM endpoint is used for all generation/repair calls; exact endpoint identifier will be recorded in execution manifest)."
+  ],
+  "transformation_scope": [
+    "Normalization and canonicalization of generated configs (AST normalization), placeholder substitution, and semantic-equivalence checks prior to verifier invocation."
+  ],
+  "primary_estimand": "Paired difference in safety‑violation rate: proportion of tasks with final configurations violating the preregistered safety property set under LLM-only generation minus that under LLM+verifier GVR.",
+  "secondary_estimands": [
+    "Absolute and relative reduction in violation rate (percentage points and percent change).",
+    "Distribution (mean, median, IQR) of repair iterations to first verifier pass.",
+    "Proportion of tasks where GVR fails to reach a verifier‑passing config within max iterations."
+  ],
+  "sampling_plan": "Paired-task design. N = 400 independent intent-to-configuration tasks sampled from public NetOps templates and synthetic variations derived deterministically from those templates (no human annotation). Inclusion criteria: tasks must be representable as an intent that maps to a single configuration fragment (routing/ACL/interface settings). Exclusion: tasks requiring vendor‑private features or proprietary data. Task clusters: 4 difficulty clusters (simple ACL/routing change, moderate intent translation, multi‑device change, multi‑policy constraints). Confirmatory items (paired tasks) = 400 (100 per cluster). Discovery/exploratory items = 0 additional confirmatory tasks; exploratory analyses use the same N=400 and prespecified subgroup analyses.",
+  "analysis_plan": "Primary test: McNemar's test on paired binary outcomes (violation/no violation) with α = 0.05. Report paired absolute difference and 95% CI (Agresti‑Coull method). Secondary: bootstrap 95% CIs for iterations distribution, report effect sizes (risk difference, relative risk). Predefine subgroup analyses by task cluster; label subgroup results as exploratory if not powered. Predefine handling of technical failures: if an execution failure occurs for a task in either condition, mark task as 'technical failure' and exclude pair from primary McNemar analysis; report number and reasons for exclusions and perform sensitivity analysis counting these as violations in either or both arms.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired McNemar comparison (no multiplicity adjustment). Prespecified secondary and subgroup analyses are exploratory; report unadjusted p-values and confidence intervals and label accordingly.",
+  "missingness_plan": "Record full execution manifest. Pairs with any technical failure (API outage, verifier crash, runtime error) will be excluded from the primary paired test and reported in a pre-registered exclusion table. Sensitivity analyses: (1) treat excluded pairs as violations in both arms; (2) treat excluded pairs as violations only in LLM-only arm; (3) multiple imputation is not allowed because no human annotation is permitted.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NetOps intent templates (curated set derived from public teaching labs and RFC‑style examples)"
+    ],
+    "risk_factors": [
+      "LLM overfitting to verifier behavior (producing syntactic fixes that pass the verifier but are operationally brittle)",
+      "Verifier blind spots (false negatives) giving false safety signal",
+      "Cross-task leakage if deterministic template derivation reuses identifiers"
+    ],
+    "detection_procedures": [
+      "Semantic-equivalence AST checks to detect syntactic evasion (normalization + AST compare).",
+      "Verifier false‑negative estimation via unit tests (verifier‑missed injected-bug cases; see verifier validation below).",
+      "Random 5% automated audit: re-run accepted configs under an alternate, stricter property set (automated) and under AST-based semantic checks."
+    ],
+    "item_flagging_rules": [
+      "Flag and log any config that passes verifier but fails AST/semantic equivalence checks.",
+      "Flag and log tasks where repair iterations reach max without verifier pass.",
+      "Flag pairs with any execution/technical failure for inclusion in exclusion reporting."
+    ],
+    "analysis_treatment": "Flagged items are analyzed separately and reported as a contamination category; primary analysis excludes technical-failure pairs. Sensitivity analyses include flagged items treated as violations and as non-violations to bound effect.",
+    "residual_uncertainty": [
+      "Residual risk that verifier blind spots remain even after unit tests and stricter re-checks.",
+      "Residual risk that passing the deterministic verifier and AST checks does not guarantee production safety in all environments (external-validity)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scn-minimal",
+      "description": "Conservative feasibility scenario to demonstrate effect with reduced sample size while preserving paired design.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-llm-api (execution manifest will record exact endpoint)"
+      ],
+      "transformations": [
+        "AST normalization; placeholder substitution; verifier call per iteration"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "N=200 paired tasks; per task: LLM-only 1 call (200), GVR max iterations 4 → up to 5 calls per task (200*5=1000). Total worst-case LLM calls = 1,200. Fits within the maximum model-call budget and reduces wall-clock/time budget."
+    },
+    {
+      "scenario_id": "scn-recommended",
+      "description": "Recommended scenario balancing power, budget, and runtime to test a practically meaningful effect size.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted-llm-api (execution manifest will record exact endpoint)"
+      ],
+      "transformations": [
+        "AST normalization; placeholder substitution; verifier call per iteration"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 400,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "N=400 paired tasks (100 per cluster). Per task: LLM-only single-pass = 1 call → 400 calls. GVR: initial generation + up to 4 repair iterations = up to 5 calls per task → 400*5 = 2,000 calls. Total worst-case calls = 2,400, matching the candidate's earlier estimate and within capability manifest (≤10,000 calls). Deterministic verifier calls do not consume model-call budget."
+    },
+    {
+      "scenario_id": "scn-ambitious",
+      "description": "Larger sample to explore smaller effect sizes and more fine-grained subgroup analyses.",
+      "planned_model_calls": 4800,
+      "models": [
+        "hosted-llm-api (execution manifest will record exact endpoint)"
+      ],
+      "transformations": [
+        "AST normalization; placeholder substitution; verifier call per iteration"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 800,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "N=800 paired tasks. Per-task total worst-case LLM calls = 1 (LLM-only) + 5 (GVR) = 6 → 800*6 = 4,800 LLM calls. Still within maximum planned-model-calls = 10,000 but increases wall-clock time; recommended only if resources/time permit."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in probe-level violation proportion (LLM-only minus GVR).",
+    "target_effect": "Absolute reduction of 10 percentage points (e.g., from 20% baseline violation rate under LLM-only to 10% under GVR).",
+    "clustering_unit": "Intent-to-configuration task (paired across conditions).",
+    "calculation_method": "Approximate McNemar's test power calculation for paired binary outcomes. Assumptions: baseline paired marginal probabilities consistent with 20% LLM-only violating, 10% GVR violating, discordant pair probabilities implied by those margins; two-sided α=0.05. For these assumptions, N=400 yields estimated power ≈ 0.85–0.95 depending on discordant probability split; N=200 yields power ≈ 0.55–0.75. Calculations will be documented in the execution manifest with exact parameterization and code.",
+    "assumptions": [
+      "Baseline LLM-only violation rate ≈ 20% (conservative, informed by literature C1/C2 but stated as assumption).",
+      "GVR reduces violation rate by ≈10 percentage points under the chosen verifier property set.",
+      "Pairs are independent across tasks; within-task paired design eliminates between-task variance for the primary outcome.",
+      "Discordant pair allocation (LLM-only viol & GVR safe vs. LLM-only safe & GVR viol) is skewed toward improvements (more LLM-only viol & GVR safe)."
+    ],
+    "recommended_scenario_id": "scn-recommended",
+    "minimum_detectable_effect_notes": "With N=400 and McNemar framework, the study is powered to detect ~8–12 percentage-point absolute changes depending on discordant-pair balance; sensitivity analyses will report exact detectable effect across plausible discordant splits.",
+    "sensitivity_analyses": [
+      "Recompute power assuming baseline violation rates of 15% and 25%.",
+      "Recompute power under varying discordant pair splits (symmetric vs. asymmetric).",
+      "Repeat primary analysis excluding flagged technical-failure pairs and using the conservative imputation options described in missingness_plan."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "AST normalization and canonicalization of configurations",
+      "Placeholder/token substitution and deterministic rendering",
+      "Syntactic-to-semantic normalization (e.g., canonical ordering of ACL entries)"
+    ],
+    "semantic_equivalence_checks": [
+      "AST equality or normalized-AST comparison between original LLM output and repaired output to detect purely syntactic/ordering changes.",
+      "Automated semantic checks: for routing/ACL rules, simulate canonical forwarding tables in the verifier and compare intended reachability predicates before and after repair."
+    ],
+    "automatic_rejection_rules": [
+      "Automatically reject any generated or repaired config that fails AST/semantic-equivalence normalization checks indicating malformed syntax.",
+      "Automatically mark as 'verifier-failed' any config that the deterministic verifier rejects after max iterations; these are reported as unresolved repairs."
+    ],
+    "audit_sample_policy": "Random 5% of configs that pass the primary verifier are re-evaluated with a stricter property set (automated) and an alternate verification script to estimate residual false negative rates; results automatically logged and summarized.",
+    "mapping_validation": "Deterministic template-to-config mapping code will be unit‑tested on a small public corpus; all mapping code, unit tests, and results recorded in the execution manifest.",
+    "residual_risks": [
+      "Semantic differences that are invisible to AST normalization but relevant in deployment (vendor-specific semantics) remain a residual risk.",
+      "Verifier coverage may be incomplete for some policy classes; audit sample aims to quantify but not eliminate this risk."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity to production networks (experiment confined to public templates and deterministic synthetic variations).",
+    "Residual verifier blind spots despite unit tests and stricter automated audits.",
+    "Possible LLM adaptations that optimize for the verifier oracle rather than for general operational robustness (verifier‑gaming).",
+    "Nondeterminism of hosted LLM API responses (recorded via seeds and manifest but may affect reproducibility across vendors/endpoints)."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4402670429",
+    "https://openalex.org/W4404239715",
+    "https://openalex.org/W4389161628"
+  ]
+}
