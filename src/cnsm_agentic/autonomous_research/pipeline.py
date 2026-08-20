@@ -14,6 +14,7 @@ from .agents import (
     QUERY_PLANNER,
     SELECTION_JUDGE,
 )
+from .evidence_verification import normalise_evidence_id
 from .literature import discover_literature
 from .schemas import (
     CandidateSet,
@@ -144,6 +145,78 @@ def _compact_record(
             record.retrieved_for_queries
         ),
     }
+
+
+def _supplied_synthesis_identifiers(
+    records: list[dict[str, Any]],
+) -> set[str]:
+    """
+    Return canonical bibliographic identifiers actually exposed
+    to the evidence-synthesis agent.
+
+    Only identifiers present in the compact synthesis records count
+    as grounded evidence. An identifier that exists elsewhere in the
+    retrieved corpus but was not supplied to synthesis must not pass.
+    """
+    identifiers: set[str] = set()
+
+    for record in records:
+        for field in (
+            "record_id",
+            "doi",
+        ):
+            normalised = normalise_evidence_id(
+                record.get(field)
+            )
+
+            if normalised:
+                identifiers.add(normalised)
+
+    return identifiers
+
+
+def _synthesis_grounding_issues(
+    synthesis: EvidenceSynthesis,
+    supplied_records: list[dict[str, Any]],
+) -> list[str]:
+    """
+    Return deterministic failures for evidence identifiers that were
+    not present in the records supplied to evidence synthesis.
+    """
+    allowed_ids = _supplied_synthesis_identifiers(
+        supplied_records
+    )
+
+    issues: list[str] = []
+
+    for section_name in (
+        "established_findings",
+        "unresolved_questions",
+        "candidate_gaps",
+    ):
+        claims = getattr(
+            synthesis,
+            section_name,
+        )
+
+        for claim in claims:
+            for evidence_id in claim.evidence_record_ids:
+                canonical = normalise_evidence_id(
+                    evidence_id
+                )
+
+                if (
+                    canonical is None
+                    or canonical not in allowed_ids
+                ):
+                    issues.append(
+                        f"{section_name}:{claim.claim_id}: "
+                        "evidence_record_id "
+                        f"{evidence_id!r} was not supplied "
+                        "to evidence synthesis."
+                    )
+
+    return sorted(set(issues))
 
 
 def _rank_records(
@@ -480,6 +553,19 @@ class AutonomousDiscoveryPipeline:
             / "evidence_synthesis.json"
         )
 
+        synthesis_attempts_dir = (
+            literature_dir
+            / "synthesis_attempts"
+        )
+        synthesis_attempts_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        synthesis: EvidenceSynthesis | None = None
+        previous_synthesis: EvidenceSynthesis | None = None
+        previous_issues: list[str] = []
+
         if synthesis_path.exists():
             print(
                 "Resuming from existing "
@@ -487,7 +573,7 @@ class AutonomousDiscoveryPipeline:
                 synthesis_path,
             )
 
-            synthesis = (
+            cached_synthesis = (
                 EvidenceSynthesis
                 .model_validate(
                     _read_json(
@@ -496,33 +582,172 @@ class AutonomousDiscoveryPipeline:
                 )
             )
 
-        else:
-            synthesis = (
-                await _run_agent_with_retry(
-                    EVIDENCE_SYNTHESISER,
-                    {
-                        "programme": programme,
-                        "query_plan": (
-                            query_plan
-                            .model_dump()
-                        ),
-                        "records": (
-                            compact_records
-                        ),
-                    },
-                    expected_type=(
-                        EvidenceSynthesis
-                    ),
-                    stage_name=(
-                        "Evidence synthesis"
-                    ),
+            cached_issues = (
+                _synthesis_grounding_issues(
+                    cached_synthesis,
+                    compact_records,
                 )
             )
 
-            _write_json(
-                synthesis_path,
-                synthesis,
-            )
+            if not cached_issues:
+                synthesis = cached_synthesis
+            else:
+                print(
+                    "Cached evidence synthesis failed "
+                    "deterministic grounding validation."
+                )
+                previous_synthesis = (
+                    cached_synthesis
+                )
+                previous_issues = (
+                    cached_issues
+                )
+
+        if synthesis is None:
+            for attempt in range(
+                1,
+                MAX_AGENT_ATTEMPTS + 1,
+            ):
+                payload: dict[str, Any] = {
+                    "programme": programme,
+                    "query_plan": (
+                        query_plan.model_dump()
+                    ),
+                    "records": compact_records,
+                }
+
+                if previous_synthesis is not None:
+                    payload[
+                        "rejected_previous_synthesis"
+                    ] = (
+                        previous_synthesis
+                        .model_dump()
+                    )
+                    payload[
+                        "deterministic_grounding_issues"
+                    ] = previous_issues
+                    payload[
+                        "repair_instruction"
+                    ] = (
+                        "Repair the evidence synthesis. "
+                        "Every evidence_record_id must be "
+                        "copied exactly from a record_id "
+                        "or DOI present in the supplied "
+                        "records. Do not introduce, infer, "
+                        "reconstruct, search for, or guess "
+                        "bibliographic identifiers. Remove "
+                        "or rewrite claims that cannot be "
+                        "supported using supplied records."
+                    )
+
+                candidate_synthesis = (
+                    await _run_agent_with_retry(
+                        EVIDENCE_SYNTHESISER,
+                        payload,
+                        expected_type=(
+                            EvidenceSynthesis
+                        ),
+                        stage_name=(
+                            "Evidence synthesis"
+                        ),
+                    )
+                )
+
+                attempt_path = (
+                    synthesis_attempts_dir
+                    / (
+                        "evidence_synthesis_"
+                        f"attempt_{attempt:02d}.json"
+                    )
+                )
+                _write_json(
+                    attempt_path,
+                    candidate_synthesis,
+                )
+
+                grounding_issues = (
+                    _synthesis_grounding_issues(
+                        candidate_synthesis,
+                        compact_records,
+                    )
+                )
+
+                _write_json(
+                    synthesis_attempts_dir
+                    / (
+                        "evidence_synthesis_"
+                        f"attempt_{attempt:02d}_"
+                        "grounding.json"
+                    ),
+                    {
+                        "status": (
+                            "passed"
+                            if not grounding_issues
+                            else "failed"
+                        ),
+                        "issue_count": len(
+                            grounding_issues
+                        ),
+                        "issues": grounding_issues,
+                    },
+                )
+
+                if not grounding_issues:
+                    synthesis = (
+                        candidate_synthesis
+                    )
+                    _write_json(
+                        synthesis_path,
+                        synthesis,
+                    )
+                    break
+
+                print(
+                    "Evidence synthesis grounding "
+                    f"failed on attempt {attempt}/"
+                    f"{MAX_AGENT_ATTEMPTS}: "
+                    f"{len(grounding_issues)} "
+                    "issue(s)."
+                )
+
+                previous_synthesis = (
+                    candidate_synthesis
+                )
+                previous_issues = (
+                    grounding_issues
+                )
+
+            if synthesis is None:
+                _write_json(
+                    literature_dir
+                    / "synthesis_grounding.json",
+                    {
+                        "status": "failed",
+                        "issue_count": len(
+                            previous_issues
+                        ),
+                        "issues": (
+                            previous_issues
+                        ),
+                    },
+                )
+
+                raise RuntimeError(
+                    "Evidence synthesis could not "
+                    "be grounded exclusively in "
+                    "supplied literature records "
+                    "after bounded autonomous repair."
+                )
+
+        _write_json(
+            literature_dir
+            / "synthesis_grounding.json",
+            {
+                "status": "passed",
+                "issue_count": 0,
+                "issues": [],
+            },
+        )
 
         # -------------------------------------------------
         # Candidate generation and validation
