@@ -1993,73 +1993,152 @@ class FinalAutonomousResearchPipeline:
         )
 
         # -------------------------------------------------
-        # 12. AI peer review
+        # 12-13. Bounded autonomous peer review / revision
         # -------------------------------------------------
 
-        peer_review = await run_agent(
-            PEER_REVIEWER,
-            {
-                "master_prompt": master_prompt,
-                "evidence_verification": (
-                    evidence_report
-                ),
-                "preregistration": (
-                    preregistration.model_dump()
-                ),
-                "execution_manifest": (
-                    execution_manifest
-                ),
-                "analysis_results": (
-                    analysis_results
-                ),
-                "manuscript": (
-                    draft.model_dump()
-                ),
-            },
-            expected_type=PeerReviewReport,
-            stage_name="AI peer review",
-        )
-
-        write_json(
+        review_rounds_dir = (
             run_dir
             / "manuscript"
             / "review_rounds"
-            / "review_01.json",
-            peer_review,
+        )
+        review_rounds_dir.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
-        # -------------------------------------------------
-        # 13. Autonomous revision
-        # -------------------------------------------------
+        revision_rounds_dir = (
+            run_dir
+            / "manuscript"
+            / "revision_rounds"
+        )
+        revision_rounds_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-        revised_manuscript = await run_agent(
-            MANUSCRIPT_REVISER,
-            {
-                "master_prompt": master_prompt,
-                "verified_records": records,
-                "evidence_verification": (
-                    evidence_report
+        current_manuscript = draft
+        latest_peer_review: PeerReviewReport | None = None
+
+        maximum_peer_review_rounds = 3
+
+        for review_round in range(
+            1,
+            maximum_peer_review_rounds + 1,
+        ):
+            latest_peer_review = await run_agent(
+                PEER_REVIEWER,
+                {
+                    "master_prompt": master_prompt,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "manuscript": (
+                        current_manuscript.model_dump()
+                    ),
+                    "review_round": review_round,
+                },
+                expected_type=PeerReviewReport,
+                stage_name=(
+                    "AI peer review "
+                    f"round {review_round}"
                 ),
-                "preregistration": (
-                    preregistration.model_dump()
+            )
+
+            write_json(
+                review_rounds_dir
+                / f"review_{review_round:02d}.json",
+                latest_peer_review,
+            )
+
+            if (
+                latest_peer_review
+                .accept_for_finalisation
+            ):
+                break
+
+            if (
+                review_round
+                >= maximum_peer_review_rounds
+            ):
+                break
+
+            revised_manuscript = await run_agent(
+                MANUSCRIPT_REVISER,
+                {
+                    "master_prompt": master_prompt,
+                    "verified_records": records,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "manuscript": (
+                        current_manuscript
+                        .model_dump()
+                    ),
+                    "peer_review": (
+                        latest_peer_review
+                        .model_dump()
+                    ),
+                    "revision_round": (
+                        review_round
+                    ),
+                    "revision_instruction": (
+                        "Address every required revision that can be "
+                        "resolved from existing verified evidence, "
+                        "execution artifacts, and analysis results. "
+                        "Do not invent new experiments, data, references, "
+                        "statistics, URLs, artifact locations, or empirical "
+                        "claims. If a reviewer request cannot be resolved "
+                        "from existing artifacts, preserve it explicitly "
+                        "as an unresolved limitation rather than fabricating "
+                        "support."
+                    ),
+                },
+                expected_type=ManuscriptPackage,
+                stage_name=(
+                    "Autonomous manuscript revision "
+                    f"round {review_round}"
                 ),
-                "execution_manifest": (
-                    execution_manifest
+            )
+
+            write_json(
+                revision_rounds_dir
+                / (
+                    "revised_package_"
+                    f"{review_round:02d}.json"
                 ),
-                "analysis_results": (
-                    analysis_results
-                ),
-                "manuscript": (
-                    draft.model_dump()
-                ),
-                "peer_review": (
-                    peer_review.model_dump()
-                ),
-            },
-            expected_type=ManuscriptPackage,
-            stage_name=(
-                "Autonomous manuscript revision"
-            ),
+                revised_manuscript,
+            )
+
+            current_manuscript = (
+                revised_manuscript
+            )
+
+        if latest_peer_review is None:
+            raise RuntimeError(
+                "Autonomous peer review produced "
+                "no review artifact."
+            )
+
+        revised_manuscript = (
+            current_manuscript
         )
 
         write_json(
@@ -2100,7 +2179,8 @@ class FinalAutonomousResearchPipeline:
                     .model_dump()
                 ),
                 "peer_review": (
-                    peer_review.model_dump()
+                    latest_peer_review
+                    .model_dump()
                 ),
             },
             expected_type=(

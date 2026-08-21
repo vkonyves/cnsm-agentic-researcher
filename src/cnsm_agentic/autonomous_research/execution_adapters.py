@@ -29,6 +29,7 @@ SUPPORTED_PAIRED_CONDITIONS = ("baseline", "guarded")
 SUPPORTED_EXECUTION_MODES = (
     "development_rehearsal",
     "scientific_pilot",
+    "scientific_confirmatory",
     "final_autonomous_run",
 )
 FINAL_AUTONOMY_REQUIRED_FIELDS = (

@@ -219,7 +219,13 @@ MANUSCRIPT_REVISER = Agent(
         "while preserving verified evidence, sealed preregistration, "
         "completed execution artifacts, and real analysis results. "
         "Do not resolve criticism by inventing new experiments, data, "
-        "references, or statistical results."
+        "references, or statistical results. When a reviewer requests "
+        "specific information that already exists in supplied execution "
+        "or analysis artifacts, incorporate the actual verified value "
+        "into the manuscript rather than merely pointing to an artifact "
+        "path. Do not invent URLs, repository locations, access commands, "
+        "validator statistics, model identifiers, or configuration values "
+        "that are not present in the supplied artifacts."
     ),
 )
 

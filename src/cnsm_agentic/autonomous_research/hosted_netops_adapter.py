@@ -422,7 +422,7 @@ class HostedNetOpsGVRAdapter:
             "temperature": plan.get("temperature"),
             "reasoning_effort": plan["reasoning_effort"],
             "store": False,
-            "execution_mode": "scientific_pilot",
+            "execution_mode": str(plan["execution_mode"]),
         }
         model_configuration_path = output_dir / "model_configuration.json"
         _write_json(model_configuration_path, model_configuration)
@@ -970,7 +970,7 @@ class HostedNetOpsGVRAdapter:
                         else "baseline"
                     ),
                     "condition_order": order,
-                    "execution_mode": "scientific_pilot",
+                    "execution_mode": str(plan["execution_mode"]),
                     "model_provider": SUPPORTED_PROVIDER,
                     "model_name": str(plan["model_name"]),
                     "model_version": resolved_model,
@@ -1124,7 +1124,7 @@ class HostedNetOpsGVRAdapter:
             ),
             "result_schema_id": PAIRED_BINARY_RESULT_SCHEMA_ID,
             "result_schema_version": PAIRED_BINARY_RESULT_SCHEMA_VERSION,
-            "execution_mode": "scientific_pilot",
+            "execution_mode": str(plan["execution_mode"]),
             "artifact_hashes": artifact_hashes,
             "warnings": [],
             "preregistration_sha256": _sha256_bytes(
