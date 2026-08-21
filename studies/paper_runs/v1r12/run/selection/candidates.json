@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnsmautocand-1",
+      "title": "Robustness of Deterministic Runtime Validators to Model/State Mismatch in LLM-driven NetOps",
+      "research_question": "How does increasing model/state mismatch and sensing error affect the false-acceptance and false-rejection rates of deterministic runtime validators (deterministic twins/shields) applied to LLM-generated network configuration changes for reachability and ACL tasks?",
+      "hypotheses": [
+        "Under matched-model/state conditions, a deterministic runtime validator will reduce unsafe-acceptance (false-acceptance) of LLM-generated configs by ≥80% relative to no validator.",
+        "Introducing bounded state mismatch and sensing noise will increase the validator's false-rejection rate and will degrade unsafe-acceptance reduction such that beyond a measurable mismatch threshold the validator's net operational utility (accepted-correct/total-accepted) falls below the no-validator baseline."
+      ],
+      "proposed_design": "Controlled, preregistered experiment using public synthetic and vendor-agnostic topologies: (1) construct a task set of intent-to-configuration problems (reachability, ACL-compliance, loop/blackhole avoidance) using public config fragments; (2) generate candidate configs with one LLM family under fixed prompts; (3) apply a deterministic validator (reachability/ACL oracle implemented via simulator-based symbolic checks) under multiple mismatch conditions: matched state, small sensing perturbation, medium perturbation, large perturbation (perturbations change link status, device state, or routing tables); (4) measure validator accept/reject decisions and execution-grounded correctness by executing accepted configs in the simulator; (5) repeat with randomized seeds to produce per-condition distributions. Preregistration will fix task set, perturbation magnitudes, sample size, and retry policy.",
+      "expected_data": "Per-task, per-condition records including: LLM-generated config text, validator decision (accept/reject), simulated execution result (reachability matrix, ACL violation indicators, loop detection), perturbation parameters, timestamps, and hashes; aggregated counts and rates for false-acceptance, false-rejection, true-acceptance, and accepted-correct fraction across mismatch levels.",
+      "primary_outcome": "Change in validator unsafe-acceptance rate (proportion of accepted configs that are execution-incorrect) as a function of state-mismatch magnitude; operational threshold where validator utility (accepted-correct fraction) no longer exceeds the no-validator baseline.",
+      "analysis_outline": "Compute per-condition proportions (unsafe-acceptance, false-rejection) with 95% binomial CIs; use logistic regression to model unsafe-acceptance as a function of mismatch magnitude and task type; compare matched vs each mismatch level with paired difference-in-proportions tests (McNemar or bootstrap paired tests depending on pairing); report effect sizes and model-predicted mismatch threshold where validator benefit crosses zero; perform failure-mode taxonomic analysis of accepted incorrect configs.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.7290820",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411203672"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411203672"
+      ],
+      "risks": [
+        "Simulator/oracle may not fully capture vendor-specific semantics, limiting external validity.",
+        "LLM outputs may require normalization/parsing that introduces pre-evaluation bias.",
+        "Creating realistic state-mismatch scenarios may inadvertently produce infeasible conditions (handled via preregistered sanity checks).",
+        "Overfitting validator heuristics to the chosen synthetic topologies."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnsmautocand-2",
+      "title": "Evaluating Prompt-Injection and Retrieval/Tool-Channel Attacks on Agentic NetOps Pipelines and Layered Defenses",
+      "research_question": "What is the empirical effectiveness of adversarial indirect/prompt-injection attacks delivered via retrieval and tool outputs against an agentic NetOps pipeline, and how much do layered defenses (RAG grounding, deterministic validators, and tool sandboxing) reduce successful attack rates?",
+      "hypotheses": [
+        "An unguarded agentic pipeline with retrieval and tool integration will exhibit a non-negligible adversarial success rate (successful unsafe config application) when the retrieval/tool corpus contains crafted injection payloads.",
+        "A defense-in-depth configuration combining retrieval sanitization (trusted-source filtering), RAG grounding with provenance, and a deterministic validator will reduce successful adversarial injections by ≥70% relative to the unguarded baseline."
+      ],
+      "proposed_design": "Construct an agentic NetOps pipeline prototype using public components: (1) retrieval index seeded with benign doc corpus plus injected adversarial documents simulating compromised knowledge sources and tool outputs; (2) tool-integration layer that returns attacker-crafted CLI snippets when queried by the agent (simulated tool); (3) LLM-based plan/config generator invoked with identical prompts across experiments; (4) defense configurations: none, RAG-only, validator-only, RAG+validator+sandbox; (5) define attack success as an accepted config that, when executed in simulator, performs an unsafe action (ACL breach, route hijack, blackhole); (6) run a battery of adversarial payloads (obfuscation, indirect instruction, instruction-masking) across tasks and defenses; (7) measure attack success rates and provenance/trust metrics. Preregister attack corpus, defenses, and success criteria.",
+      "expected_data": "Per-run logs with pipeline inputs, retrieval hits and provenance, tool outputs, LLM responses, defense actions (sanitization, rejects), simulator execution outcomes, and binary attack-success labels; aggregated success rates per defense, per-attack-type and per-task.",
+      "primary_outcome": "Relative reduction in adversarial attack success rate for the combined defense compared to the unguarded baseline, with statistical significance and confidence intervals.",
+      "analysis_outline": "Estimate attack success proportions with 95% CIs per defense; compare defenses with pairwise proportion tests (McNemar or bootstrap) and compute relative risk reductions; stratify by attack type and task; analyze false-blocking rates (benign configs blocked) and compute trade-offs (precision/recall for blocking); present exemplar successful/instrumented failure cases for qualitative analysis.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6740060",
+        "https://openalex.org/W4402670146",
+        "https://openalex.org/W4383499600",
+        "https://openalex.org/W4411203672"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411203672"
+      ],
+      "risks": [
+        "Constructing realistic adversarial payloads may require domain expertise and could accidentally replicate real vulnerabilities (experiments limited to simulated environments and public corpora).",
+        "Defense tuning to the known attack corpus may overestimate real-world robustness.",
+        "Tool-sandbox simulation may not capture all live tool integration subtleties, affecting external validity."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "cnsmautocand-3",
+      "title": "An Execution-Grounded Benchmark for LLM-Generated Network Configurations: Metrics, Oracles, and Adversarial Tests",
+      "research_question": "Can an execution-grounded benchmark that combines executable oracles (reachability, ACL compliance, loop/blackhole detection) with adversarial injections produce reproducible metrics that diverge from language-level correctness measures and better reflect operational safety?",
+      "hypotheses": [
+        "Language-level similarity metrics and LM intrinsic scores (e.g., token-likelihood, BLEU-like measures) will correlate weakly (Pearson r < 0.5) with execution-grounded correctness (reachability/ACL success) across a diverse task set.",
+        "Inclusion of adversarial test cases in the benchmark will reveal systematic failure modes not apparent in language-only evaluations and will change relative model rankings compared to language-only metrics."
+      ],
+      "proposed_design": "Design and release a public benchmark corpus derived from permissively licensed config fragments and synthesized topologies: (1) define tasks (intent-to-config for reachability, ACL modification, and routing policy); (2) implement executable oracles using a network simulator to assess correctness; (3) include adversarially perturbed tasks (maliciously ambiguous intents, corrupted repository entries); (4) run multiple LLM prompting strategies to produce candidate configs; (5) evaluate each candidate with both language-level metrics and execution-level oracles; (6) compute metric correlations and rank stability under adversarial additions. Publish dataset, evaluation code, and scoring scripts for reproducibility.",
+      "expected_data": "Benchmark dataset (tasks, reference configs, adversarial cases), per-model per-task outputs, language-level metric scores, execution-oracle binary/continuous correctness measures, correlation matrices, model ranking lists under varied metric sets, and artifact hashes.",
+      "primary_outcome": "Empirical correlation between language-level metrics and execution-grounded correctness (expectation: low correlation) and demonstration that adversarial cases alter model rankings and reveal operationally-relevant failures.",
+      "analysis_outline": "Compute pairwise Pearson and Spearman correlations between each language metric and each execution metric with bootstrap CIs; perform rank-correlation tests to compare ranking stability with and without adversarial cases; use cluster analysis to identify failure-mode groups; report example failure cases and per-task metric breakdowns; provide reproducibility checklist and artifact hashes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404400703",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4392875514"
+      ],
+      "risks": [
+        "Public corpora may lack vendor-specific diversity, limiting representativeness.",
+        "Simulated oracles may not capture all production execution nuances, risking overconfidence.",
+        "Benchmark design choices (task difficulty, adversary selection) could bias evaluation toward certain defenses."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cnsmautocand-4",
+      "title": "Iteration Dynamics and Optimal Stopping for Generate–Verify–Repair Loops in LLM-Assisted NetOps",
+      "research_question": "What are the per-iteration improvement dynamics of a bounded generate–verify–repair (GVR) loop for intent-to-configuration tasks, and can an empirically derived stopping rule achieve near-maximum correctness while reducing model-call costs?",
+      "hypotheses": [
+        "For typical NetOps IaC tasks, marginal correctness improvement in a GVR loop will exhibit diminishing returns and plateau by the 2nd–4th iteration for most tasks.",
+        "A simple stopping rule based on validator-stability (no validator-accepted improvement in two consecutive iterations) will retain ≥95% of the maximum attainable correctness while reducing total model calls by ≥30%."
+      ],
+      "proposed_design": "Preregistered iterative experiment: (1) select representative intent-to-config tasks; (2) run a GVR pipeline where each iteration uses the LLM to propose fixes guided by deterministic validator feedback; (3) cap iterations at a conservative maximum (e.g., 6); (4) record per-iteration correctness, validator decisions, and model-call counts; (5) evaluate multiple stopping rules (fixed k, validator-stability, marginal-improvement threshold) against full-run correctness and cost; (6) analyze iteration-to-plateau distribution and compute cost-benefit trade-offs.",
+      "expected_data": "Per-task iteration logs: candidate configs per iteration, validator outputs, execution-grounded correctness per iteration, model-call counts, and timestamps; aggregated per-task iteration curves and stopping-rule performance metrics (correctness retained vs calls saved).",
+      "primary_outcome": "Distribution of plateau iteration numbers across tasks and empirical performance of stopping rules (correctness retained and percentage model-call reduction), identifying a recommended stopping heuristic.",
+      "analysis_outline": "Plot per-task and aggregated iteration improvement curves; compute median and IQR of plateau iteration; compare stopping rules via paired analyses of retained correctness and model-call savings; use nonparametric tests for differences in retained correctness; present failure-case analyses where iterations fail to converge.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "doi:10.2139/ssrn.6909698",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4405029936",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Stopping heuristics tuned on the selected task set may not generalize to other NetOps tasks.",
+        "Validator brittleness may produce false stability signals, causing premature stopping.",
+        "Synthetic tasks may underrepresent complex real-world iterative repair needs."
+      ],
+      "estimated_model_calls": 1500
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "summary": "Well-motivated, narrowly scoped preregistered experiment investigating retrieval- and tool-channel prompt-injection against an agentic NetOps prototype with a layered defense. The authors provide a rich, hashed artifact bundle and explicitly disclose integrity/caching issues that materially limit confirmatory inference. The reported confirmatory contrast (baseline vs combined defense) shows very high attack-success in both conditions and no significant reduction under the implemented combined defense; however, unresolved internal inconsistencies in counting and deterministic call-cache reuse undermine statistical independence, planned sampling, and the validity of the confirmatory claim.",
+  "novelty_score": 5,
+  "technical_depth_score": 2,
+  "soundness_score": 2,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Major deviation from preregistered sampling: planned paired runs (preregistered 160 paired units per confirmatory contrast) were not completed (complete_pairs=150) and planned total runs described in preregistration (640) were not executed; this reduces power and departs from the frozen design without documented, justified deviation handling.",
+    "Deterministic call-cache materially reduced external model calls (model_calls_used=163 for 300 completed episodes) and is documented in artifacts; cache reuse can induce dependence across runs/conditions and invalidates the independence assumption underlying the paired analysis unless explicitly demonstrated otherwise.",
+    "Internal integrity inconsistency: the artifact bundle contains conflicting marginal tallies vs paired contingency tables (the manuscript admits this). Without reprocessing or a reconciled recount, the reported paired counts and derived statistics cannot be relied upon.",
+    "Planned conditions/contrasts incompletely reported: preregistration specified four defense configurations (none, RAG-only, validator-only, combined) and two model families; the confirmatory results report only baseline vs combined-guarded and provide no confirmatory/ exploratory summaries for RAG-only or validator-only or model-family stratification as preregistered.",
+    "Missing per-run provenance mapping in manuscript: it is unclear from reported summary which model family/version produced each run and whether cached responses were reused across condition labels; per-run mapping (task id → condition → model id → cache-hash) must be shown for audit and to evaluate contamination.",
+    "Counting/exclusion transparency incomplete: although exclusion rules are stated, the manuscript does not provide a reconciled list of excluded run IDs, the exact parser-failure counts per run, or a deterministic reprocessing log to explain the observed inconsistency.",
+    "Statistical validity compromised: even if McNemar is appropriate for paired binary outcomes, cache-induced dependence and the unresolved counting inconsistency render the p-value and bootstrap CIs unreliable for the preregistered estimand."
+  ],
+  "required_revisions": [
+    "Provide a deterministic, auditable reconciliation of the artifact counts: publish and explain a run-level table (task_id, model_family/version, condition, cache_file_hash, provider_call_id, parser_status, score, inclusion/exclusion reason) that reconciles marginal and paired tallies; re-run the frozen analysis pipeline on that reconciled table and republish corrected paired counts and statistics.",
+    "Demonstrate whether and how call_cache entries were reused across different condition labels. If cached responses were reused across baseline vs guarded labels, either (a) reprocess/recompute the confirmatory analysis excluding runs affected by cross-condition cache reuse, or (b) rerun the affected runs without cache reuse according to the preregistered stopping/retry rules.",
+    "If rerun is infeasible, produce a sensitivity analysis that quantifies the effect of cache reuse on the primary estimand (worst-case/best-case imputation and recalculated paired-test results) and transparently update the manuscript conclusions accordingly.",
+    "Publish per-condition, per-model-family breakdowns (including RAG-only and validator-only) as preregistered (or document and justify why those planned contrasts were not performed), with corresponding inclusion/exclusion counts and CI/p-value treatment per the multiplicity plan.",
+    "Document all deviations from the preregistration explicitly in a deviations table (what changed, why, when) and update the power analysis given the realized sample size; if power is inadequate for the primary estimand, label the result exploratory and avoid confirmatory claims.",
+    "Resolve and document parser-determinism issues: publish parser failure examples, formal parser acceptance criteria, and rerun or re-evaluate affected outputs so that exclusion rules are reproducible."
+  ],
+  "optional_revisions": [
+    "Increase model/version coverage and report per-model-family susceptibility to improve external validity (if resources permit).",
+    "Rerun a subset of preregistered pairs without deterministic call_cache to validate independence and to estimate cache bias directly.",
+    "Provide worked examples of specific successful adversarial payloads and example guarded pipeline traces illustrating why the defense failed for those cases, to support mechanistic understanding.",
+    "Include an explicit analysis showing RAG-only and validator-only marginal contributions to attack reduction (exploratory analyses), as originally planned.",
+    "Add short scripting/notebook instructions enabling an independent auditor to re-run the deterministic reprocessing and reproduce the reconciled paired table from the raw artifacts."
+  ],
+  "accept_for_finalisation": false
+}

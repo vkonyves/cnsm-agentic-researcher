@@ -1,0 +1,171 @@
+{
+  "selected_candidate_id": "cnsmautocand-2",
+  "title": "Evaluating Prompt-Injection and Retrieval/Tool-Channel Attacks on Agentic NetOps Pipelines and Layered Defenses (Repaired & Preregistered)",
+  "research_question": "How effective are adversarial retrieval- and tool-channel prompt-injection attacks against an agentic NetOps pipeline, and to what extent does a defense-in-depth configuration (RAG grounding with provenance + deterministic validator + sandboxed tool outputs) reduce attack success rates?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): An unguarded agentic pipeline (retrieval + tool integration, no runtime validator/provenance/sandboxing) will exhibit non-negligible attack success rate against injected adversarial payloads in a simulated NetOps environment.",
+    "H2 (confirmatory): A defense-in-depth configuration combining trusted-source retrieval filtering, RAG grounding with provenance, a deterministic runtime validator (policy/oracle check), and sandboxed tool outputs will reduce successful adversarial-injection rates by ≥70% relative to the unguarded baseline (primary estimand)."
+  ],
+  "exploratory_questions": [
+    "E1: Relative contributions of RAG-only and validator-only defenses (separately) to attack reduction.",
+    "E2: Attack-type sensitivity (obfuscation, indirect-instruction, instruction-masking) across defenses.",
+    "E3: False-block (benign correct config rejected) trade-offs for each defense configuration.",
+    "E4: Model-family sensitivity (two hosted-model families) to the same attack corpus and defenses."
+  ],
+  "benchmark_scope": [
+    "Public, synthetic, or procedurally generated NetOps corpora (no private/proprietary configs).",
+    "Simulator-executable semantics limited to reachability, ACL rule match, route advertisement semantics and blackhole/loop detection (defined formally in preregistration).",
+    "Agentic pipeline prototype assembled from public components and sandboxed tool simulators; no live device access."
+  ],
+  "model_scope": [
+    "Two hosted-model API families (for diversity): OpenAI GPT-4 family (referenced as 'openai/gpt-4' use-case) and Anthropic Claude-2 family (referenced as 'anthropic/claude-2') via hosted APIs.",
+    "Deterministic inference settings for confirmatory runs: temperature=0.0, top_p=1.0, max_tokens per call fixed; exploratory sensitivity runs at temperature=0.2.",
+    "Exact model identifiers and prompt templates are preregistered (see analysis_plan); model-family selection aligns with capability_manifest (hosted_model_api_available)."
+  ],
+  "transformation_scope": [
+    "Normalization: deterministic parse of LLM outputs into canonical CLI/action ASTs using a published parser module (deterministic code included in artifacts).",
+    "Semantic mapping: mapping CLI AST to simulator-executable operations (reachability/ACL checks).",
+    "Provenance tagging: deterministic recording of retrieval hits and tool outputs (document ID + extraction offsets) for each LLM call."
+  ],
+  "primary_estimand": "Relative reduction in attack-success proportion (probability) for combined defense (RAG + validator + sandbox) compared to unguarded baseline, aggregated across tasks and model families (paired per task-model instance).",
+  "secondary_estimands": [
+    "Absolute attack success proportions by defense configuration.",
+    "False-block (benign-correct config rejected) proportion by defense configuration.",
+    "Relative reduction per attack type (obfuscation, indirect-instruction, instruction-masking).",
+    "Per-model-family attack susceptibility and defense effectiveness."
+  ],
+  "sampling_plan": "Confirmatory paired design: 80 unique task instances (task seeds) × 2 model families = 160 paired task-model units for the primary baseline vs combined-defense comparison. Tasks: 4 task clusters (ACL modification, route advertisement change, firewall-rule insertion, interface/route shutdown) × 20 seed variants each = 80 task seeds. For each task seed and model family we execute the pipeline under 4 defense configurations (baseline/none, RAG-only, validator-only, combined RAG+validator+sandbox) and label run outcomes. Confirmatory inference uses the paired baseline vs combined results per task-model unit (n=160). Exploratory runs include the intermediate defenses (RAG-only, validator-only) and attack-type stratifications; total pipeline runs = models(2) × defenses(4) × task_seeds(80) = 640 runs. Randomization: task seeds and adversarial-corpus samples are selected by fixed RNG seed(s) preregistered in the artifact manifest. Retry policy: automatic re-execution allowed only for infrastructure/API failures (logged and re-run once), otherwise no re-run. All inputs, retrieval indices, corpus generation code, seeds, and artifact hashes will be published.",
+  "analysis_plan": "Primary analysis: paired-proportion comparison (baseline vs combined defense) across 160 paired task-model units; compute attack-success proportions with 95% bootstrap CIs and paired test (McNemar on per-unit binary success) plus bootstrap-based relative-risk reduction and 95% CI. Secondary analyses: pairwise comparisons for other defenses; stratified attack-type analyses; compute false-block rates (benign-correct fraction rejected) per defense with 95% CIs. Multiple comparisons: primary hypothesis is baseline vs combined only (confirmatory); other comparisons are exploratory and reported with adjusted p-values (Benjamini-Hochberg) and interpreted as exploratory. All raw logs, parsed ASTs, provenance traces, and analysis scripts will be published to enable exact reproduction.",
+  "multiplicity_plan": "One preregistered primary confirmatory contrast (baseline vs combined defense) controls alpha=0.05. All other contrasts (RAG-only vs baseline, validator-only vs baseline, per-attack-type, per-model) are exploratory; p-values reported but interpreted with false-discovery control (BH) and labeled exploratory.",
+  "missingness_plan": "If a run fails due to infrastructural/API errors it is re-executed once; if still failing it is recorded as 'infrastructure failure' and excluded from scientific analyses (counts and reasons reported). No runs will be excluded for scientific outcome. Missingness will be reported by defense/model/task and sensitivity analyses will impute worst-case and best-case attack outcomes for missing runs (reported).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Preregistered synthetic NetOps corpus (public repo) and procedurally generated adversarial variants (seeded code)."
+    ],
+    "risk_factors": [
+      "Leakage of adversarial payloads into non-study public indices (ethical risk).",
+      "Cross-run contamination of retrieval index if rebuilding is mishandled.",
+      "Artifact tampering affecting reproducibility."
+    ],
+    "detection_procedures": [
+      "Deterministic index-build procedure with artifact hashing; post-build verification: compute and publish index hash and document IDs.",
+      "Automated diff of retrieval hits per run to detect unexpected corpus changes (flag if index hash mismatches preregistered hash).",
+      "Execution logs signed by artifact hash and published; CI checks to detect nonmatching artifact versions."
+    ],
+    "item_flagging_rules": [
+      "If index hash ≠ preregistered hash then automatically exclude runs that used the mismatched index and mark as contamination event.",
+      "If any retrieval provenance indicates a source outside the preregistered corpus, the run is automatically flagged and excluded from confirmatory analysis (kept for exploratory auditing)."
+    ],
+    "analysis_treatment": "Contaminated or mismatched-index runs are excluded from confirmatory (primary) analysis. All exclusions, counts, and reasons are published. Sensitivity analyses recompute primary estimand under worst-case (assume contaminated runs increased baseline attack rate) and best-case assumptions; both reported.",
+    "residual_uncertainty": [
+      "Residual uncertainty remains about real-world adversary realism (noncritical external-validity limitation); documented in remaining_noncritical_uncertainties."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-conservative",
+      "description": "Conservative scenario (reduced model-call budget to limit API cost): run complete confirmatory paired design with limited exploratory depth.",
+      "planned_model_calls": 3000,
+      "models": [
+        "openai/gpt-4 (deterministic settings, primary calls)",
+        "anthropic/claude-2 (deterministic settings, primary calls)"
+      ],
+      "transformations": [
+        "LLM output → deterministic CLI AST parse",
+        "AST → simulator executable mapping",
+        "Provenance tagging of retrieval hits/tool outputs"
+      ],
+      "discovery_items": 320,
+      "confirmatory_items": 160,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Total pipeline runs = models(2) × defenses(4) × task_seeds(80) = 640 runs. Planned model calls 3000 implies ≈4.7 model calls per run on average (3000/640≈4.69). Conservative setting limits exploratory sensitivity (reduces some repeated/temperature-varied calls) but preserves preregistered confirmatory paired comparisons."
+    },
+    {
+      "scenario_id": "S2-recommended",
+      "description": "Recommended scenario (balanced power and exploratory depth): full preregistered design with moderate exploratory sensitivity analyses.",
+      "planned_model_calls": 4000,
+      "models": [
+        "openai/gpt-4 (temperature=0.0 primary; 0.2 exploratory)",
+        "anthropic/claude-2 (temperature=0.0 primary; 0.2 exploratory)"
+      ],
+      "transformations": [
+        "Deterministic normalization and AST parsing (primary runs)",
+        "Additional exploratory parsing error-instrumentation",
+        "Provenance and retrieval analysis"
+      ],
+      "discovery_items": 320,
+      "confirmatory_items": 160,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Total runs 640; planned_model_calls 4000 → ≈6.25 calls/run (4000/640). Allows average 6 LLM calls per run (initial plan generation, one validator-assist call, one repair/rewrite call, and provenance-retrieval prompts) enabling fuller instrumentation and the preregistered exploratory analyses. Recommended because it fits estimated_model_calls (4000) and the capability_manifest limit (≤10000)."
+    },
+    {
+      "scenario_id": "S3-ambitious",
+      "description": "Ambitious scenario (extensive exploratory sensitivity including higher-temperature sweeps and additional re-runs for validator tuning checks).",
+      "planned_model_calls": 7000,
+      "models": [
+        "openai/gpt-4 (primary and temperature sweep)",
+        "anthropic/claude-2 (primary and temperature sweep)"
+      ],
+      "transformations": [
+        "All primary transformations plus broader exploratory parser-failure audits and multiple repair iterations"
+      ],
+      "discovery_items": 320,
+      "confirmatory_items": 160,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Planned_model_calls 7000 → ≈10.94 calls/run (7000/640). Enables richer sensitivity sweeps, repeated random-seed draws for robustness checks, and extra exploratory strata but increases hosted-API cost. Still within capability_manifest ceiling (≤10000)."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Relative reduction in attack-success proportion (paired baseline vs combined-defense)",
+    "target_effect": "70% relative reduction (example: baseline p0=0.30 → p1=0.09 absolute difference 0.21)",
+    "clustering_unit": "paired task-model unit (one task seed executed under baseline and combined defenses for a fixed model family)",
+    "calculation_method": "Conservative two-proportion sample-size heuristic (converted to paired design); using p0=0.30, p1=0.09, alpha=0.05, power=0.80 yields ~55 per independent group; using a paired design we preregister n=80 per model family to be conservative (80×2 model families =160 paired units). Bootstrap CI and McNemar paired test are preregistered for analysis.",
+    "assumptions": [
+      "Baseline attack success proportion for unguarded pipeline p0 ≈ 0.30 (literature indicates non-negligible rates; used as planning estimate).",
+      "Paired design reduces variance; conservative n=80 per model family selected to ensure ≥80% power under moderate intra-pair correlation.",
+      "Binomial outcomes; independence across task seeds given fixed seeds and non-overlapping retrieval samples."
+    ],
+    "recommended_scenario_id": "S2-recommended",
+    "minimum_detectable_effect_notes": "With n=160 paired units (aggregated across two model families) the study can detect an absolute reduction of ~0.15–0.20 in attack probability with 80% power depending on intra-pair correlation; the preregistered target (70% relative reduction from 0.30 to 0.09) is detectable under these assumptions.",
+    "sensitivity_analyses": [
+      "Recompute power under baseline p0=0.20 and p0=0.40 to report sensitivity of detectable relative reduction.",
+      "Bootstrap-based estimation of CIs for relative-risk reduction to avoid normal-approximation fragility."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "LLM-output → CLI AST parsing",
+      "AST → simulator-executable mapping (semantic mapping)",
+      "Provenance extraction & canonicalization"
+    ],
+    "semantic_equivalence_checks": [
+      "For each parsed CLI AST, deterministic simulator-run equivalence tests compare canonicalized LLM output to a reference canonicalization function; parsing errors are automatically logged and that run is excluded from confirmatory analysis if parser failure prevented deterministic mapping.",
+      "Unit test suite (preregistered) with 200 canonical pairs verifies parser correctness before experiment; results and hashes published."
+    ],
+    "automatic_rejection_rules": [
+      "Reject runs automatically from confirmatory analysis if parser fails (non-deterministic/ambiguous output) or provenance indicates out-of-scope source; parser-failure runs are retained for exploratory parser-robustness analysis but not counted in primary estimand.",
+      "Reject runs where index hash mismatches preregistered index hash (contamination)."
+    ],
+    "audit_sample_policy": "Audit sample 10% of runs (deterministic selection by preregistered RNG) and publish full raw LLM outputs and parser outputs for traceability; audit executed by automated reproducibility checks (no human adjudication).",
+    "mapping_validation": "Formal mapping functions and test suites (unit tests and integration tests) are provided in the artifact repo; mapping code deterministic and published with hashes.",
+    "residual_risks": [
+      "Parser brittleness on adversarially obfuscated payloads may inflate parser failures (noncritical to primary estimand because such runs are excluded); parser robustness reported and analyzed as exploratory findings."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity: simulator semantics and sandboxed tool abstractions may not capture every nuance of vendor-specific, live-device behaviors; generalization to production NetOps is a noncritical external-validity limitation.",
+    "Adversarial realism: procedurally generated adversarial payloads may not fully represent sophisticated real-world attackers; mitigated by guideline-based generation and procedural variants but remains a noncritical uncertainty.",
+    "Sandbox fidelity: the sandboxed tool interface simulates attacker-crafted tool outputs but may omit integration subtleties present in real tool APIs; documented and treated as noncritical.",
+    "Licensing/data coverage: public/synthetic corpora may not cover all vendor-specific CLI idioms; fallback to procedurally generated vendor-agnostic fragments is preregistered."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6740060",
+    "https://openalex.org/W4402670146",
+    "https://openalex.org/W4383499600",
+    "https://openalex.org/W4411203672",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399629579"
+  ]
+}

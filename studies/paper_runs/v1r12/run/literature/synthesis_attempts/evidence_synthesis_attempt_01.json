@@ -1,0 +1,221 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Large language models are actively being explored to translate high-level operator intent into network configurations and to generate network-automation code; multiple prototypes, surveys, and benchmarks demonstrate feasibility in controlled settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4406137434"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.85,
+      "limitations": [
+        "Most studies report prototypes or controlled experiments rather than production deployments",
+        "Task definitions, model families, and evaluation protocols vary substantially across papers"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "LLM-generated network artifacts and agentic workflows are vulnerable to hallucinations and prompt-injection / indirect-injection attacks; the literature documents these vulnerabilities and their relevance to agentic NetOps pipelines.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6740060",
+        "https://openalex.org/W4402670146",
+        "https://openalex.org/W4383499600",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.9,
+      "limitations": [
+        "Attack success rates depend on agent architecture, tool integration, and defense placement",
+        "Existing evaluations span many application domains; NetOps-specific empirical rates are limited"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Generate–Verify–Repair (GVR) pipelines and runtime enforcement/shield layers are proposed and empirically shown (in controlled studies) to reduce unsafe acceptance of stochastic LLM outputs by interposing deterministic validators or deterministic twins.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.7290820",
+        "doi:10.2139/ssrn.6143769"
+      ],
+      "evidence_type": "method_evidence",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness is often demonstrated under matched-model or matched-twin assumptions; performance degrades with model/twin mismatch",
+        "Evaluations are prototype-scale and may not reflect integration complexity in heterogeneous NetOps environments"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Retrieval-Augmented Generation (RAG) and tool-augmented workflows are commonly recommended to ground LLM outputs and improve factuality for domain tasks, including NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.8,
+      "limitations": [
+        "RAG performance depends strongly on retrieval coverage, index freshness, and prompt/tool integration",
+        "Standardized evaluation protocols for RAG in NetOps are not yet established"
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "LLMs can assist Infrastructure-as-Code (IaC) and network-automation tasks, but iterative feedback/validation loops are necessary and improvements can plateau after a few iterations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "doi:10.2139/ssrn.6909698",
+        "https://openalex.org/W4405029936",
+        "https://openalex.org/W4393757176"
+      ],
+      "evidence_type": "empirical_and_survey_evidence",
+      "confidence": 0.75,
+      "limitations": [
+        "Observed iteration dynamics and plateau points vary by task, model, and validator",
+        "Public, diverse IaC/NetOps datasets for systematic evaluation are limited"
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Human-in-the-loop oversight is widely advocated as a safety control for LLM-assisted NetOps, but human approval processes can be inconsistent and may function primarily as liability or ceremonial mechanisms rather than reliable technical safety guarantees.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W4411535226",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.7,
+      "limitations": [
+        "HITL effectiveness depends on operator training, workload, tooling, and the transparency of model decisions",
+        "Empirical measurement of operator oversight effectiveness in NetOps is limited"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "How robust are runtime verification and authorization layers (deterministic twins/shields) to model/state mismatch and real-world sensing/measurement error in NetOps pipelines?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7290820"
+      ],
+      "evidence_type": "empirical_question_from_literature",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing TwinGridShield evaluation shows sensitivity to bounded measurement error in the power-grid domain; transfer to heterogeneous network protocols and state models remains untested",
+        "Quantitative bounds for acceptable mismatch in NetOps contexts are not provided in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "What standardized, execution-grounded metrics and benchmark suites reliably measure operational correctness, safety, and policy compliance for LLM-generated network configurations?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "gap_identification_from_surveys",
+      "confidence": 0.6,
+      "limitations": [
+        "NetConfEval and related efforts exist but are heterogeneous; no consensus benchmark with execution-based oracles is established in the supplied records",
+        "Domain-specific operational oracles (reachability, loop/blackhole detection, ACL compliance) require standardized definitions"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "To what extent can end-to-end agentic pipelines be hardened against indirect prompt-injection across retrieval, tool invocation, and persistent memory layers in NetOps deployments?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670146",
+        "https://openalex.org/W4383499600",
+        "doi:10.2139/ssrn.6740060"
+      ],
+      "evidence_type": "security_evaluation_question",
+      "confidence": 0.65,
+      "limitations": [
+        "Benchmarks (INJECAGENT) demonstrate vulnerabilities in tool-integrated agents generally; NetOps-specific exploit surfaces and mitigations require targeted study",
+        "Defense-in-depth strategies are suggested but not exhaustively validated in supplied NetOps-focused records"
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "Are publicly available, realistic corpora of vendor-specific, annotated network configurations sufficient for training and evaluating LLMs for complex NetOps tasks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4404400703"
+      ],
+      "evidence_type": "data_gap_question",
+      "confidence": 0.6,
+      "limitations": [
+        "PreConfig and Zodiac note data scarcity and semantic gaps in IaC/cloud examples, indicating similar scarcity for diverse vendor network configs",
+        "The supplied records document efforts to construct corpora but do not show comprehensive, public NetOps corpora covering multi-vendor device CLIs and realistic operational histories"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a shortage of standardized, public NetOps-oriented benchmarks that combine LLM output evaluation with executable verification (e.g., reachability, ACL compliance, loop/blackhole detection) and threat-modeled adversarial tests.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404400703"
+      ],
+      "evidence_type": "literature_gap",
+      "confidence": 0.65,
+      "limitations": [
+        "NetConfEval exists but is limited in scope and heterogenous across studies",
+        "Designing cross-vendor executable oracles requires careful standardization of network semantics"
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Empirical studies specifically measuring prompt-injection and agentic adversarial attacks in NetOps contexts (including tool-integration and retrieval channels) are scarce.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670146",
+        "doi:10.2139/ssrn.6740060"
+      ],
+      "evidence_type": "security_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing injection benchmarks demonstrate risk in general agent settings, but NetOps-specific attack surfaces (device CLIs, config repositories, NetConf/YANG interfaces) are under-explored in the provided record set"
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Publicly available, well-annotated corpora of realistic network configurations and operational traces for LLM training and rigorous evaluation are limited, hindering reproducible research.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4404400703",
+        "https://openalex.org/W4393757176"
+      ],
+      "evidence_type": "data_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Some efforts create corpora or mine semantic checks (Zodiac) but coverage across vendors, protocols, and operational errors is incomplete",
+        "Privacy and operator confidentiality often limit availability of production traces"
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "There is limited empirical evidence and tooling guidance on how to design effective human-in-the-loop approval workflows that reliably prevent unsafe NetOps actions without becoming mere liability ceremonies.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W4411535226"
+      ],
+      "evidence_type": "operational_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "The literature critiques HITL but provides few controlled NetOps studies measuring operator decision quality under automation pressure",
+        "Designing usable, effective HITL requires domain studies absent from supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready for unsupervised, autonomous network configuration changes without deterministic validators (unsupported by the supplied records).",
+    "Runtime shields or deterministic twins guarantee zero unsafe releases in realistic, mismatched-network conditions (excluded because TwinGridShield shows sensitivity to model/state mismatch and studies are prototype-scale).",
+    "Human-in-the-loop approval alone is sufficient to ensure safety in agentic NetOps deployments (excluded because literature documents HITL inconsistencies and liability concerns).",
+    "A single off-the-shelf LLM family universally outperforms other approaches across all NetOps tasks (excluded because supplied surveys report variability and no comprehensive multi-model superiority evidence)."
+  ]
+}

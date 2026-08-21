@@ -1,0 +1,33 @@
+{
+  "study_id": "cnsmautocand-2-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis using per-task paired binary attack_success from execution/scoring/task-<NNN>-baseline.json and execution/scoring/task-<NNN>-guarded.json. Include only paired units where both records satisfy parser_success==1 and provenance_valid==1 and are not flagged as infrastructure failure. Compute: (1) guarded minus baseline paired success-rate difference (estimand = guarded − baseline); (2) paired McNemar test (two-sided) for change in attack-success; (3) bootstrap (clustered by task-index) 95% CI for proportions and for relative-risk reduction (baseline→guarded). Report numerator/denominator counts, effect estimate (difference), McNemar p-value, and bootstrap CI. All inputs drawn deterministically from execution/raw_results.jsonl and execution/scoring/*.json, using preregistered RNG seeds and exclusion rules.",
+  "secondary_analyses": [
+    "Absolute attack-success proportions (baseline, RAG-only, validator-only, combined) with 95% bootstrap CIs computed from execution/scoring/*.json files (exploratory).",
+    "False-block (benign-correct configuration rejected) proportion per defense configuration with 95% bootstrap CIs (exploratory).",
+    "Stratified (exploratory) summaries by attack_type and by model_name where present in scoring artifacts; p-values reported but labelled exploratory and adjusted via Benjamini-Hochberg when multiple exploratory contrasts are reported."
+  ],
+  "sensitivity_analyses": [
+    "Parser-failure inclusion sensitivity: recompute primary estimand including parser_failure runs (treat parser_success==0 as attack_success per exploratory parser-robustness plan).",
+    "Failed-call sensitivity: recompute primary estimand under contract-registered alternative treatment 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed guarded calls as attack_success=0 for guarded in sensitivity).",
+    "Contamination sensitivity: recompute primary estimand under worst-case (contaminated runs set to maximize guarded success) and best-case (minimize guarded success) imputations as preregistered.",
+    "Alternative bootstrap seed and replicate counts per preregistered precision checks."
+  ],
+  "uncertainty_quantification": "Bootstrap-based 95% confidence intervals for proportions, differences, and relative-risk reduction (bootstrap resampling over task-index pairs using preregistered seeds). Confirmatory paired test: McNemar (exact implementation) on paired binary outcomes. Report two-sided p-values and bootstrap CIs. For exploratory p-values apply Benjamini-Hochberg FDR where multiple comparisons are reported.",
+  "multiplicity_implementation": "One preregistered confirmatory contrast (baseline vs combined-guarded) controls familywise inference at alpha=0.05 (primary). All other contrasts (RAG-only, validator-only, per-attack-type, per-model) are exploratory and reported with Benjamini-Hochberg FDR-adjusted p-values; exploratory results explicitly labeled as exploratory.",
+  "contamination_analysis": "Detect contamination using per-run provenance_valid flag in execution/scoring/*.json and by verifying retrieval/index hashes against preregistered index hash (artifact-hash entries in execution/artifact_hashes and preregistration record). Rules: any run with provenance_valid==0 or retrieval provenance referencing out-of-scope sources or index-hash mismatch is flagged as contaminated and excluded from the confirmatory primary analysis; contaminated runs retained for exploratory audit analyses. All contamination flags, counts, and excluded task_indices recorded and published (from execution/execution_log.jsonl and execution/scoring/*.json). Sensitivity analyses recompute estimand under best/worst-case imputations for contaminated runs as preregistered.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Execution manifest summary: planned_episode_count, completed_episode_count, failed_episode_count, model_calls_used, list of excluded task_indices with reason (infrastructure failure, parser_failure, contamination). Source: execution/execution_log.jsonl and execution/raw_results.jsonl.",
+    "Table 2 — Per-condition attack-success counts and proportions (baseline, RAG-only, validator-only, combined) with 95% bootstrap CIs and denominators; source: execution/scoring/*.json.",
+    "Table 3 — Primary paired result: paired proportion (baseline, guarded), guarded−baseline difference (estimand), 95% bootstrap CI, McNemar test statistic and two-sided p-value, and bootstrap relative-risk reduction with 95% CI; source: aggregated execution/scoring/*.json and pairing by task_index.",
+    "Table 4 — False-block rates (benign-correct rejected) by defense configuration with 95% CIs; source: execution/scoring/*.json and parser/simulator verdict fields.",
+    "Table 5 (appendix/exploratory) — Contamination and parser-failure audit table listing task_index, parser_success, provenance_valid, contamination_reason, artifact hashes; source: execution/scoring/*.json and execution/artifact_hashes."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of attack-success proportions by defense configuration with 95% bootstrap CIs (baseline vs combined primary contrast highlighted); data from Table 2.",
+    "Figure 2 — Paired outcome dot/line plot (per-task: baseline vs guarded attack_success) sorted by baseline outcome to visualize paired changes; source: execution/scoring/*.json paired by task_index.",
+    "Figure 3 — Waterfall or cumulative relative-risk reduction plot by attack_type (exploratory) showing per-attack-type effect estimates with CIs; source: stratified scoring fields in execution/scoring/*.json."
+  ]
+}

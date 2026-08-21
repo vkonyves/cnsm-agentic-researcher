@@ -1,0 +1,34 @@
+{
+  "summary": "Well-motivated, preregistered experiment examining prompt-injection attacks on an agentic NetOps pipeline with layered defenses; strong artifact hygiene and preregistration. However the manuscript contains critical internal inconsistencies, unexplained deviations from the preregistration/execution plan (planned vs executed runs and conditions), and insufficient evidence that deterministic call-caching did not invalidate the paired comparisons. These issues materially undermine the claimed confirmatory inference and must be resolved before acceptance.",
+  "novelty_score": 1,
+  "technical_depth_score": 3,
+  "soundness_score": 2,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Internal inconsistency between marginal success counts and paired contingency counts (reported baseline/guarded success rates vs n_11/n_10/n_01/n_00 are contradictory).",
+    "Apparent deviation from the preregistered sampling plan: preregistration specified 640 runs (4 defenses × 2 model families × 80 seeds) but execution manifest/planned_episode_count/completed counts indicate far fewer runs and the analysis uses only baseline vs combined-defense — this deviation is not documented or justified in the manuscript.",
+    "Extensive deterministic call-caching / reuse of model responses (model_calls_used=163 for 300 completed episodes) is reported but the manuscript does not demonstrate that caching did not introduce dependence or invalid comparisons across defense conditions (e.g., identical cached responses reused for different conditions would invalidate paired tests).",
+    "Key operational details required to validate the confirmatory contrast are not summarized in the paper: which of the four preregistered defense conditions were actually executed for every pair, per-condition run counts, timestamps, and whether cached responses were reused across different condition labels.",
+    "Missing disclosure of why planned paired sample size (160 pairs) reduced to 150 complete pairs beyond listing '10 pairs unavailable'—the timing/reasons and whether exclusions meet preregistered exclusion rules need explicit per-task documentation in the manuscript (not only in artifact hashes).",
+    "Statistical inference reported (exact McNemar p and bootstrap CI) depends on the (contradictory) contingency table; given the inconsistencies the reported p-value and CI cannot be trusted without corrected counts and a reproducible rerun or audit of the raw artifacts.",
+    "The caching and reuse mechanism (call_cache) may mask model-version variability and condition-specific behavior; manuscript lacks a clear sensitivity analysis showing results are robust to cache settings or to fresh model calls.",
+    "Some claimed conclusions (e.g., that the combined defense “did not produce a detectable reduction”) overreach given the deployment- and implementation-specificity and the execution/analysis issues above; conclusion language should be tightened once inconsistencies are resolved."
+  ],
+  "required_revisions": [
+    "Resolve the internal data inconsistency: provide corrected marginals and the full paired contingency table (n_11, n_10, n_01, n_00) that are numerically consistent with reported per-condition success counts, and update all derived statistics (McNemar test, bootstrap CIs) accordingly.",
+    "Explicitly disclose and justify any deviations from the preregistered plan in the manuscript (not only in artifact bundle): explain why planned 640 runs → planned_episode_count in manifest, why only baseline vs combined-defense were analyzed (if RAG-only and validator-only were omitted, state rationale and whether omission was permitted by preregistration).",
+    "Provide a clear, auditable account of call-caching: explain cache policy, which API calls were cached and re-used, provide per-run identifiers/timestamps and a small representative sample of raw LLM transcripts (baseline and guarded) showing distinct responses where appropriate. Demonstrate that cached responses were not reused across different defense conditions in a way that biases paired comparisons, or re-run affected comparisons without caching.",
+    "Publish per-condition run counts and per-model-family breakdowns in-text (table) and ensure these numbers match the execution and analysis artifacts referenced by hash. Include the list of excluded task IDs, precise exclusion reasons, and show they conform to preregistered exclusion rules.",
+    "If the executed sample differs materially from preregistered power assumptions (it does), recompute achieved power or present sensitivity analysis under observed baseline rate and the observed sample size; update interpretation to reflect reduced power and precision.",
+    "Recompute primary and secondary analyses after resolving data/caching issues; provide reproducible analysis code snippets or a short audit notebook (with hashes) that reproduces the reported p-values and bootstrap CIs from the raw artifacts.",
+    "Correct wording in Results and Abstract to remove any ambiguous or internally inconsistent claims; ensure all principal numerical claims exactly match the hashed artifacts referenced."
+  ],
+  "optional_revisions": [
+    "If feasible, re-run missing or failed preregistered pairs to reach the planned paired sample (or explain infeasibility) to recover planned power and strengthen confirmatory claims.",
+    "Provide a short sensitivity / robustness section showing results when cache is disabled or when only fresh model calls are used for a random subset of pairs.",
+    "Provide a short exploratory breakdown (in the manuscript or appendix within five pages) of attack success by attack type, task cluster, and model family using already-published scoring JSONs, labeled explicitly as exploratory.",
+    "Add a brief, explicit note clarifying that cached-dominated low model-call counts reflect deterministic replay/efficiency and not omission of condition-specific processing (or otherwise show logs proving condition-specific processing occurred).",
+    "Tighten conclusion language to emphasize implementation-specificity and recommend concrete next steps (stronger validators, alternate RAG policies) contingent on corrected results."
+  ],
+  "accept_for_finalisation": false
+}

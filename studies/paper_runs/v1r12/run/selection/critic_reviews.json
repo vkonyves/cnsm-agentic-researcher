@@ -1,0 +1,102 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnsmautocand-1",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulator/oracle fidelity vs vendor semantics may limit external validity",
+        "LLM output parsing/normalization could introduce bias before validation",
+        "Perturbation magnitudes and their operational interpretation are underspecified",
+        "Single-model evaluation risk — generality claims would be weak",
+        "Power/sample-size and seed/randomization plans not detailed"
+      ],
+      "required_design_repairs": [
+        "Specify exact validator implementation (algorithms, assumptions) and publish its code",
+        "Define numeric perturbation magnitudes with operational justification and include sanity checks",
+        "Detail parsing/normalization pipeline and instrument parser errors as exclusions",
+        "Include at least one additional model family or justify single-model choice; report model identifiers and prompt templates",
+        "Provide power analysis/sample-size justification and fixed random seeds; preregister exclusion rules"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmautocand-2",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial payload realism and representativeness are under-specified",
+        "Ethical/safety risk of publishing attack payloads and accidental replication of real vulnerabilities",
+        "Defense tuning to the known corpus may overstate real-world robustness",
+        "Tool-sandbox simulation may not capture live integration subtleties",
+        "Single-LM or single-pipeline bias risk"
+      ],
+      "required_design_repairs": [
+        "Add explicit ethical safeguards and a responsible-disclosure policy; limit experiments to simulated environments and public corpora",
+        "Preregister adversarial-corpus construction rules; include procedurally generated variants to reduce tuning bias",
+        "Define and publish sandboxed tool interfaces; ensure no real device access and document limitations",
+        "Include at least two different LLM families or clearly justify scope; publish model/prompt details",
+        "Measure and report false-block/false-reject trade-offs and operational costs for each defense"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmautocand-3",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Availability and licensing of permissively redistributable configuration fragments may limit dataset representativeness",
+        "Benchmark design choices (task difficulty, adversary selection, oracles) could bias outcomes",
+        "Simulated oracles may omit production semantics, risking misalignment with operational safety",
+        "Risk of overclaiming generality without multi-vendor coverage",
+        "Reproducibility requires comprehensive artifact packaging (seeds, scripts, hashes)"
+      ],
+      "required_design_repairs": [
+        "Audit and document license provenance for every dataset item; fallback to procedurally synthesized vendor-agnostic fragments if necessary",
+        "Precisely specify oracle semantics (reachability/ACL/loop detection) with formal definitions and test suites",
+        "Publish complete evaluation code, seeds, prompt templates, and artifact hashes in a public repo",
+        "Include a clear adversary-construction protocol and report how adversarial cases were sampled",
+        "Provide baseline model outputs and evaluation scripts to enable independent replication"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmautocand-4",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Validator brittleness may produce misleading 'stability' signals causing premature stopping",
+        "Stopping-rule tuning risk — heuristics may overfit the selected task set",
+        "Task diversity may be insufficient to characterize plateau dynamics broadly",
+        "Definitions of 'plateau' and improvement thresholds are underspecified"
+      ],
+      "required_design_repairs": [
+        "Define operational criteria for plateau (numeric thresholds) and justify them in preregistration",
+        "Include multiple validator implementations or sensitivity analyses to validator error rates",
+        "Preregister a diverse task corpus stratified by complexity; report per-stratum results",
+        "Compare proposed stopping rules to a human-in-the-loop baseline or conservative oracle where feasible"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
