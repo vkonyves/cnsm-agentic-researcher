@@ -1,0 +1,117 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1f8b9a2-01",
+      "title": "Composed Workflow Evaluation: LLM + Retrieval + Deterministic Validator + Emulator",
+      "research_question": "Does a reproducible composed evaluation workflow that integrates LLM proposals, retrieval, deterministic validators (e.g., Batfish/NetKAT), and an emulator (e.g., Mininet) materially reduce unsafe or incorrect NetOps executions compared to LLM-only generation across a diverse intent set?",
+      "hypotheses": [
+        "Integrating deterministic validators and emulator-based rollback into an LLM-driven NetOps workflow will reduce the rate of unsafe/executable misconfigurations compared to LLM-only outputs."
+      ],
+      "proposed_design": "Build an open, reproducible evaluation platform that accepts a fixed set of natural-language NetOps intents (n=200 diverse intents synthesized from public config templates and ticket-style prompts). For each intent, run two treatments: (A) LLM-only generation producing device-level configuration/commands; (B) Composed workflow where LLM generation is followed by retrieval-constrained templating, a deterministic validator (Batfish/NetKAT checks for reachability, ACL violations, loops), and emulator execution in Mininet with automatic rollback on detected failures. Record whether the configuration would be executed (simulated execution permitted only if validator passes) and whether emulator detects policy violations or service-impacting faults. Use an open hosted LLM API (document model id in preregistration) with fixed prompt templates and fixed random seeds. Freeze the preregistration describing datasets, prompts, validator properties, pass/fail criteria, retry policy, and maximum model-call budget before observing outcomes.",
+      "expected_data": "Per-intent binary pass/fail from validator, emulator-detected faults count, number of blocked unsafe proposals, number of emulator-executed rollbacks, per-treatment latency and token usage, and per-intent qualitative failure labels (validator-miss, emulator-fault, template-mismatch).",
+      "primary_outcome": "Reduction in unsafe-execution rate (proportion of intents that would lead to unsafe emulator-detected faults if executed) comparing LLM-only vs composed workflow.",
+      "analysis_outline": "Compute paired proportions of unsafe-execution rate per intent and compare treatments using McNemar's test (two-sided) with 95% Wilson confidence intervals; report absolute and relative risk reductions and number-needed-to-protect. Secondary analyses: stratify by intent complexity (simple, moderate, complex) and run bootstrap CIs on emulator-fault counts. Report false-block (valid proposal rejected) rates and perform significance testing (paired proportion tests). Report effect sizes and exact p-values; adjust exploratory subgroup testing with Benjamini-Hochberg FDR control.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4386385177"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Emulator/validator mismatch with real devices leading to misleading safety estimates.",
+        "Synthetic intent set may not capture enterprise heterogeneity (external validity threat).",
+        "Model/API outages or rate limits could force deviations from preregistered budget.",
+        "Deterministic validators may not capture semantic intent misinterpretation outside modeled properties."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "d4a27e5c-02",
+      "title": "Adversarial Robustness of Tool-Augmented NetOps Agents under Retrieval Poisoning and Prompt Injection",
+      "research_question": "How effective are common mitigations (metadata-aware retrieval gates, two-pass judges, policy allowlists) at preventing retrieval-poisoning and prompt-injection attacks that induce unsafe LLM-generated NetOps actions, and what residual validator-bypass modes remain?",
+      "hypotheses": [
+        "Retrieval-poisoning and prompt-injection will significantly increase unsafe proposal rates from LLM agents, and combined mitigations (metadata gates + two-pass judge + deterministic validator) will reduce but not eliminate attack success, leaving identifiable bypass modes."
+      ],
+      "proposed_design": "Construct an adversarial evaluation harness using the composed workflow from Candidate 1. Create an adversarial corpus augmentation pipeline that injects poisoned retrieval documents and crafted prompts into retrieval hits for a subset of intents (attack set n=100). Compare three conditions: (1) no defenses, (2) metadata-aware retrieval gating + policy allowlist, (3) defense (2) plus a two-pass judge that re-evaluates generated configs via a separate LLM prompt and validator-check before permitting execution. For each attack instance measure attack success (unsafe emulator-detected fault executed or validator bypass), false-positive blocking of safe proposals, and attack vectors classified by bypass mechanism. Maintain fixed seeds and document poisoning patterns and injection strength. Follow preregistered threat models and attack budgets.",
+      "expected_data": "Per-attack-instance attack success flag, per-condition attack success rate, false-positive block rate, classification of bypass mode (validator-miss, semantic confusion, crafted tokenization exploit), time-to-detect metrics, and logs of adversarial retrieval hits.",
+      "primary_outcome": "Reduction in attack success rate under defenses compared to no-defense baseline.",
+      "analysis_outline": "Compare attack success rates across the three conditions using paired proportion tests (McNemar or Cochran's Q where applicable) with 95% bootstrap CIs. Report per-bypass-mode frequencies and perform chi-squared tests for distribution differences across defenses. Estimate residual risk (attack success rate under strongest defense) with exact binomial CIs. Include qualitative case studies of representative bypasses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7168432452",
+        "doi:10.20944/preprints202512.0913.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7168432452",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Adversarial poisoning scenarios may not reflect realistic attacker capabilities (external validity).",
+        "Poisoned-retrieval corpus construction could accidentally leak harmful payloads—must sanitize outputs and avoid executing dangerous commands in real networks.",
+        "Defenses tuned to the chosen LLM may not generalize to other models (model dependence).",
+        "Rate limits or API policy could limit adversarial trial counts, affecting power."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "9b6c3f21-03",
+      "title": "Evaluating Effectiveness of Simulated Human-in-the-Loop Oversight under Constrained Review Budgets",
+      "research_question": "Under constrained inspection budgets (simulating time-pressured operators), does human-like oversight (simulated via a calibrated reviewer model or heuristic proxy) meaningfully reduce the incidence of unsafe NetOps executions compared to automated validators alone?",
+      "hypotheses": [
+        "A simulated constrained human reviewer will detect fewer unsafe or semantically incorrect LLM proposals than an automated deterministic validator, and constrained-review oversight will fail to catch a non-trivial fraction of unsafe proposals that the validator also misses."
+      ],
+      "proposed_design": "Given capability constraints prohibiting human subjects, implement a calibrated reviewer proxy: (A) a separate LLM calibrated on a small public corpus of code-review-style judgments and (B) a time-budget heuristic that limits token inspection and enforces rapid binary accept/reject decisions. Use the composed workflow and a held-out intent set (n=150). For each intent produce: validator-only treatment, validator+simulated-reviewer with relaxed (high-budget) and constrained (low-budget) reviewer settings. Measure detection rates of unsafe proposals, reviewer false negatives/positives (relative to emulator-detected faults), and reviewer-LLM agreement. Preregister calibration procedure, reviewer prompt, budgets, and evaluation metrics.",
+      "expected_data": "Per-intent labels: validator pass/fail, reviewer accept/reject, emulator fault presence, reviewer decision latency (simulated), and confusion matrix comparing reviewer vs emulator ground truth.",
+      "primary_outcome": "Detection sensitivity (true positive rate) of unsafe proposals by simulated constrained reviewer compared to validator-only baseline.",
+      "analysis_outline": "Compute sensitivity, specificity, precision, and F1 for simulated reviewers vs validator baseline; compare detection sensitivity across reviewer budgets using McNemar's test on paired binary decisions. Report ROC curves for reviewer confidence scores (if available) and bootstrap 95% CIs for sensitivity differences. Conduct error-mode analysis on reviewer false negatives with qualitative coding.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W7164320010"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Simulated reviewer may not faithfully represent real human operator behavior (construct validity threat).",
+        "Calibration corpus limitations may bias reviewer behavior toward specific error types.",
+        "Ethical concern if reviewer LLM produces plausible but unsafe approval text—disable any real-world execution hooks.",
+        "Dependence on a single reviewer-model choice reduces external validity."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "7e2a4d90-04",
+      "title": "Schema-Constrained Generation vs Free-Form Generation: Trade-offs in Validator Pass Rate and Intent Coverage",
+      "research_question": "Does constraining LLM output with explicit schemas/templates increase deterministic validator pass rates and reduce semantic misconfigurations, and how does this constraint affect intent coverage and complex-intent expressiveness?",
+      "hypotheses": [
+        "Schema- or template-constrained generation will yield higher deterministic validator pass rates and fewer emulator-detected faults than free-form generation, but will reduce successful fulfillment rates for complex, underspecified intents relative to free-form outputs."
+      ],
+      "proposed_design": "Select a balanced intent set (n=180) across complexity. For each intent generate two outputs from the same LLM and prompt seed: (A) free-form configuration output, (B) schema-constrained output enforced by a post-generation structured parsing and re-generation prompt that requires adherence to a JSON/YAML schema or device-template. Run deterministic validators and emulator checks on both outputs. Measure validator pass rate, emulator fault rate, and intent-fulfillment score assessed by an automated oracle (ground-truth acceptance criteria derived from the intent). Preregister schema definitions, parser, and fulfillment scoring rubric.",
+      "expected_data": "Per-intent: validator pass/fail for both treatments, emulator-detected faults, intent-fulfillment score (0–1), token/time cost, and counts of schema-parse failures requiring re-generation.",
+      "primary_outcome": "Difference in validator pass rate (schema-constrained minus free-form).",
+      "analysis_outline": "Use paired-proportion tests (McNemar) to compare validator pass rates; for intent-fulfillment scores use paired Wilcoxon signed-rank tests stratified by complexity. Report effect sizes and bootstrap CIs. Analyze trade-offs: plot pass-rate vs fulfillment-score by complexity bin and test interaction effects with two-way ANOVA on ranks where assumptions permit. Document cases where schema constraints prevent any valid export (parser failure) and include qualitative examples.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4386722061"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Schemas may be overly restrictive or poorly matched to vendor-specific syntax, biasing results.",
+        "Automated intent-fulfillment oracle may misjudge creative but correct free-form solutions (construct validity).",
+        "Parser/regeneration loops may increase token usage and API cost, impacting feasibility within the model-call budget."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

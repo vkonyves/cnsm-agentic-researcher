@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1f8b9a2-01",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Intent set may be synthetic / insufficiently representative of enterprise heterogeneity (external validity).",
+        "Validator/emulator fidelity mismatch with real devices can bias safety estimates.",
+        "Potential model/API outages or rate limits could force post‑hoc deviations.",
+        "Risk of overclaiming cross‑vendor generality from a limited emulator/validator setup."
+      ],
+      "required_design_repairs": [
+        "Broaden intent corpus to include vendor‑diverse, real‑world ticket templates or clearly justify synthetic sampling; stratify results by vendor/topology. ",
+        "Explicitly quantify validator coverage (which properties checked) and add tests to estimate validator false‑negative rate (validator misses).",
+        "Define contingency plan and logging for API outages and enforce preregistered call budget; record any deviations. ",
+        "Add explicit emulator→realism discussion and, where possible, include cross‑validator consistency checks (e.g., Batfish + NetKAT comparisons)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "d4a27e5c-02",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Adversarial corpus construction risks producing harmful payloads—safety and legal concerns. ",
+        "Attack models may not map to realistic attacker capabilities (external validity).",
+        "Reproducibility is sensitive to exact poisoning heuristics and retrieval implementation details. ",
+        "Defenses tuned to one LLM may not generalize; single‑model reliance weakens claims."
+      ],
+      "required_design_repairs": [
+        "Mandate sanitization and non‑execution of any generated commands; include strict text filters and human‑review blocks for potentially harmful content. ",
+        "Define and justify attacker capabilities and budgets; include at least two distinct poisoning strategies to increase coverage. ",
+        "Publish exact poisoning scripts, retrieval index snapshots, and seed values to enable replication; provide checksums. ",
+        "Evaluate defenses across at least two LLM variants or simulate transferability to show generality; report model‑dependence. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "9b6c3f21-03",
+      "novelty": 0.6,
+      "falsifiability": 0.6,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Construct validity: simulated reviewer (LLM proxy) may not reflect real human operator detection patterns. ",
+        "Calibration corpus and procedure are underspecified and may bias reviewer behavior. ",
+        "Risk of overgeneralizing from simulated to human oversight effectiveness."
+      ],
+      "required_design_repairs": [
+        "Substantially strengthen reviewer calibration: document corpora, metrics, and calibration experiments; include sensitivity analyses across reviewer model families and temps. ",
+        "Avoid claims about real human operators; limit conclusions to simulated‑reviewer proxies and explicitly state construct limitations. ",
+        "If possible within constraints, include a small human spot‑check (public volunteer or expert) or cite external human‑review studies to triangulate simulated reviewer behavior. ",
+        "Report reviewer decision latency model and justify time‑budget simulation parameters with operational citations. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "7e2a4d90-04",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Schema/template design may unfairly advantage constrained approach or fail to cover vendor syntax nuances. ",
+        "Automated intent‑fulfillment oracle may misclassify novel but correct free‑form solutions (construct validity).",
+        "Parser/regeneration loops may inflate token usage and affect feasibility within budget."
+      ],
+      "required_design_repairs": [
+        "Define and publish vendor‑specific schema/templates (or use multiple vendors) and report per‑vendor outcomes. ",
+        "Validate the automated oracle with human spot checks on a stratified sample to verify scoring rubric. ",
+        "Measure and report token/time costs for parser/regeneration loops and include these in feasibility analysis; predefine maximum re‑generation attempts. ",
+        "Include analyses of cases where schema prevents valid solutions and report techniques to relax schemas while preserving validator pass rates. "
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

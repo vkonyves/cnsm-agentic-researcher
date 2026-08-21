@@ -1,0 +1,33 @@
+{
+  "study_id": "PR-CW-2026-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Per preregistration: load per-intent paired records from execution/raw_results.jsonl and execution/scoring/*.json (result_schema fields emulator_A_unsafe_flag, emulator_B_unsafe_flag). Restrict to intents with both treatments completed (per-protocol). Compute paired 2×2 discordant counts and perform McNemar exact (two-sided) on the paired binary outcome (unsafe_A vs unsafe_B). Report exact p-value, absolute and relative risk reductions (unsafe_rate_A − unsafe_rate_B), 95% Wilson CIs for each treatment proportion, and number-needed-to-protect. All code uses preregistered deterministic seeds and scoring scripts referenced in execution_manifest.",
+  "secondary_analyses": [
+    "Paired comparison of emulator fault counts per intent (emulator_A_fault_count vs emulator_B_fault_count) using Wilcoxon signed-rank (fallback to paired t-test only if diagnostics support normality); report median/mean differences and bootstrap 95% CIs (10,000 replicates, seeded) using execution/scoring/*.json as inputs.",
+    "Estimate validator false-negative and false-positive rates on the preregistered discovery set (held-out 50 intents) via confusion tables between validator outputs (validator_B_pass_flag, composed_block_flag) and emulator outcomes parsed from execution/scoring/*.json; report point estimates and 95% exact/binomial Wilson CIs.",
+    "Report per-intent token-usage and runtime cost (runtime_metadata tokens_used and timestamps) comparing treatments (paired summaries)."
+  ],
+  "sensitivity_analyses": [
+    "Intent-level ITT worst-case imputation: treat any technical-failure treatment as 'unsafe' for that treatment and re-run primary paired McNemar (uses contract failed_call_treatment = complete_pair_primary_with_failure_as_zero_sensitivity implementation).",
+    "Contamination-inclusion sensitivity: re-run primary and secondary analyses including items flagged by retrieval-snapshot checksum mismatch and report differences (labelled exploratory).",
+    "Per-stratum reweighting sensitivity: recompute primary estimand stratified by preregistered complexity strata and report results as exploratory with multiplicity adjustment."
+  ],
+  "uncertainty_quantification": "Exact McNemar p-values for primary binary test; 95% Wilson CIs for proportions; bootstrap 95% CIs (10,000 replicates, seeded) for mean/median fault-count differences and for number-needed-to-protect; report unadjusted p-values alongside BH-FDR adjusted thresholds for exploratory tests.",
+  "multiplicity_implementation": "H1 (primary McNemar) is the sole confirmatory test. All other hypothesis tests (H2, strata analyses, validator/audit metrics) are exploratory. For exploratory p-values apply Benjamini–Hochberg FDR control at q=0.10 and report both unadjusted p-values and FDR-adjusted significance status; label exploratory results as such.",
+  "contamination_analysis": "Follow preregistered contamination_plan: detect and exclude any intent whose retrieval-index snapshot checksum differs from the preregistered snapshot (use execution/transformation_manifest_path and task_manifest_path checksums). Produce a contamination audit table (intent_id, flag_reason, checksum, action taken). Log and report any Batfish vs NetKAT cross-validator disagreements from the discovery set and list emulator/validator mismatch cases. In primary analysis exclude flagged/contaminated items; run sensitivity analyses including them and report differences with explicit labeling.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired 2×2 contingency table: counts (safe/safe, safe/unsafe, unsafe/safe, unsafe/unsafe), McNemar discordant counts, exact p-value, absolute & relative risk reductions, Wilson CIs, N included; produced from execution/scoring/*.json and execution/raw_results.jsonl.",
+    "Table 2 — Fault-count comparison: per-intent paired summary (mean, median, SD) by treatment, paired Wilcoxon statistic or paired t-test, bootstrap 95% CIs; inputs from execution/scoring/*.json.",
+    "Table 3 — Validator coverage/confusion matrix on discovery set: validator pass/block vs emulator accept/fail, false-negative/false-positive estimates with Wilson CIs; produced from execution/scoring/* and execution/transformation_manifest.json.",
+    "Table 4 — Contamination & technical-failure audit: list of flagged intents, flag type (checksum mismatch, provider error, harmful-command), action (excluded/included), and hashes; produced from execution/execution_log.jsonl and artifact_hashes manifest.",
+    "Table 5 (supplementary within ≤5 pages) — Per-stratum exploratory summaries: simple/moderate/complex counts, unsafe rates by treatment, unadjusted p-values and BH-FDR q-status."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of unsafe-execution rates per treatment (baseline vs guarded) with 95% Wilson CIs (paired visualization); data from execution/scoring/*.json.",
+    "Figure 2 — Paired per-intent difference plot (unsafe_A − unsafe_B) as dot plot / histogram to show distribution of paired effects; data from execution/raw_results.jsonl.",
+    "Figure 3 — Boxplot of emulator fault counts by treatment with bootstrap CI overlays; data from execution/scoring/*.json.",
+    "Figure 4 (exploratory) — Stratified effect size (absolute risk reduction) by complexity strata with unadjusted and FDR-adjusted indication; data from task_manifest.jsonl + execution/scoring/*.json."
+  ]
+}

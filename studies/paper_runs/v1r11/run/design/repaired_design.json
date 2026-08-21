@@ -1,0 +1,166 @@
+{
+  "selected_candidate_id": "c1f8b9a2-01",
+  "title": "Composed Workflow Evaluation: LLM + Retrieval + Deterministic Validator + Emulator (Repaired Preregistration)",
+  "research_question": "Does a reproducible composed evaluation workflow that integrates LLM proposals, retrieval-constrained templating, deterministic validators (Batfish/NetKAT), and an emulator (Mininet) reduce the rate of emulator-detected unsafe/executable faults compared with LLM-only generation on a paired set of natural-language NetOps intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The composed workflow (LLM → retrieval+templating → deterministic validator → emulator/rollback) yields a lower paired unsafe-execution rate than LLM-only generation (two-sided).",
+    "H2 (secondary): The composed workflow yields a lower emulator-fault count per intent (mean counts) than LLM-only generation."
+  ],
+  "exploratory_questions": [
+    "E1: How do effects vary by intent complexity strata (simple/moderate/complex)?",
+    "E2: What is the observed validator false-negative rate estimated via cross-validator checks (Batfish vs NetKAT) on a held-out coverage set?",
+    "E3: What fraction of composed-workflow blocks are false-blocks (valid proposals rejected by validator pipeline)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic+publicly-derived Intent Corpus (n=200) synthesized from public configuration templates and ticket-style prompts; scope limited to IPv4 routing, ACLs, basic switching, and topology manipulations supported by Mininet/Batfish/NetKAT.",
+    "Held-out validator-coverage test set (discovery intents) used only for estimating validator false-negative behavior."
+  ],
+  "model_scope": [
+    "Single hosted LLM API provider (hosted_model_api_available = true in capability manifest). Exact model identifier will be fixed in the execution metadata prior to runs and recorded in the disclosure.",
+    "All LLM calls are CPU/hosted-API calls only; no local GPU execution."
+  ],
+  "transformation_scope": [
+    "Retrieval-constrained templating (local retrieval index of templates), syntax/grammar transformations to vendor-neutral device commands, and exports to Mininet-compatible scripts.",
+    "Deterministic validation checks via Batfish (reachability, isolation, ACL compliance) and NetKAT where applicable."
+  ],
+  "primary_estimand": "Per-intent paired difference in unsafe-execution outcome: probability that an intent would produce an emulator-detected unsafe executable fault under LLM-only minus probability under composed workflow (paired on the same intent).",
+  "secondary_estimands": [
+    "Mean emulator-detected fault count per intent per treatment (LLM-only vs composed).",
+    "Per-intent false-block rate: proportion of composed-workflow proposals rejected by validator but which the emulator would have accepted (estimated via targeted replays).",
+    "Per-intent latency and token-usage cost per treatment (for cost-effectiveness reporting)."
+  ],
+  "sampling_plan": "Confirmatory corpus: n=200 intents sampled deterministically from the synthetic/public template pool stratified into three complexity strata (simple: 80, moderate: 80, complex: 40). For each intent, run two paired treatments: (A) LLM-only generation and (B) Composed workflow. All intents are processed on the same deterministic environment seeds. Discovery (validator-coverage) set: 50 additional intents (stratified) used only for estimating validator false-negative rates and cross-validator checks.",
+  "analysis_plan": "Primary analysis: paired-test on binary unsafe-execution outcomes per intent using McNemar's test (two-sided). Report 95% Wilson CIs for proportions, absolute and relative risk reductions, and number-needed-to-protect. Secondary analysis: compare mean emulator-fault counts using paired Wilcoxon signed-rank (or paired t-test if normality holds per diagnostics) with bootstrap 95% CIs (10,000 bootstrap replicates). Report exact p-values and effect sizes. All primary analyses use preregistered seeds and deterministic scoring scripts; exploratory subgroup analyses are explicitly labeled exploratory and multiplicity-controlled as below.",
+  "multiplicity_plan": "Primary hypothesis H1 is single confirmatory test. Secondary and exploratory tests (intent-strata, false-block rate, emulator-fault counts) are exploratory; when reporting multiple exploratory p-values, apply Benjamini-Hochberg FDR control at q=0.10 and report unadjusted p-values alongside adjusted thresholds.",
+  "missingness_plan": "Technical failures (API/network/infrastructure) are handled deterministically: automatic retry policy of up to 2 additional attempts spaced by exponential backoff (total attempts=3). If LLM call still fails, mark the run as technical-failure and exclude the affected paired intent from the primary per-protocol analysis; simultaneously report an intention-to-run (ITT) sensitivity analysis where failed calls are imputed as 'unsafe' for LLM-only or 'unsafe' for composed workflow depending on conservative worst-case assumptions; all exclusions, retry counts, and raw logs are recorded and disclosed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic Intent Corpus v1",
+      "Validator-Coverage Discovery Set v1"
+    ],
+    "risk_factors": [
+      "Retrieval index contamination (inadvertent inclusion of harmful or environment-specific commands).",
+      "Validator-emulator mismatch (Batfish/NetKAT checks not covering all semantic intent modes).",
+      "API outages or rate-limiting leading to missing paired measurements."
+    ],
+    "detection_procedures": [
+      "Deterministic checksum+versioning for retrieval index snapshots; any change flags contamination and invalidates affected runs.",
+      "Automated cross-validator consistency checks: for validator-coverage set, run Batfish and NetKAT deterministically and record disagreements; high disagreement rate triggers sensitivity reporting.",
+      "Automated runtime logging of API error codes and deterministic flagging of rate-limit or outage events."
+    ],
+    "item_flagging_rules": [
+      "Flag any intent or template whose retrieval snapshot checksum differs from preregistered snapshot and exclude from confirmatory analysis; flagged items reported in contamination audit.",
+      "Flag any composed workflow output that contains tokens matching a pre-registered harmful-command regex; such outputs are rejected automatically and recorded (no execution)."
+    ],
+    "analysis_treatment": "Primary analysis excludes contaminated/flagged items (per deterministic rules) and reports a contamination audit table. Sensitivity analyses re-run including flagged items with explicit labels and, where feasible, with conservative imputations; all deviations are logged.",
+    "residual_uncertainty": [
+      "Residual risk that retrieval corpus omissions or unseen template variants alter effect estimates.",
+      "Residual miscoverage by validators for properties not expressible in the chosen checks (semantic intent-level misses)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal",
+      "description": "Minimal-budget execution: no LLM regeneration retries in composed workflow; no validator-coverage discovery set.",
+      "planned_model_calls": 400,
+      "models": [
+        "hosted LLM API (model identifier to be fixed at preregistration)"
+      ],
+      "transformations": [
+        "retrieval-constrained templating (local index)",
+        "syntax/grammar emission to Mininet-compatible scripts",
+        "single-pass deterministic validator run (Batfish)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Per-intent model calls: LLM-only = 1 call; composed workflow (no retries) = 1 call. Combined per-intent = 2 calls. 200 intents × 2 = 400 total calls. This fits capability_manifest maximum_planned_model_calls (10000) and the manifest wall-clock allowance; however it omits validator-coverage tests and uses no retries (conservative cost)."
+    },
+    {
+      "scenario_id": "recommended",
+      "description": "Recommended tradeoff: bounded regeneration attempts for composed workflow and a modest validator-coverage discovery set to estimate validator false-negative behavior.",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted LLM API (model identifier to be fixed at preregistration)"
+      ],
+      "transformations": [
+        "retrieval-constrained templating (local index)",
+        "syntax/grammar emission to Mininet-compatible scripts",
+        "deterministic validators: Batfish and NetKAT (used for coverage set and cross-checks)"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Derivation: For each confirmatory intent: LLM-only = 1 call; composed workflow = up to 3 calls (initial + up to 2 deterministic regeneration attempts) → 4 calls/intent → 200 intents × 4 = 800 calls. Discovery set (50 intents) run with same per-intent budget: 50 × 4 = 200 calls. Total = 800 + 200 = 1,000 planned model calls. This is within the manifest limit of 10,000 and allows bounded retry coverage plus validator-coverage tests to quantify validator false-negative rates. All counts are deterministic and logged."
+    },
+    {
+      "scenario_id": "exhaustive",
+      "description": "Exhaustive execution: more regeneration attempts and larger validator-coverage set for stress testing and sensitivity analyses.",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted LLM API (model identifier to be fixed at preregistration)"
+      ],
+      "transformations": [
+        "retrieval-constrained templating (local index)",
+        "syntax/grammar emission to Mininet-compatible scripts",
+        "deterministic validators: Batfish and NetKAT"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Derivation: For each confirmatory intent: LLM-only = 1 call; composed workflow = up to 5 calls (initial + up to 4 regeneration attempts) → 6 calls/intent → 200 × 6 = 1,200 calls. Discovery set (100 intents) at same per-intent budget: 100 × 6 = 600 calls. Total = 1,200 + 600 = 1,800 planned model calls. Still within manifest limit (10,000). This scenario supports stronger validator coverage estimation and stress-testing regeneration; higher CPU/latency and token costs are expected and will be reported."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired per-intent absolute difference in unsafe-execution probability (LLM-only minus composed workflow)",
+    "target_effect": "Detect an absolute reduction in unsafe-execution rate of ~7.5 percentage points (e.g., from 15% baseline unsafe rate to 7.5%).",
+    "clustering_unit": "Intent (paired within-intent comparison between two treatments).",
+    "calculation_method": "Paired (within-intent) McNemar test (exact/approximate) for binary outcomes. Approximate sample-size sensitivity computed using standard normal approximation to McNemar discordant counts and bootstrap verification on observed discordant patterns.",
+    "assumptions": [
+      "Alpha = 0.05 (two-sided), desired power ≈ 0.80 for primary confirmatory test.",
+      "Baseline unsafe-execution rate under LLM-only ≈ 0.10–0.20 (plausible range based on supplied prototype evidence summaries); detectable absolute reduction target ≈ 6–8 percentage points with n=200 pairs depending on discordant proportions.",
+      "Paired design reduces between-intent variance compared to unpaired designs; discordant-pair proportion assumed ≥0.10 for power approximations."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With n=200 paired intents and alpha=0.05, a two-sided McNemar-test is approximately powered to detect absolute paired reductions in the ~6–8% range when baseline unsafe rates are 10–20% and discordant-pair proportions are moderate (≈0.10–0.20). Exact MDE depends on observed discordant counts; bootstrap sensitivity analyses are preregistered.",
+    "sensitivity_analyses": [
+      "Recompute MDE under baseline unsafe rates of 5%, 10%, 15%, and 25%.",
+      "Bootstrap 95% CIs for risk reductions (10,000 replicates).",
+      "Per-strata (simple/moderate/complex) power diagnostics; treat these as exploratory if underpowered."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Retrieval-constrained templating (template matching + slot-filling)",
+      "Syntax/grammar emission to Mininet-compatible scripts",
+      "Vendor-agnostic normalization and regex-based syntax checks"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated unit tests comparing intended post-configuration network properties (reachability matrix) with properties implied by generated config using Batfish; deterministic pass/fail.",
+      "Round-trip parser checks: exported Mininet script -> read-back parser -> canonical form equals canonical form of initial template (checksum-based)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated outputs automatically if syntax validators fail, if grammar regex mismatches vendor-allowed token sets, or if outputs contain tokens matching harmful-command regex; rejected outputs trigger deterministic regeneration attempts up to the preregistered retry limit.",
+      "If after max retries output still rejected, mark as 'validator-block' and record as composed-workflow block (potential false-block)."
+    ],
+    "audit_sample_policy": "Automated audit of 10% random sample of confirmatory intents using cross-validator consistency checks (Batfish vs NetKAT where applicable) and deeper emulator replay to detect validator misses; sampling deterministic (seeded RNG) and reproducible.",
+    "mapping_validation": "Publishable deterministic unit test suite that verifies mapping from template variables to emitted device commands across a small set of representative vendor-normalized templates; tests run automatically pre-execution and post-generation to assert syntactic conformance.",
+    "residual_risks": [
+      "Validators (Batfish/NetKAT) do not cover all semantic intent interpretations (residual semantic intent-mismatch risk).",
+      "Regex/syntax checks may not capture subtle vendor-specific runtime behaviors not reproducible in Mininet."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity: how Mininet/Batfish/NetKAT emulator and validators map to real vendor devices and large production topologies (acknowledged and bounded to emulator scope).",
+    "Representativeness of the synthetic/public intent corpus relative to enterprise heterogeneity (vendors, protocols, and ticket styles).",
+    "Deterministic validators' blindspots for properties not expressible in the chosen formal checks (semantic intent interpretation outside reachability/ACL checks).",
+    "Potential model/API rate-limiting or provider-specific nondeterminism; deterministic logging and contingency are in place but residual timing-related effects may remain."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7203497697",
+    "https://openalex.org/W4386385177"
+  ]
+}

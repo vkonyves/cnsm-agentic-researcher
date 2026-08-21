@@ -1,0 +1,30 @@
+{
+  "summary": "Well-executed, fully preregistered paired experiment comparing LLM-only vs composed LLM→retrieval→validator→emulator workflow on a 200-intent NetOps corpus. All preregistered artifacts and hashes are provided. Primary outcome: zero emulator-detected unsafe executions in both arms (n=199 complete pairs), so no detectable benefit of the composed workflow on this corpus. The manuscript is transparent but limited by a floor effect and single-model/synthetic-corpus scope.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Floor effect: baseline produced 0/199 emulator-detected unsafe executions, producing a degenerate null result that prevents evaluation of the intervention's protective effect (practical inability to reject the null).",
+    "Insufficient procedural clarity in the manuscript about exactly what differed between treatments: the paper must explicitly state whether any retrieval/templates/grammar constraints or shared prompt engineering were reused for the LLM-only baseline (if so, this can bias the baseline toward safe outputs).",
+    "Single LLM provider / single model: results do not support cross-model generality; manuscript must clearly state the exact model identifier and API/config parameters within the included Disclosure (not only as an artifact path).",
+    "Validator coverage and false-negative summary are not presented in the main text: the claim that validators/emulator may share alignment with the task domain is plausible but unsupported without summary statistics (validator false-negative estimates, cross-validator disagreements) in the paper.",
+    "Primary metric & detection rules insufficiently specified in-text: the manuscript should define precisely how emulator-detected \"unsafe/executable fault\" is operationalized and provide representative examples/traces to support scoring validity.",
+    "Artifact accessability and reproducibility: while hashes are provided, the manuscript should include precise instructions/URLs for retrieving the full artifact bundle used to reproduce the analysis (public repository or data-access statement)."
+  ],
+  "required_revisions": [
+    "Add explicit, in-manuscript statement of the exact LLM model identifier, version, and API configuration used (not only a reference to an artifact file).",
+    "Clearly and unambiguously describe the procedural differences between the two treatments in the Methods: show the exact prompts used for (A) LLM-only and (B) composed workflow, and confirm that no retrieval/templates/grammar scaffold used by the composed workflow leaked into the LLM-only condition (or document if they did).",
+    "Define the primary outcome operationally in the manuscript: enumerate the emulator conditions, error types, or traces that constitute an \"unsafe/executable fault,\" and include one or two concrete examples (emulator logs or snippets) in the artifacts and a short example in the paper.",
+    "Summarize validator coverage results in the main text: provide the discovery-set false-negative estimate and cross-validator disagreement counts (Batfish vs NetKAT) and report these alongside the main null finding to support interpretation.",
+    "Add a focused discussion that explains the implications of the floor effect: compute and report post hoc limits on detectable effect sizes given the observed zero baseline events and indicate what alternative experimental settings (adversarial intents, noisier corpus, multiple models) would be required to demonstrate benefit.",
+    "Include explicit instructions (URL/DOI/credentials/command) in the manuscript for accessing the released artifact bundle and reproduction steps; if any artifacts cannot be publicly shared, state which and why and provide redacted alternatives."
+  ],
+  "optional_revisions": [
+    "Report brief examples of non-unsafe differences (e.g., differing but valid config variants, latency/token-cost differences) so readers can assess practical operational trade-offs even when unsafe events are absent.",
+    "If available, add a short table summarizing per-stratum (simple/moderate/complex) descriptive counts (e.g., any validator rejections, emulator warnings) to help assess corpus difficulty.",
+    "Run and report a small adversarial or noise-augmented probe (even exploratory) to demonstrate whether the pipeline reduces faults under harder conditions; label results as exploratory (per preregistration).",
+    "Clarify harmful-command filtering: provide the harmful-command regex used and state whether any outputs were blocked by it during the run."
+  ],
+  "accept_for_finalisation": false
+}

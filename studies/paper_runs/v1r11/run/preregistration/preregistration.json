@@ -1,0 +1,64 @@
+{
+  "study_id": "PR-CW-2026-001",
+  "title": "Composed Workflow Evaluation: LLM + Retrieval + Deterministic Validator + Emulator (Preregistration)",
+  "research_question": "Does a reproducible composed evaluation workflow that integrates LLM proposals, retrieval-constrained templating, deterministic validators (Batfish/NetKAT), and an emulator (Mininet) reduce the rate of emulator-detected unsafe/executable faults compared with LLM-only generation on a paired set of natural-language NetOps intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The composed workflow (LLM → retrieval+templating → deterministic validator → emulator/rollback) yields a lower paired unsafe-execution rate than LLM-only generation (two-sided).",
+    "H2 (secondary): The composed workflow yields a lower emulator-fault count per intent (mean counts) than LLM-only generation."
+  ],
+  "exploratory_questions": [
+    "E1: How do effects vary by intent complexity strata (simple/moderate/complex)?",
+    "E2: What is the observed validator false-negative rate estimated via cross-validator checks (Batfish vs NetKAT) on a held-out coverage set?",
+    "E3: What fraction of composed-workflow blocks are false-blocks (valid proposals rejected by validator pipeline)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7203497697",
+    "https://openalex.org/W4386385177"
+  ],
+  "benchmark_scope": [
+    "Synthetic+publicly-derived Intent Corpus (n=200) synthesized from public configuration templates and ticket-style prompts; scope limited to IPv4 routing, ACLs, basic switching, and topology manipulations supported by Mininet/Batfish/NetKAT.",
+    "Held-out validator-coverage test set (n=50) used only to estimate validator false-negative rates and cross-validator disagreements; not used in confirmatory primary test."
+  ],
+  "model_scope": [
+    "Single hosted LLM API provider (hosted_model_api_available=true). Exact model identifier will be fixed and recorded in execution metadata prior to runs.",
+    "All LLM calls via hosted API (CPU-backed); no local GPU execution or vendor-internal modification."
+  ],
+  "transformation_scope": [
+    "Retrieval-constrained templating (local retrieval index of templates with deterministic snapshot/checksum), slot-filling into vendor-neutral templates, syntax/grammar emission to Mininet-compatible scripts.",
+    "Deterministic validation via Batfish (reachability, isolation, ACL compliance) and NetKAT cross-checks where applicable; automatic syntax regex checks and harmful-command filtering."
+  ],
+  "primary_estimand": "Per-intent paired difference in unsafe-execution outcome: probability that an intent would produce an emulator-detected unsafe executable fault under LLM-only minus probability under the composed workflow (paired on the same intent).",
+  "secondary_estimands": [
+    "Mean emulator-detected fault count per intent per treatment (LLM-only vs composed).",
+    "Per-intent false-block rate: proportion of composed-workflow proposals rejected by validator but which the emulator would have accepted (estimated via targeted replays on a sampled subset).",
+    "Per-intent latency and token-usage cost per treatment (for cost-effectiveness reporting)."
+  ],
+  "sampling_plan": "Confirmatory corpus: n=200 intents sampled deterministically from the synthetic/public template pool stratified into three complexity strata (simple: 80, moderate: 80, complex: 40). For each intent run two paired treatments: (A) LLM-only generation and (B) Composed workflow. Deterministic RNG seeds used for all sampling and audit draws. Discovery (validator-coverage) set: 50 additional stratified intents used only for validator false-negative estimation and cross-validator checks.",
+  "power_and_precision_plan": "Primary estimand: paired per-intent absolute difference in unsafe-execution probability. Target effect: detect ~7.5 percentage-point absolute reduction (e.g., 15%→7.5%). Method: paired McNemar test (two-sided, alpha=0.05) for binary unsafe outcomes; report 95% Wilson CIs, absolute/relative risk reductions, and number-needed-to-protect. With n=200 pairs and assumed baseline unsafe 10–20%, approximate power ≈0.80 to detect ~6–8% absolute reductions depending on discordant counts. Secondary: compare mean fault counts via paired Wilcoxon signed-rank (or paired t-test if diagnostics permit) with bootstrap 95% CIs (10,000 replicates). Sensitivity analyses: recompute MDE for baseline unsafe rates 5/10/15/25%; bootstrap CIs and per-stratum diagnostics. All analyses use preregistered seeds and deterministic scoring scripts.",
+  "exclusion_rules": [
+    "Exclude any intent whose retrieval-index snapshot checksum differs from the preregistered snapshot (contamination flag).",
+    "If an LLM/validator/emulator call fails after the preregistered retry policy (total attempts=3), mark that paired intent as a technical failure and exclude it from the primary per-protocol confirmatory analysis (see missingness_plan for ITT sensitivity analyses).",
+    "Automatically reject outputs containing tokens matching the preregistered harmful-command regex; such rejections are logged and treated according to the composed-workflow retry/block rules (may count as validator-block)."
+  ],
+  "missingness_plan": "Automatic retry policy for transient technical failures: up to 2 retries after the initial attempt (total attempts=3) with exponential backoff. If after retries the call still fails, classify as technical-failure for that treatment; exclude the affected paired intent from the primary per-protocol analysis and record full logs. Conduct ITT sensitivity analyses where technical-failure cases are imputed conservatively as 'unsafe' for the impacted treatment (worst-case imputations) and report both per-protocol and ITT results. All retry counts, timestamps, and raw logs retained and disclosed.",
+  "analysis_plan": "Primary analysis: paired McNemar test (two-sided) on binary emulator-detected unsafe-execution outcomes per intent; report exact p-values, 95% Wilson CIs for proportions, absolute and relative risk reductions, and number-needed-to-protect. Secondary analysis: paired comparison of emulator-fault counts using Wilcoxon signed-rank (or paired t-test if normality holds) with bootstrap 95% CIs (10,000 replicates). Estimate validator false-negative rate on discovery set and via audit resampling; report confusion tables for validator vs emulator outcomes. Exploratory subgroup analyses by complexity strata labeled exploratory and corrected under the multiplicity_plan. All code for scoring, tests, and bootstrap is deterministic, seeded, and stored in the execution manifest.",
+  "multiplicity_plan": "H1 is the single preregistered confirmatory test. Secondary and exploratory tests (H2, strata analyses, false-block rate) are exploratory. When reporting multiple exploratory p-values, apply Benjamini-Hochberg FDR control at q=0.10 and report unadjusted p-values alongside adjusted thresholds. Explicitly label exploratory findings and avoid strong confirmatory language for them.",
+  "contamination_plan": "Risk factors: (1) retrieval-index contamination (inadvertent inclusion of environment-specific or harmful commands), (2) validator-emulator semantic mismatch (Batfish/NetKAT not covering all semantic intent modes), (3) API outages or rate-limiting causing missing paired data. Detection: deterministic checksum/versioning for retrieval snapshot; automated cross-validator consistency checks on discovery set (Batfish vs NetKAT) and disagreement logging; runtime logging of API error codes and deterministic flagging of outages/rate-limits. Item-flagging rules: any intent/template whose retrieval snapshot checksum differs from preregistered snapshot is flagged and excluded from confirmatory analysis; any composed output with harmful-command regex match is rejected and recorded (no execution). Analysis treatment: primary analysis excludes flagged/contaminated items and reports a contamination audit table; sensitivity analyses re-run with flagged items included and explicitly labeled. Residual uncertainty documented for retrieval omissions and validator blindspots.",
+  "stopping_rule": "Stop conditions before claiming confirmatory results: (1) If >20% of confirmatory paired intents are excluded due to technical failures or contamination, pause execution and report inability to support primary confirmatory test (abort confirmatory claims; continue to publish execution logs and sensitivity analyses). (2) If a provider outage or systematic rate-limiting prevents completion of preregistered planned_model_calls within the wall-clock allowance despite retries, stop and report incomplete execution with full logs. Per-intent generation stops after max retries (3 attempts); if still invalid, record as 'validator-block' and proceed per exclusion rules.",
+  "planned_outputs": [
+    "Machine-readable preregistration (this document).",
+    "Deterministic retrieval-index snapshot and checksum manifest.",
+    "All experiment code and configuration (scoring, seeding, deterministic orchestration scripts).",
+    "Raw model-call logs, validator outputs, emulator traces, and hashes for all artifacts.",
+    "Execution manifest recording retries, errors, and timestamps.",
+    "Statistical results file with primary and secondary test outputs and bootstrap CIs.",
+    "Contamination audit and validator-coverage report.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript (≤5 pages) including mandatory Disclosure Statement.",
+    "BibTeX bibliography and verified-reference record.",
+    "Autonomous revision log and final-output hash manifest.",
+    "NotebookLM presentation brief (machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}
