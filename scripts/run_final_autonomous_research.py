@@ -271,6 +271,7 @@ async def run_pipeline(
     model: str,
     development_rehearsal: bool,
     capability_manifest: dict[str, Any],
+    paper_run_constraints: dict[str, Any],
 ) -> None:
     pipeline = FinalAutonomousResearchPipeline(
         model=model,
@@ -280,6 +281,7 @@ async def run_pipeline(
         master_prompt=master_prompt_path.read_text(encoding="utf-8"),
         run_dir=run_dir,
         capability_manifest=capability_manifest,
+        paper_run_constraints=paper_run_constraints,
     )
     print("Final autonomous research run complete")
     print("Ready:", result.ready)
@@ -310,12 +312,15 @@ def main() -> None:
     )
 
     capability_manifest = read_json(frozen_capability_path)
+    paper_run_constraints = read_json(
+        frozen_constraints_path
+    )
 
     assert_no_development_inputs(
         {
             "master_prompt": frozen_prompt_path.read_text(encoding="utf-8"),
             "capability_manifest": capability_manifest,
-            "paper_run_constraints": read_json(frozen_constraints_path),
+            "paper_run_constraints": paper_run_constraints,
         }
     )
 
@@ -337,6 +342,7 @@ def main() -> None:
             model=args.model,
             development_rehearsal=args.development_rehearsal,
             capability_manifest=capability_manifest,
+            paper_run_constraints=paper_run_constraints,
         )
     )
 

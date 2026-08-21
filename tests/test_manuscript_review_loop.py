@@ -14,8 +14,11 @@ def test_final_pipeline_has_bounded_review_revision_loop():
 
     # Final readiness must use the latest review rather than
     # a permanently rejected first-round review.
+    marker = "Final autonomous readiness judgement"
+    assert marker in source
+
     final_judge_section = source.split(
-        "# 14. Final autonomous readiness judgement",
+        marker,
         1,
     )[1]
 

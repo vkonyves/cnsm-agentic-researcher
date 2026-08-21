@@ -67,6 +67,10 @@ from .repair_schemas import (
     RepairReadinessReport,
 )
 
+from .publication_renderer import (
+    build_publication_artifacts,
+)
+
 
 T = TypeVar("T")
 
@@ -650,6 +654,7 @@ class FinalAutonomousResearchPipeline:
         master_prompt: str,
         run_dir: Path,
         capability_manifest: dict[str, Any],
+        paper_run_constraints: dict[str, Any],
     ) -> FinalReadinessReport:
         assert_fresh_run_dir(
             run_dir,
@@ -663,6 +668,9 @@ class FinalAutonomousResearchPipeline:
                 "master_prompt": master_prompt,
                 "capability_manifest": (
                     capability_manifest
+                ),
+                "paper_run_constraints": (
+                    paper_run_constraints
                 ),
             }
         )
@@ -683,6 +691,8 @@ class FinalAutonomousResearchPipeline:
             "analysis/figures",
             "manuscript",
             "manuscript/review_rounds",
+            "manuscript/revision_rounds",
+            "manuscript/final",
             "disclosure",
         ):
             (
@@ -2149,7 +2159,189 @@ class FinalAutonomousResearchPipeline:
         )
 
         # -------------------------------------------------
-        # 14. Final autonomous readiness judgement
+        # 14. Deterministic IEEE rendering and page validation
+        # -------------------------------------------------
+
+        publication_dir = (
+            run_dir
+            / "manuscript"
+            / "final"
+        )
+
+        maximum_format_revision_rounds = 2
+        publication_validation: dict[str, Any] | None = None
+
+        for format_round in range(
+            0,
+            maximum_format_revision_rounds + 1,
+        ):
+            publication_validation = (
+                build_publication_artifacts(
+                    manuscript=(
+                        revised_manuscript.model_dump()
+                    ),
+                    verified_records=records,
+                    output_dir=publication_dir,
+                    paper_run_constraints=(
+                        paper_run_constraints
+                    ),
+                )
+            )
+
+            write_json(
+                publication_dir
+                / (
+                    "publication_validation_"
+                    f"{format_round:02d}.json"
+                ),
+                publication_validation,
+            )
+
+            if publication_validation.get(
+                "passed"
+            ):
+                break
+
+            compile_status = (
+                publication_validation.get(
+                    "compile_status"
+                )
+            )
+
+            # Manuscript revision is appropriate only for a
+            # successfully compiled paper that exceeds the
+            # frozen page limit. Compilation failures are
+            # infrastructure/rendering failures, not reasons
+            # to alter scientific manuscript content.
+            if compile_status != "passed":
+                break
+
+            if publication_validation.get(
+                "within_page_limit"
+            ):
+                break
+
+            if (
+                format_round
+                >= maximum_format_revision_rounds
+            ):
+                break
+
+            format_feedback = {
+                "page_count": (
+                    publication_validation.get(
+                        "page_count"
+                    )
+                ),
+                "maximum_pages": (
+                    publication_validation.get(
+                        "maximum_pages"
+                    )
+                ),
+                "within_page_limit": (
+                    publication_validation.get(
+                        "within_page_limit"
+                    )
+                ),
+                "references_included_in_limit": (
+                    publication_validation.get(
+                        "references_included_in_limit"
+                    )
+                ),
+                "disclosure_statement_included_in_limit": (
+                    publication_validation.get(
+                        "disclosure_statement_included_in_limit"
+                    )
+                ),
+                "template_manipulation_prohibited": (
+                    publication_validation.get(
+                        "template_manipulation_prohibited"
+                    )
+                ),
+            }
+
+            revised_manuscript = await run_agent(
+                MANUSCRIPT_REVISER,
+                {
+                    "master_prompt": master_prompt,
+                    "verified_records": records,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "manuscript": (
+                        revised_manuscript
+                        .model_dump()
+                    ),
+                    "peer_review": (
+                        latest_peer_review
+                        .model_dump()
+                    ),
+                    "publication_validation": (
+                        format_feedback
+                    ),
+                    "revision_round": (
+                        "format_"
+                        f"{format_round + 1}"
+                    ),
+                    "revision_instruction": (
+                        "The manuscript compiled successfully but exceeds "
+                        "the frozen IEEE page limit. Shorten and compact "
+                        "the manuscript sufficiently to satisfy the page "
+                        "limit while preserving supported scientific "
+                        "claims, the primary methods and results, reviewer-"
+                        "resolved information, required references, and the "
+                        "mandatory Disclosure Statement. Do not change "
+                        "empirical results, add unsupported claims, remove "
+                        "required disclosure content, manipulate the IEEE "
+                        "template, shrink fonts or margins, or invent new "
+                        "evidence."
+                    ),
+                },
+                expected_type=ManuscriptPackage,
+                stage_name=(
+                    "Autonomous manuscript format revision "
+                    f"{format_round + 1}"
+                ),
+            )
+
+            write_json(
+                revision_rounds_dir
+                / (
+                    "format_revised_package_"
+                    f"{format_round + 1:02d}.json"
+                ),
+                revised_manuscript,
+            )
+
+            write_json(
+                run_dir
+                / "manuscript"
+                / "revised_package.json",
+                revised_manuscript,
+            )
+
+        if publication_validation is None:
+            raise RuntimeError(
+                "Publication validation did not execute."
+            )
+
+        write_json(
+            publication_dir
+            / "publication_validation.json",
+            publication_validation,
+        )
+
+        # -------------------------------------------------
+        # 15. Final autonomous readiness judgement
         # -------------------------------------------------
 
         final_report = await run_agent(
@@ -2158,6 +2350,12 @@ class FinalAutonomousResearchPipeline:
                 "master_prompt": master_prompt,
                 "capability_manifest": (
                     capability_manifest
+                ),
+                "paper_run_constraints": (
+                    paper_run_constraints
+                ),
+                "publication_validation": (
+                    publication_validation
                 ),
                 "evidence_verification": (
                     evidence_report

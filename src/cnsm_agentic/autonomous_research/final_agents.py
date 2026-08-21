@@ -238,8 +238,12 @@ FINAL_JUDGE = Agent(
         "Require completed autonomous execution, completed analysis, "
         "verified references, preregistration fidelity, peer review, "
         "revision, reproducibility artifacts, disclosure, IEEE source "
-        "checks, and PDF checks. Mark the work ready only if every "
-        "required gate is supported by real artifacts and no critical "
-        "issue remains."
+        "checks, and PDF checks. Use the supplied deterministic "
+        "publication_validation artifact as the authority for compilation "
+        "status, PDF existence, page count, page-limit compliance, "
+        "references, and Disclosure Statement inclusion. Never infer PDF "
+        "compliance from manuscript prose alone. Mark the work ready only "
+        "if every required gate is supported by real artifacts and no "
+        "critical issue remains."
     ),
 )
