@@ -39,22 +39,98 @@ class FrozenRunManifest(BaseModel):
         return clean(value)
 
 
+class PreregistrationExecutionContract(BaseModel):
+    adapter_family: str
+    execution_mode: str
+    design: str
+    conditions: list[str]
+    model_provider: str
+    model_names: list[str]
+    task_count: int = Field(gt=0)
+    planned_episode_count: int = Field(gt=0)
+    maximum_model_calls: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def internally_consistent(self):
+        if not self.conditions:
+            raise ValueError(
+                "At least one executable condition is required."
+            )
+
+        if not self.model_names:
+            raise ValueError(
+                "At least one executable model is required."
+            )
+
+        expected_episode_count = (
+            self.task_count * len(self.conditions)
+        )
+
+        if (
+            self.planned_episode_count
+            != expected_episode_count
+        ):
+            raise ValueError(
+                "planned_episode_count must equal "
+                "task_count * number of conditions."
+            )
+
+        return self
+
+
 class PreregistrationDocument(BaseModel):
-    study_id:str; title:str; research_question:str
-    confirmatory_hypotheses:list[str]; exploratory_questions:list[str]
-    evidence_record_ids:list[str]; benchmark_scope:list[str]; model_scope:list[str]
-    transformation_scope:list[str]; primary_estimand:str; secondary_estimands:list[str]
-    sampling_plan:str; power_and_precision_plan:str; exclusion_rules:list[str]
-    missingness_plan:str; analysis_plan:str; multiplicity_plan:str
-    contamination_plan:str; stopping_rule:str; planned_outputs:list[str]
-    unresolved_critical_issues:list[str]=Field(default_factory=list)
-    @field_validator('study_id','title','research_question','primary_estimand','sampling_plan','power_and_precision_plan','missingness_plan','analysis_plan','multiplicity_plan','contamination_plan','stopping_rule')
+    study_id: str
+    title: str
+    research_question: str
+    confirmatory_hypotheses: list[str]
+    exploratory_questions: list[str]
+    evidence_record_ids: list[str]
+    benchmark_scope: list[str]
+    model_scope: list[str]
+    transformation_scope: list[str]
+    execution_contract: PreregistrationExecutionContract
+    primary_estimand: str
+    secondary_estimands: list[str]
+    sampling_plan: str
+    power_and_precision_plan: str
+    exclusion_rules: list[str]
+    missingness_plan: str
+    analysis_plan: str
+    multiplicity_plan: str
+    contamination_plan: str
+    stopping_rule: str
+    planned_outputs: list[str]
+    unresolved_critical_issues: list[str] = Field(
+        default_factory=list
+    )
+
+    @field_validator(
+        'study_id',
+        'title',
+        'research_question',
+        'primary_estimand',
+        'sampling_plan',
+        'power_and_precision_plan',
+        'missingness_plan',
+        'analysis_plan',
+        'multiplicity_plan',
+        'contamination_plan',
+        'stopping_rule',
+    )
     @classmethod
-    def no_placeholders(cls,v:str)->str:return clean(v)
+    def no_placeholders(cls, v: str) -> str:
+        return clean(v)
+
     @model_validator(mode='after')
     def sealable(self):
-        if not self.confirmatory_hypotheses: raise ValueError('Confirmatory hypothesis required')
-        if self.unresolved_critical_issues: raise ValueError('Critical issues prevent sealing')
+        if not self.confirmatory_hypotheses:
+            raise ValueError(
+                'Confirmatory hypothesis required'
+            )
+        if self.unresolved_critical_issues:
+            raise ValueError(
+                'Critical issues prevent sealing'
+            )
         return self
 
 class ExperimentTransformations(BaseModel):

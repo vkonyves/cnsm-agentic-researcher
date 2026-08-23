@@ -21,6 +21,22 @@ def _sha256_file(path: Path) -> str:
 
 
 def _latex_escape(value: str) -> str:
+    unicode_replacements = {
+        "\u2013": "--",     # en dash
+        "\u2014": "---",    # em dash
+        "\u2212": "-",      # mathematical minus sign
+        "\u00a0": " ",      # non-breaking space
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u201c": '"',
+        "\u201d": '"',
+    }
+
+    value = "".join(
+        unicode_replacements.get(char, char)
+        for char in value
+    )
+
     replacements = {
         "\\": r"\textbackslash{}",
         "&": r"\&",
@@ -175,6 +191,8 @@ def render_ieee_latex(
 
     return f"""\
 {document_class}
+\\usepackage[utf8]{{inputenc}}
+\\usepackage[T1]{{fontenc}}
 \\usepackage{{cite}}
 \\usepackage{{amsmath,amssymb}}
 \\usepackage{{graphicx}}
@@ -298,6 +316,9 @@ def build_publication_artifacts(
         latex_source,
         encoding="utf-8",
     )
+
+    if pdf_path.exists():
+        pdf_path.unlink()
 
     completed = subprocess.run(
         [

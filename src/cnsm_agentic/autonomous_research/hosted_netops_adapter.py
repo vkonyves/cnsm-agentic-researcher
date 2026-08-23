@@ -80,6 +80,8 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
                 "and model-call budget."
             ),
         },
+        "episodes_per_task": 2,
+        "maximum_model_calls_per_task": 2,
         "task_indices": (
             "Exactly task_count unique positive integers."
         ),

@@ -101,3 +101,33 @@ def test_build_publication_artifacts_compiles_pdf(
 
     assert validation["tex_sha256"]
     assert validation["pdf_sha256"]
+
+def test_render_ieee_latex_normalizes_problematic_unicode():
+    manuscript = _manuscript()
+    manuscript["abstract"] = (
+        "Guarded − baseline; "
+        "range 1–2; test—case; "
+        "Kovačić."
+    )
+
+    source = render_ieee_latex(
+        manuscript=manuscript,
+        verified_records=[
+            {
+                "record_id": "record-1",
+                "title": "Verified Paper",
+                "publication_year": 2026,
+            }
+        ],
+        document_class=r"\documentclass[conference]{IEEEtran}",
+    )
+
+    assert "−" not in source
+    assert "–" not in source
+    assert "—" not in source
+    assert "Guarded - baseline" in source
+    assert "range 1--2" in source
+    assert "test---case" in source
+    assert "Kovačić" in source
+    assert r"\usepackage[utf8]{inputenc}" in source
+    assert r"\usepackage[T1]{fontenc}" in source

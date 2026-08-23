@@ -264,6 +264,480 @@ def required_confirmatory_task_count(
     return int(matches[0].confirmatory_items)
 
 
+def preregistration_execution_contract_issues(
+    preregistration: PreregistrationDocument,
+    *,
+    planning_contracts: dict[str, dict[str, Any]],
+    available_execution_models: list[str],
+    required_task_count: int,
+) -> list[str]:
+    issues: list[str] = []
+
+    declared = (
+        preregistration
+        .execution_contract
+        .model_dump()
+    )
+
+    adapter_family = str(
+        declared["adapter_family"]
+    )
+
+    adapter_contract = (
+        planning_contracts.get(
+            adapter_family
+        )
+    )
+
+    if adapter_contract is None:
+        return [
+            "Preregistration selected an unregistered "
+            f"adapter_family: {adapter_family}"
+        ]
+
+    for field in (
+        "execution_mode",
+        "design",
+        "conditions",
+        "model_provider",
+    ):
+        if (
+            declared.get(field)
+            != adapter_contract.get(field)
+        ):
+            issues.append(
+                "Preregistration execution_contract "
+                f"{field} does not match the registered "
+                "adapter planning contract."
+            )
+
+    if (
+        declared["model_names"]
+        != available_execution_models
+    ):
+        issues.append(
+            "Preregistration model_names must exactly "
+            "match the frozen available execution models."
+        )
+
+    if (
+        preregistration.model_scope
+        != declared["model_names"]
+    ):
+        issues.append(
+            "Preregistration model_scope must exactly "
+            "match execution_contract.model_names."
+        )
+
+    expected_transformations = list(
+        adapter_contract.get(
+            "transformations",
+            {},
+        ).values()
+    )
+
+    if (
+        preregistration.transformation_scope
+        != expected_transformations
+    ):
+        issues.append(
+            "Preregistration transformation_scope must "
+            "exactly match the registered adapter "
+            "transformations."
+        )
+
+    if (
+        int(declared["task_count"])
+        != required_task_count
+    ):
+        issues.append(
+            "Preregistration task_count must equal "
+            "required_confirmatory_task_count."
+        )
+
+    episodes_per_task = int(
+        adapter_contract[
+            "episodes_per_task"
+        ]
+    )
+
+    expected_episode_count = (
+        required_task_count
+        * episodes_per_task
+    )
+
+    if (
+        int(
+            declared[
+                "planned_episode_count"
+            ]
+        )
+        != expected_episode_count
+    ):
+        issues.append(
+            "Preregistration planned_episode_count "
+            "does not match the executable adapter "
+            "contract."
+        )
+
+    calls_per_task = int(
+        adapter_contract[
+            "maximum_model_calls_per_task"
+        ]
+    )
+
+    expected_maximum_model_calls = (
+        required_task_count
+        * calls_per_task
+    )
+
+    if (
+        int(
+            declared[
+                "maximum_model_calls"
+            ]
+        )
+        != expected_maximum_model_calls
+    ):
+        issues.append(
+            "Preregistration maximum_model_calls does "
+            "not match the executable adapter contract."
+        )
+
+    return issues
+
+
+def build_deterministic_reconciliation(
+    *,
+    experiment_plan: dict[str, Any],
+    execution_manifest: dict[str, Any],
+    analysis_results: dict[str, Any],
+    run_dir: Path,
+) -> dict[str, Any]:
+    confirmatory_results = (
+        analysis_results.get(
+            "confirmatory_results",
+            [],
+        )
+    )
+
+    if len(confirmatory_results) != 1:
+        raise ValueError(
+            "Deterministic reconciliation requires "
+            "exactly one confirmatory result."
+        )
+
+    result = confirmatory_results[0]
+
+    n_11 = int(result["n_11"])
+    n_10 = int(result["n_10"])
+    n_01 = int(result["n_01"])
+    n_00 = int(result["n_00"])
+
+    contingency_total = (
+        n_11 + n_10 + n_01 + n_00
+    )
+
+    baseline_from_contingency = (
+        n_11 + n_01
+    )
+
+    guarded_from_contingency = (
+        n_11 + n_10
+    )
+
+    complete_pair_count = int(
+        result["complete_pair_count"]
+    )
+
+    baseline_success_count = int(
+        result["baseline_success_count"]
+    )
+
+    guarded_success_count = int(
+        result["guarded_success_count"]
+    )
+
+    missingness = dict(
+        analysis_results.get(
+            "missingness_summary",
+            {},
+        )
+    )
+
+    pair_slots_from_missingness = sum(
+        int(
+            missingness.get(
+                key,
+                0,
+            )
+        )
+        for key in (
+            "complete_pairs",
+            "baseline_only_observed_pairs",
+            "guarded_only_observed_pairs",
+            "both_missing_pairs",
+        )
+    )
+
+    task_count = int(
+        experiment_plan["task_count"]
+    )
+
+    conditions = list(
+        experiment_plan["conditions"]
+    )
+
+    planned_episode_count = int(
+        execution_manifest[
+            "planned_episode_count"
+        ]
+    )
+
+    completed_episode_count = int(
+        execution_manifest[
+            "completed_episode_count"
+        ]
+    )
+
+    failed_episode_count = int(
+        execution_manifest[
+            "failed_episode_count"
+        ]
+    )
+
+    execution_log_path = (
+        run_dir
+        / str(
+            execution_manifest[
+                "execution_log_path"
+            ]
+        )
+    )
+
+    cache_hit_count = 0
+    cache_miss_count = 0
+    hosted_model_call_event_count = 0
+    completed_hosted_model_call_event_count = 0
+    failed_hosted_model_call_event_count = 0
+
+    stage_counts: dict[str, int] = {}
+    condition_counts: dict[str, int] = {}
+
+    cache_key_conditions: dict[
+        str,
+        set[str],
+    ] = {}
+
+    if execution_log_path.is_file():
+        for line in execution_log_path.read_text(
+            encoding="utf-8"
+        ).splitlines():
+            if not line.strip():
+                continue
+
+            event = json.loads(line)
+
+            if (
+                event.get("event_type")
+                != "hosted_model_call"
+            ):
+                continue
+
+            hosted_model_call_event_count += 1
+
+            outcome = str(
+                event.get(
+                    "outcome",
+                    "",
+                )
+            )
+
+            if outcome == "COMPLETED":
+                completed_hosted_model_call_event_count += 1
+            elif outcome == "FAILED":
+                failed_hosted_model_call_event_count += 1
+
+            stage = str(
+                event.get(
+                    "stage",
+                    "",
+                )
+            )
+
+            condition = str(
+                event.get(
+                    "condition",
+                    "",
+                )
+            )
+
+            if stage:
+                stage_counts[stage] = (
+                    stage_counts.get(
+                        stage,
+                        0,
+                    )
+                    + 1
+                )
+
+            if condition:
+                condition_counts[
+                    condition
+                ] = (
+                    condition_counts.get(
+                        condition,
+                        0,
+                    )
+                    + 1
+                )
+
+            cache_status = event.get(
+                "cache_status"
+            )
+
+            if cache_status == "HIT":
+                cache_hit_count += 1
+            elif cache_status == "MISS":
+                cache_miss_count += 1
+
+            cache_key = event.get(
+                "cache_key_sha256"
+            )
+
+            if cache_key and condition:
+                cache_key_conditions.setdefault(
+                    str(cache_key),
+                    set(),
+                ).add(condition)
+
+    cross_condition_cache_keys = sorted(
+        cache_key
+        for cache_key, seen_conditions
+        in cache_key_conditions.items()
+        if len(seen_conditions) > 1
+    )
+
+    marginal_contingency_consistent = (
+        contingency_total
+        == complete_pair_count
+        and baseline_from_contingency
+        == baseline_success_count
+        and guarded_from_contingency
+        == guarded_success_count
+    )
+
+    episode_accounting_consistent = (
+        planned_episode_count
+        == (
+            completed_episode_count
+            + failed_episode_count
+        )
+        and planned_episode_count
+        == (
+            task_count
+            * len(conditions)
+        )
+    )
+
+    pair_accounting_consistent = (
+        pair_slots_from_missingness
+        == task_count
+        and int(
+            missingness.get(
+                "complete_pairs",
+                0,
+            )
+        )
+        == complete_pair_count
+    )
+
+    return {
+        "schema_version": "1.0",
+        "study_id": (
+            execution_manifest[
+                "study_id"
+            ]
+        ),
+        "task_count": task_count,
+        "conditions": conditions,
+        "planned_episode_count": (
+            planned_episode_count
+        ),
+        "completed_episode_count": (
+            completed_episode_count
+        ),
+        "failed_episode_count": (
+            failed_episode_count
+        ),
+        "complete_pair_count": (
+            complete_pair_count
+        ),
+        "baseline_success_count": (
+            baseline_success_count
+        ),
+        "guarded_success_count": (
+            guarded_success_count
+        ),
+        "n_11": n_11,
+        "n_10": n_10,
+        "n_01": n_01,
+        "n_00": n_00,
+        "baseline_from_contingency": (
+            baseline_from_contingency
+        ),
+        "guarded_from_contingency": (
+            guarded_from_contingency
+        ),
+        "pair_total_from_contingency": (
+            contingency_total
+        ),
+        "marginal_contingency_consistent": (
+            marginal_contingency_consistent
+        ),
+        "pair_accounting_consistent": (
+            pair_accounting_consistent
+        ),
+        "episode_accounting_consistent": (
+            episode_accounting_consistent
+        ),
+        "provider_call_audit": {
+            "hosted_model_call_event_count": (
+                hosted_model_call_event_count
+            ),
+            "completed_hosted_model_call_event_count": (
+                completed_hosted_model_call_event_count
+            ),
+            "failed_hosted_model_call_event_count": (
+                failed_hosted_model_call_event_count
+            ),
+            "cache_hit_count": (
+                cache_hit_count
+            ),
+            "cache_miss_count": (
+                cache_miss_count
+            ),
+            "stage_counts": (
+                stage_counts
+            ),
+            "condition_counts": (
+                condition_counts
+            ),
+            "cross_condition_cache_key_reuse_observed": bool(
+                cross_condition_cache_keys
+            ),
+            "cross_condition_cache_keys": (
+                cross_condition_cache_keys
+            ),
+        },
+        "all_deterministic_consistency_checks_passed": (
+            marginal_contingency_consistent
+            and pair_accounting_consistent
+            and episode_accounting_consistent
+            and not cross_condition_cache_keys
+        ),
+    }
+
 async def create_feasible_experiment_plan(
     *,
     master_prompt: str,
@@ -1252,42 +1726,180 @@ class FinalAutonomousResearchPipeline:
         # 5. Generate provisional preregistration
         # -------------------------------------------------
 
-        preregistration = await run_agent(
-            PREREGISTRATION_AGENT,
-            {
-                "master_prompt": (
-                    master_prompt
+        available_adapter_contracts = (
+            registered_adapter_planning_contracts()
+        )
+
+        available_execution_models = [
+            self.model
+        ]
+
+        prereg_required_task_count = (
+            required_confirmatory_task_count(
+                repaired_design
+            )
+        )
+
+        preregistration = None
+        preregistration_contract_issues: list[str] = []
+
+        maximum_preregistration_attempts = 3
+
+
+
+        for prereg_attempt in range(
+            1,
+            maximum_preregistration_attempts + 1,
+        ):
+            preregistration = await run_agent(
+                PREREGISTRATION_AGENT,
+                {
+                    "master_prompt": master_prompt,
+                    "capability_manifest": (
+                        capability_manifest
+                    ),
+                    "selected_candidate_id": (
+                        selected_candidate_id
+                    ),
+                    "repaired_design": (
+                        repaired_design.model_dump()
+                    ),
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "verified_record_ids": (
+                        allowed_evidence_record_ids
+                    ),
+                    "registered_adapter_planning_contracts": (
+                        available_adapter_contracts
+                    ),
+                    "available_execution_models": (
+                        available_execution_models
+                    ),
+                    "required_confirmatory_task_count": (
+                        prereg_required_task_count
+                    ),
+                    "previous_contract_issues": (
+                        preregistration_contract_issues
+                    ),
+                    "instruction": (
+                        "Produce a complete provisional "
+                        "preregistration that is exactly "
+                        "executable under one supplied "
+                        "registered adapter planning contract. "
+                        "Use only the supplied available "
+                        "execution models. The structured "
+                        "execution_contract, model_scope, "
+                        "transformation_scope, sampling plan, "
+                        "and analysis plan must describe the "
+                        "same experiment. Do not introduce "
+                        "additional model families, conditions, "
+                        "transformations, run counts, or "
+                        "execution modes that are absent from "
+                        "the executable contract. Set task_count "
+                        "exactly to "
+                        "required_confirmatory_task_count. "
+                        "If previous_contract_issues is nonempty, "
+                        "return a complete replacement "
+                        "preregistration correcting all of them."
+                    ),
+                },
+                expected_type=(
+                    PreregistrationDocument
                 ),
-                "capability_manifest": (
-                    capability_manifest
+                stage_name=(
+                    "Provisional preregistration "
+                    f"attempt {prereg_attempt}"
                 ),
-                "selected_candidate_id": (
+            )
+
+            preregistration_contract_issues = (
+                preregistration_execution_contract_issues(
+                    preregistration,
+                    planning_contracts=(
+                        available_adapter_contracts
+                    ),
+                    available_execution_models=(
+                        available_execution_models
+                    ),
+                    required_task_count=(
+                        prereg_required_task_count
+                    ),
+                )
+            )
+
+            write_json(
+                run_dir
+                / "preregistration"
+                / (
+                    "preregistration_contract_check_"
+                    f"{prereg_attempt:02d}.json"
+                ),
+                {
+                    "attempt": prereg_attempt,
+                    "passed": not (
+                        preregistration_contract_issues
+                    ),
+                    "issues": (
+                        preregistration_contract_issues
+                    ),
+                    "declared_execution_contract": (
+                        preregistration
+                        .execution_contract
+                        .model_dump()
+                    ),
+                },
+            )
+
+            if not preregistration_contract_issues:
+                break
+
+        if (
+            preregistration is None
+            or preregistration_contract_issues
+        ):
+            report = create_failure_report(
+                passed_gates=[
+                    "fresh_run",
+                    "autonomous_discovery",
+                    "candidate_validation",
+                    "evidence_verification",
+                    "autonomous_design_repair",
+                    "repaired_design_feasibility",
+                ],
+                failed_gate=(
+                    "Provisional preregistration could "
+                    "not satisfy the executable adapter "
+                    "contract after bounded autonomous repair."
+                ),
+                final_state=(
+                    "PREREGISTRATION_EXECUTION_CONTRACT_FAILED"
+                ),
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=report.final_state,
+                selected_candidate_id=(
                     selected_candidate_id
                 ),
-                "repaired_design": (
-                    repaired_design
-                    .model_dump()
+                development_rehearsal=(
+                    self.development_rehearsal
                 ),
-                "evidence_verification": (
-                    evidence_report
-                ),
-                "verified_record_ids": (
-                    allowed_evidence_record_ids
-                ),
-                "instruction": (
-                    "Produce a complete provisional "
-                    "preregistration. Do not introduce "
-                    "dependencies unavailable under the "
-                    "frozen capability manifest."
-                ),
-            },
-            expected_type=(
-                PreregistrationDocument
-            ),
-            stage_name=(
-                "Provisional preregistration"
-            ),
-        )
+                additional_fields={
+                    "preregistration_contract_issues": (
+                        preregistration_contract_issues
+                    ),
+                },
+            )
+
+            return report
 
         preregistration_path = (
             run_dir
@@ -1372,9 +1984,9 @@ class FinalAutonomousResearchPipeline:
             repaired_design=repaired_design,
             records=records,
             run_dir=run_dir,
-            available_execution_models=[
-                self.model
-            ],
+            available_execution_models=(
+                available_execution_models
+            ),
             maximum_attempts=3,
         )
 
@@ -1961,6 +2573,28 @@ class FinalAutonomousResearchPipeline:
 
             return report
 
+        deterministic_reconciliation = (
+            build_deterministic_reconciliation(
+                experiment_plan=(
+                    experiment_plan.model_dump()
+                ),
+                execution_manifest=(
+                    execution_manifest
+                ),
+                analysis_results=(
+                    analysis_results
+                ),
+                run_dir=run_dir,
+            )
+        )
+
+        write_json(
+            run_dir
+            / "analysis"
+            / "deterministic_reconciliation.json",
+            deterministic_reconciliation,
+        )
+
         # -------------------------------------------------
         # 11. Autonomous manuscript generation
         # -------------------------------------------------
@@ -1987,6 +2621,9 @@ class FinalAutonomousResearchPipeline:
                 ),
                 "analysis_results": (
                     analysis_results
+                ),
+                "deterministic_reconciliation": (
+                    deterministic_reconciliation
                 ),
             },
             expected_type=ManuscriptPackage,
@@ -2051,6 +2688,9 @@ class FinalAutonomousResearchPipeline:
                     "analysis_results": (
                         analysis_results
                     ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
                     "manuscript": (
                         current_manuscript.model_dump()
                     ),
@@ -2098,6 +2738,9 @@ class FinalAutonomousResearchPipeline:
                     "analysis_results": (
                         analysis_results
                     ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
                     "manuscript": (
                         current_manuscript
                         .model_dump()
@@ -2119,6 +2762,17 @@ class FinalAutonomousResearchPipeline:
                         "from existing artifacts, preserve it explicitly "
                         "as an unresolved limitation rather than fabricating "
                         "support."
+                        " Treat deterministic_reconciliation "
+                        "as authoritative for arithmetic "
+                        "consistency, execution accounting, "
+                        "and observed cache-key reuse. Do not "
+                        "adopt a reviewer claim that contradicts "
+                        "a passing deterministic reconciliation "
+                        "check. If reviewer prose conflicts with "
+                        "the deterministic artifact, preserve the "
+                        "artifact-backed facts and explicitly "
+                        "resolve the reviewer concern from those "
+                        "facts."
                     ),
                 },
                 expected_type=ManuscriptPackage,
@@ -2277,6 +2931,9 @@ class FinalAutonomousResearchPipeline:
                     "analysis_results": (
                         analysis_results
                     ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
                     "manuscript": (
                         revised_manuscript
                         .model_dump()
@@ -2371,6 +3028,9 @@ class FinalAutonomousResearchPipeline:
                 ),
                 "analysis_results": (
                     analysis_results
+                ),
+                "deterministic_reconciliation": (
+                    deterministic_reconciliation
                 ),
                 "manuscript": (
                     revised_manuscript
