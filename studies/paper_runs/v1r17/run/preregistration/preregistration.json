@@ -1,0 +1,84 @@
+{
+  "study_id": "autocand-20260823-a1-prereg-v1",
+  "title": "Closed-loop verifier-assisted generation reduces harmful NetOps changes (repaired preregistration)",
+  "research_question": "Does integrating LLM-generated configuration candidates with a deterministic network verifier before sandboxed dry-run execution (generate → verify → sandbox) reduce the rate of sandbox-observed harmful network changes versus executing the identical generated candidate without verification?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): For the same generated configuration candidate, the verifier-assisted pipeline (candidate checked by a deterministic verifier and only verifier-passing candidates allowed to sandbox-execute) yields a lower sandbox-observed harmful-change rate than the baseline pipeline that sandbox-executes the identical candidate without verifier filtering. The primary estimand is the paired absolute risk difference (baseline harm rate − verifier-assisted harm rate) across generated-candidate pairs.",
+    "H2 (confirmatory, operationalized): Conservative verifier acceptance thresholds will reduce the verifier false-negative rate (harmful candidate passes) at the cost of increasing the fraction of candidates blocked from sandbox execution (recorded as blocked_by_verifier). All blocking is automated; no human review is required in this study."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do verifier-pass fractions and verifier thresholds trade off false-negative versus blocked-by-verifier rates across intent classes (ACL, routing, NAT, service-exposure)?",
+    "EQ2: How consistent are effects across two prompt-variations of the same hosted black-box model (secondary generalizability check)?",
+    "EQ3: What categories of harm (reachability violation, isolation breach, forwarding loop) dominate the verifier false negatives?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W7139148207",
+    "https://openalex.org/W7162699743",
+    "https://openalex.org/W4381797997",
+    "https://openalex.org/W7162044227",
+    "doi:10.2139/ssrn.6621659"
+  ],
+  "benchmark_scope": [
+    "Public NetOps intent/task classes assembled from allowed public corpora cited in evidence_record_ids (ACL changes, route updates, NAT/service-exposure changes). The experiment is explicitly bounded to these synthetic/public tasks and sandbox topologies described in the preregistration."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 464,
+    "planned_episode_count": 928,
+    "maximum_model_calls": 928,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired absolute risk difference in sandbox-observed harmful-change rate per generated-configuration candidate (baseline − verifier-assisted).",
+  "secondary_estimands": [
+    "Verifier false-negative rate: fraction of sandbox-harmful candidates that the verifier passed.",
+    "Verifier false-positive (over-block) rate: fraction of sandbox-harmless candidates that the verifier blocked.",
+    "Blocked-by-verifier fraction: fraction of generated candidates not sandbox-executed because verifier blocked them.",
+    "Per-harm-category paired risk differences (reachability, isolation, loops)."
+  ],
+  "sampling_plan": "Confirmatory paired trials = 464 generated-configuration candidates (paired units). Implemented as 2 prompt-variations of gpt-5-mini with 232 generation requests per prompt-variation (232*2 = 464). For each generated candidate: (1) deterministic parsing/canonicalization into verifier input; (2) baseline pipeline: sandbox dry-run execution of the parsed candidate; (3) verifier-assisted pipeline: deterministic verifier runs on the identical parsed candidate and only when verifier returns 'pass' is the candidate sandbox-executed. All sandbox runs use a fully automated resettable emulator snapshot; sandbox state is reset between runs. Inclusion: all successfully parsed generated candidates after up to 2 automated retries for transient generation/parser failures. Exclusion: candidates with irrecoverable parser failures (automatically flagged and excluded from confirmatory analysis; counts and reasons logged). Confirmatory items (paired units) = 464.",
+  "power_and_precision_plan": "Primary estimand: paired absolute reduction in harmful-change rate (baseline − verifier-assisted). Target effect: >30% relative reduction in harmful-change rate. Assumptions: baseline harmful-change rate p0=0.25, target p1=0.175 (30% relative reduction), two-sided alpha=0.05, power=0.80. Sample-size calculation per paired-proportions approximation yields n≈464 paired candidates (232 per prompt-variation). Sensitivity analyses: recompute power and effect estimates under alternate baseline harm rates p0 in {0.15,0.20,0.30} and assess robustness to excluded pairs via worst-case imputations.",
+  "exclusion_rules": [
+    "Irrecoverable deterministic parser failures after 2 automated retries: auto-exclude and log as 'parser-exclusion' with error code.",
+    "Sandbox infrastructure failures persisting after 2 automated reruns: exclude pair and log as 'infrastructure-exclusion'.",
+    "Contamination-detected runs (sandbox snapshot mismatch beyond allowed transient diffs) that persist after 2 re-runs: exclude pair and log as 'contamination-exclusion'."
+  ],
+  "missingness_plan": "Automated retry policy: generation and parser failures retried up to 2 times. Candidates with persistent parser failure are auto-excluded and logged with error codes. Sandbox infrastructure failures trigger automated re-run up to 2 times; if still failing the candidate is excluded and counted as infrastructure-failure exclusion. Excluded cases and reasons are tabulated; confirmatory analysis uses the pre-specified achieved paired sample (those that successfully completed both pipelines or were deterministically blocked by verifier). Sensitivity analyses include worst-case imputations (all excluded harmful/all excluded harmless).",
+  "analysis_plan": "Primary analysis: paired comparison of harmful outcome per generated candidate (binary harm/no-harm). Compute paired risk difference (baseline harm rate − verifier-assisted harm rate) with two-sided 95% Wald CI; apply McNemar's exact test for paired binary outcomes (alpha=0.05, two-sided). Report exact counts in a 2x2 contingency table (baseline harm / verifier harm) and per-harm-category breakdown. Compute verifier false-negative and false-positive rates with Clopper-Pearson 95% CIs. Pre-specified sensitivity analyses: vary assumed verifier pass threshold and recompute paired difference under simulated pass fractions; subgroup analyses by intent class (ACL, routing, NAT, service-exposure) are exploratory and adjusted for multiplicity using Holm-Bonferroni for named secondary outcomes. All raw logs, parser outputs, verifier decisions, and sandbox traces will be published in the artifact bundle. Contaminated or excluded pairs are reported separately and omitted from the confirmatory paired analysis.",
+  "multiplicity_plan": "Primary confirmatory test: single hypothesis on overall paired absolute risk difference (no multiplicity correction for primary). Secondary and exploratory outcomes are exploratory; multiplicity adjustments for named secondary outcomes (if formally reported) use Holm-Bonferroni. All exploratory outcomes reported with unadjusted p-values and flagged as exploratory.",
+  "contamination_plan": "Risk factors: sandbox state not fully reset between runs; verifier implementation bugs; parser mis-canonicalizations altering semantics. Detection: automated sandbox-state snapshotting before/after each run and SHA256 comparison; deterministic unit-tests on verifier decisions against stored ground-truth for a held-out set at runtime; parser round-trip check (parse→render→re-parse) to detect semantic drift. Item-flagging: sandbox snapshot mismatch → mark contaminated; auto re-run up to 2 times, then exclude if persists. Verifier unit-test failure → automated halt, archive verifier binary/logs, run automated regression before resume. Parser round-trip failure after retries → auto-exclude candidate. Analysis treatment: contaminated/excluded pairs reported separately and omitted from confirmatory paired analysis. Sensitivity analyses include worst-case imputations for excluded pairs.",
+  "stopping_rule": "Stop when all 464 paired candidates have completed the frozen pipeline (successful completion or auto-exclusion) or when an automated verifier unit-test failure halts the run (in which case the run is stopped, archived, and declared failed until verifier regression tests pass). No post-hoc increases to sample size; any premature stop is documented and treated as an experimental deviation.",
+  "planned_outputs": [
+    "Raw generation outputs (per-request)",
+    "Parser canonical ASTs and round-trip logs",
+    "Verifier decisions and rule-set snapshots",
+    "Sandbox dry-run traces and pre/post snapshots",
+    "Contamination and exclusion table",
+    "Analysis scripts and statistical-results CSV",
+    "Artifact bundle for reproduction (logs, config, hashes)",
+    "IEEE-format manuscript and preregistration manifest"
+  ],
+  "unresolved_critical_issues": []
+}

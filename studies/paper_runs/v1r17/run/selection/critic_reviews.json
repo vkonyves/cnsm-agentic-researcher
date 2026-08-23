@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand-20260823-a1",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Sandbox fidelity may under- or over-estimate real production harms",
+        "Verifier rule-set completeness risks systematic false negatives",
+        "Single-model/single-prompt evaluation limits generality",
+        "Pre-registered >30% relative reduction target may be optimistic without power/sample justification"
+      ],
+      "required_design_repairs": [
+        "Specify verifier tool name/version and exact rule-set; publish rule-set or machine-readable rules",
+        "Ensure paired design uses identical generated configs per-intent for baseline vs verifier pipeline (or justify alternative)",
+        "Increase diversity of sandbox topologies and intent classes or justify representativeness",
+        "Add at least one additional LLM or prompt-variant to test generalizability; precompute power analysis for effect-size target"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-20260823-b2",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Sandbox harm labels may be noisy/partial and bias predictive performance",
+        "Feature definitions (e.g., change-impact rank) are underspecified",
+        "Risk of overfitting on synthetic/limited task bank",
+        "Operational thresholds and utility function not fully defined"
+      ],
+      "required_design_repairs": [
+        "Provide exact, implementable definitions for each metric and code to compute them",
+        "Specify label-noise mitigation and estimate label reliability (inter-sandbox agreement)",
+        "Pre-register model-selection and hyperparameter ranges and include holdout task-class folds",
+        "Define operator utility (costs of false accept/reject) and use in decision-threshold selection"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-20260823-c3",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Publication of adversarial templates risks misuse and may force heavy redaction limiting reproducibility",
+        "Attacks may overfit to the tested LLM; single-model evaluation undermines general claims",
+        "Responsible-disclosure and legal/ethical procedures are only briefly mentioned"
+      ],
+      "required_design_repairs": [
+        "Define and include a formal redaction/responsible-disclosure policy and provide a reproducibility pathway (e.g., controlled artifact access to reviewers)",
+        "Test attacks across multiple LLMs/seeds to assess generality",
+        "Provide mitigations' exact implementations and failure modes; quantify utility loss introduced by mitigations",
+        "Pre-register ethical approval/oversight and redaction criteria"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-20260823-d4",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Token-probability proxies may poorly correlate with semantic correctness in config tasks",
+        "Conformal/ensemble methods raise compute and deployment costs; operational trade-offs under-specified",
+        "Sample size (150 intents) may be marginal for calibration evaluation across heterogeneous task classes"
+      ],
+      "required_design_repairs": [
+        "Validate proxy-feature correlation with sandbox harm on pilot data and report results before main run",
+        "Clarify exchangeability assumptions for conformal methods and justify them for this domain",
+        "Increase intent-bank size or stratify sampling to ensure calibration evaluation per-task-class",
+        "Pre-register computational-cost budget and operator-threshold decision policy"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

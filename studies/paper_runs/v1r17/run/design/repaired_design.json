@@ -1,0 +1,166 @@
+{
+  "selected_candidate_id": "autocand-20260823-a1",
+  "title": "Closed-loop verifier-assisted generation reduces harmful NetOps changes (repaired preregistration)",
+  "research_question": "Does integrating LLM-generated configuration candidates with a deterministic network verifier before sandboxed dry-run execution (generate → verify → sandbox) reduce the rate of sandbox-observed harmful network changes versus executing the identical generated candidate without verification?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): For the same generated configuration candidate, the verifier-assisted pipeline (candidate checked by a deterministic verifier and only verifier-passing candidates allowed to sandbox-execute) yields a lower sandbox-observed harmful-change rate than the baseline pipeline that sandbox-executes the identical candidate without verifier filtering. The primary estimand is the paired absolute risk difference (baseline harm rate − verifier-assisted harm rate) across generated-candidate pairs.",
+    "H2 (confirmatory, operationalized): Conservative verifier acceptance thresholds will reduce the verifier false-negative rate (harmful candidate passes) at the cost of increasing the fraction of candidates blocked from sandbox execution (recorded as blocked_by_verifier). All blocking is automated; no human review is required in this study."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do verifier-pass fractions and verifier thresholds trade off false-negative versus blocked-by-verifier rates across intent classes (ACL, routing, NAT, service-exposure)?",
+    "EQ2: How consistent are effects across two hosted black-box LLMs and one prompt-variation per model (secondary generalizability check)?",
+    "EQ3: What categories of harm (reachability violation, isolation breach, forwarding loop) dominate the verifier false negatives?"
+  ],
+  "benchmark_scope": [
+    "Public NetOps intent/task classes assembled from allowed public corpora cited in evidence_record_ids (ACL changes, route updates, NAT/service-exposure changes). The experiment is explicitly bounded to these synthetic/public tasks and sandbox topologies described in the preregistration."
+  ],
+  "model_scope": [
+    "Hosted black-box LLMs (two distinct hosted LLM endpoints; exact vendor/model identifiers will be recorded in the experiment manifest at runtime). Both are used as black boxes via the hosted_model_api capability; no local GPU execution is required."
+  ],
+  "transformation_scope": [
+    "Text-to-structured-config parsing (deterministic parser), canonicalization to verifier input format, and machine-readable verifier rule-set (JSON/YAML). All transformations are automated and validated per the TransformationValidationPlan below."
+  ],
+  "primary_estimand": "Paired absolute risk difference in sandbox-observed harmful-change rate per generated-configuration candidate (baseline − verifier-assisted).",
+  "secondary_estimands": [
+    "Verifier false-negative rate: fraction of sandbox-harmful candidates that the verifier passed.",
+    "Verifier false-positive (over-block) rate: fraction of sandbox-harmless candidates that the verifier blocked.",
+    "Blocked-by-verifier fraction: fraction of generated candidates not sandbox-executed because verifier blocked them.",
+    "Per-harm-category paired risk differences (reachability, isolation, loops)."
+  ],
+  "sampling_plan": "Confirmatory paired trials = 464 generated-configuration candidates (paired units). Two hosted LLMs will be used; candidates are split evenly: 232 generation requests per LLM (232*2 = 464). For each generated candidate: (1) deterministic parsing/canonicalization into verifier input; (2) baseline pipeline: sandbox dry-run execution of the parsed candidate; (3) verifier-assisted pipeline: deterministic verifier runs on the identical parsed candidate and only when verifier returns 'pass' is the candidate sandbox-executed. All sandbox runs use a fully automated resettable emulator snapshot; sandbox state is reset between runs. Inclusion: all successfully parsed generated candidates after up to 2 automated retries for transient generation/parser failures. Exclusion: candidates with irrecoverable parser failures (automatically flagged and excluded from confirmatory analysis; counts and reasons logged). Confirmatory items (paired units) = 464. Confirmatory trials derive directly from: 2 LLMs × 232 generated candidates per LLM = 464 generated candidates (paired units).",
+  "analysis_plan": "Primary analysis: paired comparison of harmful outcome per generated candidate (binary harm/no-harm). Compute paired risk difference (baseline harm rate − verifier-assisted harm rate) and two-sided 95% Wald CI; apply McNemar's exact test for paired binary outcomes (alpha=0.05, two-sided). Report exact counts in contingency table (baseline harm / verifier harm) and per-harm-category breakdown. Report verifier false-negative and false-positive rates with Clopper-Pearson 95% CIs. Pre-specified sensitivity analyses: vary assumed verifier pass threshold and recompute the paired difference under simulated pass fractions; subgroup analyses by intent class (ACL, routing, NAT, service-exposure) are exploratory and adjusted for multiplicity (Holm-Bonferroni). All raw logs, parser outputs, verifier decisions, and sandbox traces will be published in the artifact bundle. Technical failures and exclusions are reported separately; exclusions due to irrecoverable parser errors are not counted in confirmatory n and are described in a missingness table.",
+  "multiplicity_plan": "Primary confirmatory test: a single hypothesis on overall paired absolute risk difference (no multiplicity correction needed). Secondary and exploratory tests (per-harm-category, per-intent-class, per-model comparisons) are exploratory; multiplicity adjustments for named secondary outcomes will use Holm-Bonferroni; all exploratory outcomes are reported as exploratory with unadjusted p-values but flagged as exploratory.",
+  "missingness_plan": "Automated retry policy: generation and parser failures retried up to 2 times. Candidates with persistent parser failure are auto-excluded and logged with error codes. Sandbox infrastructure failures trigger automated re-run up to 2 times; if still failing the candidate is excluded and counted as infrastructure-failure exclusion. Excluded cases and reasons are tabulated; confirmatory analysis uses the pre-specified achieved paired sample (those that successfully completed both pipelines or were deterministically blocked by verifier).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NetOps intent bank (derived from allowed evidence corpora cited in evidence_record_ids)"
+    ],
+    "risk_factors": [
+      "Sandbox state not fully reset between runs causing cross-trial contamination",
+      "Verifier implementation bugs producing inconsistent decisions",
+      "Parser mis-canonicalizations altering semantics before verifier"
+    ],
+    "detection_procedures": [
+      "Automated sandbox-state snapshotting before and after each run; compare SHA256 hashes of snapshots to detect residual state. If pre/post snapshot differs beyond expected transient logs, automatically mark run as 'contaminated'.",
+      "Deterministic unit-tests on verifier decisions: for a held-out set of synthetic inputs, the verifier's output is compared to stored ground-truth decisions at runtime; deviations trigger automated alerts and pause execution (automated halt).",
+      "Parser round-trip check: canonicalize → render → re-parse; if round-trip fails to preserve canonical structure, mark candidate as parser-failure."
+    ],
+    "item_flagging_rules": [
+      "If sandbox snapshot mismatch detected: mark run contaminated, automatically re-run up to 2 times; if contamination persists, exclude the pair and log as 'contamination-exclusion'.",
+      "If verifier unit-test failure occurs: automatically stop the run, archive current verifier binary and logs, and fail the experiment run (verifier reinstallation and regression tests are automated steps before resuming).",
+      "If parser round-trip fails after retries: auto-exclude the candidate."
+    ],
+    "analysis_treatment": "Contaminated or excluded pairs are reported separately and omitted from the confirmatory paired analysis. Sensitivity analysis will include worst-case imputations of excluded pairs (assigning all excluded as harmful or all as harmless) and report the range of the primary estimand.",
+    "residual_uncertainty": [
+      "Sandbox fidelity vs production networks remains a noncritical external-validity limitation; reported conclusions are explicitly bounded to the sampled public tasks and sandbox topologies."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-A-recommended",
+      "description": "Recommended (balanced power and resource use). Confirmatory paired n=464 generated candidates (2 LLMs × 232 each). Expectation: baseline sandbox runs = 464 (one per candidate); verifier checks = 464; expected verifier-assisted sandbox runs = pass_fraction * 464 (assume conservative pass_fraction = 0.5 → expected verifier-assisted sandbox runs = 232); total sandbox dry-run executions expected = baseline 464 + verifier-assisted 232 = 696 (expected). Planned model calls (generation only) = 464. Models = [\"LLM-Primary (hosted)\", \"LLM-Secondary (hosted)\"]; Transformations = [\"deterministic parser/canonicalizer\", \"verifier input generator\"]. Discovery items = 0 (no separate discovery phase); Confirmatory items = 464 paired candidates; Task_cluster_count = 4 (ACL, routing, NAT, service-exposure). Feasibility rationale: Model calls (464) well under maximum_planned_model_calls (10000). Sandbox and verifier runs are CPU-executable and automated; wall-clock fits within maximum_wall_clock_days=7 given parallelized CPU sandboxing and verifier checks.",
+      "planned_model_calls": 464,
+      "models": [
+        "LLM-Primary (hosted black-box)",
+        "LLM-Secondary (hosted black-box)"
+      ],
+      "transformations": [
+        "deterministic parser/canonicalizer",
+        "verifier input generator"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 464,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Generation calls (464) plus automated verifier and sandbox CPU runs fit within manifest CPU execution resources and the 7-day wall-clock when parallelized; no human labour required."
+    },
+    {
+      "scenario_id": "scenario-B-budget-constrained",
+      "description": "Lower-budget (reduced n). Confirmatory paired n=300 generated candidates (2 LLMs × 150 each). Planned model calls (generation) = 300. Baseline sandbox runs = 300; expected verifier-assisted sandbox runs (assume pass_fraction 0.5) = 150; expected total sandbox runs = 450. Lower statistical power; suitable if compute or time is constrained.",
+      "planned_model_calls": 300,
+      "models": [
+        "LLM-Primary (hosted black-box)",
+        "LLM-Secondary (hosted black-box)"
+      ],
+      "transformations": [
+        "deterministic parser/canonicalizer",
+        "verifier input generator"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Reduced compute and wall-clock; may yield insufficient power for the pre-registered >30% relative reduction target but preserves design and automation guarantees."
+    },
+    {
+      "scenario_id": "scenario-C-high-diversity",
+      "description": "Higher-resource (expanded diversity). Confirmatory paired n=700 generated candidates (2 LLMs × 350 each). Planned model calls = 700. Baseline sandbox runs = 700; expected verifier-assisted sandbox runs (assume pass_fraction 0.5) = 350; expected total sandbox runs = 1050. Increased power and more thorough per-intent-class coverage at higher CPU and scheduling cost.",
+      "planned_model_calls": 700,
+      "models": [
+        "LLM-Primary (hosted black-box)",
+        "LLM-Secondary (hosted black-box)"
+      ],
+      "transformations": [
+        "deterministic parser/canonicalizer",
+        "verifier input generator"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 700,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Requires more CPU sandbox runs and scheduling but still within hosted_model_api and CPU-execution capabilities; select only if extra wall-clock time and compute quota are available."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute reduction in harmful-change rate (baseline − verifier-assisted) per generated candidate.",
+    "target_effect": ">30% relative reduction in harmful-change rate (pre-registered).",
+    "clustering_unit": "Per generated-configuration candidate (paired unit: identical candidate evaluated under baseline and verifier-assisted pipelines).",
+    "calculation_method": "Two-sided paired-proportions approximation used to compute required paired sample size. Assumptions: baseline harm rate p0=0.25 (conservative), target relative reduction 30% → p1=0.25*(1-0.30)=0.175; absolute difference delta=0.075. Using approximation n ≈ ( (Z_{1−α/2} * sqrt(2*p̄*(1−p̄)) + Z_{power} * sqrt(p0*(1−p0)+p1*(1−p1)) )^2 ) / delta^2, where p̄=(p0+p1)/2. With Z_{1−α/2}=1.96 (α=0.05) and Z_{power}=0.84 (power=0.80), this yields n ≈ 464 paired candidates. Therefore confirmatory paired n=464 (split 232 per LLM) was selected to achieve 80% power to detect the pre-registered >30% relative reduction under the stated baseline assumption.",
+    "assumptions": [
+      "Baseline harmful-change rate (without verifier) ≈ 25% (conservative working assumption based on domain evidence reviews).",
+      "Independence of paired candidates (each candidate's sandbox outcome independent conditional on candidate).",
+      "Verifiers and sandbox behave consistently across runs (deterministic verifier and resettable sandbox)."
+    ],
+    "recommended_scenario_id": "scenario-A-recommended",
+    "minimum_detectable_effect_notes": "With n=464 and baseline p0=0.25, the study has ~80% power to detect an absolute reduction of 7.5 percentage points (30% relative reduction). If baseline harm rate is lower, the minimal detectable absolute difference increases; sensitivity analyses will report achieved power post-hoc.",
+    "sensitivity_analyses": [
+      "Recompute power and effect estimates under alternate baseline harm rates (p0 in {0.15,0.20,0.30}).",
+      "Assess robustness of primary estimand to excluded pairs (contamination or parser failure) using worst-case imputations."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Text-to-canonical-config parsing",
+      "Canonical config → verifier input serialization",
+      "Sandbox input wrapper generation"
+    ],
+    "semantic_equivalence_checks": [
+      "Parser round-trip check: parse(generated_text) → canonical → render → parse(rendered) must preserve canonical AST structure (automated equality check).",
+      "Deterministic unit-tests on synthetic canonical examples to ensure parser/verifier pipeline reproduces expected semantics."
+    ],
+    "automatic_rejection_rules": [
+      "If parser round-trip fails after 2 automated retries, reject candidate as irrecoverable parser-failure and log exclusion code.",
+      "If verifier input serialization fails (schema violation), automatically reject candidate and log."
+    ],
+    "audit_sample_policy": "All parser and verifier decisions are logged; 100% of parser failures and 100% of verifier unit-test regressions are archived. Additionally, a deterministic 5% hash-selected sample of successful parser outputs is re-parsed to verify continued semantic equivalence (automated, no human review).",
+    "mapping_validation": "Machine-checkable JSON Schema validation for verifier input and canonicalized configs; schema violations auto-flag and cause deterministic exclusion after retries.",
+    "residual_risks": [
+      "Parser ambiguity or underspecification leading to semantic drift not captured by automated round-trip checks.",
+      "Deterministic canonicalization may not represent all vendor-specific configuration edge-cases; these are documented in the artifact manifest."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Sandbox fidelity vs production network devices and topologies: results are explicitly bounded to the sandboxed emulator topologies and public intent bank used.",
+    "Verifier rule-set completeness: deterministic verifier can only check properties encoded in the provided machine-readable rule-set; unencoded failure modes may persist as false negatives.",
+    "Black-box LLM generalizability: only two hosted black-box LLMs and one prompt-variation per model are tested; broader generalization remains to be evaluated in future work.",
+    "Operational cost and operator-utility trade-offs for conservative verifier thresholds (blocked-by-verifier candidates) are not measured with human-in-the-loop procedures because human labour is disallowed by the capability manifest; automated cost proxies will be reported."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W7139148207",
+    "https://openalex.org/W7162699743",
+    "https://openalex.org/W4381797997",
+    "https://openalex.org/W7162044227",
+    "doi:10.2139/ssrn.6621659"
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand-20260823-a1",
+      "title": "Closed-loop verifier-assisted generation reduces harmful NetOps changes",
+      "research_question": "Does integrating LLM generation with a deterministic network verifier and sandboxed execution (generate→verify→sandbox) measurably reduce harmful network changes compared to LLM generation without a verifier in realistic NetOps intents?",
+      "hypotheses": [
+        "A closed-loop pipeline that applies deterministic network verification to LLM-generated configurations before sandboxed execution will produce a lower rate of sandbox-executable harmful changes than an otherwise-identical pipeline without the verifier.",
+        "Applying a conservative verifier-acceptance threshold will reduce false-negative harmful passes but will increase the fraction of outputs routed to human review compared to a permissive threshold."
+      ],
+      "proposed_design": "Preregister a task bank of 200 diverse NetOps intents (ACL changes, route updates, service-exposure tasks) derived from public NetOps corpora. For each intent: (1) generate a single configuration candidate with a fixed black-box LLM prompt; (2) run two pipelines: baseline (no verifier, direct sandbox dry-run) and verifier-assisted (deterministic verifier -> only verifier-passing configs go to sandbox). Use an established network verifier to check reachability/policy (tools and references pre-specified). Sandbox executes configs in an isolated network emulator to observe concrete harmful effects (reachability violations, isolation breaches, forwarding loops). Freeze all prompts, verifier rules, sandbox topology, seeds, and retry policy prior to execution.",
+      "expected_data": "Per-intent records: generated config text, verifier decision (pass/fail), sandbox safety labels (binary harm/no-harm and harm category), human-review routing counts, runtime logs. Aggregates: harmful-rate per-pipeline, false-negative and false-positive verifier rates, human-review load metrics, and per-intent provenance logs.",
+      "primary_outcome": "Absolute reduction in sandbox-observed harmful-change rate (%) for verifier-assisted pipeline versus baseline (pre-registered effect: >30% relative reduction).",
+      "analysis_outline": "Use paired comparison of harmful outcomes per intent (verifier-assisted vs baseline). Compute paired risk difference and 95% CI; test with McNemar's test for dichotomous paired outcomes. Report verifier false-negative rate (harmful but verifier-passed) and false-positive rate (verifier-failed but harmless). Provide per-category harm breakdown and sensitivity analyses across verifier thresholds. Report exact counts, confidence intervals, and raw logs for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7139148207"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7162699743",
+        "https://openalex.org/W4381797997",
+        "https://openalex.org/W7162044227"
+      ],
+      "risks": [
+        "Sandbox emulator may not capture all production failure modes, biasing harm estimates",
+        "Verifier rule-set may be incomplete causing systematic false negatives",
+        "Single-model LLM results may not generalize across different LLMs or prompt styles",
+        "Conservative verifier thresholds may create impractical human-review burdens"
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "autocand-20260823-b2",
+      "title": "Metric-based predictive triage for LLM-generated network configurations",
+      "research_question": "Can a lightweight metric vector derived from LLM outputs and verifier signals predict sandbox-executable harmful changes with sufficient discrimination and calibration to support operator triage?",
+      "hypotheses": [
+        "A metric-based predictive model (syntactic-error rate, verifier severity score, change-impact rank, and edit-distance to known-safe templates) will achieve cross-validated discrimination AUC ≥ 0.80 for predicting binary sandbox-executable harm.",
+        "Calibration post-hoc (e.g., Platt or isotonic) applied to the predictive model will reduce expected calibration error (ECE) to ≤ 0.10, enabling thresholded triage with predictable operator risk."
+      ],
+      "proposed_design": "Define a reproducible metric suite computed per generated config: syntactic parse errors, deterministic-verifier severity (normalized), estimated change-impact rank (affected forwarding-prefix fraction), template-distance, and LLM-derived confidence proxies. Collect 200 intents; generate configs with a fixed prompt; run deterministic verifier and sandbox to obtain harm labels. Fit pre-registered classifiers (logistic regression with L1, regularized tree-based model) using 5-fold cross-validation and nested hyperparameter tuning. Predefine calibration procedures and decision thresholds for triage. Preserve all seeds and artifacts.",
+      "expected_data": "Per-output metric vectors, binary sandbox harm labels, fitted-model coefficients/trees, cross-validated AUC/AUPR/Brier/ECE, calibration plots, decision-threshold tradeoffs, and recommended operational thresholds with estimated residual harm rates.",
+      "primary_outcome": "Cross-validated predictive discrimination (AUC) and calibration (ECE) for binary harmfulness on held-out folds; pre-registered targets: AUC ≥ 0.80 and ECE ≤ 0.10.",
+      "analysis_outline": "Report cross-validated AUC, AUPR, Brier score, and ECE with 95% CIs. Use permutation feature importance and SHAP/partial-dependence for interpretability. Evaluate decision-curve analysis (net benefit) across thresholds to quantify operational utility. Test robustness with leave-one-task-class-out sensitivity analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7139148207"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7162699743",
+        "https://openalex.org/W4381797997",
+        "https://openalex.org/W7114889968"
+      ],
+      "risks": [
+        "Metric proxies may omit latent semantic errors not captured by verifier scores",
+        "Predictive models trained on synthetic/bench tasks may not generalize to diverse enterprise policies",
+        "High-performing triage models may encourage operator overreliance without continuous recalibration",
+        "Selected metrics may be sensitive to prompt phrasing causing brittle performance"
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "autocand-20260823-c3",
+      "title": "Adversarial prompt and tool-description injection against verifier-assisted NetOps pipelines",
+      "research_question": "To what extent can adversarial prompt or tool-description injections cause LLM-generated configurations to bypass a verification-assisted pipeline and produce harmful sandbox-executable changes, and which pipeline mitigations most reduce such bypasses?",
+      "hypotheses": [
+        "Adversarially crafted prompt- and tool-description injections will increase the bypass rate (configs that pass the verifier but cause sandbox harm) relative to benign prompts.",
+        "Mitigations including input sanitization, canonicalized tool descriptions, and verifier semantic invariants will significantly reduce bypass rates compared to an unmitigated pipeline."
+      ],
+      "proposed_design": "Freeze a set of 100 intents. Construct deterministic attacker templates for: (A) prompt-injection embedding contradictory constraints, (B) repair-injection biasing repair calls, and (C) tool-description poisoning that alters tool semantics. For each intent generate outputs under benign and each adversarial template using the same LLM(s) and prompt seeds. Pass outputs through the verifier+repair pipeline (verifier rules frozen). Execute verifier-passing outputs in sandbox to label harm and flag bypass events (verifier-pass + sandbox-harm). Predefine three mitigations (sanitization, canonical descriptions, invariant-checks) and evaluate their efficacy by re-running attacker cases through mitigated pipeline. Log and freeze all attacker templates and mitigation code before measurement. Follow strict redaction and responsible-disclosure procedures for adversarial artifacts.",
+      "expected_data": "Per-intent: benign vs adversarial prompt variants, verifier decision, sandbox harm label, bypass flag, and mitigation status. Aggregates: bypass rates by attack type and mitigation, reduction-in-bypass metrics with bootstrap CIs, and representative redacted adversarial examples for qualitative taxonomy.",
+      "primary_outcome": "Absolute and relative increase in bypass rate under adversarial prompts vs benign baseline and absolute reduction in bypass rate after applying each mitigation; statistical significance reported with paired tests and bootstrap CIs.",
+      "analysis_outline": "Use paired comparisons (McNemar's test) for benign vs adversarial bypass outcomes and compute 95% CIs for bypass-rate differences. Estimate mitigation efficacy with bootstrap confidence intervals. Provide an attacker-success taxonomy and quantify residual bypass risk per mitigation. Include qualitative examples (redacted) and ethical disclosure of redaction decisions.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4387806231",
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "https://openalex.org/W7139148207"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7162699743"
+      ],
+      "risks": [
+        "Adversarial templates may overfit to the tested LLM and not generalize to others",
+        "Publishing adversarial examples risks misuse; the study must redact exploitable details and follow responsible-disclosure practices",
+        "Sanitization mitigations may remove legitimate context and reduce utility",
+        "Ethical and legal constraints on publishing attack artifacts may limit reproducibility"
+      ],
+      "estimated_model_calls": 1000
+    },
+    {
+      "candidate_id": "autocand-20260823-d4",
+      "title": "Black-box calibration methods for selective acceptance of LLM-generated configs",
+      "research_question": "Which practical black-box calibration and selective-prediction techniques produce reliable operator-relevant acceptance/rejection decisions for LLM-generated network configurations?",
+      "hypotheses": [
+        "Black-box calibration techniques (token-prob-based temperature scaling, ensemble-agreement scoring, and conformal prediction on verifier features) will reduce calibration error (ECE) relative to an uncalibrated baseline and increase net benefit for selective acceptance decisions.",
+        "Calibration methods that combine verifier-derived features with LLM-derived confidence proxies will outperform methods that use only LLM token-prob proxies."
+      ],
+      "proposed_design": "Collect 150 intents and generate configs with frozen prompts. For each output compute baseline confidence proxies: mean token log-prob, next-token surprisal features, and ensemble disagreement (multiple seeds). Compute verifier-derived features (severity score, rule-violation counts). Evaluate calibration approaches: temperature scaling on token-prob proxy, isotonic/Platt on combined features, conformal prediction using verifier features. Obtain sandbox harm labels to serve as ground truth. Pre-register thresholds for selective acceptance and evaluate net benefit using decision-curve analysis. Preserve all seeds and evaluation code.",
+      "expected_data": "Per-output: raw confidence proxies, calibrated probabilities per-method, sandbox harm labels, calibration metrics (ECE, Brier), decision-curve net-benefit curves, acceptance-rate vs residual-harm tradeoffs, and computational cost measurements.",
+      "primary_outcome": "Improvement in calibration (ECE reduction) and operational decision utility (net-benefit increase) for selected calibration methods versus baseline; report statistical significance and bootstrap CIs for observed improvements.",
+      "analysis_outline": "Compute cross-validated ECE, Brier, AUC for each calibration method. Use decision-curve analysis to compare net benefit across operator-preferred threshold ranges. Test paired differences with bootstrap CIs and report computational overhead. Analyze failure cases where calibration methods disagree and perform sensitivity analyses across intent classes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4381797997",
+        "doi:10.2139/ssrn.6621659",
+        "https://openalex.org/W4378945636"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7162699743",
+        "https://openalex.org/W2889227506"
+      ],
+      "risks": [
+        "Token-prob proxies may be poorly correlated with semantic correctness in configuration tasks",
+        "Ensemble or conformal approaches increase model-call and compute costs",
+        "Calibrated thresholds tuned on the study dataset may not transfer to different enterprise policies",
+        "Improved calibration may create false confidence in automated acceptance without continuous monitoring"
+      ],
+      "estimated_model_calls": 600
+    }
+  ]
+}

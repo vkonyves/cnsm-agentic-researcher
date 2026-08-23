@@ -1,0 +1,256 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLMs commonly exhibit overconfident or miscalibrated output; calibration and uncertainty quantification are active research areas with multiple proposed methods.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4381797997",
+        "doi:10.2139/ssrn.6621659"
+      ],
+      "evidence_type": "Empirical surveys and method papers",
+      "confidence": 0.88,
+      "limitations": [
+        "most studies are benchmark/bench-top experiments rather than large-scale production NetOps deployments",
+        "methods vary in access-model assumptions (white-box vs black-box)"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "False or fabricated LLM claims can propagate into downstream tool calls and cause harmful state changes in producer–consumer pipelines (the \"claim-to-action\" phenomenon).",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Empirical pipeline audits and threat studies",
+      "confidence": 0.86,
+      "limitations": [
+        "existing empirical demonstrations are across multiple domains (financial, refund, admin actions) rather than NetOps-specific network-change executions",
+        "sandboxed testbeds vary in fidelity"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Operational reliability of agentic NetOps systems depends critically on surrounding machinery (validators, control gates, audit trails, and orchestration), not solely on the generative model.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7139148207",
+        "https://openalex.org/W7155246009"
+      ],
+      "evidence_type": "Architectural surveys and empirical benchmark analyses",
+      "confidence": 0.84,
+      "limitations": [
+        "argument is supported by cross-paper synthesis and benchmark evidence, not by randomized controlled field trials in production networks"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Generate–validate–repair (model + external verifier/tool loop) and tool-assisted self-correction architectures are proposed and empirically studied as mitigation strategies for reducing model errors.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7139148207",
+        "https://openalex.org/W7162699743",
+        "https://openalex.org/W7162044227"
+      ],
+      "evidence_type": "Methodological reviews and prototype-agent studies",
+      "confidence": 0.8,
+      "limitations": [
+        "most evaluations focus on task domains adjacent to NetOps (enterprise workflows, cybersecurity, synthesis tasks); direct NetOps closed-loop empirical evidence is limited in the provided records"
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "A mature body of network-verification and formal-methods tools exists to check configuration semantics (reachability, policy compliance, loop detection), providing a possible deterministic validator for generated configs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W2883187296"
+      ],
+      "evidence_type": "Network verification and formal-methods surveys",
+      "confidence": 0.83,
+      "limitations": [
+        "survey-level evidence documents capabilities broadly; integration examples with LLM pipelines are not shown within these records"
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Current LLM/agent benchmarks often fail to capture realistic, deployment-relevant properties for agentic enterprise or NetOps workflows; domain-specific sandboxes (e.g., EnterpriseOps-Gym) reveal substantial performance gaps of frontier models.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391901128",
+        "https://openalex.org/W7139148207",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Benchmark analyses and new environment evaluations",
+      "confidence": 0.82,
+      "limitations": [
+        "EnterpriseOps-Gym and benchmark critiques highlight gaps but are not themselves NetOps configuration closed-loop benchmarks; generalization to all benchmarks is inferential"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "Does integrating LLM generation with deterministic network verifiers in a closed-loop (generate→verify→sandboxed-execute) measurably reduce harmful network changes in realistic NetOps scenarios?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W2889227506",
+        "doi:10.21203/rs.3.rs-10646557/v1"
+      ],
+      "evidence_type": "Absence of direct empirical closed-loop NetOps evaluations in supplied records",
+      "confidence": 0.4,
+      "limitations": [
+        "records propose architectures and show related-domain pipelines, but none provide a direct empirical closed-loop NetOps trial combining LLMs + network verifiers + sandboxed execution"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Which practical black-box confidence-elicitation and calibration methods produce reliable selective acceptance/rejection decisions for LLM-generated network configurations at operator-relevant thresholds?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4381797997",
+        "https://openalex.org/W4378945636",
+        "doi:10.2139/ssrn.6621659"
+      ],
+      "evidence_type": "Method evaluations for calibration and uncertainty",
+      "confidence": 0.45,
+      "limitations": [
+        "existing methods are evaluated on standard QA, generation, or general benchmarks, not specifically on semantic configuration correctness metrics"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What standardized metrics and scoring protocols best map LLM textual/configural correctness to concrete network-safety outcomes (reachability/isolation/MTTR) in reproducible experiments?",
+      "evidence_record_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Surveys recommending operationally meaningful evaluation",
+      "confidence": 0.5,
+      "limitations": [
+        "surveys call for such metrics; no single standardized protocol with broad adoption is presented in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "How effective are human-in-the-loop approval gates, explainable audit trails, and zero-knowledge audit mechanisms at preventing automated harmful NetOps actions when LLMs are used as agents?",
+      "evidence_record_ids": [
+        "10.2139/ssrn.7046079",
+        "doi:10.2139/ssrn.6553445",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Proposed mechanisms and early studies",
+      "confidence": 0.48,
+      "limitations": [
+        "proposals and architectural arguments exist; empirical NetOps-specific evaluations of their effectiveness are not present in these records"
+      ]
+    },
+    {
+      "claim_id": "UQ5",
+      "statement": "To what extent do adversarial prompt or tool-description injections compromise verification-assisted agentic NetOps pipelines specifically (beyond general agent/tool audits)?",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "https://openalex.org/W4387806231",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Adversarial audits and vulnerability surveys",
+      "confidence": 0.52,
+      "limitations": [
+        "adversarial demonstrations exist for tool-using agents in several domains; NetOps-specific adversarial studies are not supplied"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "Lack of a public NetOps-focused closed-loop benchmark that combines LLM config generation, deterministic network verification, and sandboxed execution with operator-relevant safety metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391901128",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Benchmark critiques and calls for domain-specific sandboxes",
+      "confidence": 0.78,
+      "limitations": [
+        "records identify benchmark shortcomings and provide adjacent sandboxes (EnterpriseOps-Gym) but do not present a NetOps-specific closed-loop benchmark"
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Need for applied calibration and selective-prediction techniques tailored to configuration-semantic correctness (not just natural-language or QA tasks).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4381797997",
+        "doi:10.2139/ssrn.6621659",
+        "https://openalex.org/W4378945636"
+      ],
+      "evidence_type": "Calibration/uQ method literature",
+      "confidence": 0.74,
+      "limitations": [
+        "existing methods show promise on varied tasks but their translation to semantic config verification is untested in the supplied corpus"
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Absence of standardized evaluation protocols that map textual/configuration errors to network-safety outcomes (e.g., reachability violations, ACL misapplication, rollback-trigger rates).",
+      "evidence_record_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Network-verification surveys and architectural analyses",
+      "confidence": 0.76,
+      "limitations": [
+        "surveys suggest metrics but stop short of a community-adopted, reproducible protocol linking LLM outputs to safety outcomes"
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "Need for reproducible experiment and provenance toolchains (prompt/config hashes, manifested execution traces, verified audit artifacts) specialized for autonomous NetOps research runs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416774461",
+        "10.1186/s13326-021-00253-1",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Reproducibility and provenance literature",
+      "confidence": 0.72,
+      "limitations": [
+        "general MLOps and provenance frameworks exist; extension to autonomous agentic NetOps with secure audit constraints remains under-specified in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "CG5",
+      "statement": "Insufficient public empirical evidence evaluating adversarial prompt/tool injections and excessive-agency exploits in NetOps-specific agentic pipelines.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "https://openalex.org/W4387806231",
+        "https://openalex.org/W7139148207"
+      ],
+      "evidence_type": "Adversarial audit studies and surveys",
+      "confidence": 0.75,
+      "limitations": [
+        "attacks demonstrated in other domains and general agent settings; NetOps-targeted empirical studies are not present among the supplied records"
+      ]
+    },
+    {
+      "claim_id": "CG6",
+      "statement": "Limited published work showing end-to-end operational deployments (with human-oversight policies enforced) that quantify risk reduction attributable to verification or approval gates for LLM-driven NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7139148207",
+        "doi:10.2139/ssrn.6553445",
+        "10.2139/ssrn.7046079"
+      ],
+      "evidence_type": "Architectural proposals and practitioner studies",
+      "confidence": 0.68,
+      "limitations": [
+        "papers discuss governance and human oversight but do not provide large-scale production deployment trials with quantified risk-reduction attributable to these controls"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already safe and sufficient for fully autonomous NetOps change execution without validators or human gates (unsupported by supplied records)",
+    "Existing LLM benchmarks adequately measure operational NetOps safety and correctness (contradicted by benchmark critiques in supplied records)",
+    "Generate–validate–repair architectures have been empirically shown in the supplied records to eliminate all harmful actions in NetOps (no supplied record demonstrates complete elimination)",
+    "There is conclusive, production-scale evidence that black-box calibration techniques reliably prevent harmful agentic actions in NetOps (no supplied record provides such evidence)"
+  ]
+}
