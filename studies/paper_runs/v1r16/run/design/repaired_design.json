@@ -1,0 +1,174 @@
+{
+  "selected_candidate_id": "cand-A1b9",
+  "title": "Verifier-Guided Generate–Validate–Repair for Intent-to-Configuration NetOps Tasks (Pre-registered)",
+  "research_question": "Does coupling a hosted LLM intent-to-configuration generator with a deterministic generate–validate–repair loop (two independent verifiers + simulated side-effect checks) reduce verifier-detected operational semantic errors (reachability or policy violations) versus single-shot LLM generation on a public digital-twin task suite?",
+  "confirmatory_hypotheses": [
+    "H1: The verifier-guided generate–validate–repair loop produces a lower verifier-detected semantic-error rate (reachability or policy failure) than single-shot LLM generation on the confirmatory task set.",
+    "H2: Most verifier-detected semantic-error reduction from the repair loop occurs within the first 3 repair iterations (marginal gains diminish after iteration 3).",
+    "H3: Verifier-guided repair reduces unsafe-change proposals (verifier-detected policy violations) while maintaining a syntactic/schema-compliant output rate within ±5 percentage points of LLM-only generation."
+  ],
+  "exploratory_questions": [
+    "E1: Which classes of residual semantic errors remain after verifier-guided repair (e.g., semantic side-effects not modeled by verifiers)?",
+    "E2: How do average model calls per accepted configuration and per-task latency trade off against semantic-error reduction?",
+    "E3: Does repair behavior systematically differ across task-complexity clusters (simple/medium/complex topologies)?"
+  ],
+  "benchmark_scope": [
+    "Public digital-twin testbed: Mininet for dataplane emulation and Batfish for configuration reachability/policy verification (both open-source).",
+    "Task domain: synthesized intent-to-configuration tasks derived from public examples and prior prototype descriptions restricted to constructs supported by the verifiers (explicit inclusion/exclusion rules below).",
+    "Scope bounded to syntactic formats and semantic properties expressible by Batfish and the Mininet reachability checks described in the sampling plan; claims do not extend to production multi-vendor live networks."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (pre-registered exact model identifier will be recorded in the execution manifest). For preregistration we specify the hosted-API usage and require recording of the exact model identifier/version in the execution manifest before execution.",
+    "Deterministic prompt templates and fixed RNG seeds for stochastic sampling settings where used (all seeds and template text are recorded)."
+  ],
+  "transformation_scope": [
+    "Prompt templates (intent + schema constraints) and repair-prompt wrappers applied to the hosted LLM.",
+    "Canonical intermediate representation (intent-to-IR) mapping and IR→vendor-agnostic configuration rendering.",
+    "Verifier input transformations: config normalization and sanitizer that remove metadata and untrusted fields before verification."
+  ],
+  "primary_estimand": "Per-task paired absolute difference in verifier-detected semantic-error probability (LLM-only minus Verifier-Guided) on the confirmatory set (tasks are paired: both conditions applied to same task).",
+  "secondary_estimands": [
+    "Iteration-wise conditional failure probability after k repair iterations (k = 0..4) in the Verifier-Guided arm.",
+    "Difference in syntactic/schema-compliance rates between conditions.",
+    "Average model calls per accepted configuration per condition."
+  ],
+  "sampling_plan": "Two-stage preregistered sampling. Stage A (discovery/prompt-tuning): 40 tasks (held-out from confirmatory analysis) distributed across three complexity clusters (simple/medium/complex). Stage B (confirmatory): 160 tasks (paired design). Task clustering: 3 clusters (simple, medium, complex) with confirmatory allocation 64/64/32 respectively = 160. Inclusion: tasks whose required constructs are representable by the verifier suite (Batfish-supported device models, protocol features, and Mininet-emulatable dataplane). Exclusion: vendor-CLI-only constructs not supported by Batfish or Mininet, tasks requiring live proprietary device features, or tasks that require human-in-the-loop adjudication. Total tasks = 200 (40 discovery + 160 confirmatory). Rationale: paired design on 160 confirmatory tasks provides pre-registered power (see power_plan). All tasks and cluster assignments, and discover/confirmatory partitioning, are fixed in the preregistration manifest prior to execution; discovery-stage outputs are used only for prompt/template tuning and not included in confirmatory hypothesis tests.",
+  "analysis_plan": "Primary analysis: paired comparison of verifier-fail flags (binary) per task (LLM-only vs Verifier-Guided) on confirmatory set (n=160). Primary test: McNemar's exact test for paired binary outcomes; report absolute and relative reduction in failure rate with 95% bootstrap CIs (paired bootstrap, 10k resamples). Report raw 2x2 contingency table. Secondary analyses: iteration-wise failure-rate curve (per-iteration marginal gain) with 95% bootstrap CIs; compare syntactic/schema compliance rates using paired proportion tests; report average model calls and latency per accepted configuration (descriptive + 95% CIs). Failure-mode taxonomy: automated clustering of residual failing configs by verifier error message signatures and structural diff (no human adjudication). Multiple comparisons: predefine family of primary/secondary outcomes; primary outcome is single (H1) and is tested at alpha=0.05 unadjusted; secondary outcomes reported with Benjamini–Hochberg FDR control where multiple tests are applied.",
+  "multiplicity_plan": "Primary confirmatory test is singular (H1). Secondary hypothesis tests (H2/H3 and exploratory contrasts) are labeled as secondary/exploratory. For sets of related secondary tests (e.g., per-cluster analyses, syntactic compliance comparisons) apply Benjamini–Hochberg FDR adjustment. Iteration-wise marginal-gain description is exploratory and will be reported with bootstrap CIs without formal multiplicity correction.",
+  "missingness_plan": "All tasks are deterministic digital-twin runs; missingness may arise from infrastructure failures (API outages, docker failures). Technical failures are logged; tasks with technical failure during either condition will be retried according to the preregistered retry policy (up to 2 automated retries for transient infra/API errors). If a task still fails after retries, it will be excluded from confirmatory analysis and the exclusion reason and final counts will be reported. Primary confirmatory analysis will use the pre-specified per-protocol confirmatory set (tasks that completed both conditions). Sensitivity analysis: intention-to-run analysis where failed tasks are treated conservatively as failures in both arms.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Digital-twin intent-to-configuration suite (preregistered task manifest)",
+      "Mininet + Batfish verification pipeline"
+    ],
+    "risk_factors": [
+      "Single-verifier bias (verifier false negatives/positives) causing measured improvements to reflect verifier idiosyncrasies rather than real semantic correctness.",
+      "Model prompt-injection via task text or metadata influencing repair prompts.",
+      "Overfitting repairs to verifier semantics (configs that pass verifiers but have unmodeled side-effects).",
+      "API cross-talk or stateful model context leakage across tasks if prompts are not properly isolated."
+    ],
+    "detection_procedures": [
+      "Cross-verification: two independent deterministic checks per configuration: (1) Batfish formal verification for reachability/policy; (2) Mininet emulated dataplane reachability tests (automated traffic probes) to detect verifier–emulator disagreement.",
+      "Automated sanitizer and canonicalization that remove metadata and normalize inputs; detection of any preserved disallowed metadata triggers automatic task exclusion and re-run after sanitization.",
+      "Automated comparison of verifier outcomes (Batfish vs Mininet); any disagreement flags the item as 'verifier-disagreement' for separate reporting and sensitivity analyses."
+    ],
+    "item_flagging_rules": [
+      "If Batfish PASS and Mininet FAIL (or vice versa), flag the item as verifier-disagreement and exclude it from the primary confirmatory analysis; include it in a sensitivity analysis and report rates.",
+      "If sanitizer removes disallowed fields from the prompt before generation, flag and record the sanitized fields; sanitize automatically and re-run generation once. If sanitized re-run still contains disallowed metadata, automatically exclude the task from confirmatory analysis and report.",
+      "If model outputs trigger verifier runtime exceptions (e.g., unsupported constructs), automatically categorize as 'unsupported-construct' and exclude from confirmatory primary test; report frequency and cluster-wise counts."
+    ],
+    "analysis_treatment": "Primary analysis excludes verifier-disagreement and unsupported-construct items (these are outside the verifier-expressible scope); results on the reduced confirmatory set are reported. Sensitivity analyses include: (a) treating verifier-disagreement items as failures in both arms (conservative), and (b) including them with outcome defined by Mininet (empirical dataplane) where available.",
+    "residual_uncertainty": [
+      "Residual risk that both verifiers share a correlated blind-spot leading to false PASS for unsafe configs.",
+      "Residual unmodeled side-effects (e.g., operational timing, vendor-specific implementation differences) not captured by Mininet/Batfish emulation."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scen-min",
+      "description": "Minimal confirmatory run: smaller confirmatory sample to reduce API cost while retaining paired design (suitable when budget constrained).",
+      "planned_model_calls": 900,
+      "models": [
+        "hosted-llm (exact model identifier/version to be recorded in execution manifest prior to runs)"
+      ],
+      "transformations": [
+        "Fixed prompt templates; repair-prompt wrapper; canonical IR mapping; config sanitizer."
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "120 confirmatory tasks × up to 6 model calls per task (1 LLM-only + up to 5 repair iterations for Verifier-Guided) + 30 discovery tasks -> 150 total tasks × 6 = 900 planned model calls. Compatible with hosted API and CPU execution for verifiers; lowest-cost execution but lower statistical power than recommended scenario."
+    },
+    {
+      "scenario_id": "scen-reco",
+      "description": "Recommended confirmatory run balancing power and cost (default for this preregistration).",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-llm (exact model identifier/version to be recorded in execution manifest prior to runs)"
+      ],
+      "transformations": [
+        "Fixed prompt templates; repair-prompt wrapper; canonical IR mapping; config sanitizer."
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 160,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "160 confirmatory tasks × up to 6 model calls per task (1 + up to 5 repairs) + 40 discovery tasks -> 200 total tasks × 6 = 1200 planned model calls. Provides preregistered power to detect the pre-specified target effect while staying within capability manifest model-call limits and CPU/docker-based verifier execution."
+    },
+    {
+      "scenario_id": "scen-ext",
+      "description": "Extensive confirmatory run for additional precision and subgroup analyses.",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted-llm (exact model identifier/version to be recorded in execution manifest prior to runs)"
+      ],
+      "transformations": [
+        "Fixed prompt templates; repair-prompt wrapper; canonical IR mapping; config sanitizer."
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 260,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "260 confirmatory tasks + 40 discovery = 300 tasks × up to 6 calls = 1800 planned model calls. Matches original estimated model-call budget and provides higher precision across clusters; feasible under hosted API quotas and CPU-based verification."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute reduction in verifier-detected failure probability (LLM-only minus Verifier-Guided) on confirmatory set.",
+    "target_effect": "Absolute reduction of 15 percentage points (e.g., LLM-only failure rate 30% -> Verifier-Guided 15%).",
+    "clustering_unit": "Task (paired within-task comparison).",
+    "calculation_method": "Simulation-based paired-power estimation (paired bootstrap of binary outcomes and McNemar exact test). Assumptions pre-registered: baseline LLM-only failure rate = 30% (based on prototype summaries in evidence), expected discordant-pair structure consistent with 15% absolute reduction, alpha=0.05 two-sided, target power=0.8. Under these assumptions, confirmatory n≈150–170 tasks yields ~80% power; preregistered confirmatory n=160 (scen-reco) selected as recommended balance. Exact simulation code and seeds are recorded in the preregistration.",
+    "assumptions": [
+      "Baseline LLM-only semantic-failure rate ≈ 30% on the confirmatory task distribution (conservative estimate drawn from prototype summaries in evidence).",
+      "Verifier-disagreement rate small (<10%); verifier-disagreement items will be excluded from the primary test but included in sensitivity analyses.",
+      "Repair efficacy concentrated in first 3 iterations (supported by cross-domain evidence); worst-case repair iteration usage up to 4 per preregistration.",
+      "Model-call budget per task up to 6 calls (1 LLM-only + up to 5 calls in Verifier-Guided including initial generation)."
+    ],
+    "recommended_scenario_id": "scen-reco",
+    "minimum_detectable_effect_notes": "With n=160 confirmatory tasks and the above assumptions, the preregistered simulation indicates an approximate minimum detectable absolute difference of ~0.13–0.16 (13–16 percentage points) with 80% power using paired tests. If observed baseline failure rate deviates materially, post-hoc sensitivity/power recalculations will be reported but not used to alter confirmatory hypotheses.",
+    "sensitivity_analyses": [
+      "Recompute paired bootstrapped CIs under alternative baseline failure rates (20%, 40%).",
+      "Repeat primary test including verifier-disagreement items treated as failures in both arms (conservative) and treated according to Mininet outcomes (empirical).",
+      "Assess power and effect estimates when excluding tasks with unsupported-construct flags."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Prompt templates and repair wrappers",
+      "Canonical IR mapping (intent→IR→config)",
+      "Config sanitizer and normalization (metadata removal)",
+      "Verifier input normalization"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic canonicalization: after transformation (IR→config) run automated semantic-normalizer and compare normalized config to original model output; if differences are only metadata normalization, accept; if semantic fields differ, flag for automated rejection.",
+      "Verifier-consistency check: run both verifiers (Batfish and Mininet dataplane probe) on a sample of outputs to ensure transformations preserve semantics relevant to verifiers.",
+      "Round-trip test: IR→config→IR canonicalizer applied to a sample of outputs (preregistered 10% audit sample) to ensure minimal semantic drift."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated configs automatically if they contain constructs not supported by Batfish/Mininet (unsupported-construct).",
+      "Reject outputs that fail basic syntactic/schema checks (schema-compliance check using deterministic parser).",
+      "Reject outputs that include unsanitized metadata after sanitizer application; these are automatically sanitized and re-run once; if still present, exclude and record."
+    ],
+    "audit_sample_policy": "10% random audit sample of all generated configurations (both conditions) subjected to the full transformation-validation pipeline and cross-verifier checks; records of audit outcomes stored in execution manifest. Audits are deterministic and automated; no human review is introduced.",
+    "mapping_validation": "Define explicit mapping tables from IR fields to configuration constructs; unit tests (automated) verify mapping coverage for the task set. Mapping tests and unit-test seeds recorded in preregistration.",
+    "residual_risks": [
+      "Canonicalization may mask subtle semantics (e.g., ordering-dependent ACL semantics) not captured by the normalizer.",
+      "Automated rejec­tion may systematically bias the evaluated sample toward simpler configs; this is reported and analyzed."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Generalisability to production multi-vendor live networks and long-term operation remains untested by this digital-twin constrained scope.",
+    "Residual verifier-correlated blind spots: two deterministic verifiers mitigate single-verifier bias but do not eliminate possible correlated false negatives.",
+    "Potential overfitting to verifier semantics (configs passing verifiers but having unmodeled operational side-effects) remains a risk despite simulated side-effect checks.",
+    "Hosted-API nondeterminism and provider-internal model updates during runs could affect replicability; exact model identifier/version and hashes of prompts/outputs will be recorded to aid replication."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7116869206",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4406733450",
+    "https://openalex.org/W7167748939",
+    "https://openalex.org/W4406484968",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7167748241",
+    "https://openalex.org/W7168432452"
+  ]
+}

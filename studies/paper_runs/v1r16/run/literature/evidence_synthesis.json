@@ -1,0 +1,174 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "LLMs and agentic LLM architectures are actively proposed and studied for NetOps/AIOps tasks (configuration synthesis, diagnosis, change planning, limited self-healing), with multiple surveys and position/prototype papers documenting architectures, evaluation concerns, and recommended assurance contracts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "Surveys / position papers / reviews",
+      "confidence": 0.9,
+      "limitations": [
+        "Many sources are surveys, position pieces, or prototypes rather than large-scale production deployments.",
+        "Scope is broad; not all operational subdomains (vendor-specific CLI, control-plane actions) have equivalent empirical coverage."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Prototype systems and studies show LLMs can synthesize syntactically valid and often functionally plausible network configuration templates or intent-to-configuration translations when combined with structured prompts, intent intermediates, or constrained prompts; evaluations often use digital twins or testbeds for execution checks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4406484968",
+        "https://openalex.org/W7116869206",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "Prototype evaluations / empirical case studies",
+      "confidence": 0.75,
+      "limitations": [
+        "Evaluations are frequently limited-scale, use synthetic or lab datasets, or rely on digital twins/emulators rather than diverse production equipment.",
+        "Functional correctness checks vary by study; cross-vendor and long-term behavioral validation are limited."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Unguarded LLM use in NetOps is vulnerable to prompt-injection and prompt-poisoning (including indirect/metadata-based injections) that can induce unsafe tool actions or misconfigurations; benchmark studies and reviews quantify high naive unsafe-action rates and show gated metadata/policy gates and other defenses can substantially reduce risk.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7168432452",
+        "https://openalex.org/W7118532765",
+        "10.2139/ssrn.6956641",
+        "10.2139/ssrn.6645520"
+      ],
+      "evidence_type": "Benchmark studies and security reviews / defense proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks often assume specific threat models and metadata-integrity assumptions that affect measured mitigation effectiveness.",
+        "Real-world adversary behavior and defender constraints may differ from benchmark settings."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Constrained/schema- or grammar-guided generation and tool-augmented pipelines materially increase the rate of executable, schema-compliant, or constraint-satisfying outputs from LLMs across domains (e.g., JSON Schema, chemistry workflows, logical parsing).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406733450",
+        "10.26434/chemrxiv.15005091/v1",
+        "https://openalex.org/W4412886968"
+      ],
+      "evidence_type": "Benchmarks / empirical studies on constrained decoding",
+      "confidence": 0.85,
+      "limitations": [
+        "Most evidence is from non-NetOps domains or synthetic tasks; transferability to all NetOps configuration formats and semantic constraints is not fully validated.",
+        "Constrained decoding can still admit semantic errors not captured by syntactic/schema checks."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Generate–validate–repair (iterative) workflows improve artifact quality but show diminishing returns across several software-engineering tasks: the first ~3–4 repair iterations produce most gains; orchestration and feedback design strongly influence outcomes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7125909708",
+        "https://openalex.org/W7127739514"
+      ],
+      "evidence_type": "Empirical studies on iterative repair loops",
+      "confidence": 0.75,
+      "limitations": [
+        "Primary evidence comes from software-engineering and other domains; direct empirical validation for NetOps-specific configuration repair loops is limited.",
+        "Optimal iteration budgets may depend on feedback signal quality and task semantics."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How reliably do LLM-driven NetOps pipelines (with proposed guardrails) maintain safety and functional correctness in production multi-vendor, live networks over long-term operation?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7116869206"
+      ],
+      "evidence_type": "Surveys and prototype reports indicating absence of large-scale production studies",
+      "confidence": 0.4,
+      "limitations": [
+        "Existing literature documents prototypes, tests, and recommendations but lacks broad production-run empirical evidence across heterogeneous operational environments."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Can model confidence / uncertainty estimation be calibrated and operationalized to reliably flag incorrect or unsafe network configurations before execution?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4407070057"
+      ],
+      "evidence_type": "Surveys and methodological papers on uncertainty / calibration",
+      "confidence": 0.5,
+      "limitations": [
+        "General calibration methods are described, but domain-specific correlation between reported uncertainty and actual NetOps functional correctness is not established by the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "To what degree do iterative self-repair loops (generate–validate–repair) eliminate operationally critical semantic errors in network configuration synthesis compared with deterministic verification + human-in-the-loop workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W4406484968",
+        "https://openalex.org/W7116869206"
+      ],
+      "evidence_type": "Cross-domain empirical repair-loop studies and NetOps prototypes",
+      "confidence": 0.4,
+      "limitations": [
+        "Direct head-to-head empirical comparisons in operational NetOps settings are not present in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A validated, operationally grounded NetOps benchmark suite is needed that measures functional correctness (reachability, policy compliance, side-effects) using deterministic verifiers or network digital twins rather than only syntactic or surrogate metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748241",
+        "https://openalex.org/W7116869206",
+        "https://openalex.org/W7168432452"
+      ],
+      "evidence_type": "Methodological audits / prototype benchmarks / construct-validity critiques",
+      "confidence": 0.7,
+      "limitations": [
+        "While prototypes and audit papers call for stronger construct validity, concrete, widely adopted NetOps functional benchmarks remain limited in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Defenses are needed that bridge data-plane prompt hygiene and control-plane (decoding/grammar) attack surfaces; grammar/schema-constrained decoding can itself be a vector for control-plane attacks and requires cross-plane mitigation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4417054885",
+        "https://openalex.org/W7168432452",
+        "https://openalex.org/W7125909708"
+      ],
+      "evidence_type": "Security analyses / benchmarks / tooling proposals",
+      "confidence": 0.8,
+      "limitations": [
+        "Some defensive proposals exist (guardrails, metadata gating), but comprehensive cross-plane defense architectures for NetOps agents are not yet fully validated in practice."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Integration patterns and empirical evidence are lacking for coupling deterministic network verifiers (or formal-method checks) with LLM planning/generation loops to produce auditable, rollback-capable NetOps change proposals.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7116869206",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "Prototype reports and surveys indicating tooling/digital-twin usage",
+      "confidence": 0.55,
+      "limitations": [
+        "Some prototypes execute generated configs in digital twins, but systematic integrations with established verifiers and operational workflows (canaries, rollback scoring) are not comprehensively documented in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-driven NetOps systems are proven production-ready and safe without deployment-specific guardrails (no supplied record demonstrates broad production validation).",
+    "A fixed small number of repair iterations (e.g., exactly three) is universally sufficient for NetOps configuration synthesis in all contexts (iterative-repair findings are domain-dependent and NetOps-specific evidence is limited).",
+    "Constrained/schema-guided decoding eliminates all semantic or safety errors (schema/grammar constraints improve syntactic compliance but do not guarantee semantic correctness).",
+    "There is evidence that LLMs do not hallucinate or cause misconfigurations in NetOps (supplied records document hallucination/prompt-injection risks and unsafe-action rates)."
+  ]
+}

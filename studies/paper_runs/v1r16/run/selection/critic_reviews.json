@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-A1b9",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier coverage vs real devices (false negatives/positives) may bias measured improvements.",
+        "Risk of overfitting generated repairs to verifier semantics while leaving unmodeled side-effects.",
+        "Task selection/exclusion (vendor-CLI) could limit external validity.",
+        "Prompt sanitation and injection vectors not fully specified; security risk."
+      ],
+      "required_design_repairs": [
+        "Pre-register a diverse task set and inclusion/exclusion rules that justify digital-twin choices and document limitations.",
+        "Use multiple verifier configurations or cross-validate with a second verifier to reduce single-verifier bias.",
+        "Add measurements for unmodeled side-effects (e.g., simulated side-channel checks) and report them.",
+        "Specify exact prompt templates, seeds, model identifier, and repair prompt policy in preregistration; include prompt-sanitization steps."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-B2q7",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Many provider APIs do not expose reliable token/sequence log-probabilities; primary predictors may be unavailable.",
+        "Calibration may not generalize across prompt templates, model versions, or OOD/adversarial intents.",
+        "Operational thresholds could induce impractically high false-block rates.",
+        "Dataset representativeness and label balance may affect AUROC/AUPRC estimates."
+      ],
+      "required_design_repairs": [
+        "Specify fallback confidence signals if log-probs are unavailable (e.g., n-best sampling diversity, model self-evaluation prompts) and preregister which will be primary.",
+        "Pre-register calibration fold split, transfer/generalization tests (different prompts and model versions), and adversarial/OOD evaluation.",
+        "Conduct and report a power/sample-size analysis for detecting expected AUROC improvements; predefine operational thresholds and utility metrics.",
+        "Log and report API limitations (missing logprobs) and how that affected reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-C3m2",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Constructed attack benchmark may not reflect real adversary creativity (external validity).",
+        "Ethical risk: publishing concrete injection payloads could aid adversaries.",
+        "Grammar-constrained decoding may produce high rejection or break legitimate constructs, biasing results.",
+        "Tuning metadata-gating rules could be subjective and alter measured effectiveness."
+      ],
+      "required_design_repairs": [
+        "Define and disclose a clear threat model and benchmark curation policy; restrict public release of attack payloads or sanitize them to mitigate dual-use risk.",
+        "Pre-register diverse attack classes, source them from literature where possible, and include held-out real-world-like variants to test generalization.",
+        "Measure utility impact (rejection and inability-to-produce rates) and include these in main outcomes.",
+        "Specify deterministic, auditable metadata-gating rules and grammar-constraint implementations; report tuning steps and avoid post-hoc adjustments."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-D4z8",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Marginal-return patterns may be highly task- and verifier-dependent, limiting generality.",
+        "Regressions (pass→fail) could be rare and require large samples to quantify reliably.",
+        "Cost-effectiveness metric depends on provider pricing and assumed operational costs; sensitivity analysis needed.",
+        "Stopping-rule threshold choice may be arbitrary without power/sample-size justification."
+      ],
+      "required_design_repairs": [
+        "Include a preregistered power/sample-size calculation to detect expected marginal improvements and regression rates.",
+        "Predefine and justify the marginal-improvement stopping threshold and perform sensitivity analyses over thresholds.",
+        "Use a diverse task set and, if possible, multiple verifier configurations to assess generality.",
+        "Report cost-effectiveness under multiple pricing/call-cost assumptions and include bootstrap uncertainty for cost metrics."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

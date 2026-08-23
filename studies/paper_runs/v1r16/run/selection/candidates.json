@@ -1,0 +1,126 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-A1b9",
+      "title": "Verifier-Guided LLM Generation for Semantically Correct NetOps Configurations",
+      "research_question": "Does coupling LLM-based intent-to-configuration generation with a deterministic network verifier in a generate–validate–repair loop reduce operationally critical semantic errors (reachability/policy violations) compared with LLM-only generation when evaluated on a public digital-twin testbed?",
+      "hypotheses": [
+        "A verifier-guided generate–validate–repair loop will produce fewer verifier-detected semantic errors than LLM-only generation.",
+        "Most semantic-error reduction from the loop will occur within the first 3 repair iterations.",
+        "Verifier-guided repair will reduce unsafe-change proposals while preserving a comparable rate of syntactic/schema-compliant outputs."
+      ],
+      "proposed_design": "Controlled, paired experiment. Use a public set of NetOps intent tasks (synthesized from prior prototype task descriptions and public examples) and a network digital twin (Mininet + Batfish or equivalent public verifier) to execute configuration outputs. Two conditions per task: (1) LLM-only: single-shot prompt to produce configuration; (2) Verifier-Guided: LLM generates config, deterministic verifier checks (reachability/policy), LLM is given verifier counterexamples and asked to repair up to 4 iterations. Use a hosted LLM API (same model/version across conditions). Record outputs, verifier labels, and execution diagnostics. Fix seeds and prompt templates via preregistration. Inclusion: tasks where verifier can express pass/fail. Exclusion: vendor-CLI constructs not supported by verifier. Primary budget: cap repairs at 4 iterations per task.",
+      "expected_data": "Per-task records including (a) generated configs per iteration, (b) verifier pass/fail flags for reachability and policy constraints, (c) number of repair iterations used, (d) syntactic/schema compliance flags, (e) model call counts and latency, and (f) raw model outputs and prompts.",
+      "primary_outcome": "Absolute reduction in verifier-detected semantic-error rate (fraction of tasks failing reachability or policy checks) for Verifier-Guided condition versus LLM-only condition.",
+      "analysis_outline": "Compute per-task paired differences in verifier-fail flags; use McNemar’s or paired proportion test to test reduction in failure rate. Report absolute and relative reductions with 95% bootstrap CIs. Analyze iteration-wise marginal gains (failure rate by iteration). Secondary analyses: compare syntactic compliance rates; compute average model calls per accepted config; conduct failure-mode taxonomy of residual errors. Adjust for multiple comparisons where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7116869206",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4411015066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406733450",
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W4406484968"
+      ],
+      "risks": [
+        "Verifier coverage mismatch with real devices (verifier false negatives/positives).",
+        "Repair loop may overfit to verifier semantics producing configs that pass checks but have unmodeled side-effects.",
+        "Prompt-injection or malicious metadata could influence generated repairs if not sanitized.",
+        "Model API rate limits or outages could disrupt runs; retries must follow preregistered policy."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cand-B2q7",
+      "title": "Calibrating LLM Confidence to Predict Verifier-Detected NetOps Configuration Failures",
+      "research_question": "Can LLM-derived confidence/uncertainty measures (token log-probabilities, sequence-level likelihoods, or conformal scores) be calibrated and operationalized to predict verifier-detected semantic or safety failures in generated NetOps configurations, enabling pre-execution blocking thresholds?",
+      "hypotheses": [
+        "Model-derived confidence scores will negatively correlate with verifier-detected semantic errors (lower confidence → higher failure probability).",
+        "A calibrated threshold on model confidence can achieve an operationally useful true-positive rate for blocking unsafe configs while maintaining an acceptable false-block rate.",
+        "Conformal or post-hoc calibration techniques will improve predictive performance compared with raw model probabilities."
+      ],
+      "proposed_design": "Generate a large collection of intent-to-config examples using a hosted LLM (same model/version). For each generated config, capture model token log-probs, sequence probability, and alternative confidence measures (e.g., softmax entropy, temperature-scaled scores). Label each output using a deterministic verifier (Batfish or equivalent) for reachability/policy violations. Split into calibration and test folds. Apply calibration methods (temperature scaling, Platt, conformal prediction) on calibration fold, evaluate predictive metrics (AUC, precision-recall at candidate thresholds) on test fold. Predefine blocking thresholds and their operational trade-offs in preregistration.",
+      "expected_data": "Dataset of (intent, generated_config, raw confidence metrics, calibrated scores, verifier label). Aggregate metrics: AUROC, AUPRC, calibration error (ECE), confusion matrices at operational thresholds, and per-task confidence distributions.",
+      "primary_outcome": "AUROC of calibrated confidence score for predicting verifier-detected semantic failures on held-out test tasks.",
+      "analysis_outline": "Compute AUROC and AUPRC with bootstrap 95% CIs. Compare raw vs calibrated scores using DeLong’s test for AUROC difference. Report expected operational trade-offs (false-block vs false-allow) at pre-registered thresholds and compute decision-curve analysis. Conduct subgroup analyses by task complexity and configuration length.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4412875472",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4407070057"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406733450",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Model confidence may be poorly calibrated for out-of-distribution or adversarial intents.",
+        "High false-block rates could render thresholding operationally impractical.",
+        "Dependence on token-level probabilities may be limited if API does not expose reliable log-prob data.",
+        "Calibration may not generalize across model versions or prompt templates."
+      ],
+      "estimated_model_calls": 2600
+    },
+    {
+      "candidate_id": "cand-C3m2",
+      "title": "Cross-Plane Defenses: Measuring Combined Metadata-Gating and Grammar-Constrained Decoding against Prompt-Injection in NetOps Agents",
+      "research_question": "Do combined cross-plane defenses—metadata gating (input sanitization/policy gating) plus grammar/schema-constrained decoding—reduce prompt-injection-induced unsafe NetOps actions more than either defense alone when assessed in a simulated threat benchmark?",
+      "hypotheses": [
+        "Combined cross-plane defenses will yield a lower unsafe-action execution rate under prompt-injection attacks than either metadata gating alone or grammar-constrained decoding alone.",
+        "Grammar-constrained decoding alone will reduce syntactic injection success but leave semantic manipulation vectors that metadata gating helps mitigate.",
+        "Defense effectiveness will vary with attack style (embedded instruction vs data-poisoning), showing complementarity between defenses.",
+        "Combined defenses will incur modest additional synthesis failures (rejections or inability to produce config) compared with unconstrained generation."
+      ],
+      "proposed_design": "Construct a prompt-injection threat benchmark using synthetic and literature-derived injection examples (embedded malicious instructions, payloads in intent text, metadata-poisoning cases). Use a hosted LLM and a simulated execution environment (digital twin with verifier). Evaluate four defense conditions per attack sample: None (baseline), Metadata Gating only, Grammar-Constrained Decoding only, Combined. Metadata gating implements policy-based sanitization and refuse-on-policy-violation. Grammar constraint enforces schema/AST-constrained decoding. Measure whether the final executed change is unsafe (verifier detects violation or simulated side-effect). Predefine attack sample inclusion and rejection criteria in preregistration.",
+      "expected_data": "Per-attack and per-condition records: raw model outputs, whether injection instruction persisted, whether verifier flagged unsafe execution, syntactic acceptance/rejection rates, and failure causes. Summary rates of unsafe-execution and rejections per defense and per attack class.",
+      "primary_outcome": "Per-attack-class unsafe-execution rate under Combined defenses versus best single defense (absolute and relative reduction).",
+      "analysis_outline": "For each attack class, compute unsafe-execution proportions per condition and use paired proportion tests (McNemar or exact binomial tests) to compare Combined vs single defenses. Report per-class and aggregated reductions with 95% CIs. Analyze cases of false rejections and defense bypass. Conduct qualitative error analysis of successful bypasses to inform mitigation recommendations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4417054885",
+        "https://openalex.org/W7168432452",
+        "https://openalex.org/W7125909708"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406733450",
+        "https://openalex.org/W7125909708",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Synthetic attack samples may not capture full adversary creativity, limiting external validity.",
+        "Constrained decoding may break production-relevant constructs and increase rejection rates.",
+        "Metadata gating rules may be over-permissive or too restrictive; tuning risks altering measured effectiveness.",
+        "Ethical risk if benchmark examples are repurposed for adversary training; distribution must be controlled."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-D4z8",
+      "title": "Iteration-Budget Analysis for Generate–Validate–Repair Loops in NetOps Configuration Synthesis",
+      "research_question": "What is the relationship between iteration budget in generate–validate–repair loops and marginal reduction in verifier-detected critical semantic errors, and where do diminishing returns and potential regressions appear for NetOps configuration tasks?",
+      "hypotheses": [
+        "Most verifier-detected semantic-error reduction occurs within the first 3 repair iterations, with diminishing marginal returns thereafter.",
+        "Beyond a certain iteration budget, additional repairs produce negligible gains and may introduce regressions (previously-passing checks failing).",
+        "Combining a deterministic verifier with an early-stopping rule based on marginal improvement yields better cost-effectiveness (errors avoided per model call) than a fixed high iteration budget."
+      ],
+      "proposed_design": "Run paired experiments on a representative set of intent-to-configuration tasks using a hosted LLM. For each task, allow up to 6 repair iterations with verifier feedback after each iteration. Record verifier pass/fail at each iteration, model-call cost per iteration, and any regressions (pass→fail). Compare fixed-budget policies (1,3,6 iterations) and an adaptive early-stopping policy that stops when marginal improvement < preregistered threshold (e.g., <1% absolute failure reduction). Measure cost-effectiveness as verifier-failures avoided per 1000 model calls. Predefine seeds and stopping thresholds.",
+      "expected_data": "Per-task series: verifier outcome per iteration, cumulative model calls, time per iteration, counts of regressions, and final accepted config per policy. Aggregate curves of failure rate vs iteration and cost-effectiveness metrics.",
+      "primary_outcome": "Iteration number at which marginal reduction in verifier-detected failure rate falls below preregistered threshold, aggregated across tasks (median and distribution).",
+      "analysis_outline": "Plot failure-rate curves by iteration; compute marginal improvement per iteration and summarize median/quantiles. Test hypothesis of diminishing returns using repeated-measures ANOVA or nonparametric equivalent across iterations. Compare cost-effectiveness of fixed budgets vs adaptive policy using paired comparisons and bootstrap CIs. Report regression frequency and characterize failure modes causing regressions.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7127739514",
+        "https://openalex.org/W7125909708"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7116869206"
+      ],
+      "risks": [
+        "Optimal iteration behavior may depend strongly on verifier feedback quality and task selection, limiting generality.",
+        "Regressions may be rarer but severe; quantifying their operational impact may require richer simulators than available.",
+        "High iteration budgets increase model-call costs and risk hitting provider limits; preregistered budgets must respect provider quotas."
+      ],
+      "estimated_model_calls": 3400
+    }
+  ]
+}
