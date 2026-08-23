@@ -258,6 +258,15 @@ NEGATED_GPU_PATTERNS = (
     r"\bno[\s-]+local[\s-]+gpu"
     r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
 
+    r"\bno[\s-]+"
+    r"(?:[a-z0-9]+[\s-]+){0,4}"
+    r"or[\s-]+local[\s-]+gpu"
+    r"(?:[\s-]+model)?"
+    r"(?:[\s-]+"
+    r"(?:execution|inference|training|compute|runtime))?"
+    r"(?:[\s-]+is)?"
+    r"[\s-]+required\b",
+
     r"\bno[\s-]+gpu"
     r"(?:[\s-]+is)?(?:[\s-]+required)?\b",
 

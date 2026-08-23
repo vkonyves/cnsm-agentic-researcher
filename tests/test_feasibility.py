@@ -92,7 +92,7 @@ def test_accepts_bounded_api_study() -> None:
 
     assert report["status"] == "passed"
     assert report["issues"] == []
-    
+
 def test_repaired_hosted_api_plan_passes_after_gpu_plan_fails() -> None:
     rejected_plan = {
         "adapter_family": "Local 7B model running on GPU",
@@ -124,9 +124,9 @@ def test_repaired_hosted_api_plan_passes_after_gpu_plan_fails() -> None:
         capability_manifest=CAPABILITIES,
     )
 
-    assert repaired_issues == []    
-    
-    
+    assert repaired_issues == []
+
+
 def test_explicit_no_gpu_requirement_is_accepted() -> None:
     design = {
         "implementation_strategy": (
@@ -134,6 +134,32 @@ def test_explicit_no_gpu_requirement_is_accepted() -> None:
             "No local GPU required."
         ),
         "estimated_model_calls": 2_400,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "gpu" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_coordinated_no_local_gpu_requirement_is_accepted() -> None:
+    design = {
+        "model_scope": [
+            (
+                "Hosted instruction-tuned LLM accessed via "
+                "hosted-model API."
+            ),
+            (
+                "No private or local-GPU model execution "
+                "required; all LLM work uses hosted-model API."
+            ),
+        ],
+        "estimated_model_calls": 5_400,
     }
 
     issues = validate_design_feasibility(
@@ -207,8 +233,8 @@ def test_local_7b_model_is_rejected() -> None:
     assert any(
         "gpu" in issue.lower()
         for issue in issues
-    )    
-    
+    )
+
 
 def test_no_human_annotation_required_is_accepted() -> None:
     design = {
@@ -289,9 +315,9 @@ def test_required_human_annotation_is_rejected() -> None:
         "human annotation" in issue.lower()
         or "human scientific" in issue.lower()
         for issue in issues
-    )    
-    
-    
+    )
+
+
 def test_no_human_adjudication_is_accepted() -> None:
     design = {
         "missingness_plan": (
@@ -356,7 +382,7 @@ def test_no_human_evaluation_is_accepted() -> None:
     assert (
         "Design violates autonomous-scoring requirement."
         not in issues
-    ) 
+    )
 
 def test_flagging_only_not_manual_adjudication_is_not_human_dependency():
     design = {
@@ -392,8 +418,8 @@ def test_flagging_only_not_manual_adjudication_is_not_human_dependency():
         "manual adjudication" in issue.lower()
         for issue in issues
     )
-    
-    
+
+
 def test_automated_audit_with_no_human_annotation_is_allowed():
     design = {
         "transformation_validation": {
