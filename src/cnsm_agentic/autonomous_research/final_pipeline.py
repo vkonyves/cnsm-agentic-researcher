@@ -467,6 +467,116 @@ def preregistration_execution_contract_issues(
 
     return issues
 
+def canonicalize_preregistration_execution_contract(
+    preregistration: PreregistrationDocument,
+    *,
+    planning_contracts: dict[str, dict[str, Any]],
+    available_execution_models: list[str],
+    required_task_count: int,
+) -> PreregistrationDocument:
+    """
+    Canonicalize fields that are mechanically fixed by the selected
+    registered execution adapter.
+
+    This does not alter hypotheses, estimands, analysis choices,
+    benchmark scope, or other scientific content.
+    """
+    adapter_family = (
+        preregistration.execution_contract.adapter_family
+    )
+
+    adapter_contract = planning_contracts.get(
+        adapter_family
+    )
+
+    if adapter_contract is None:
+        return preregistration
+
+    episodes_per_task = int(
+        adapter_contract["episodes_per_task"]
+    )
+
+    maximum_model_calls_per_task = int(
+        adapter_contract[
+            "maximum_model_calls_per_task"
+        ]
+    )
+
+    preregistration.execution_contract.execution_mode = (
+        adapter_contract["execution_mode"]
+    )
+    preregistration.execution_contract.design = (
+        adapter_contract["design"]
+    )
+    preregistration.execution_contract.conditions = list(
+        adapter_contract["conditions"]
+    )
+    preregistration.execution_contract.model_provider = (
+        adapter_contract["model_provider"]
+    )
+
+    preregistration.execution_contract.model_names = list(
+        available_execution_models
+    )
+
+    preregistration.execution_contract.task_count = (
+        required_task_count
+    )
+
+    preregistration.execution_contract.planned_episode_count = (
+        required_task_count * episodes_per_task
+    )
+
+    preregistration.execution_contract.maximum_model_calls = (
+        required_task_count
+        * maximum_model_calls_per_task
+    )
+
+    preregistration.execution_contract.generation_semantics = (
+        adapter_contract["generation_semantics"]
+    )
+
+    preregistration.execution_contract.independent_condition_generation = (
+        adapter_contract[
+            "independent_condition_generation"
+        ]
+    )
+
+    preregistration.execution_contract.initial_generation_calls_per_task = (
+        int(
+            adapter_contract[
+                "initial_generation_calls_per_task"
+            ]
+        )
+    )
+
+    preregistration.execution_contract.maximum_repair_calls_per_task = (
+        int(
+            adapter_contract[
+                "maximum_repair_calls_per_task"
+            ]
+        )
+    )
+
+    preregistration.execution_contract.retrieval_augmented_generation = (
+        bool(
+            adapter_contract[
+                "retrieval_augmented_generation"
+            ]
+        )
+    )
+
+    preregistration.model_scope = list(
+        available_execution_models
+    )
+
+    preregistration.transformation_scope = list(
+        adapter_contract[
+            "transformations"
+        ].values()
+    )
+
+    return preregistration
 
 def build_deterministic_reconciliation(
     *,
@@ -1872,6 +1982,21 @@ class FinalAutonomousResearchPipeline:
                     "Provisional preregistration "
                     f"attempt {prereg_attempt}"
                 ),
+            )
+
+            preregistration = (
+                canonicalize_preregistration_execution_contract(
+                    preregistration,
+                    planning_contracts=(
+                        available_adapter_contracts
+                    ),
+                    available_execution_models=(
+                        available_execution_models
+                    ),
+                    required_task_count=(
+                        prereg_required_task_count
+                    ),
+                )
             )
 
             preregistration_contract_issues = (

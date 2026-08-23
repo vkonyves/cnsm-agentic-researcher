@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from cnsm_agentic.autonomous_research.final_pipeline import (
+    canonicalize_preregistration_execution_contract,
     preregistration_execution_contract_issues,
 )
 from cnsm_agentic.autonomous_research.final_schemas import (
@@ -333,6 +334,96 @@ def test_independent_generation_prose_claim_is_rejected():
 
     assert any(
         "independent per-condition generation"
+        in issue
+        for issue in issues
+    )
+
+def test_canonicalization_repairs_mechanical_contract_fields():
+    prereg = _preregistration(
+        models=["other-model"],
+        task_count=160,
+        planned_episode_count=2,
+        maximum_model_calls=1,
+    )
+
+    prereg.model_scope = ["other-model"]
+    prereg.transformation_scope = [
+        "wrong-transformation"
+    ]
+
+    canonical = (
+        canonicalize_preregistration_execution_contract(
+            prereg,
+            planning_contracts=CONTRACTS,
+            available_execution_models=[
+                "gpt-5-mini"
+            ],
+            required_task_count=160,
+        )
+    )
+
+    assert canonical.execution_contract.model_names == [
+        "gpt-5-mini"
+    ]
+    assert canonical.model_scope == [
+        "gpt-5-mini"
+    ]
+    assert canonical.transformation_scope == [
+        "direct_configuration_generation_v1",
+        "generate_validate_repair_v1",
+    ]
+    assert canonical.execution_contract.task_count == 160
+    assert (
+        canonical.execution_contract.planned_episode_count
+        == 320
+    )
+    assert (
+        canonical.execution_contract.maximum_model_calls
+        == 320
+    )
+    assert (
+        canonical.execution_contract.generation_semantics
+        == "shared_initial_candidate"
+    )
+    assert (
+        canonical.execution_contract.independent_condition_generation
+        is False
+    )
+    assert (
+        canonical.execution_contract.retrieval_augmented_generation
+        is False
+    )
+
+def test_canonicalization_does_not_hide_rag_prose_mismatch():
+    prereg = _preregistration(
+        research_question=(
+            "Does RAG + deterministic validation "
+            "improve configuration correctness?"
+        ),
+    )
+
+    prereg = (
+        canonicalize_preregistration_execution_contract(
+            prereg,
+            planning_contracts=CONTRACTS,
+            available_execution_models=[
+                "gpt-5-mini"
+            ],
+            required_task_count=160,
+        )
+    )
+
+    issues = preregistration_execution_contract_issues(
+        prereg,
+        planning_contracts=CONTRACTS,
+        available_execution_models=[
+            "gpt-5-mini"
+        ],
+        required_task_count=160,
+    )
+
+    assert any(
+        "retrieval-augmented generation"
         in issue
         for issue in issues
     )
