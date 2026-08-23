@@ -121,3 +121,23 @@ def test_wrong_task_count_is_rejected():
         "task_count" in issue
         for issue in issues
     )
+
+
+def test_wrong_planned_episode_count_is_rejected():
+    issues = preregistration_execution_contract_issues(
+        _preregistration(
+            task_count=160,
+            planned_episode_count=2,
+            maximum_model_calls=320,
+        ),
+        planning_contracts=CONTRACTS,
+        available_execution_models=[
+            "gpt-5-mini"
+        ],
+        required_task_count=160,
+    )
+
+    assert any(
+        "planned_episode_count" in issue
+        for issue in issues
+    )

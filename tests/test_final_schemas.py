@@ -166,16 +166,18 @@ def test_analysis_plan_requires_executor_field() -> None:
         )
 
 
-def test_preregistration_execution_contract_checks_episode_count() -> None:
-    with pytest.raises(ValidationError):
-        PreregistrationExecutionContract(
-            adapter_family="hosted_netops_gvr_v1",
-            execution_mode="scientific_confirmatory",
-            design="paired_binary",
-            conditions=["baseline", "guarded"],
-            model_provider="openai_responses",
-            model_names=["gpt-5-mini"],
-            task_count=160,
-            planned_episode_count=640,
-            maximum_model_calls=320,
-        )
+def test_preregistration_execution_contract_accepts_structural_mismatch() -> None:
+    contract = PreregistrationExecutionContract(
+        adapter_family="hosted_netops_gvr_v1",
+        execution_mode="scientific_confirmatory",
+        design="paired_binary",
+        conditions=["baseline", "guarded"],
+        model_provider="openai_responses",
+        model_names=["gpt-5-mini"],
+        task_count=160,
+        planned_episode_count=2,
+        maximum_model_calls=320,
+    )
+
+    assert contract.task_count == 160
+    assert contract.planned_episode_count == 2
