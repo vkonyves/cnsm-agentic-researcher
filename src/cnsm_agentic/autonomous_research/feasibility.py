@@ -190,6 +190,21 @@ NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
     r"\bfully[\s-]+autonomous\b",
 
     r"\bfully[\s-]+automated\b",
+
+    r"\bno[\s-]+external[\s-]+partners?\b",
+
+    r"\bwithout[\s-]+external[\s-]+partners?\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+external[\s-]+partners?\b",
+
+    r"\bno[\s-]+external[\s-]+validators?\b",
+
+    r"\bwithout[\s-]+external[\s-]+validators?\b",
+
+    r"\bno[\s-]+industry[\s-]+partners?\b",
+
+    r"\bno[\s-]+university[\s-]+partners?\b",
 )
 
 
@@ -309,6 +324,25 @@ KUBERNETES_PATTERNS = {
     ),
 }
 
+NEGATED_KUBERNETES_PATTERNS = (
+    r"\bno[\s-]+kubernetes\b",
+
+    r"\bwithout[\s-]+kubernetes\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+kubernetes\b",
+
+    r"\bkubernetes[\s-]+not[\s-]+required\b",
+
+    r"\bkubernetes[\s-]+is[\s-]+not[\s-]+required\b",
+
+    r"\bno[\s-]+k8s\b",
+
+    r"\bwithout[\s-]+k8s\b",
+
+    r"\bdoes[\s-]+not[\s-]+require"
+    r"[\s-]+k8s\b",
+)
 
 DOCKER_PATTERNS = {
     "Docker": (
@@ -392,6 +426,19 @@ def _prepare_gpu_scan_text(
         NEGATED_GPU_PATTERNS,
     )
 
+def _prepare_kubernetes_scan_text(
+    text: str,
+) -> str:
+    """
+    Remove explicit statements denying a Kubernetes requirement.
+
+    The remaining text is inspected for positive Kubernetes
+    orchestration dependencies.
+    """
+    return _remove_patterns(
+        text,
+        NEGATED_KUBERNETES_PATTERNS,
+    )
 
 def _extract_estimated_calls(
     design: dict[str, Any],
@@ -546,8 +593,14 @@ def validate_design_feasibility(
         "kubernetes_available",
         False,
     ):
+        kubernetes_scan_text = (
+            _prepare_kubernetes_scan_text(
+                text
+            )
+        )
+
         for dependency in _find_patterns(
-            text,
+            kubernetes_scan_text,
             KUBERNETES_PATTERNS,
         ):
             issues.append(

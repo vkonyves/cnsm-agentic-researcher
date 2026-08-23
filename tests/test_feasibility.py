@@ -473,3 +473,116 @@ def test_true_manual_review_dependency_remains_forbidden():
         in issue.lower()
         for issue in issues
     )
+
+def test_negated_external_partner_is_not_dependency():
+    design = {
+        "implementation_strategy": (
+            "Fully automated execution with no external partners "
+            "and no human scientific labour."
+        )
+    }
+
+    manifest = {
+        "human_scientific_labour_allowed": False,
+        "external_partner_allowed": False,
+        "human_annotation_allowed": False,
+        "nda_resources_allowed": False,
+        "private_live_lab_available": True,
+        "local_gpu": {"available": True},
+        "kubernetes_available": True,
+        "docker_available": True,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=manifest,
+    )
+
+    assert not any(
+        "external partner" in issue.lower()
+        for issue in issues
+    )
+
+def test_negated_kubernetes_is_not_dependency():
+    design = {
+        "implementation_strategy": (
+            "CPU-only execution; no Kubernetes is required."
+        )
+    }
+
+    manifest = {
+        "human_scientific_labour_allowed": True,
+        "external_partner_allowed": True,
+        "human_annotation_allowed": True,
+        "nda_resources_allowed": True,
+        "private_live_lab_available": True,
+        "local_gpu": {"available": True},
+        "kubernetes_available": False,
+        "docker_available": True,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=manifest,
+    )
+
+    assert not any(
+        "orchestration dependency" in issue.lower()
+        for issue in issues
+    )
+
+def test_positive_external_partner_dependency_is_rejected():
+    design = {
+        "implementation_strategy": (
+            "An external partner must validate the experiment."
+        )
+    }
+
+    manifest = {
+        "human_scientific_labour_allowed": False,
+        "external_partner_allowed": False,
+        "human_annotation_allowed": False,
+        "nda_resources_allowed": False,
+        "private_live_lab_available": True,
+        "local_gpu": {"available": True},
+        "kubernetes_available": True,
+        "docker_available": True,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=manifest,
+    )
+
+    assert any(
+        "external dependency" in issue.lower()
+        for issue in issues
+    )
+
+def test_positive_kubernetes_dependency_is_rejected():
+    design = {
+        "implementation_strategy": (
+            "Deploy all confirmatory jobs on Kubernetes."
+        )
+    }
+
+    manifest = {
+        "human_scientific_labour_allowed": True,
+        "external_partner_allowed": True,
+        "human_annotation_allowed": True,
+        "nda_resources_allowed": True,
+        "private_live_lab_available": True,
+        "local_gpu": {"available": True},
+        "kubernetes_available": False,
+        "docker_available": True,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=manifest,
+    )
+
+    assert any(
+        "orchestration dependency" in issue.lower()
+        for issue in issues
+    )

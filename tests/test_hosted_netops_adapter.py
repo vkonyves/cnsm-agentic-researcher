@@ -196,3 +196,33 @@ def test_mock_hosted_execution_and_analysis(tmp_path: Path) -> None:
     assert primary["n_10"] == 2
     assert primary["n_01"] == 0
     assert primary["estimate"] == 1.0
+
+
+def test_estimated_model_calls_may_equal_one_call_per_task():
+    plan = _plan()
+    plan["task_count"] = 100
+    plan["task_indices"] = list(range(1, 101))
+    plan["estimated_model_calls"] = 100
+    plan["maximum_model_calls"] = 200
+
+    assert hosted_netops_plan_issues(plan) == []
+
+
+def test_estimated_model_calls_may_be_between_nominal_and_ceiling():
+    plan = _plan()
+    plan["task_count"] = 100
+    plan["task_indices"] = list(range(1, 101))
+    plan["estimated_model_calls"] = 150
+    plan["maximum_model_calls"] = 200
+
+    assert hosted_netops_plan_issues(plan) == []
+
+
+def test_estimated_model_calls_may_be_between_nominal_and_ceiling():
+    plan = _plan()
+    plan["task_count"] = 100
+    plan["task_indices"] = list(range(1, 101))
+    plan["estimated_model_calls"] = 150
+    plan["maximum_model_calls"] = 200
+
+    assert hosted_netops_plan_issues(plan) == []

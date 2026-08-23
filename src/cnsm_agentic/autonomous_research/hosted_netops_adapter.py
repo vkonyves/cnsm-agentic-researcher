@@ -208,12 +208,24 @@ def hosted_netops_plan_issues(
             issues.append(
                 "task_indices must contain task_count unique positive integers."
             )
-        expected_calls = task_count * 2
-        if plan.get("estimated_model_calls") != expected_calls:
+        maximum_calls = task_count * 2
+
+        estimated_calls = plan.get(
+            "estimated_model_calls"
+        )
+
+        if (
+            not isinstance(estimated_calls, int)
+            or isinstance(estimated_calls, bool)
+            or estimated_calls < task_count
+            or estimated_calls > maximum_calls
+        ):
             issues.append(
-                "estimated_model_calls must equal two calls per paired task."
+                "estimated_model_calls must be between "
+                "task_count and two calls per paired task."
             )
-        if plan.get("maximum_model_calls") != expected_calls:
+
+        if plan.get("maximum_model_calls") != maximum_calls:
             issues.append(
                 "maximum_model_calls must equal the exact planned ceiling."
             )
