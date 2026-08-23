@@ -1,0 +1,154 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can translate natural-language intents into network-configuration artifacts in controlled demonstrations, typically using fine-tuning or in-context examples.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "Experimental demonstrations and systems papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Published demonstrations are mostly small- to medium-scale and use constrained task formats (JSON templates, NFV use cases).",
+        "Generality across diverse topologies, vendors, and real production policies is not established in these records."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "LLM-alone generation is brittle: models frequently produce syntax, semantic, or topology errors; interposing deterministic verifiers (e.g., Batfish) and iterative repair substantially improves correctness in reported studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4403919717"
+      ],
+      "evidence_type": "Empirical/architectural studies and verification-tool literature",
+      "confidence": 0.9,
+      "limitations": [
+        "Improvements reported are from prototype workflows and case studies rather than broad production deployments.",
+        "The verifier+repair loops still often require human oversight or human-defined specifications to be effective."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Constraint-based adaptation and verifier-augmented validator designs enable higher accuracy and safer abstention behaviour for LLM-assisted NetOps tasks in evaluated settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4411551677"
+      ],
+      "evidence_type": "System evaluations / empirical frameworks",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported accuracy gains are task- and dataset-dependent; results do not yet demonstrate end-to-end deployment at Internet scale.",
+        "Some failure modes (types of misconfigurations) remain hard for these systems to detect."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Agentic/tool-enabled LLM workflows introduce exploitable excessive-agency and tool-selection risks; secure-by-default guardrails and human-approval gates are proposed as necessary mitigations.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "doi:10.36227/techrxiv.177006109.97957916/v1"
+      ],
+      "evidence_type": "Empirical audit and engineering-guardrail proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Mitigation proposals are engineering/archival; their effectiveness in diverse NetOps deployments remains to be empirically validated.",
+        "Attack surfaces vary with tool integrations and provider APIs; specific risk profiles depend on implementation details."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How well do closed-loop generate–verify–repair (GVR) workflows scale and generalize across multi-vendor, multi-router, and large-topology operator networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "Current demonstrations and prototypes show feasibility but limited-scale evaluation",
+      "confidence": 0.55,
+      "limitations": [
+        "Existing papers report gains on constrained tasks or single-case studies; none provide comprehensive large-scale, multi-vendor generalization experiments within the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do LLM-assisted NetOps workflows yield measurable operational benefits (reachability/policy compliance, MTTR reduction, outage risk) when integrated end-to-end with emulators/verifiers and operator processes?",
+      "evidence_record_ids": [
+        "doi:10.69987/jacs.2024.40305",
+        "https://openalex.org/W7160968181"
+      ],
+      "evidence_type": "Related pipeline and benchmark proposals (partial/adjacent evidence)",
+      "confidence": 0.5,
+      "limitations": [
+        "UniAIOps and SREGym provide related evaluation infrastructure or SRE benchmarks but do not establish generalized, quantified production NetOps outcomes for intent-to-config pipelines in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How robust are agentic NetOps systems to adversarial prompt/tool-context injection and to hallucination propagation when given tool access?",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "https://openalex.org/W4403919717"
+      ],
+      "evidence_type": "Empirical audits and engineering threat analyses",
+      "confidence": 0.7,
+      "limitations": [
+        "Audits demonstrate high-risk vectors and guardrail approaches, but the security posture of concrete NetOps toolchains under adaptive adversaries is not fully characterized in these records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A public, standardized benchmark that couples intent-to-configuration tasks with formal verification (e.g., Batfish), emulator execution, and operator-meaningful metrics is lacking in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160968181",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4404602270"
+      ],
+      "evidence_type": "Survey of existing benchmarks and task papers showing adjacent but incomplete coverage",
+      "confidence": 0.6,
+      "limitations": [
+        "SREGym and UniAIOps exist for SRE/AIOps evaluation, and PreConfig/intent papers provide tasks, but none of the supplied records present a widely adopted, verifier-coupled NetOps benchmark with execution/emulation and standard metrics."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Systematic studies of repair-loop budgeting, stopping rules, and statistical guarantees for iterative LLM repair in NetOps are insufficiently developed in the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.36227/techrxiv.176045741.13024122/v1"
+      ],
+      "evidence_type": "Architectural proposals and iterative-debugging studies in related domains",
+      "confidence": 0.6,
+      "limitations": [
+        "GVR and iterative debugging architectures are proposed and studied mainly in software/code contexts or single-case enterprise settings; explicit, quantitatively principled stopping-rule evaluations for networking tasks are not evident in the supplied materials."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Empirical evaluations comparing verifier-feedback strategies (localized actionable feedback vs. global failure signals) for efficient LLM repair in network configuration synthesis are sparse.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "Prototype studies and verifier-tool evolution papers",
+      "confidence": 0.6,
+      "limitations": [
+        "The 2023 verified-prompt programming work demonstrates localized-feedback value in case studies; Batfish literature documents verification capabilities, but systematic head-to-head comparisons of feedback granularity strategies are not present in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready for fully autonomous NetOps without human oversight (unsupported by supplied records).",
+    "LLMs reliably generate correct network configurations without any external verifier or repair loop (contradicted by supplied evidence of brittleness and hallucination).",
+    "Any single LLM is universally superior across all NetOps tasks (no supplied record supports such a universal superiority claim).",
+    "The supplied literature demonstrates that hallucination risk is absent in LLM-assisted NetOps (supplied records report hallucinations and hallucinated fixes)."
+  ]
+}

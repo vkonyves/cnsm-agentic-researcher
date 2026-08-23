@@ -1,0 +1,85 @@
+{
+  "study_id": "cnsmair-2026-feedback-granularity-v1",
+  "title": "Feedback Granularity for Efficient LLM Repair in Network Configuration Synthesis (Provisional Preregistration)",
+  "research_question": "Does providing localized, actionable verifier feedback to an LLM reduce repair iterations and total model-call cost compared to a global pass/fail failure signal when synthesizing router/access-list/policy configurations from intents in emulator-verified tasks?",
+  "confirmatory_hypotheses": [
+    "Localized, actionable verifier feedback (per-failure statement, failing ACL/policy lines, and counterexample trace) reduces the number of repair iterations required to reach verifier pass versus a global pass/fail signal, measured in a paired design across tasks."
+  ],
+  "exploratory_questions": [
+    "Does feedback granularity change the distribution of error classes at final pass (syntax vs. policy/ACL vs. topology vs. routing)?",
+    "How often does verifier-generated localized feedback contain sufficient actionable detail for a single repair iteration to succeed?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4403919717",
+    "https://openalex.org/W4416927413"
+  ],
+  "benchmark_scope": [
+    "Synthetic operator-style topologies (sanitized, public-data-derived templates)",
+    "Intent-to-configuration tasks limited to IPv4 reachability and ACL/policy constraints",
+    "Emulator + Batfish-based verification (emulator and verifier behavior recorded and reported)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 120,
+    "planned_episode_count": 240,
+    "maximum_model_calls": 240,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Mean paired difference in number of repair iterations required to reach verifier pass (Localized feedback − Global signal) per task.",
+  "secondary_estimands": [
+    "Mean paired difference in total model calls per task (Localized − Global).",
+    "Proportion of tasks passing within N iterations (N = 1..6) per condition.",
+    "Time-to-pass (wall-clock) per task per condition."
+  ],
+  "sampling_plan": "Two-stage preregistered sample. Pilot: 20 distinct intent-to-configuration tasks (discovery items) used only to validate templates, measure average iterations, and finalize verbosity parity; pilot data reported but excluded from the confirmatory hypothesis test. Main confirmatory sample: 120 distinct tasks stratified across 4 error-class–balanced topology clusters (30 tasks per cluster). Tasks are paired within-task (both conditions) and randomized in execution order. Inclusion: tasks synthesized from public/sanitized topology templates and policy specs. Deterministic exclusion: tasks Batfish cannot ingest after canonicalization (recorded and reported). Total tasks = pilot 20 + confirmatory 120 = 140.",
+  "power_and_precision_plan": "Primary estimand: paired mean difference in repair iterations (Localized − Global). Planning target: detect a paired mean reduction of 0.5 iterations with two-sided alpha=0.05. Planning used paired t approximation with assumed within-pair SD=1.5; n=120 pairs yields approximate power ~0.86. Pilot will estimate SD; pilot results will be reported and used to report realized MDE prior to main analysis. Report Hodges–Lehmann median paired difference, exact p-value from paired Wilcoxon, and bootstrap 95% CI (10,000 replicates). Sensitivity analyses recompute power/MDE with pilot-estimated SD and report nonparametric-compatible effect-size CIs.",
+  "exclusion_rules": [
+    "Tasks that fail canonicalization/instrumentation before any model invocation are excluded and listed (id and deterministic reason).",
+    "Pairs where session_id reuse or other contamination-detection rules trigger exclusion (see contamination_plan) are excluded from primary confirmatory analysis.",
+    "Pairs with model API technical failures after up to two automated retries are marked infrastructure failures and excluded from confirmatory analysis (counts and reasons logged)."
+  ],
+  "missingness_plan": "Deterministic exclusion rules: (1) tasks that fail canonicalization/instrumentation before model invocation will be excluded and counted (record id and reason). (2) Model API technical failures trigger up to two automated retries; if still failing the trial is marked as infrastructure failure and excluded from confirmatory analysis (counts and reasons logged). Missingness patterns will be reported. Sensitivity analysis: worst-case imputation treating excluded/failed pairs as maximum iterations; report results both with and without imputed worst-case.",
+  "analysis_plan": "Primary confirmatory test: paired Wilcoxon signed-rank test (two-sided) on repair-iteration counts across the 120 paired tasks; report exact p-value, Hodges–Lehmann median paired difference, and bootstrap 95% CI for mean difference (10,000 bootstrap replicates). Secondary: paired Wilcoxon on model-call counts; report effect sizes and bootstrap CIs. Subgroup analyses by pre-specified error-class taxonomy (syntax, policy/ACL, topology, routing) labeled exploratory; adjust false-discovery rate across subgroup tests using Benjamini–Hochberg at q=0.05. Flagged or excluded pairs reported and sensitivity analyses performed: (a) include flagged pairs with conservative imputation (maximum iterations), (b) descriptive stats for flagged vs unflagged pairs. All tests, sample sizes, and exclusions will be reported transparently.",
+  "multiplicity_plan": "Primary confirmatory hypothesis is the single paired comparison on iterations for the 120 tasks. Secondary outcomes and subgroup tests are pre-specified and labeled exploratory; Benjamini–Hochberg FDR control (q=0.05) applied across exploratory subgroup tests. No outcomes will be dropped post-hoc; all pre-specified tests and their multiplicity treatment reported.",
+  "contamination_plan": "{\"benchmark_names\": [\"Synthetic NetOps Intent-to-Config (preregistered task bank)\"], \"risk_factors\": [\"Cross-condition contamination via model session/context persistence\", \"Verifier-localized-message heterogeneity producing unequal treatment strength\", \"Leakage of task identifiers across paired runs (server-side caching)\"], \"detection_procedures\": [\"Enforce fresh model sessions for every run; record session_id, seed, and API-call headers in execution manifest.\", \"Log and compare fingerprints (hashes) of prompts and of any model-context returned metadata to detect unintended context reuse.\", \"Automatic flagging when (a) the same model output (hash) occurs in both conditions for a task, or (b) verifier-localized feedback length differs by >50% across conditions for the same underlying failure type.\"], \"item_flagging_rules\": [\"If session_id is reused for two paired runs -> automatic exclusion of that pair from confirmatory analysis.\", \"If any retry beyond preregistered retry policy occurs -> pair flagged and excluded from primary analysis; included only in sensitivity analyses.\", \"If localized-feedback informativeness metric differs by >50% across conditions for same error-class, flag for sensitivity analysis.\"], \"analysis_treatment\": \"Flagged pairs will be excluded from the primary confirmatory test; results reported both with and without flagged exclusions. Sensitivity analyses will (a) include flagged pairs with conservative imputation (count as maximum allowed iterations), and (b) report descriptive statistics for flagged vs unflagged pairs.\"}",
+  "stopping_rule": "Per-task stopping: for each task, stop after initial generation and at most one repair attempt (in accordance with execution_contract maximum_repair_calls_per_task=1). Global stopping: stop when all preregistered tasks processed or when the preallocated maximum_model_calls (240) is exhausted. Any deviations (e.g., additional retries for infrastructure recovery) are logged and cause pair-level flagging/exclusion per missingness_plan.",
+  "planned_outputs": [
+    "Preregistration document (this record)",
+    "Preregistered task bank (pilot 20 + confirmatory 120 task specs)",
+    "Canonicalization and rendering code (vendor-neutral templates)",
+    "Verifier mapping rulebook (failure-type -> localized-feedback template)",
+    "Experiment execution manifest (session ids, seeds, API headers, hashes)",
+    "Raw model outputs and verifier logs",
+    "Analysis scripts and statistical-results tables",
+    "Failure-analysis record and audit-sample outputs",
+    "Evidence-to-claim table",
+    "Complete IEEE LaTeX manuscript and BibTeX",
+    "Compiled PDF (<=5 pages) including Disclosure Statement",
+    "NotebookLM presentation brief",
+    "Final-output hash manifest"
+  ],
+  "unresolved_critical_issues": []
+}

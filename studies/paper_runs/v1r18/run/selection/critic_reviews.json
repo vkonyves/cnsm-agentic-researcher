@@ -1,0 +1,90 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator realism vs production hardware may limit external validity and claim scope.",
+        "Batfish coverage gaps could misclassify semantic errors as passes.",
+        "Benchmark size and diversity (300 tasks × vendors/topologies) may be optimistic given wall-clock and annotation costs.",
+        "Prompt/style bias: benchmark may favor particular prompt designs or LLM promptability."
+      ],
+      "required_design_repairs": [
+        "Specify exact emulator platform (container images, versions) and document known emulator-vs-hardware mismatches.",
+        "Include explicit Batfish rule-coverage tests and document cases Batfish cannot verify; provide fallback labeling policy.",
+        "Start with a smaller pilot slice (e.g., 50 tasks) to validate pipeline and measure real compute/time before full 300-task run.",
+        "Pre-register precise prompt templates, LLM model IDs and hyperparameters, random seeds, and dataset-creation scripts; publish artifacts and hashes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "LLM sensitivity to feedback wording risks confounding the effect attributed to feedback granularity.",
+        "Potential cross-condition contamination if model context or cached instructions leak between paired runs.",
+        "Verifier-generated 'localized' messages may vary in informativeness across error classes, creating heterogeneity in treatment strength."
+      ],
+      "required_design_repairs": [
+        "Define and freeze exact feedback templates and formatting; validate via pre-registered pilot to ensure comparable verbosity/content across tasks.",
+        "Enforce strict isolation between paired runs (fresh sessions, controlled seeds) and document session management.",
+        "Pre-specify error-class taxonomy and stratification plan; include sensitivity analyses for feedback wording variations."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Learned risk-estimator calibration is a potential single point of failure and may not generalize to new topologies or vendors.",
+        "Simulated/emulator stress tests may underrepresent real post-deployment failure modes, biasing stopping-rule comparisons.",
+        "Dependence on a single LLM limits external validity of stopping-rule recommendations."
+      ],
+      "required_design_repairs": [
+        "Pre-register estimator architecture, training data provenance, hyperparameters, and cross-validation folds; report Brier score and reliability diagrams.",
+        "Include holdout topologies/vendors for honest generalization testing; report sensitivity to LLM choice (at least one secondary model or temperature sweep).",
+        "Define and report operational utility function used to select Pareto operating point; include conservative thresholds and ablation without learned estimator."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-004",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk of publishing actionable adversarial examples and exploit techniques; release artifacts must be sanitized.",
+        "Adversarial intent construction may not represent adaptive real-world attackers, limiting external validity.",
+        "Guarded-policy implementation details (allowlist, sanitization rules) require precise specification to be reproducible and comparable."
+      ],
+      "required_design_repairs": [
+        "Produce an explicit ethical-mitigation plan: non-actionable abstractions for adversarial intents, redaction policy, and responsible-release statement.",
+        "Pre-register adversarial-intent-generation rules and provide a reproducible (sanitized) generator with seeds; include attacker-strength taxonomy.",
+        "Fully specify guardrail implementations (allowlist semantics, sanitization routines) and freeze them in the preregistration; include metrics for benign-block rate and operator-friction quantification."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

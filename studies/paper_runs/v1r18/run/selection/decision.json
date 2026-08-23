@@ -1,0 +1,24 @@
+{
+  "selected_candidate_id": "cand-002",
+  "selection_rationale": "Cand-002 (Feedback Granularity) is the strongest, most focused, and feasible study for CNSM: it directly addresses an operationally meaningful gap (G3) with a paired, randomized design that yields falsifiable, reproducible metrics (repair iterations, model-call cost, emulator compliance) within the available compute budget. Compared to the benchmark (cand-001) or adversarial/stopping-rule studies, it requires fewer resources, lower ethical risk, and clearer causal interpretation if the reviewer-specified repairs are implemented.",
+  "runner_up_candidate_id": "cand-001",
+  "unresolved_uncertainties": [
+    "Residual LLM sensitivity to exact feedback wording may persist even after templating and pilot validation.",
+    "Heterogeneity in Batfish/ verifier-generated localized messages across error classes may create unequal treatment strength.",
+    "Emulator-to-hardware external validity: emulator results may not fully reflect production router behavior for some error classes.",
+    "Paired-run contamination risk (context/session leakage) may be harder to eliminate across some hosted-model APIs than anticipated."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4403919717",
+    "https://openalex.org/W4416927413"
+  ],
+  "required_repairs_before_preregistration": [
+    "Define and freeze exact localized-feedback and global-signal templates (format, max tokens, examples) and include them verbatim in the preregistration.",
+    "Run and report a small preregistered pilot (e.g., 20 tasks) to validate templates produce measurable differences and to calibrate verbosity/content parity.",
+    "Enforce strict session isolation for paired runs (fresh model sessions, explicit seeds, cleared context) and document the session-management protocol in the preregistration.",
+    "Pre-specify an error-class taxonomy (syntax, policy/ACL, topology, routing) and the stratification/analysis plan; include planned subgroup and sensitivity analyses.",
+    "Specify verifier-version, Batfish rule-coverage tests, and behavior when verifier feedback is incomplete; document fallback labeling policy for unverifiable cases."
+  ]
+}

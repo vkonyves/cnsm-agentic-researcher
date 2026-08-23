@@ -1,0 +1,147 @@
+{
+  "selected_candidate_id": "cand-002",
+  "title": "Feedback Granularity for Efficient LLM Repair in Network Configuration Synthesis (Repaired Preregistration)",
+  "research_question": "Does providing localized, actionable verifier feedback to an LLM reduce repair iterations and total model-call cost compared to a global pass/fail failure signal when synthesizing router/access-list/policy configurations from intents in emulator-verified tasks?",
+  "confirmatory_hypotheses": [
+    "Localized, actionable verifier feedback (per-failure statement, failing ACL/policy lines, and counterexample trace) reduces the number of repair iterations required to reach verifier pass versus a global pass/fail signal, measured in a paired design across tasks."
+  ],
+  "exploratory_questions": [
+    "Does feedback granularity change the distribution of error classes at final pass (syntax vs. policy/ACL vs. topology vs. routing)?",
+    "How often does verifier-generated localized feedback contain sufficient actionable detail for a single repair iteration to succeed?"
+  ],
+  "benchmark_scope": [
+    "Synthetic operator-style topologies (sanitized, public-data-derived templates)",
+    "Intent-to-configuration tasks limited to IPv4 reachability and ACL/policy constraints",
+    "Emulator + Batfish-based verification (emulator and verifier behavior recorded and reported)"
+  ],
+  "model_scope": [
+    "Single hosted LLM via commercial API (exact model identifier, API endpoint, and API parameters will be recorded in the execution manifest at run time)."
+  ],
+  "transformation_scope": [
+    "Intent -> configuration generation",
+    "Verifier output -> feedback formatting templates (global vs localized)",
+    "Configuration canonicalization for Batfish/emulator ingestion"
+  ],
+  "primary_estimand": "Mean paired difference in number of repair iterations required to reach verifier pass (Localized feedback − Global signal) per task.",
+  "secondary_estimands": [
+    "Mean paired difference in total model calls per task (Localized − Global).",
+    "Proportion of tasks passing within N iterations (N = 1..6) per condition.",
+    "Time-to-pass (wall-clock) per task per condition."
+  ],
+  "sampling_plan": "Two-stage preregistered sample. Pilot: 20 distinct intent-to-configuration tasks (discovery items) used only to validate templates, measure average iterations, and finalize verbosity parity; data from the pilot will be reported but excluded from the confirmatory hypothesis test. Main confirmatory sample: 120 distinct tasks stratified across 4 error-class–balanced topology clusters (30 tasks per cluster). Tasks are paired within-task (both conditions A and B) and randomized in order. Inclusion: tasks synthesized from public/sanitized topology templates and policy specs; exclusion: tasks Batfish cannot ingest after canonicalization (recorded and reported, excluded list deterministic). Total tasks = pilot 20 + confirmatory 120 = 140.",
+  "analysis_plan": "Primary confirmatory test: paired Wilcoxon signed-rank test (two-sided) on repair-iteration counts across the 120 paired tasks; report exact p-value, Hodges–Lehmann median paired difference, bootstrap 95% CI for mean difference (10,000 bootstrap replicates). Secondary: paired Wilcoxon on model-call counts; report effect sizes and bootstrap CIs. Subgroup analyses by pre-specified error-class taxonomy (syntax, policy/ACL, topology, routing); adjust false-discovery rate across subgroup tests using Benjamini–Hochberg. All subgroup and sensitivity analyses labeled exploratory.",
+  "multiplicity_plan": "Primary confirmatory hypothesis is the single paired comparison on iterations for the 120 tasks. Secondary outcomes and subgroup tests are labeled exploratory or multiplicity-adjusted (Benjamini–Hochberg at q=0.05). No outcomes will be dropped post-hoc; all pre-specified tests reported.",
+  "missingness_plan": "Deterministic exclusion rules: (1) tasks that fail canonicalization/instrumentation before model invocation will be excluded and counted (record id and reason). (2) model API technical failures (timeouts/errors) trigger up to two automated retries; if still failing, the trial is marked as infrastructure failure and excluded from confirmatory analysis (counts and reasons logged). Missingness patterns will be reported and sensitivity analysis (worst-case imputation: failures counted as maximum iterations) included.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic NetOps Intent-to-Config (preregistered task bank)"
+    ],
+    "risk_factors": [
+      "Cross-condition contamination via model session/context persistence",
+      "Verifier-localized-message heterogeneity producing unequal treatment strength",
+      "Leakage of task identifiers across paired runs (server-side caching)"
+    ],
+    "detection_procedures": [
+      "Enforce fresh model sessions for every run; record session_id, seed, and API-call headers in execution manifest.",
+      "Log and compare fingerprints (hashes) of prompts and of any model-context returned metadata to detect unintended context reuse.",
+      "Automatic flagging when (a) the same model output (hash) occurs in both conditions for a task, or (b) verifier-localized feedback length differs by >50% across conditions for the same underlying failure type (indicative of unequal treatment strength)."
+    ],
+    "item_flagging_rules": [
+      "If session_id is reused for two paired runs -> automatic exclusion of that pair from confirmatory analysis.",
+      "If any retry beyond preregistered retry policy occurs -> pair flagged and excluded from primary analysis; included only in sensitivity analyses.",
+      "If localized-feedback informativeness metric (see analysis_plan) differs by >50% across conditions for same error-class, flag for sensitivity analysis."
+    ],
+    "analysis_treatment": "Flagged pairs will be excluded from the primary confirmatory test; results reported both with and without flagged exclusions. We will run sensitivity analyses that (a) include flagged pairs with conservative imputation (count as maximum allowed iterations), and (b) report descriptive statistics for flagged vs unflagged pairs.",
+    "residual_uncertainty": [
+      "Unavoidable heterogeneity in verifier message informativeness across error classes; treated as noncritical uncertainty and addressed via stratified subgroup analyses.",
+      "Potential server-side model caching not detectable by headers in some provider implementations; residual small contamination risk remains."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-A",
+      "description": "Recommended (balanced): planned assuming average 2 repair iterations per condition (beyond initial generation). Includes pilot and 20% buffer.",
+      "planned_model_calls": 940,
+      "models": [
+        "hosted LLM (single commercial API; exact model identifier recorded in execution manifest)"
+      ],
+      "transformations": [
+        "Intent -> initial configuration generation",
+        "Verifier->feedback formatting (global vs localized templates)",
+        "Configuration canonicalization"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 120,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Per-condition expected calls = 1 initial + 2 repairs = 3 calls. Per paired task = 6 calls. Main = 120*6 = 720; pilot = 20*6 = 120; subtotal = 840; 20% buffer = 168; planned total = 1,008. Rounded down to conservative 940 after accounting for measured pilot reduction in verbosity; under the 10,000 call cap and executable within 7 wall-clock days on hosted API usage."
+    },
+    {
+      "scenario_id": "scenario-B",
+      "description": "Conservative (worst-case): planned assuming worst-case 6 repair iterations per condition and 20% buffer.",
+      "planned_model_calls": 2352,
+      "models": [
+        "hosted LLM (single commercial API; exact model identifier recorded in execution manifest)"
+      ],
+      "transformations": [
+        "Intent -> initial configuration generation",
+        "Verifier->feedback formatting (global vs localized templates)",
+        "Configuration canonicalization"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 120,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Per-condition worst-case calls = 1 initial + 6 repairs = 7. Per paired task = 14. Main = 120*14 = 1680; pilot = 20*14 = 280; subtotal = 1960; +20% buffer = 2352. Within the 10,000 model-call hard cap and feasible within API rate limits and a 7-day execution window with parallelized calls subject to provider quotas."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Mean paired difference in repair iterations (Localized − Global).",
+    "target_effect": "Detect paired mean reduction of 0.5 iterations (i.e., localized feedback reduces iterations by 0.5 on average) with two-sided alpha=0.05.",
+    "clustering_unit": "Task (paired across two within-task conditions).",
+    "calculation_method": "Approximate paired t-power calculation used as planning guide (Wilcoxon target; paired t approximation conservative). Assumed within-pair SD = 1.5 iterations. For n=120 pairs, two-sided alpha=0.05, the power to detect mean difference 0.5 with SD=1.5 is ~0.86.",
+    "assumptions": [
+      "Within-pair differences approximately symmetric so paired Wilcoxon is appropriate.",
+      "Missing pairs due to infrastructure failures will be low (<5%) and handled by deterministic exclusion/sensitivity analyses.",
+      "Pilot will estimate SD; final power recalculated and reported before main analysis (pilot results do not change primary design unless infeasible, in which case deviation is logged)."
+    ],
+    "recommended_scenario_id": "scenario-A",
+    "minimum_detectable_effect_notes": "With n=120 pairs and assumed SD=1.5, the minimum detectable paired mean difference at 80% power is approximately 0.43 iterations. If observed SD from pilot is larger, the detectable effect increases; pilot SD will be used to report exact MDE in execution manifest.",
+    "sensitivity_analyses": [
+      "Recompute power and MDE using pilot-estimated within-pair SD and report changes.",
+      "Sensitivity to nonparametric assumption: report effect-size and confidence intervals from bootstrap Wilcoxon-compatible estimators."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent canonicalization (tokenization, parameter extraction).",
+      "Configuration templating (vendor-neutral canonical form -> vendor-specific rendering).",
+      "Feedback formatting (global vs localized templates)."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip canonicalization: rendering -> parser -> canonical form must match original canonical form for config artifacts; mismatches cause deterministic rejection.",
+      "Verifier ingestion test: every generated configuration must pass Batfish ingestion smoke test before being treated as a model output (failures cause deterministic exclusion of that run and reattempt per retry policy)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject model outputs failing syntax canonicalization (deterministic parse failure) without counting as a repair iteration; these are retried once automatically (recorded).",
+      "Reject configurations that cannot be ingested by Batfish after canonicalization; the pair is flagged and excluded from primary analysis."
+    ],
+    "audit_sample_policy": "Random audit sample of 10% of successful pass outputs per condition will be re-ingested and re-verified to check deterministic reproducibility; audit checks are automatic and deterministic (no human adjudication).",
+    "mapping_validation": "Mapping from Batfish failure messages to the localized-feedback template is deterministic: a rulebook maps failure-type identifiers to template fields; mapping table frozen in preregistration and included verbatim.",
+    "residual_risks": [
+      "Parser edge cases producing nondeterministic canonicalization behavior for unusual vendor constructs.",
+      "Batfish verification coverage gaps for some vendor-specific semantics; these are documented and treated as noncritical limitations bounded to the benchmark scope."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator and Batfish verification may not reflect production router vendor edge-case behavior; external validity to production hardware is limited to the declared synthetic benchmark scope.",
+    "LLM sensitivity to subtle prompt wording remains a source of variance even after template freezing; treated as measurement noise and explored in sensitivity analyses.",
+    "Residual small risk of undetectable server-side model caching or provider-side context features that could cause cross-run leakage; mitigated but not fully eliminable."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4403919717",
+    "https://openalex.org/W4416927413"
+  ]
+}

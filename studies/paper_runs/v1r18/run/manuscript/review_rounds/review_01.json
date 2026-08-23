@@ -1,0 +1,28 @@
+{
+  "summary": "Carefully preregistered, executed, and archived paired study comparing localized/verifier feedback vs. global pass/fail for LLM-generated intent-to-configuration tasks. The experiment is well documented (preregistration, full execution manifest, hashes, and analysis). Confirmatory outcome: no observable difference — both conditions achieved 120/120 verifier passes. The paper is reproducible and clearly presented, but several methodological clarifications and stronger discussion of ceiling effects, task difficulty, and the guarded-feedback instantiation are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Ceiling effect / task difficulty not adequately analysed or discussed: all 120 pairs passed in both conditions, which makes the confirmatory estimand (repair-iteration difference) uninformative — authors must demonstrate that tasks elicited the intended failure modes and justify task difficulty calibration.",
+    "Insufficient detail about the guarded/localized feedback instantiation: the paper does not include concrete examples of verifier messages (format, granularity, heuristics) nor a sample task showing how localized feedback differs materially from the global signal.",
+    "Reproducibility guidance incomplete for reviewers: while artifact hashes are provided, the manuscript lacks a short reproducibility recipe (minimal commands, required environment, and where to fetch the task bank and verifier code) to enable independent reanalysis without deep artifact inspection.",
+    "Interpretation overreach risk: conclusions should more strongly acknowledge that the null result is compatible with (a) tasks being too easy, (b) the specific feedback encoding being non-discriminative, or (c) model/prompt strength; current text states these possibilities but does not quantify their likelihood or provide post-hoc diagnostics.",
+    "Limited external validity: single model (gpt-5-mini), synthetic/sanitized IPv4 tasks, emulator+Batfish verifier — these limitations are noted but require clearer framing so readers do not generalize the null result beyond the narrow experimental conditions."
+  ],
+  "required_revisions": [
+    "Add concrete examples (one or two) in the manuscript or appendix: (a) an intent, (b) the initial LLM-generated configuration, (c) the global pass/fail verdict, and (d) the guarded/localized verifier feedback payload used for repair. Show how the repair prompt used that feedback.",
+    "Provide descriptive statistics required by the preregistration for the primary estimand even if degenerate: report the per-task repair-iteration counts and model-call counts per condition (CSV or a short table), and explicitly state that the distribution is constant (all zeros) so the paired Wilcoxon is uninformative. Link these files in the manuscript and execution manifest sections.",
+    "Add explicit diagnostics demonstrating that the task bank contained non-trivial failure modes during pilot or development (e.g., pilot failure rates, examples of tasks that required repair), or justify why the confirmatory bank nonetheless should have produced variation. If pilot evidence shows tasks were easier than intended, state this and discuss consequences for power and interpretation.",
+    "Include a concise reproducibility recipe in the manuscript (commands, environment, where to download artifacts, how to run the analysis script that produced the confirmatory results), and confirm that all artifact pointers in the execution manifest are public/persistently accessible or explain access restrictions.",
+    "Expand the discussion of limitations and consequences for future work: explicitly state that the null effect is limited to the exact guarded-feedback encoding, prompt templates, single repair-attempt budget, single model, and task family, and recommend concrete follow-up experiments (e.g., higher iteration budgets, harder task strata, alternative localized-feedback encodings, and multi-model testing)."
+  ],
+  "optional_revisions": [
+    "If space permits, include the paired difference figure (bootstrap distribution) and one per-task example trace in the main paper (otherwise add to an online appendix).",
+    "Report pilot statistics (the pilot of 20 tasks mentioned in preregistration) in an appendix or artifact summary to show how pilot-informed design choices were made.",
+    "Provide a brief template of the repair prompt supplied to the model during the guarded condition, to help interpret how feedback was used by the LLM.",
+    "Consider (for future versions) a small additional experiment or reanalysis on a deliberately harder subset (documented as exploratory) to demonstrate whether the guarded feedback yields benefits under non-ceiling conditions."
+  ],
+  "accept_for_finalisation": true
+}

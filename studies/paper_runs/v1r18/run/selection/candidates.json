@@ -1,0 +1,113 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-001",
+      "title": "NetOps-VerifyBench: A verifier-coupled intent-to-configuration benchmark",
+      "research_question": "Does a public benchmark that couples intent-to-configuration tasks with deterministic verification (Batfish) and emulator-execution produce reproducible, operationally meaningful metrics that reveal gaps in LLM-generated NetOps correctness across multi-vendor topologies?",
+      "hypotheses": [
+        "A verifier-coupled benchmark exposing intent-to-configuration tasks will show substantially lower raw LLM-alone policy-compliance than verifier-augmented generate–verify–repair (GVR) workflows."
+      ],
+      "proposed_design": "Assemble a public dataset of 300 intent-to-configuration tasks across 10 synthetic and realistic multi-vendor topologies (router vendors/config templates drawn from public config corpora). For each task run: (a) LLM-alone generation (single pass), (b) LLM generation + deterministic verification via Batfish (failure signal only) with one automatic repair attempt, (c) LLM generation + Batfish with structured, template-guided repairs (up to 5 iterations). Execute configurations in an emulator (e.g., containerized router images or a network emulator) to collect reachability and policy metrics. Freeze prompts, topology seeds, verification scripts and evaluation metrics in a preregistered plan before runs.",
+      "expected_data": "Per-task: syntactic validity, Batfish verification pass/fail, number of repair iterations, emulator reachability results (end-to-end reachability matrices), policy-compliance boolean, time-to-complete, and per-task model-call counts. Aggregate: compliance rates and distributions across vendors/topologies.",
+      "primary_outcome": "Proportion of tasks achieving full policy compliance in the emulator after bounded (<=5) repair iterations (compare LLM-alone vs two GVR variants).",
+      "analysis_outline": "Compute per-condition compliance rates with 95% bootstrap CIs; pairwise comparisons using McNemar's test on matched tasks (LLM-alone vs GVR variant). Report median repair iterations and model-call costs; stratify by vendor and topology size and test interaction with Fisher exact tests where counts small. Release benchmark artifacts and evaluation scripts for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7160968181",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4404602270"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4403919717",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Emulator mismatch with real production hardware may limit external validity.",
+        "Benchmark design may favor specific prompt styles or LLM architectures, biasing results.",
+        "Deterministic verifier (Batfish) coverage gaps may misclassify certain semantic errors as passes."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-002",
+      "title": "Feedback Granularity for Efficient LLM Repair in Network Configuration Synthesis",
+      "research_question": "Does providing localized, actionable verifier feedback to an LLM reduce repair iterations and model-call cost compared to global failure signals when synthesizing network configurations from intents?",
+      "hypotheses": [
+        "Localized, actionable verifier feedback (e.g., per-route/policy counterexample and suggested failing statement) reduces required repair iterations and total model calls versus a global failure signal. "
+      ],
+      "proposed_design": "Select 120 intent-to-configuration tasks across varied topologies. Use one fixed LLM and identical prompts. For each task run two paired conditions in randomized order: (A) Global failure signal from Batfish (pass/fail); (B) Localized actionable feedback (specific failing policy rules, offending ACL lines, and counterexample traces). Allow up to 6 repair iterations. Log model outputs, repairs, verifier reports, and model-call counts. Preregister prompt templates and feedback formatting rules.",
+      "expected_data": "Per-task: number of repair iterations to verification pass, total model calls, final emulator compliance, types of errors observed, and time-to-pass. Aggregate distributions of iterations and model calls per condition and stratified by error type.",
+      "primary_outcome": "Mean difference in repair iterations (Localized feedback minus Global signal) across paired tasks; secondary outcome is difference in total model calls.",
+      "analysis_outline": "Use paired Wilcoxon signed-rank test for iterations and model-call comparisons (nonparametric). Report effect sizes and 95% CIs via bootstrap. Subgroup analyses by error class (syntax vs semantic vs topology). Correct for multiple comparisons with Benjamini–Hochberg where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "LLM sensitivity to feedback wording may confound results if prompt framing not fully controlled.",
+        "Localized feedback may leak sensitive topology details if public artifacts reuse operator data; use synthetic or sanitized topologies.",
+        "Verifier limitations might produce misleading or incomplete actionable messages."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-003",
+      "title": "Principled stopping rules for iterative LLM repair in NetOps",
+      "research_question": "Which stopping rules for iterative LLM-based repair loops (fixed-budget, verification-stability, risk-threshold) best trade off verification safety and model-call/resource cost for intent-to-configuration tasks?",
+      "hypotheses": [
+        "A verification-stability stopping rule (declare success if verifier passes in two consecutive iterations) reduces false-positive verified-but-flaky configurations compared to a single-pass stop while keeping median model calls below a fixed-budget rule with equivalent safety.",
+        "An empirically tuned risk-threshold stopping rule achieves a better safety-cost Pareto frontier than naive fixed-budget stopping."
+      ],
+      "proposed_design": "Simulate 500 intent-to-configuration tasks using a fixed LLM and Batfish verifier. For each task run repair pipelines under three preregistered stopping rules: (1) Fixed-budget (N=3 iterations), (2) Verification-stability (require 2 consecutive passes), (3) Risk-threshold (stop when estimated probability of failure by a learned verifier-calibrated estimator falls below p=0.05). Record emulator compliance after final selected config, model calls, and incidence of post-deployment failures in randomized emulator stress tests.",
+      "expected_data": "Per-rule aggregated success rates, post-deployment failure rates in stress tests, distributions of model calls, and calibration metrics for the risk estimator. Pareto front of safety (post-deployment failure rate) vs cost (median model calls).",
+      "primary_outcome": "Identify stopping rule achieving at most 5% post-deployment failure rate with the lowest median model-call cost; test differences across rules using permutation testing on paired tasks.",
+      "analysis_outline": "Estimate post-deployment failure probabilities and 95% CIs; compare stopping rules with paired permutation tests on median model calls conditioned on meeting the safety threshold. Evaluate calibration of the risk estimator with Brier score and reliability diagrams. Produce Pareto frontier plots and report chosen operating point per preregistered utility function.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.36227/techrxiv.176045741.13024122/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411551677"
+      ],
+      "risks": [
+        "Learned risk estimator may be miscalibrated on unseen topologies leading to unsafe early stopping.",
+        "Synthetic/emulated stress tests may not capture all real-world failure modes.",
+        "Fixed LLM choice limits generalizability of stopping-rule conclusions."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-004",
+      "title": "Adversarial robustness of agentic NetOps workflows with tool access",
+      "research_question": "How susceptible are agentic NetOps workflows with tool access to adversarial prompt and tool-context injection, and do guarded tool-selection policies reduce successful malicious configuration generation?",
+      "hypotheses": [
+        "Agentic workflows with unrestricted tool access will exhibit higher rates of successful adversarial configuration generation (malicious or unsafe configs) than workflows constrained by guarded tool-selection policies and input sanitization.",
+        "Guarded tool-selection policies (explicit allowlists, sanitization, and verification-before-execution gates) will significantly reduce successful exploitation while incurring moderate additional model calls and latency."
+      ],
+      "proposed_design": "Define an attacker task set of 100 adversarial intents (crafted to provoke privilege escalation, policy bypass, or covert route injection) and 100 benign intents. Implement two agentic pipelines: (A) Unrestricted agent with tool access (search, config templating, execution); (B) Guarded agent enforcing tool-selection allowlists, input sanitization, and mandatory verification-before-execution. For each intent, run both pipelines with identical LLM seeds and measure whether the pipeline produces a configuration that would lead to a verified policy violation or a successful malicious change in the emulator. Preregister adversarial intent generation rules and guardrail configurations.",
+      "expected_data": "Per-intent: whether a malicious/unsafe configuration was generated, verifier-detected violations, number of model calls, latency, and false-positive blocking of benign intents. Aggregate exploitation success rates and benign-block rates.",
+      "primary_outcome": "Difference in exploitation-success rate between unrestricted and guarded agentic workflows (exploitation-success_unrestricted minus exploitation-success_guarded).",
+      "analysis_outline": "Compare exploitation-success rates with two-proportion z-tests; report confidence intervals. Evaluate trade-offs via ROC-like curve of benign-block rate vs exploitation reduction. Provide qualitative taxonomy of successful adversarial strategies and defenses.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-10646209/v1",
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "https://openalex.org/W4403919717"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4388629193"
+      ],
+      "risks": [
+        "Constructed adversarial intents may not represent adaptive real-world adversaries.",
+        "Guardrail over-restriction could block legitimate operator intents, producing operational friction.",
+        "Ethical risk of producing adversarial exploit examples—mitigate by disclosure redaction and non-actionable abstractions in released artifacts."
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}
