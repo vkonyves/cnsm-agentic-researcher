@@ -1,0 +1,30 @@
+{
+  "selected_candidate_id": "c2026-001",
+  "selection_rationale": "c2026-001 directly targets the highest-priority gap (G1/Q1) with a falsifiable, quantitative design, strong venue relevance, and a passing critic verdict. It yields reproducible binary outcomes (harmful vs non-harmful) amenable to paired analysis and supports downstream work (metrics, HITL, verification). Key supporting records include the candidate's cited literature (below).",
+  "runner_up_candidate_id": "c2026-002",
+  "unresolved_uncertainties": [
+    "Validator fidelity: emulator/model checker behavior vs production device semantics and resulting bias in harm labels.",
+    "Corpus representativeness: public/synthetic configs may not reflect real operator intents and proprietary vendor features.",
+    "Oracle \"harmful\" label definition: severity thresholds and invariant selection (reachability/isolation) may be contested.",
+    "Repair-loop dynamics: appropriate iteration cap N and stopping rules may hide slow-converging or divergent repairs.",
+    "Multi-vendor semantic coverage: modeling vendor-specific CLI/ACL semantics may cause inconsistent evaluation across vendors.",
+    "LLM/prompt sensitivity: outcome variance across models and prompt templates may limit generalizability."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4320165837"
+  ],
+  "required_repairs_before_preregistration": [
+    "Specify concrete validator implementations and versions (e.g., Batfish, Mininet/emulator, vendor-specific models); document known semantics/limitations.",
+    "Pre-register dataset sources with permanent links, inclusion/exclusion rules, sampling procedure, and public splits (train/validation/held-out vendors).",
+    "Precisely define the oracle \"harmful\" label: list invariants tested (reachability/isolation/ACL semantics), severity thresholds, and how oracle verdicts are produced.",
+    "Pre-register repair-loop details: exact prompt templates, iteration cap N, stopping rules, retry policy, temperature/seeding, and random seeds for reproducibility.",
+    "Add and pre-register sensitivity analyses: validator-fidelity (e.g., compare syntactic vs emulator vs high-fidelity), dataset-source variation, and repair-cap sweeps; log validator disagreements.",
+    "Define handling of vendor-specific features and how discrepancies will be recorded/treated (exclude, normalize, or vendor-stratified analysis).",
+    "Prespecify statistical analysis details: primary tests (McNemar), effect-size measures, CI methods, multiple-comparison handling, and minimum sample-size justification.",
+    "Prespecify infrastructure/compute budget, maximum model calls, caching policies, and retry rules for provider/API failures to distinguish technical vs scientific failures."
+  ]
+}

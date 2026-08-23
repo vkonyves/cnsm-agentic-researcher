@@ -1,0 +1,178 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can be used to translate high-level intents or natural-language descriptions into network configuration templates or low-level configs (proof-of-concept and prototype systems demonstrated this capability).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4411015066",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "empirical/prototype studies and surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Most demonstrations are prototypes or controlled evaluations rather than broad production deployments.",
+        "Performance varies by task complexity and input clarity (see ambiguity/disambiguation work)."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Tool‑augmented and agentic architectures (LLMs orchestrating external tools, simulators, or validators) are a recurrent and actively proposed approach to improve reliability and capability for operational tasks including NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4320165837",
+        "doi:10.2139/ssrn.6647800",
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.174702077.78864934/v1"
+      ],
+      "evidence_type": "architectural proposals, focused studies, and system descriptions",
+      "confidence": 0.85,
+      "limitations": [
+        "Empirical evaluations are often domain- or workload-limited; generalization and runtime safety remain open.",
+        "Agentic proposals rely on external tool quality and integration engineering."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–validate–repair or closed-loop pipelines (LLM generation paired with deterministic validators/simulators and iterative repair) are recommended in NetOps proposals as a safety/verification pattern.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411015066",
+        "doi:10.20944/preprints202604.1029.v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "proposals, prototype evaluations, and verification-framework work",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness depends on fidelity of validators/simulators used (emulation vs. production differences).",
+        "Few studies quantify end-to-end repair success rates on diverse, realistic network changes."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Ambiguity in user intent and overlapping configuration semantics is a recognized failure mode; interactive disambiguation or human‑in‑the‑loop steps are proposed to mitigate correctness risks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416297963",
+        "doi:10.36227/techrxiv.174702077.78864934/v1",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "targeted prototype and survey literature",
+      "confidence": 0.85,
+      "limitations": [
+        "Interactive/ H HITL mechanisms can reduce automation throughput and depend on operator expertise.",
+        "Empirical evidence for large-scale operator workload/efficiency trade-offs is limited in the supplied records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-based generate–validate–repair pipelines prevent harmful misconfigurations when applied across heterogeneous, multi-vendor production networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "benchmark/prototype papers and surveys highlighting limitations",
+      "confidence": 0.7,
+      "limitations": [
+        "Supplied studies are prototype/bench evaluations; they do not provide large-scale, cross-vendor production deployment results."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What are representative, reproducible metrics and workloads that capture operational risk (not just syntactic correctness) for LLM-driven NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "benchmark and survey records",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing benchmarks (e.g., NetConfEval) focus on translation/coverage; broader operational-risk metrics are not standardized in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "To what extent can formal verification (agent-level or config-level) scale to realistic agentic NetOps loops without excessive false positives/negatives?",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202604.1029.v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "formal-verification proposal and NetOps evaluations",
+      "confidence": 0.65,
+      "limitations": [
+        "AgentVerify shows feasibility for some agent safety properties but does not evaluate full-scale NetOps agent deployments in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of reproducible, multi-vendor, large-scale empirical evaluations that measure real-world operational failure rates (safety/availability impact) of LLM-based NetOps systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "benchmark/prototype papers and domain surveys noting limitations",
+      "confidence": 0.8,
+      "limitations": [
+        "Some benchmark/prototype efforts exist (NetConfEval, prototypes) but are small-scale or synthetic per the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient standardized evaluation protocols that combine LLM generation, deterministic validators (simulators/emulators), and human‑approval workflows to quantify trade-offs between automation gains and residual risk.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4416297963"
+      ],
+      "evidence_type": "proposals and prototype descriptions",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing system descriptions propose architectures but do not converge on a standard evaluation protocol in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Limited empirical study of operator interaction costs and decision quality when disambiguation/HITL steps are introduced into LLM-driven NetOps workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416297963",
+        "doi:10.36227/techrxiv.174702077.78864934/v1",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "prototype and review studies highlighting HITL importance",
+      "confidence": 0.8,
+      "limitations": [
+        "HITL importance is asserted and prototyped, but quantitative operator-cost studies are absent in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Need for benchmarks that measure grounding to authoritative network state (retrieval/RAG fidelity) and validator coverage rather than only syntactic or example‑matching accuracy.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "RAG/benchmark surveys and NetOps benchmark work",
+      "confidence": 0.75,
+      "limitations": [
+        "Surveys suggest RAG can improve grounding; supplied NetOps benchmarks do not yet adopt uniform grounding/validator coverage metrics."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based NetOps systems are proven production-ready and safe for autonomous deployment without human oversight (unsupported by supplied records).",
+    "Any single existing study provides comprehensive cross-vendor, production-scale evidence of low failure rates for fully autonomous LLM agents in NetOps (not supported by supplied records).",
+    "Claims of \"first\" production deployment of fully autonomous LLM agents managing live enterprise networks (no supplied record substantiates such a claim)."
+  ]
+}

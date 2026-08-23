@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c2026-001",
+      "title": "Cross-vendor empirical evaluation of generate–validate–repair pipelines to prevent harmful misconfigurations",
+      "research_question": "How reliably does a generate–validate–repair (GVR) pipeline reduce harmful network misconfigurations across heterogeneous, multi‑vendor configuration workloads compared to LLM-only generation?",
+      "hypotheses": [
+        "A GVR pipeline will produce a lower rate of harmful misconfigurations (measured by violated reachability/isolation invariants in a deterministic validator) than an LLM-only generation pipeline.",
+        "The reduction in harmful misconfigurations achieved by GVR will positively correlate with validator fidelity (higher-fidelity validators yield larger reductions)."
+      ],
+      "proposed_design": "Controlled quantitative experiment using a corpus of multi‑vendor configuration change intents (sourced from public vendor config repositories and synthetically generated variants). Two interventions per intent: (A) LLM-only translate intent→config; (B) GVR pipeline: LLM generates candidate config, deterministic validator (network-model checker/simulator) tests invariants, LLM performs iterative repair up to N repairs. Validators will include a fast syntactic/semantics checker and a higher-fidelity emulator-based reachability checker. For each intent produce ground-truth oracle outcomes by running validated configs through the high-fidelity validator; inject a pre-specified set of harmful-intent variants to measure safety. Repeat for multiple vendors/syntaxes and topology templates; use fixed random seeds and capped retries. Pre-registered metrics: harmful-misconfig rate, number of repair iterations, time-to-validated-config, and validator disagreements. Baselines: LLM-only and LLM+single-step deterministic guard (no iterative repair).",
+      "expected_data": "Per-intent records for N intents (e.g., 1,200 tasks): generated config versions, validator verdicts (syntactic pass/fail, reachability pass/fail), number of repair iterations, time per pipeline step, and final oracle-labeled harmful/non-harmful outcome counts for each intervention.",
+      "primary_outcome": "Absolute and relative reduction in proportion of intents that result in harmful misconfigurations (oracle reachability/isolation violations) for GVR versus LLM-only over the corpus.",
+      "analysis_outline": "Compute proportions and 95% CIs for harmful outcomes per intervention; paired comparisons per intent using McNemar’s test (paired binary outcomes) and bootstrap for effect-size CIs. Regression analysis to quantify correlation between validator-fidelity score and harmful-outcome reduction. Subgroup analyses by vendor and topology; sensitivity analyses over repair-iteration cap N. Report exact p-values and Cohen’s d or risk ratio with CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4320165837"
+      ],
+      "risks": [
+        "Validator fidelity mismatch (emulator may not reflect production behavior) causing biased harm estimates.",
+        "LLM hallucination patterns may vary by prompt/model, limiting generalizability beyond tested models.",
+        "Synthetic or public config corpora may not reflect true production change intents (external validity).",
+        "Repair iteration caps may hide slow-to-converge failure modes."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "c2026-002",
+      "title": "Operational‑risk metric suite and workload for LLM-driven NetOps pipelines",
+      "research_question": "Which compact set of reproducible metrics and workload constructs best predict operational risk (actual harmful outcomes) for LLM‑driven NetOps pipelines beyond syntactic correctness?",
+      "hypotheses": [
+        "A metric suite combining grounding/ authoritative‑state coverage, validator‑coverage fraction, and semantic‑impact severity will predict harmful operational outcomes more accurately than syntactic accuracy alone.",
+        "A mixed workload that includes intent ambiguity and multi‑vendor semantic edge cases will expose predictive power differences between metric variants (higher predictive metrics will generalize across vendors)."
+      ],
+      "proposed_design": "Design a candidate metric suite (examples: grounding_coverage, validator_coverage, semantic_impact_score, syntactic_accuracy). Construct a labeled workload by reusing outputs and oracle harm labels from candidate c2026-001 (or equivalent public tasks): include balanced subsets of clear intents, ambiguous intents, and vendor-edge cases. Compute metrics for each generated config (LLM-only and GVR outputs). Evaluate predictive performance of metrics (single and combined) for the binary target 'harmful outcome'. Use cross-validation and held-out vendor splits to test generalization. Pre-register evaluation criteria: ROC AUC, precision@k, calibration, and robustness under domain shift.",
+      "expected_data": "Per-sample metric values, model outputs, and oracle harm labels across a workload of tasks (e.g., 1,200 labeled examples). Aggregated performance tables (AUC, precision@k), calibration plots, and per-vendor held-out results.",
+      "primary_outcome": "Predictive performance (e.g., ROC AUC) of the proposed metric suite for harmful outcomes on held-out data and held-out vendor splits, compared to syntactic-accuracy baseline.",
+      "analysis_outline": "Compute ROC AUC and 95% CIs (DeLong) for each metric and for combined logistic/ensemble predictors. Use nested cross-validation for model selection. Evaluate calibration (Brier score) and decision-curve analysis to quantify operational utility. Test generalization to held-out vendors via difference-in-AUC tests and report false‑negative/false‑positive trade-offs relevant to operator decision thresholds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4402742293"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Metric definitions may overfit to the constructed workload and not reflect unseen production failure modes.",
+        "Oracle harmful labels depend on validator fidelity (garbage-in, garbage-out for metric training).",
+        "Combining heterogeneous metrics could produce poorly calibrated risk scores without sufficient data."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "c2026-003",
+      "title": "Scalability and false‑positive tradeoffs of formal verification in agentic NetOps loops",
+      "research_question": "To what extent does integrating formal verification into agentic NetOps loops scale to realistic configuration-change tasks without generating excessive false positives or unacceptable latency?",
+      "hypotheses": [
+        "Integrating a formal verifier that enforces network invariants will reduce true harmful changes but will introduce a nontrivial rate of false positives that increases with topology/config size.",
+        "Verification latency will grow nonlinearly with configuration-change complexity, producing diminishing returns on safety when strict invariants are enforced in-the-loop (practical throughput loss)."
+      ],
+      "proposed_design": "Prototype an agentic loop where candidate configs are subject to an automated formal verifier enforcing invariants (reachability, isolation, ACL semantics). Create task groups of increasing complexity (small/medium/large changes and topologies). For each task, record verifier verdict (safe/unsafe), oracle outcome via high‑fidelity validator, and latency. Measure true-positive, false-positive, true-negative, false-negative rates of the verifier vs oracle, and end-to-end pipeline throughput (tasks/hour). Compare several verifier-strictness settings (relaxed, standard, strict). Pre-register thresholds for 'excessive' FP and acceptable latency.",
+      "expected_data": "Per-task verifier verdicts, oracle outcomes, verifier runtime/latency, config-change size metrics, and aggregated TP/FP/FN/TN counts across complexity bins.",
+      "primary_outcome": "Trade-off curves showing false-positive rate vs true-positive rate and verifier latency vs configuration complexity; identification of operating points where verifier benefits outweigh throughput and false-positive costs.",
+      "analysis_outline": "Compute confusion matrices per complexity bin and per strictness setting; report precision/recall and F1 with 95% CIs. Model latency as a function of config-change size using nonlinear regression; perform ANOVA to test latency differences across complexity bins. Estimate operational throughput loss at selected verifier thresholds and calculate net harmful-avoidance benefit per unit throughput lost.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202604.1029.v1",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Formal verifiers may time out or return inconclusive results for complex changes, muddying TP/FP estimates.",
+        "High false-positive rates could make the verifier impractical despite safety benefits.",
+        "Verification tools used may not capture vendor-specific semantics, limiting generality."
+      ],
+      "estimated_model_calls": 600
+    },
+    {
+      "candidate_id": "c2026-004",
+      "title": "Simulated human‑in‑the‑loop disambiguation: operator‑time vs residual risk trade-offs for LLM‑driven NetOps",
+      "research_question": "What is the trade-off between operator time (disambiguation/approval) and residual harmful-misconfiguration risk when introducing interactive disambiguation into LLM-driven NetOps pipelines?",
+      "hypotheses": [
+        "Introducing a short interactive disambiguation step will substantially reduce residual harmful-misconfiguration risk compared to fully autonomous pipelines for ambiguous intents, with diminishing marginal safety returns as disambiguation time increases.",
+        "Under a simulated operator model calibrated to literature-derived decision latency and error rates, there exists an operator-time budget that maximizes net safety gain per unit operator time; beyond that budget marginal gains are minimal."
+      ],
+      "proposed_design": "Use the labeled intent/config corpus (from c2026-001) and partition tasks by ambiguity (clear vs ambiguous). Replace real human operators with a simulated operator model calibrated from published operator-latency and decision-quality findings (evidence F4 and related prototypes). The simulated operator receives LLM clarifying questions and responds according to probabilistic correctness and latency distributions. Compare pipelines: (A) autonomous GVR, (B) GVR with single-question disambiguation, (C) GVR with multi-question disambiguation up to time budget T. Measure residual harmful outcomes, simulated operator time consumed, and throughput. Pre-register simulation parameters and sensitivity analyses.",
+      "expected_data": "Per-task records of disambiguation rounds, simulated operator time, final config oracle labels, and aggregated summaries (harmful outcome rate vs operator-time budget curves) for different ambiguity strata.",
+      "primary_outcome": "Marginal reduction in harmful-misconfiguration rate per unit operator time for interactive disambiguation strategies, and identification of an operator-time budget with maximal safety efficiency.",
+      "analysis_outline": "Compute harm rate vs operator-time curves and estimate marginal benefit using piecewise linear or spline regression. Compare strategies using paired tests on the same intents (McNemar or permutation tests). Conduct sensitivity analyses across simulated operator accuracy and latency parameter sweeps and report robustness bounds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416297963",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416297963",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "Simulated operator behavior may not match real operator decision patterns, limiting ecological validity.",
+        "Calibrating the simulated operator requires external literature estimates; miscalibration biases time/risk trade-off conclusions.",
+        "Operator latency distributions and error rates may vary widely across organizations, reducing external generalizability."
+      ],
+      "estimated_model_calls": 400
+    }
+  ]
+}

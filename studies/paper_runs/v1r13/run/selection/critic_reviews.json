@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c2026-001",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Validator fidelity may not reflect production behavior (emulator vs real device) — drives primary outcome.",
+        "Corpus representativeness: public/synthetic configs may not match real operator intents.",
+        "Definition of \"harmful misconfiguration\" depends on oracle/validator design and may conflate syntactic vs semantic harms.",
+        "Repair-iteration cap N could mask slow-converging fixes or divergent repair behavior.",
+        "Multi-vendor semantics and proprietary features may be hard to model consistently."
+      ],
+      "required_design_repairs": [
+        "Specify concrete validator implementations (e.g., Batfish, Mininet/emulator, vendor-specific models) and their limitations.",
+        "Pre-register dataset sources with links and inclusion/exclusion rules; provide public splits and sampling procedure.",
+        "Precisely define the oracle \"harmful\" label (invariants tested, severity threshold) and justify reachability/isolation checks.",
+        "Pre-register repair loop details: prompt templates, iteration cap N, stopping rules, retry policy, and random seeds.",
+        "Add sensitivity analyses for validator fidelity, dataset sources, and repair-cap choices; log disagreements between validators."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2026-002",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Heavily dependent on labeled data (harm labels) produced by c2026-001 or equivalent — risk of circularity.",
+        "Metric definitions are currently high-level and may overfit the constructed workload.",
+        "Oracle labels inherit validator-fidelity biases; metric training may learn validator artifacts rather than real operational risk.",
+        "Combining heterogeneous metrics risks poor calibration without sufficient sample size."
+      ],
+      "required_design_repairs": [
+        "Provide precise, reproducible definitions/formulae for each metric (grounding_coverage, validator_coverage, semantic_impact_score, etc.).",
+        "Ensure independence: pre-register held-out vendor splits and do not reuse training tasks from c2026-001 without separation.",
+        "Specify modeling pipeline for combining metrics (logistic/regression/ensemble), cross-validation plan, and calibration procedures.",
+        "Quantify minimum sample-size needed for stable AUC/CIs and include robustness checks for metric sensitivity to validator errors."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c2026-003",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Formal verifiers are underspecified — different tools offer different semantics and performance characteristics.",
+        "Vendor-specific semantics (ACLs, vendor CLI quirks) may not be captured by verifier, inflating false positives/negatives.",
+        "Verifier timeouts or inconclusive results could bias TP/FP estimates and downstream throughput calculations.",
+        "Scaling claims depend on chosen topology/config complexity distributions which are not yet defined."
+      ],
+      "required_design_repairs": [
+        "Specify the exact verifier(s) (e.g., Batfish, symbolic model checker) and versions; document supported semantics and known gaps.",
+        "Define topology/config complexity bins quantitatively (nodes, ACL rules, number of changed lines) and justify realism.",
+        "Prespecify timeout policies, handling of inconclusive results, and how those are counted in TP/FP analysis.",
+        "Include fallback or approximate-verification modes and report their effect; preregister acceptable FP/latency thresholds and measurement procedures."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c2026-004",
+      "novelty": 0.6,
+      "falsifiability": 0.7,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Simulated operator model calibration is underspecified and may not reflect real operator behavior or error distributions.",
+        "Strong dependence on literature-derived latency/accuracy estimates — those sources may be sparse or context-specific.",
+        "Simulation outcomes risk being mistaken for real HITL performance; ecological validity is limited without empirical operator logs.",
+        "Choice of ambiguity labeling for intents may be subjective and affect conclusions."
+      ],
+      "required_design_repairs": [
+        "Define the simulated-operator model precisely (response accuracy distribution, latency distribution, decision heuristics) with literature citations and numeric parameters.",
+        "Prespecify ambiguity classification rules for intents and how tasks are partitioned into clear vs ambiguous.",
+        "Run extensive sensitivity analyses over operator-accuracy and latency parameters; report robustness bounds.",
+        "If possible, locate and use any public operator-interaction logs for partial calibration or explicitly state limitations if none exist."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

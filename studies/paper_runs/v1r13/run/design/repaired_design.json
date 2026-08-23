@@ -1,0 +1,165 @@
+{
+  "selected_candidate_id": "c2026-001",
+  "title": "Repaired preregistered design: controlled evaluation of generate–validate–repair (GVR) pipelines to reduce harmful NetOps misconfigurations",
+  "research_question": "How reliably does a generate–validate–repair (GVR) pipeline reduce harmful network misconfigurations (reachability/isolation violations) compared to LLM-only generation across a deterministic, multi‑vendor synthetic configuration workload?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR pipeline yields a lower proportion of harmful misconfigurations (oracle reachability/isolation violations) than LLM-only generation on the preregistered synthetic multi‑vendor corpus.",
+    "H2: The magnitude of harmful-outcome reduction for GVR (vs LLM-only) increases with validator fidelity (syntactic checker < emulator-based reachability checker)."
+  ],
+  "exploratory_questions": [
+    "E1: How do repair-iteration counts distribute across vendors and topology complexity?",
+    "E2: How much do validator disagreements (syntactic vs emulator) affect measured harm rates?",
+    "E3: How sensitive are results to the repair-iteration cap N and to LLM temperature?"
+  ],
+  "benchmark_scope": [
+    "Deterministically-generated synthetic multi-vendor configuration change intents and parameterized configuration templates (3 synthetic vendor syntaxes).",
+    "Topology templates (small/medium/large) defined parametrically and simulated with an emulator (Mininet) for reachability checking.",
+    "Deterministic validator stack: syntactic/parse checker + emulator-based reachability/isolation checker."
+  ],
+  "model_scope": [
+    "Hosted instruction-tuned LLM accessed via hosted-model API (deterministic setting temperature=0.0 for primary confirmatory runs).",
+    "Same hosted LLM with repair-temperature=0.2 for exploratory robustness checks.",
+    "No private or local-GPU model execution required; all LLM work uses hosted-model API (capability manifest: hosted_model_api_available)."
+  ],
+  "transformation_scope": [
+    "Intent (structured action spec) -> vendor-specific config template generation (3 vendor template families).",
+    "Config normalization (deterministic canonicalizer) to reduce surface syntactic variance across vendor templates.",
+    "Validator verdicts transformed into binary labels (harmful / non-harmful) via deterministic rules."
+  ],
+  "primary_estimand": "Paired difference in probability of a harmful outcome (oracle reachability/isolation violation) per intent: P[harm | LLM-only] - P[harm | GVR].",
+  "secondary_estimands": [
+    "Per-vendor paired harmful-probability differences.",
+    "Correlation coefficient between validator-fidelity score and per-intent harmful-probability reduction."
+  ],
+  "sampling_plan": "Total confirmatory intents = 1,200 paired tasks. Generation: synthetically sample 1,200 deterministic 'intent' items (seeded RNG) divided evenly across three synthetic vendor syntaxes (400 intents/vendor). Within each vendor, sample across three topology templates (small/medium/large) such that each vendor has 400 intents covering topologies evenly (≈133 intents/topology). No held-out discovery set is used; all 1,200 intents are used for the preregistered confirmatory, paired comparison. Random seeds: seed=20260801 for corpus generation and all stochastic procedures.",
+  "analysis_plan": "Primary test: McNemar's test on paired binary harmful outcomes (LLM-only vs GVR) across the 1,200 intents. Report absolute and relative reductions, two-sided p-value, and 95% bootstrap percentile CIs on effect sizes (10,000 bootstrap samples, paired resampling). Secondary regression: logistic regression of per-intent harmful outcome with fixed effect for intervention and an interaction term with validator-fidelity indicator; report odds ratio and 95% CI. Subgroup analyses by vendor and topology (exploratory; report unadjusted p-values and effect estimates). Exact p-values reported; no late-peeking. Pre-registered significance alpha=0.05 (two-sided) for primary confirmatory test.",
+  "multiplicity_plan": "One pre-registered primary confirmatory comparison (GVR vs LLM-only) — primary outcome controls family-wise error for main claim. Vendor- and topology-stratified analyses are exploratory and will be labelled as such; p-values not adjusted for multiplicity in exploratory analyses, but effect estimates and CIs will be reported. Any post-hoc contrasts will be explicitly declared as unregistered.",
+  "missingness_plan": "Technical failures (API timeouts, validator crash) are logged and treated as 'technical failures' and excluded from primary inferential sample if they meet the preregistered retry policy. Retry policy: one automated retry for transient LLM/API failure; if still failing, mark item as technical failure and report count and outcomes. All exclusions and missingness reasons will be reported in a table and sensitivity analyses will impute worst-case and best-case outcomes for excluded items.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic Multi‑Vendor Config Corpus v1 (preregistered)"
+    ],
+    "risk_factors": [
+      "Model exposure to identical synthetic templates (overfitting/memoization) if templates overlap public model training data.",
+      "Leakage of secret-like literals in synthetic templates (should be avoided)."
+    ],
+    "detection_procedures": [
+      "Deterministic duplicate-check: exact-match hash comparison between generated intents/configs and any publicly available included evidence records (no external corpus included).",
+      "Per-item prompt-output hash logging to detect repeated identical outputs (possible model memorization)."
+    ],
+    "item_flagging_rules": [
+      "Flag items where generated config exactly matches a synthetic template canonical form more than K=5 times across different intents (possible memorization).",
+      "Flag configs that include 8+ character repeated alphanumeric sequences flagged as potential secret leaks (automated regex check)."
+    ],
+    "analysis_treatment": "Flagged items will be reported and excluded from the primary confirmatory analysis; sensitivity analyses including flagged items will be reported to quantify impact.",
+    "residual_uncertainty": [
+      "Cannot rule out that hosted LLMs were trained on similar human-authored vendor examples; synthetic-only corpus reduces but does not eliminate this risk."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_A_minimal",
+      "description": "Conservative, minimal-LM-calls scenario assuming average repair iterations per intent = 0.5 (many initial generations pass validators). Uses single hosted LLM (deterministic runs).",
+      "planned_model_calls": 2600,
+      "models": [
+        "hosted_instruction_tuned_llm_api (deterministic, temp=0.0)"
+      ],
+      "transformations": [
+        "intent->config generation (one LLM call per intent)",
+        "occasional repair LLM calls averaged to 0.5 per intent"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1200,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Model-call budget computed as: LLM-only baseline (for contrast logging) is 1,200 calls; GVR pipeline average: 1 initial + 0.5 repair calls per intent = 1.5 × 1,200 = 1,800; we conservatively cache and re-use shared initial generations where appropriate and measure both interventions but plan calls to remain <= 2,600 total. Within capability manifest maximum (10,000)."
+    },
+    {
+      "scenario_id": "scenario_B_recommended",
+      "description": "Moderate/Recommended scenario: pre-registers repair-cap N=3 and assumes average repair iterations observed ≈1. Uses deterministic primary runs (temp=0.0) and a small exploratory temperature sweep (temp=0.2) for repair behavior.",
+      "planned_model_calls": 5400,
+      "models": [
+        "hosted_instruction_tuned_llm_api (confirmatory temp=0.0)",
+        "hosted_instruction_tuned_llm_api (exploratory repair temp=0.2)"
+      ],
+      "transformations": [
+        "intent->config generation (1 call/intent)",
+        "up to N=3 repair LLM calls/intent (worst-case); expected average 1 repair call/intent for planning",
+        "one auxiliary guard-call for the LLM+single-step baseline where applicable"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1200,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Planned calls calculation: evaluate three interventions per intent (LLM-only, LLM+single-step-guard, GVR) but re-use cached LLM-only outputs where possible; worst-case model calls if every GVR needs N=3 repairs: GVR = 1+3 = 4 calls/intent → 4*1200=4800, LLM+guard = 2*1200=2400, LLM-only = 1*1200=1200. We will execute only the two primary interventions paired per intent (GVR vs LLM-only) with separate recorded guard-baseline runs limited to a held-out 400-intent subset to conserve calls. Under expected average (1 repair/intent), planned_model_calls ≈ 1,200 (LLM-only) + 1,200*(1+1) = 3,600 → conservative cap 5,400 to allow retries and exploratory temp sweep. This fits the hosted-call budget (manifest max 10,000) and the 7-day wall-clock constraint given parallelism with hosted API and CPU validators."
+    },
+    {
+      "scenario_id": "scenario_C_generous",
+      "description": "Generous worst-case planning (not recommended for primary confirmatory run). Reserves capacity for running full guard-baseline across all intents and worst-case repair=3 for every intent.",
+      "planned_model_calls": 8400,
+      "models": [
+        "hosted_instruction_tuned_llm_api (multiple temps)"
+      ],
+      "transformations": [
+        "full exhaustive runs including all baselines and worst-case repairs"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1200,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Worst-case upper-bound arithmetic: GVR worst-case 4 calls/intent → 4*1200=4800; LLM+guard baseline 2*1200=2400; LLM-only 1200 → total = 8,400. This is under the manifest max (10,000) and thus feasible but expensive. Recommended scenario_B balances evidence strength and cost."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute reduction in harmful-outcome probability (P[harm|LLM-only] - P[harm|GVR]).",
+    "target_effect": "Absolute reduction of 4 percentage points (e.g., from 10% harmful to 6% harmful) is the target minimal practically important effect.",
+    "clustering_unit": "Individual intent (paired comparison across interventions).",
+    "calculation_method": "Approximate paired-proportion power heuristics (McNemar): with N=1,200 pairs, two-sided alpha=0.05, the design yields >80% power to detect ~4% absolute paired change when baseline harmful rate is ~10% and discordant pair counts meet normal-approximation conditions. Bootstrap CIs (10,000 resamples) will quantify uncertainty. Exact conditional McNemar test reported for small discordant counts.",
+    "assumptions": [
+      "Baseline harmful rate (LLM-only) ~10% (conservative estimate for synthetic templates).",
+      "Discordant-rate structure consistent with paired-design assumptions (sufficient discordant pairs).",
+      "Paired observations independent across intents by seed-based deterministic generation."
+    ],
+    "recommended_scenario_id": "scenario_B_recommended",
+    "minimum_detectable_effect_notes": "With 1,200 pairs, for baseline p0=0.10 the two-sided McNemar test can detect ~4 percentage-point absolute reduction (power≈0.8). For rarer baseline harms (p0=0.03) detectable absolute effects will be larger; sensitivity analyses will report detectable-effect contours.",
+    "sensitivity_analyses": [
+      "Power sensitivity over baseline harmful rates p0 ∈ {0.03,0.05,0.10,0.20}.",
+      "Power sensitivity over average repair iterations (affects available confirmatory runs within model-call budget if budget constrained).",
+      "Re-run primary analysis restricted to per-vendor strata (smaller N) and report reduced power and corresponding minimum detectable effects."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor-template generation families: V1 (Cisco-like syntactic template), V2 (Juniper-like template), V3 (Arista-like template).",
+      "Deterministic config normalizer (canonical ordering of statements and whitespace removal).",
+      "Validator verdict mapping (syntactic parse verdict, emulator reachability verdict)."
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic equivalence: canonicalizer applied to original LLM output and to repaired output; exact match after canonicalization flags redundant repairs.",
+      "Behavioral equivalence (where syntactically different): emulator-based reachability checks comparing pre- and post-config applied states; if reachability invariants identical, treat as semantically equivalent for the tested invariants."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated config that fails syntactic/parse check (deterministic parser) — config excluded from being deployed to emulator and counted as harmful for conservative primary analysis if syntactic failure implies intended change not applied.",
+      "Reject configs that include automated-signature-prohibited operations (e.g., explicit 'erase running-config' token in synthetic templates) — deterministic string match."
+    ],
+    "audit_sample_policy": "Automated cross-validator audit: 5% of confirmed non-harmful GVR outputs (random, seed=20260801) are re-checked by the high-fidelity emulator and by a secondary emulator instance (separate run) to compute inter-validator disagreement rate; disagreements are auto-logged and used in sensitivity analyses.",
+    "mapping_validation": "Intent-to-structured-action parser is unit-tested on a deterministic set of 300 held-internal synthetic examples; parser outputs are validated by deterministic rule checks (e.g., ACL statements map to expected structured ACL entries). All mapping tests use fixed seeds and are archived.",
+    "residual_risks": [
+      "Validators check only the listed invariants (reachability/isolation); other semantic harms not captured by these invariants may remain undetected.",
+      "Canonicalization may obscure some vendor-side semantic differences outside tested invariants."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Validator-fidelity vs production devices: emulator-based checks approximate real device semantics; this is an external-validity limitation bounded by the synthetic/emulator scope and does not block the confirmatory test of the preregistered estimand.",
+    "Corpus representativeness: the synthetic corpus is parametric and deterministic; results therefore generalize to the synthetic workload but not necessarily to proprietary production configs.",
+    "Oracle severity/threshold choices: harmful defined as reachability/isolation invariant violation for the chosen intent pairs; other harm definitions (e.g., performance degradation) are out of scope.",
+    "LLM prompt/model sensitivity: hosted LLM behavior may vary by vendor/model; experiments will report exact prompt templates, temperature, and per-call metadata; generalizability beyond the used hosted LLM is not claimed.",
+    "Repair-iteration cap N=3 may hide very slow-converging repairs; we explicitly preregister a sweep over N∈{1,2,3} in exploratory analyses."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4320165837"
+  ]
+}
