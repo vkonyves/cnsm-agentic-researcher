@@ -1,0 +1,37 @@
+{
+  "summary": "Careful, well-documented preregistered paired study comparing a RAG+deterministic-verifier pipeline to LLM-only on 200 intent→configuration tasks. Strong reproducibility effort (extensive artifacts/hashes). However, there are critical internal inconsistencies in reported contingency counts/definitions and insufficient reporting on retrieval-corpus provenance, repair logic, and leakage-flag summary. The preregistered primary hypothesis was not supported; conclusions must be tightened and a set of mandatory corrections supplied before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 3,
+  "clarity_score": 2,
+  "critical_issues": [
+    "Inconsistent contingency counts and discordant-labeling: reported marginal success counts (baseline_success=199, guarded_success=200) contradict the contingency cell counts (n11=199, n10=1, n01=0, n00=0) and the stated discordant ordering. The document mixes definitions of n10/n01 (baseline vs guarded mapping) — this undermines the primary analysis.",
+    "Analytical inconsistency: with one discordant pair where guarded succeeds and baseline fails, the contingency should reflect n01=1 (not n10=1). The McNemar p-value (reported 1.0) and reported discordant counts are therefore inconsistent and must be recomputed after fixing labels.",
+    "Provider-call / stage-count ambiguity: provider_call_audit and stage_counts report surprising values (e.g., condition_counts {\"shared\":200,\"guarded\":1}) that conflict with completed_episode_count=400 and the paired design. This mismatch must be resolved and explained.",
+    "Ceiling effect and power mismatch: preregistered target (≥30% relative reduction) was unrealistic given the observed near-perfect baseline; the manuscript inadequately addresses how the ceiling effect affects interpretability and statistical power (a planned post-hoc detectable-effect analysis is referenced but not shown).",
+    "Retrieval-corpus provenance and leakage handling underreported: while contamination-detection artifacts are listed, the manuscript omits a concise summary of how many tasks were flagged for exact-match or high-similarity leakage and how those sensitivity analyses change primary conclusions.",
+    "Repair-loop details absent: the guarded pipeline executed only a single automated repair for one task (repair_count=1); manuscript must describe the repair algorithm, decision rules, why repair was rarely invoked, and implications for evaluating a generate→verify→repair architecture.",
+    "Definitions and mapping of success/failure are underspecified: what exact verifier outputs constitute the binary \"critical error\" vs \"success\" (stringent pass/fail rules, normalization steps, handling of equivalent-but-different configurations) must be precisely defined and linked to scoring JSONs.",
+    "Accessibility of archived artifacts: many hashed artifacts are listed, but public access URLs or a clear retrieval mechanism for the replication package are not provided in the manuscript; reproducibility claims require accessible links or instructions.",
+    "Overclaim risk: statements implying operational implications are not sufficiently qualified given single-model, sandboxed setting and unresolved contamination uncertainty."
+  ],
+  "required_revisions": [
+    "Resolve and correct all internal accounting inconsistencies: (a) reconcile marginal counts and contingency table cell labeling (explicitly define n11,n10,n01,n00 and mapping to baseline/guarded), (b) recompute McNemar exact p-value and bootstrap CI after correction, and (c) update all reported numeric results, figures, tables, and downstream interpretations accordingly. Provide a short deterministic reconciliation appendix (with hashes) showing corrected counts.",
+    "Clarify provider-call and stage_count reporting: explain condition_counts and stage_counts entries and verify they align with completed_episode_count and call traces; if any logging/tracking bug occurred, report the deviation and corrected logs.",
+    "Include a concise leakage/contamination summary in the main paper (counts and effect): report how many tasks triggered exact-match or high-similarity flags, and include the results of the pre-specified sensitivity analyses that exclude flagged tasks (primary estimand recomputed on exclusive set).",
+    "Fully specify the guarded repair logic in the Methods: give algorithmic pseudocode, decision thresholds, when a repair is triggered, and why only one repair occurred; link to the exact repair code file path and hash in the execution_manifest.",
+    "Provide the exact prompts used (baseline and guarded) and retrieval-index seeds/queries in the manuscript or a short appendix within the five-page limit (or an immutable persistent reference), and point to the archival path/URLs for raw per-task prompts and model responses.",
+    "Add the planned post-hoc power/sensitivity analysis given the observed baseline rate (as promised in preregistration): compute detectable absolute and relative effect sizes with N=200 and report implications for interpretation.",
+    "Correct wording that could be read as generalizing beyond scope: explicitly limit operational conclusions and remove any language implying production-readiness.",
+    "Ensure artifact accessibility: include URLs or instructions (and required credentials if any) enabling reviewers to retrieve the execution_manifest, scoring JSONs, and per-task scoring files referenced by hash. If artifacts are not public, state access conditions and provide a reproducibility contact.",
+    "Fix minor reporting inconsistencies (e.g., description of primary/secondary endpoints, which secondary analyses were actually executed vs only planned) and ensure all preregistration deviations (if any) are listed; if none, state that explicitly."
+  ],
+  "optional_revisions": [
+    "Expand discussion of ceiling effect and how task construction could be diversified in future work (more adversarial or low-resource tasks).",
+    "Run and report the pre-specified subgroup (per-topology-family) summaries and BH-adjusted secondary tests in the manuscript (concise table) or include key numbers in an appendix, to support exploratory EQ1 findings.",
+    "If possible, add one or two additional LLM variants (or at least a held-out alternate model on a small validation subset) to support generalizability claims (EQ2) — if infeasible, state resource constraints candidly.",
+    "Report latency/operational-cost trade-offs with summary statistics (median, IQR) since H3 was pre-specified; even if non-confirmatory, include results or explicit omission reason.",
+    "Include a one-paragraph reproducibility checklist mapping each claimed artifact to a concrete file path/URL and hash for fast verification by reviewers."
+  ],
+  "accept_for_finalisation": false
+}

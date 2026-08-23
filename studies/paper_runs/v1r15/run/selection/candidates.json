@@ -1,0 +1,129 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-7f4a2",
+      "title": "Effectiveness of RAG+Formal Verification vs LLM-only for Intent→Configuration Correctness",
+      "research_question": "Does combining retrieval-augmented generation (RAG) and a formal network-configuration verifier (sandboxed Batfish-style) with an LLM proposer reduce critical configuration errors compared with LLM-only intent→configuration generation across diverse topologies?",
+      "hypotheses": [
+        "Combining RAG+verifier with an LLM proposer reduces the proportion of critical configuration errors (verification failures causing reachability or isolation violations) by at least 30% relative to LLM-only outputs.",
+        "LLM-only proposals will produce a higher hallucination-driven syntax/semantic error rate than the RAG+verifier pipeline.",
+        "Latency (end-to-end model+verification) for the RAG+verifier pipeline will be measurably higher (median increase >100 ms) but within operationally tolerable bounds for interactive NetOps tasks."
+      ],
+      "proposed_design": "Paired within-task randomized evaluation. Assemble a curated task set of 200 natural-language operator intents across 4 topology families and 3 protocol scenarios. For each intent: (A) prompt LLM to generate configuration (LLM-only) and (B) run RAG-augmented prompt + LLM proposer then pass proposed config to a Batfish-style verifier; if verifier rejects, allow one automated repair iteration. Sandbox-execute both configs in a network simulator to collect concrete execution traces. Record verifier outcomes, sandbox reachability/isolation results, and end-to-end latency. Use fixed seeds for retrieval and deterministic verifier runs. Retry policy: up to one deterministic repair iteration per pipeline. Pre-registration will freeze task set, prompts, retrieval corpus, verifier rules, seeds, and analysis plan.",
+      "expected_data": "Per-task paired records including: raw LLM outputs, retrieved documents, verifier pass/fail + counterexample traces, sandbox execution traces (reachability matrices), repair iterations and outputs, timestamps for each pipeline stage, and human-annotated criticality labels for failures.",
+      "primary_outcome": "Paired critical error rate (proportion of tasks where config causes verifier failure or sandboxed reachability/isolation violation) comparing LLM-only vs RAG+verifier.",
+      "analysis_outline": "Compute paired proportions of critical errors; use McNemar's test for paired binary outcomes and report risk difference with 95% CI. Report per-task latency distributions and compare medians with Wilcoxon signed-rank test. Estimate effect sizes and perform subgroup analyses by topology family (pre-specified). Correct for multiple comparisons with Benjamini–Hochberg when testing subgroups. Report raw counts, CIs, and exact p-values; conduct robustness checks excluding tasks with ambiguous intent.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W7114889968"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4413757123"
+      ],
+      "risks": [
+        "Overfitting results to the chosen simulator or verification rule-set",
+        "Task corpus may underrepresent vendor-specific corner cases",
+        "RAG retrieval corpus quality may bias improvements",
+        "Latency increases may be underestimated for production-scale retrieval services",
+        "False negatives in verifier (unspecified checks) could undercount critical failures"
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "cnd-2b9e1",
+      "title": "Efficacy of Iterative Generate–Verify–Repair Loops for Reducing LLM Hallucination in NetOps",
+      "research_question": "Can iterative generate–verify–repair loops driven by an LLM and informed by deterministic verifier feedback reliably reduce configuration failure rates compared to a single-pass LLM self-correction strategy (no external verifier signals)?",
+      "hypotheses": [
+        "Iterative loops that incorporate deterministic verifier counterexamples will achieve a higher final pass rate on formal verification than LLM-only self-correction without external verifier signals.",
+        "A single LLM self-correction pass without verifier feedback will not achieve the same reduction in critical failures as verifier-guided repair.",
+        "The marginal benefit of additional repair iterations will show diminishing returns after two iterations under the chosen task set."
+      ],
+      "proposed_design": "Controlled three-arm experiment on 150 intents: (1) LLM single-pass generation, (2) LLM self-correction (prompted to critique and revise once without verifier counterexamples), (3) LLM generate–verify–repair loop where verifier returns concrete counterexamples and up to two automated repair iterations are allowed. Use the same retrieval corpus for RAG where applicable. Evaluate final configs with the same formal verifier and sandbox executor. Freeze seeds and prompt templates. Pre-registered primary contrast: arm (3) vs arm (2).",
+      "expected_data": "Per-intent logs of initial outputs, self-correction texts, verifier counterexamples, repaired configurations per iteration, final verifier outcome, sandbox execution traces, and iteration latencies.",
+      "primary_outcome": "Final verifier pass rate (proportion of intents whose final configuration passes formal verification) per arm.",
+      "analysis_outline": "Compare pass rates across arms using chi-square test or Fisher’s exact test where cell counts are small; compute pairwise risk differences with 95% CIs and pre-specified superiority margin (e.g., 10% absolute). Model diminishing returns via logistic regression of pass probability vs iteration count. Report per-task longitudinal traces and perform sensitivity analyses excluding tasks with ambiguous failure classification.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399400998",
+        "https://openalex.org/W4402670429",
+        "https://openalex.org/W7114889968"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "LLM repair may overfit to verifier counterexample wording and not generalize to unseen failures",
+        "Verifier counterexamples may be insufficiently informative for effective repair",
+        "Limited iteration budget may not capture long-tail repair needs",
+        "Results may depend heavily on chosen prompt engineering and retrieval corpus quality"
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnd-5d1c8",
+      "title": "Quantifying Latency and SLA Trade-offs of Adding RAG and Formal Verification to LLM-driven NetOps Pipelines",
+      "research_question": "What are the operational latency, throughput, and approval-delay trade-offs when integrating RAG and formal verification into LLM-driven NetOps pipelines, and do these trade-offs preserve typical interactive operator SLAs?",
+      "hypotheses": [
+        "Integrating RAG plus formal verification increases median end-to-end response latency versus LLM-only by a measurable margin (>100 ms) and reduces throughput under concurrent request loads.",
+        "For interactive NetOps tasks, the combined pipeline will meet relaxed operator SLAs (e.g., median latency <2s) for at least 80% of tasks in the curated set; failure to meet this bound would falsify the operational acceptability claim.",
+        "Verification prevents a substantial fraction (>50%) of configurations that would have caused critical sandboxed failures, justifying the added latency in many operational contexts."
+      ],
+      "proposed_design": "Performance benchmarking under controlled load. Use the same task set (100 intents) and deploy three pipeline variants: (A) LLM-only, (B) LLM+RAG, (C) LLM+RAG+verifier. Measure single-request latencies and throughput under 1x, 5x, and 10x concurrent simulated operator request loads using fixed retrieval and verification service configurations. Record end-to-end latency, per-stage latency, CPU/IO resource proxies, and queueing metrics. Pre-register SLA thresholds and measurement protocol.",
+      "expected_data": "Per-request timestamps for pipeline stages, throughput vs concurrency curves, distribution of latencies (P50/P90/P99), verifier pass/fail counts, and resource-utilization proxies.",
+      "primary_outcome": "Median end-to-end latency per pipeline variant (and proportion of requests meeting pre-specified SLA thresholds).",
+      "analysis_outline": "Report latency distributions and compare medians with bootstrapped 95% CIs. Use Kruskal–Wallis for multi-group latency comparison and post-hoc pairwise Wilcoxon tests with Holm correction. Model throughput degradation via queuing-theoretic summaries and present trade-off curves (latency vs verifier pass-rate). Conduct sensitivity analyses varying retrieval latency and verifier runtime to emulate production variance.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4413757123"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Measured latencies depend on chosen retrieval and verification implementations and may not reflect optimized production services",
+        "Simulated concurrent load may not capture real-world operator behavior patterns",
+        "SLA thresholds chosen may be organization-specific and limit external validity",
+        "Resource proxies (no dedicated GPUs) may under- or over-estimate real resource impacts"
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-9a03f",
+      "title": "Operational Correctness Metric Suite for LLM-driven NetOps and its Empirical Validation",
+      "research_question": "Can a standardized metric suite (reachability, isolation, ACL compliance, rollback-safety) reliably summarize operational correctness of LLM-generated configurations, and how well do these metrics correlate with formal verifier outcomes and sandboxed execution traces?",
+      "hypotheses": [
+        "A compact metric suite combining reachability violation rate, ACL policy-violation rate, and rollback-safety failure rate will explain >80% of variance in formal verifier severity scores across the task corpus.",
+        "Individual metrics will identify distinct failure classes (e.g., reachability vs policy) providing better diagnostic value than a single scalar verifier pass/fail indicator.",
+        "Metric-based threat categories will correlate with human-operator criticality annotations with at least moderate agreement (Cohen’s kappa >0.5)."
+      ],
+      "proposed_design": "Define and pre-register a metric suite with formal definitions and thresholds. Apply the suite to 200 LLM-generated configurations across multiple topologies. For each config run verifier and sandbox execution; compute metric values and severity scores. Collect human operator annotations on criticality for a stratified subset (50 tasks). Evaluate metric–verifier correlations, metric–human agreement, and metric discriminative power for failure types.",
+      "expected_data": "Per-configuration metric vector (reachability matrix violations, ACL mismatches, rollback-safety flags), verifier severity scores and counterexamples, sandbox traces, and human criticality labels for the subset.",
+      "primary_outcome": "Explained variance (R^2) of verifier severity scores by the metric suite (multivariate linear or ordinal regression).",
+      "analysis_outline": "Fit multivariate regression predicting verifier severity from metric suite; report R^2 and 95% CIs via bootstrapping. Analyze classification performance of metric-derived thresholds for critical failures (precision, recall, F1). Compute Cohen’s kappa between metric-derived criticality and human labels. Perform PCA to inspect metric redundancy and report per-metric importance via standardized regression coefficients.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.5085164",
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400377739"
+      ],
+      "risks": [
+        "Metrics may be sensitive to topology encoding choices and verifier rule granularity",
+        "Human operator labels may be noisy or inconsistent",
+        "Metric thresholds chosen a priori may require post-hoc calibration (to be disclosed)",
+        "Correlation with verifier severity may not imply operational causal relevance"
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLMs have been demonstrated in prototypes and benchmarks to translate high-level network intent into low-level network configurations or configuration-like artifacts (simulation/prototype settings rather than validated production deployments).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "Empirical / prototype and benchmark papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence comes from prototypes, simulations, or curated benchmarks rather than production-scale, field-deployed systems",
+        "Task scope, vendor/device coverage, and realism vary across studies"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Hallucination (plausible but incorrect or unsupported outputs) is a widely observed failure mode of LLMs and is documented across multiple surveys and empirical analyses.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4400113208"
+      ],
+      "evidence_type": "Surveys and empirical studies",
+      "confidence": 0.95,
+      "limitations": [
+        "Reported hallucination rates and manifestations depend strongly on task design, prompts, and evaluation methodology"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Retrieval-augmented generation (RAG), explicit generate–verify–repair patterns, and structured verification workflows are documented mitigation strategies that can reduce factual errors in LLM outputs and are recommended in NetOps-oriented architectures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4402670429",
+        "doi:10.3390/app16125811"
+      ],
+      "evidence_type": "Systematic reviews, method papers, and applied NetOps prototypes",
+      "confidence": 0.85,
+      "limitations": [
+        "Effectiveness is task- and implementation-dependent and often evaluated at prototype or simulation scale",
+        "Mitigations can add latency and engineering complexity that are not always fully quantified"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Deterministic network-configuration verification tools exist (e.g., Batfish-based tools) and distributed/verifier-scaling approaches have been demonstrated in research prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757123",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "evidence_type": "Tool / systems papers and prototypes",
+      "confidence": 0.85,
+      "limitations": [
+        "Scalability and integration trade-offs remain active concerns; demonstrations are research-scale rather than universally production-validated",
+        "Integration of LLM pipelines with verifiers is shown in prototypes but not proven at broad production scale"
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Architectural patterns that pair LLM proposers with tooling (RAG, verifiers), sandboxed replay, and human-in-the-loop checks are widely proposed as safer NetOps deployment practices in recent literature and prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "Architectural proposals, position papers, and prototypes",
+      "confidence": 0.85,
+      "limitations": [
+        "Recommendations are often conceptual or prototype-based with limited long-term operator studies",
+        "Operator workflow impacts (latency, burden) are incompletely measured in the supplied records"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "Is there evidence in the supplied records of safe, autonomous execution of unapproved production network changes by LLM-based agents at operational scale?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Evidence gap (absence in supplied records)",
+      "confidence": 0.9,
+      "limitations": [
+        "Supplied records include prototypes, benchmarks, and architectural proposals but do not report validated production deployments of autonomous, unapproved changes"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Can LLM-only self-correction (without reliable external verification or ground-truth feedback) reliably guarantee NetOps configuration correctness?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399400998",
+        "https://openalex.org/W4402670429",
+        "https://openalex.org/W4412158322"
+      ],
+      "evidence_type": "Mixed-method surveys and experimental analyses of self-correction",
+      "confidence": 0.8,
+      "limitations": [
+        "Surveys and method papers indicate self-correction often fails except where reliable external feedback or task structure exists; direct NetOps-domain experimental evidence is limited in the supplied set"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "To what extent do current NetOps/AIOps benchmarks and simulation-based evaluations predict real-world operational safety and reliability for LLM-driven workflows?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6902983",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4416435156"
+      ],
+      "evidence_type": "Methodological analyses and benchmark papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Analyses warn about synthetic-vs-real gaps and limited external validity; supplied benchmarks often lack production realism or diverse ground-truth execution traces"
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "What are the operational cost, latency, and SLA trade-offs when adding RAG, verification, and distributed verification into LLM-driven NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4413757123"
+      ],
+      "evidence_type": "Partial empirical and review evidence",
+      "confidence": 0.65,
+      "limitations": [
+        "Some papers discuss quality–latency trade-offs, but comprehensive, production-like cost/latency evaluations tied to operator SLAs are not provided in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "No supplied record provides a large-scale, execution-grounded end-to-end benchmark that couples natural-language intent→configuration generation with sandboxed execution traces, formal verifier outputs, and operator-approval workflow metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4413757123",
+        "doi:10.3390/app16125811"
+      ],
+      "evidence_type": "Benchmark / integration gap inferred from scope of supplied papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Individual components (intent translation, config generation, verification, log analysis) appear in supplied records, but integrated end-to-end execution-grounded benchmarks are not shown"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Public, large-scale datasets pairing real operator intents, device-specific configurations, and verified execution outcomes (including failure/rollback traces) are limited in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4400377739"
+      ],
+      "evidence_type": "Dataset / benchmark coverage gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Some benchmarks and corpora exist but appear limited in scale, vendor diversity, and absence of ground-truth execution/rollback traces in the supplied set"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Standardized operational correctness metrics (e.g., reachability, isolation, ACL/policy compliance, rollback-safety) tailored to LLM-driven NetOps workflows are underrepresented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "doi:10.2139/ssrn.5085164",
+        "https://openalex.org/W4413757123"
+      ],
+      "evidence_type": "Metric / evaluation gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Papers advocate workflow-centred evaluation, but consistent metric sets tied to sandboxed execution plus verifier outputs are not widely established in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Domain-specific validation experiments that measure RAG and self-correction repair-success rates against formal network verifiers across diverse topologies and protocols are limited among the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4399400998",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "Empirical validation gap",
+      "confidence": 0.7,
+      "limitations": [
+        "RAG/self-correction evidence is encouraging in general, but direct NetOps-domain validation against formal verifiers and across multi-vendor/device heterogeneity is sparse in the supplied set"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform unapproved network changes at scale (no supplied records provide production-deployment evidence).",
+    "Existing NetOps benchmarks conclusively predict safe field deployment of LLM-driven agents (supplied records warn about synthetic-vs-real gaps and limited external validity).",
+    "Self-correction by an LLM alone (without reliable external verification) is sufficient to guarantee configuration correctness in NetOps (surveys and method papers show limited success without external ground-truth feedback)."
+  ]
+}

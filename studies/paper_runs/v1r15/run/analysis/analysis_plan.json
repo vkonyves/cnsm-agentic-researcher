@@ -1,0 +1,33 @@
+{
+  "study_id": "study-2026-netops-rag-verifier-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis per preregistration: compute task-level binary outcome (critical_error: yes/no) from execution/scoring/*.json; produce 2×2 paired contingency (n11,n10,n01,n00) aggregated over 200 tasks; perform McNemar's test (two-sided α=0.05) on discordant pairs; report discordant counts (n01,n10), absolute and relative risk difference (guarded minus baseline) with 95% CI, and exact p-value. Primary failed-call handling: complete_pair_primary.",
+  "secondary_analyses": [
+    "Paired difference in non-critical semantic/syntax error rates (per preregistered secondary estimand) using McNemar or paired proportions as appropriate; report counts and Benjamini–Hochberg-adjusted p-values (FDR 0.05).",
+    "Paired comparison of end-to-end latency (ms) using Wilcoxon signed-rank; report median, IQR, paired median difference with 95% CI and BH-adjusted p-value for the secondary test.",
+    "Per-topology-family paired critical-error differences (4 pre-specified families): report paired contingency and effect estimates with BH-adjusted p-values; include external-validation subset (40 tasks) descriptive summary only."
+  ],
+  "sensitivity_analyses": [
+    "Exclude tasks flagged 'leakage' (exact-match detector) and re-run primary analysis (per preregistered contamination_plan).",
+    "Exclude tasks flagged 'high-similarity' (>90% normalized token overlap) and re-run primary analysis.",
+    "Alternative failed-call handling sensitivity: treat any failed episode by imputing guarded outcome = success=0 and re-run primary test using contract identifier complete_pair_primary_with_failure_as_zero_sensitivity (report as sensitivity).",
+    "Robustness runs excluding tasks with retrieval-corpus overlap per preregistered similarity thresholds and excluding tasks with ambiguity score above pre-specified threshold; report changes in discordant counts and effect sizes."
+  ],
+  "uncertainty_quantification": "95% confidence intervals for absolute risk differences (paired design) reported; exact two-sided McNemar p-values; for latency Wilcoxon paired 95% CIs. Report raw discordant counts and bootstrap-derived CI for the paired risk difference as a supplementary uncertainty check (bootstrap from the 200 paired observations, deterministic RNG seed per preregistration).",
+  "multiplicity_implementation": "Primary confirmatory test only (H1) uses α=0.05 unadjusted. All secondary and pre-specified subgroup tests (H2,H3, per-topology) are non-confirmatory; p-values for these are reported with Benjamini–Hochberg FDR control at 0.05. No alpha spending beyond primary test; exploratory analyses reported without formal familywise correction but labeled exploratory.",
+  "contamination_analysis": "Follow preregistered contamination_plan: deterministic provenance recorded for each retrieval-doc (URL/DOI + SHA-256 from retrieval corpus snapshot). For every episode compute exact-match detector and normalized textual-similarity (token n-gram overlap and Levenshtein where applicable). Flag items as 'leakage' (exact-match), 'high-similarity' (>90% normalized overlap), or 'corpus-provenance' (pre-lock dev doc). Primary analysis includes all tasks; sensitivity analyses exclude flagged sets and report both inclusive and exclusive results. All flagging automated; no manual adjudication.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Overall paired contingency: n11 (both fail), n10 (baseline fail only), n01 (guarded fail only), n00 (neither) and McNemar discordant counts with absolute and relative risk differences and 95% CI (derived from execution/scoring/task-*.json and paired aggregate).",
+    "Table 2 — Per-topology-family summary (4 families): per-family task counts, paired discordant counts, absolute paired risk differences with BH-adjusted p-values.",
+    "Table 3 — Latency summary: per-task paired latency_ms from result records aggregated (median, IQR) and Wilcoxon signed-rank test results (statistic, p, paired median difference, 95% CI).",
+    "Table 4 — Failure-mode breakdown for residual guarded critical errors: counts by category (reachability,isolation,ACL,routing) derived from verifier_result.failure_codes across scoring files; include counts of contamination flags and exclusions (with reasons) from execution_manifest."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart: overall critical-error rate (%) baseline vs guarded (200 tasks) with 95% CI bars (computed from paired proportions).",
+    "Figure 2 — Per-topology-family grouped bar chart: critical-error rates baseline vs guarded for each of 4 families with paired-difference annotations and BH-adjusted p-values.",
+    "Figure 3 — Latency boxplots: paired baseline vs guarded latency_ms distribution (200 pairs) with median/IQR.",
+    "Figure 4 — Failure-mode stacked bar or pie: distribution of residual guarded critical-error categories (reachability,isolation,ACL,routing) using verifier_result.failure_codes from scoring JSONs."
+  ]
+}

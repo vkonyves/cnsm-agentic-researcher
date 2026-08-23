@@ -1,0 +1,28 @@
+{
+  "summary": "Well-executed, preregistered paired study with comprehensive artifact archiving and transparent reporting. Major strength: strong preregistration, end-to-end artifact hashes/logs, and open analysis. Major concern: instrumentation/implementation bookkeeping indicates only 201 model calls for 400 planned episodes, suggesting shared reuse of a single \"shared-initial\" generation across conditions; that pattern risks conflating the baseline and guarded interventions and threatens the study's internal validity. The confirmatory analysis and ceiling/power discussion are appropriate, but the manuscript must resolve the model-call / intervention-separation discrepancy (or disclose it as a post‑hoc deviation) and provide per-episode prompt/retrieval evidence proving the two conditions were applied as preregistered before this paper can be finalised.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 2,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Apparent mismatch between planned paired design (separate generation per condition) and instrumented provider calls: execution_manifest/model_calls_used=201 vs planned 400 episodes — implies shared reuse of generation outputs ('shared_initial_generation') across baseline and guarded conditions and undermines the claimed intervention contrast.",
+    "Insufficient evidence that RAG vs LLM-only interventions were executed independently for each paired episode: retrieval logs and per-condition prompts are not shown in the manuscript; provider_call_audit entries (condition_counts, stage_counts) are ambiguous and conflict with preregistration expectations.",
+    "Preregistration → execution fidelity ambiguous: authors report no post-preregistration deviations but the model-call accounting suggests a substantial implementation choice (shared-initial generation) that was not pre-specified or explained in the manuscript as a deviation.",
+    "Primary confirmatory result rests on very small discordant counts (n10=1,n01=0) with a near-ceiling baseline (199/200). This produces low practical information about the effect and makes the formal test fragile; more detailed sensitivity reporting is needed (e.g., exact test rationale, alternative small-sample inference)."
+  ],
+  "required_revisions": [
+    "Provide explicit, per-episode provider-call records demonstrating that baseline and guarded were produced by distinct generation processes per the preregistration (or, if not, explicitly disclose the deviation). Include the per-episode prompt text, retrieval-context contents, and the exact model-call entries for both conditions (or a compact, tabulated summary with hashes/paths to archived files).",
+    "Explain and reconcile execution_manifest.model_calls_used=201 with completed_episode_count=400: (a) why only 201 model calls were executed, (b) how baseline and guarded generation differed operationally, and (c) why the observed provider_call_audit stage_counts/condition_counts do not imply intervention conflation. If the pipeline intentionally reuses a single shared generation, (i) justify that design relative to the preregistered comparison and (ii) re-label the study as exploratory or rerun the experiment following the preregistration.",
+    "If any post-preregistration implementation choice or technical shortcut affected how conditions were generated (e.g., shared prompt with verifier-only downstream differences, retrieval merged into prompt server-side, or caching reuse), explicitly disclose it in the Disclosure Statement and Methods, and re-classify affected analyses as exploratory when appropriate.",
+    "Provide retrieval-audit logs showing the retrieval hits used in the guarded condition for each task (document provenance and the retrieved snippets used to form RAG prompts) to demonstrate the guarded pipeline actually used external grounding as claimed.",
+    "Augment the Results with compact reproducibility-ready summaries (table or appendix within the 5 pages or linked artifact) showing: per-task condition assignment, raw scoring JSON path/hash, and the discordant-pair list (task IDs where conditions differed).",
+    "Expand the statistical reporting to justify the exact McNemar implementation used for n10=1,n01=0 (explicitly state the exact test calculation used) and provide the planned sensitivity analysis results that speak to the detectable effect given the observed baseline rate (i.e., report post-hoc detectable absolute/relative effects and adjusted interpretation)."
+  ],
+  "optional_revisions": [
+    "If feasible within the submission window, rerun a subset (e.g., the 40-item external-validation subset) with strictly separate generation calls per condition to validate that the shared-generation implementation choice did not bias results; report those results as a robustness check.",
+    "Summarize latency and cost secondary analyses (medians, IQRs, Wilcoxon results) in the main text (short paragraph) to support H3 and operator-relevance claims, referencing archived artifacts.",
+    "Add a short, concrete statement in Limitations that commits to follow-up experiments (more difficult task bank, multiple LLMs, richer repair policies) and indicate which archived artifacts would be sufficient for an independent reanalysis by reviewers to confirm the intervention separation.",
+    "Clarify the contamination-summary content (e.g., counts, thresholds used) in one sentence and include the path/hash for the contamination CSV in the Disclosure Statement for rapid reviewer inspection."
+  ],
+  "accept_for_finalisation": false
+}

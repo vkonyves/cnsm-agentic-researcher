@@ -1,0 +1,29 @@
+{
+  "summary": "This submission performs a preregistered, artifact-backed paired experiment (N=200) comparing an LLM pipeline and a guarded pipeline (RAG + deterministic verifier + ≤1 repair). Execution artifacts and hashes are thoroughly archived and the authors transparently disclose a major post‑preregistration implementation deviation: the pipeline generated a single shared initial candidate per task (replayed as the baseline) and applied the verifier/repair to that same candidate for the guarded condition. Observed results show baseline success 199/200, guarded 200/200 (n11=199, n10=1, n01=0); the preregistered ≥30% relative reduction target is not met (absolute paired improvement 0.005; McNemar two‑sided p=1.0; 95% bootstrap CI [0.00,0.015]). The manuscript is transparent and reproducible, but the protocol deviation materially narrows the confirmatory claim and undermines the originally preregistered contrast (independent LLM-only vs RAG-proposal).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 4,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Major post‑preregistration protocol deviation: a single shared initial generation per task was used rather than independent generation per condition as preregistered; this changes the estimand from ‘effect of RAG+generation’ to ‘effect of verifier(+repair) applied to one fixed LLM candidate’ and invalidates the preregistered confirmatory contrast.",
+    "Severe ceiling effect / underpowering relative to the preregistered target: realized baseline success = 199/200 leaves effectively no headroom for the preregistered ≥30% relative reduction, so the original power assumptions no longer hold.",
+    "Mismatch between planned model-call budget and implementation (planned 400 calls vs model_calls_used=201) is a concrete execution deviation that materially alters the intervention; this is disclosed but requires stronger justification or corrective reanalysis.",
+    "Very low repair activity (1 repair invocation) — no informative analysis of repair effectiveness or failure modes is provided; manuscript lacks representative examples of verifier-detected failures and repaired corrections to enable qualitative assessment.",
+    "Residual contamination risk remains: preregistered leakage detectors ran and reported no exclusions, but overlap between closed-source LLM training data and test tasks is acknowledged and remains uncontrolled; this weakens external validity and must be discussed explicitly with sensitivity checks."
+  ],
+  "required_revisions": [
+    "Recast the paper’s principal claim to match the executed estimand (verifier(+repair) applied to a shared LLM candidate versus no-verifier) or re-execute the experiment according to the preregistration (independent generation per condition) and report the corrected confirmatory analysis; do not present preregistered claims that assume the independent-generation contrast.",
+    "Provide an artifact‑backed justification for the shared‑initial implementation choice and explicitly report how that decision changes the estimand and inference. If kept, update the preregistration record (or label the analysis exploratory) and adjust hypothesis language/figures/tables accordingly.",
+    "Include a per-task failure-mode breakdown with representative examples (at least a few concrete baseline failures, verifier detections, and the single repair instance) and include the scoring JSON snippets or excerpts in an appendix/archival link so reviewers can inspect the behaviors driving the contingency counts.",
+    "Report the preregistered secondary analyses (latency, per-topology-family subgroup results) as planned or explain why they were omitted; include effect sizes, CIs, and any multiplicity adjustments for nonconfirmatory tests.",
+    "Provide a clearer contamination/leakage audit: publish retrieval-corpus provenance, the exact leakage‑detector outputs, and sensitivity analyses that exclude tasks flagged by high similarity/exact-match detectors; discuss limitations due to unknown overlap with closed-source LLM training data.",
+    "Clarify the exact statistical procedures used (McNemar exact calculation and bootstrap CI method) and supply reproducible code snippets or call commands used to compute p-values/CIs from archived artifacts so reviewers can reproduce the numbers."
+  ],
+  "optional_revisions": [
+    "If feasible, rerun a modest supplemental experiment with independent per-condition generation on a stratified subset (e.g., the preregistered 40‑task external‑validation subset) to quantify the difference between 'shared-candidate + verifier' and the originally intended RAG+generation contrast.",
+    "Evaluate additional LLMs or at least a different LLM seed/configuration on a held-out subset to assess model‑sensitivity and external validity.",
+    "Expand the repair policy exploration (multi‑step repairs) or provide simulation/ablation showing how additional repair iterations would be expected to affect results given observed failure modes.",
+    "Add a short table of representative prompt templates and retrieval-index examples in supplementary material to help reproduce retrieval behavior and to aid interpretability."
+  ],
+  "accept_for_finalisation": false
+}

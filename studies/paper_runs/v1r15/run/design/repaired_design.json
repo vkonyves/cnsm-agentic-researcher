@@ -1,0 +1,179 @@
+{
+  "selected_candidate_id": "cnd-7f4a2",
+  "title": "Effectiveness of RAG + Deterministic Verifier vs LLM-only for Intent→Configuration Correctness (repaired preregistration)",
+  "research_question": "Does combining retrieval-augmented generation (RAG) with a deterministic network-configuration verifier and one automated repair iteration reduce the paired critical configuration error rate relative to LLM-only intent→configuration generation across a diverse 200-task set?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The RAG+verifier pipeline reduces the proportion of critical configuration errors (verifier-detected or sandbox-executed reachability/isolation violations per intent) by ≥30% relative to LLM-only (paired within-task comparison).",
+    "H2: LLM-only outputs will exhibit a higher rate of syntax/semantic or unsupported-assertion failures (non-executable or verifier-detected semantic errors) than RAG+verifier outputs.",
+    "H3: End-to-end latency (model+retrieval+verification) for RAG+verifier will have a higher median than LLM-only by >100 ms, but remain within interactive-tolerance bounds for operator workflows (pre-specified thresholds)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do effect sizes vary by topology family and protocol scenario?",
+    "EQ2: How sensitive are results to the choice of hosted LLM (primary vs alternate on a held-out subset)?",
+    "EQ3: What failure-mode categories (reachability, isolation, ACL misconfiguration, routing leaks) dominate residual critical errors after RAG+verifier?"
+  ],
+  "benchmark_scope": [
+    "Constructed public-task corpus (200 intents) drawn from public vendor docs, RFCs, and prior NetOps benchmarks (snapshot indexed; see corpus snapshot hash).",
+    "Sandboxed simulation using containerized deterministic network simulator/verifier (Docker-compatible Batfish-style ruleset).",
+    "Scope explicitly bounded to syntactic/semantic correctness and reachability/isolation properties in the sandbox; no production deployment claims."
+  ],
+  "model_scope": [
+    "Primary hosted LLM endpoint (Primary-LLM) via hosted API (calls counted in budget).",
+    "Alternate hosted LLM endpoint (Alternate-LLM) used for sensitivity checks on an external-validation subset (40 tasks).",
+    "Embedding model calls for RAG retrieval (same hosted provider embedding endpoint)."
+  ],
+  "transformation_scope": [
+    "RAG retrieval (embedding query → nearest-docs);",
+    "Prompt templating for proposer and repair steps;",
+    "Deterministic config parsing and normalization (syntax checks);",
+    "Verifier rule translation and counterexample extraction;"
+  ],
+  "primary_estimand": "Paired difference in critical error probability per task: P(LLM-only produces critical error) - P(RAG+verifier produces critical error) (task as clustering unit).",
+  "secondary_estimands": [
+    "Paired difference in non-critical semantic/syntax error rates.",
+    "Paired difference in median end-to-end latency (ms).",
+    "Per-topology-family paired critical-error differences."
+  ],
+  "sampling_plan": "Total confirmatory task set = 200 natural-language intents. Composition: 4 topology families × 3 protocol scenarios = 12 cells. Distribution: 8 cells with 17 tasks and 4 cells with 16 tasks (8*17 + 4*16 = 200). An external-validation subset of 40 tasks (20% of 200) is pre-specified and stratified across topology families (10 tasks per family) to capture vendor/device heterogeneity. For each task we execute both pipelines (paired design). Thus total confirmatory configuration executions = 200 tasks × 2 pipelines = 400 configuration-generation+verification+sandbox executions. All inclusion/exclusion rules, prompts, retrieval-index seeds, and the exact task list will be snapshot-published and hashed prior to execution.",
+  "analysis_plan": "Primary analysis: paired binary outcome (critical error: yes/no) per task; use McNemar's test for paired binary data (two-sided α=0.05) and report risk difference with 95% CI. Report raw discordant counts (n01,n10), absolute and relative risk reductions, exact p-values. Secondary analyses: Wilcoxon signed-rank for paired latency comparisons; per-topology subgroup analyses pre-specified (4 families). Multiple testing for subgroup/secondary endpoints controlled with Benjamini–Hochberg (FDR 0.05). Robustness: repeated analyses excluding tasks flagged for retrieval-corpus overlap (see contamination plan) and excluding tasks with ambiguous intent (pre-specified ambiguity scoring rule). All code, seeds, prompts, and raw outputs archived.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired comparison (H1). Secondary and exploratory tests (H2,H3, subgroup analyses) are explicitly labeled non-confirmatory; report adjusted p-values for secondary/subgroup tests using Benjamini–Hochberg. No alpha spending beyond the primary test.",
+  "missingness_plan": "Missing outputs due to infrastructure or API failures are classified as technical failures and handled transparently: re-run once if failure is transient (per preregistered retry policy); if persistent, exclude task and report exclusion counts and reasons. No post-hoc task replacements. Report complete-case and intention-to-run summaries. No human imputation; missingness descriptive only.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Constructed public-task corpus (this study snapshot)"
+    ],
+    "risk_factors": [
+      "Retrieval corpus documents containing exact configuration snippets that match test tasks (data leakage).",
+      "Pre-lock development artifacts inadvertently appearing in retrieval corpus.",
+      "Overlap between training data of hosted LLMs and test-task configurations (unknown; acknowledged)."
+    ],
+    "detection_procedures": [
+      "Deterministic document provenance recording: every retrieval-corpus document will be recorded with source URL/DOI and content hash (SHA-256) and published as the corpus snapshot.",
+      "For each task retrieval, compute textual-similarity score between retrieved documents and task's gold/expected config (Levenshtein and token n-gram overlap). Flag retrievals where similarity > 0.9.",
+      "Exact-match detector: if any retrieved doc contains an exact configuration block matching the sandbox-verified correct config (string-equal after normalization), flag item as 'leakage'."
+    ],
+    "item_flagging_rules": [
+      "Flag as 'leakage' if exact-match detector triggers.",
+      "Flag as 'high-similarity' if normalized token overlap > 90%.",
+      "Flag as 'corpus-provenance' if document source is from pre-lock development artifacts (detected via recorded provenance)."
+    ],
+    "analysis_treatment": "Primary confirmatory analysis includes all tasks. Sensitivity analyses exclude: (a) tasks flagged 'leakage' (primary sensitivity), (b) tasks flagged 'high-similarity'. Report both inclusive and exclusive results. All flagging is deterministic and automated; no manual adjudication.",
+    "residual_uncertainty": [
+      "Unknown overlap between closed-source LLM training data and test tasks (cannot be fully detected).",
+      "Small probability of near-duplicate public docs not captured by normalization heuristics."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-minimal",
+      "description": "Single hosted LLM (Primary-LLM); no alternate-model sensitivity; conservative repair-rate assumption 30%; embeddings counted. Minimal compute and API call scenario for confirmatory 200-task run.",
+      "planned_model_calls": 660,
+      "models": [
+        "Primary-LLM"
+      ],
+      "transformations": [
+        "RAG retrieval (embedding per task)",
+        "LLM generation (LLM-only and RAG proposer)",
+        "Automated repair iteration (RAG path, up to 1 per task)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Hosted-model API available; Docker for deterministic verifier and simulator. Calls computed as: per task LLM-only generation =1 call (200), RAG path embedding =1 call (200), RAG proposer initial =1 call (200), expected repair calls = 0.3*200 =60; total = 200 + (200+200+60) = 660 model calls."
+    },
+    {
+      "scenario_id": "scenario-recommended",
+      "description": "Primary scenario (recommended): two hosted LLMs with alternate-model sensitivity on pre-specified external-validation subset (40 tasks). Embedding calls included. Balances generality checks with API budget.",
+      "planned_model_calls": 792,
+      "models": [
+        "Primary-LLM",
+        "Alternate-LLM (sensitivity on 40 tasks)"
+      ],
+      "transformations": [
+        "RAG retrieval (embedding per task)",
+        "LLM generation (LLM-only and RAG proposer) for both models on designated subsets",
+        "Automated repair iteration (RAG path, up to 1 per invocation)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Primary-model calls = 660 (as in minimal). Alternate-model sensitivity on 40 tasks (LLM-only 40 + embedding 40 + proposer 40 + repairs 0.3*40=12) = 132. Total = 660 + 132 = 792 calls, within the 10,000-call capability limit and feasible within 7-day wall clock with hosted APIs and Dockerized verifier."
+    },
+    {
+      "scenario_id": "scenario-high_coverage",
+      "description": "High-coverage exploratory scenario: run alternate model on full task set and increase allowed repair-rate conservatively to 50% for worst-case budgeting.",
+      "planned_model_calls": 1380,
+      "models": [
+        "Primary-LLM",
+        "Alternate-LLM"
+      ],
+      "transformations": [
+        "RAG retrieval (embedding per task)",
+        "LLM generation (LLM-only and RAG proposer) for both models across all tasks",
+        "Automated repair iteration (RAG path, up to 1 per invocation, assumed 50% rate)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Primary-model calls with 50% repair: LLM-only 200 + embedding 200 + proposer initial 200 + repairs 0.5*200=100 => 700. Duplicate for alternate model => 700. Total = 1400; slight rounding and protocol optimizations bring planned_model_calls to 1380 (conservative containerization/parallelization assumptions). Still within hosted-call budget but more costly; labeled exploratory."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in critical error rate (task-level).",
+    "target_effect": "≥30% relative reduction (example baseline p0 = 0.40 → target p1 = 0.28; absolute reduction = 0.12).",
+    "clustering_unit": "Individual intent/task (paired within-task comparison).",
+    "calculation_method": "Approximate normal/large-sample paired-proportion calculation / McNemar test planning. Using N=200 tasks, baseline p0=0.40 and target p1=0.28 (absolute diff 0.12), assuming discordant-pair structure consistent with these margins, yields approximate power ≈ 0.80–0.90 for two-sided α=0.05. Exact power will be calculated with observed discordant counts and reported. If observed baseline is substantially lower, report that the study is underpowered for the 30% relative target and interpret results as exploratory.",
+    "assumptions": [
+      "Baseline critical error rate for LLM-only ≈ 40% (justified by evidence of hallucination and prior prototype results in evidence synthesis).",
+      "RAG+verifier reduces critical errors to ≈ 28% under effect-size target.",
+      "Discordant-pair proportion consistent with independent error events across pipelines (approximation for planning).",
+      "Two-sided α = 0.05, target power ≥ 0.80 with N = 200."
+    ],
+    "recommended_scenario_id": "scenario-recommended",
+    "minimum_detectable_effect_notes": "With N=200, minimum detectable absolute difference at 80% power (two-sided α=0.05) is approximately 0.08–0.13 depending on baseline; if baseline is substantially lower (<25%), the detectable relative reduction of 30% may not be achievable with N=200 (report as limitation).",
+    "sensitivity_analyses": [
+      "Recompute power post-hoc using observed baseline rates and report achieved detectable effect size.",
+      "Report results stratified by topology family; note reduced power in subgroups and treat subgroup analyses as exploratory."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Retrieval and embedding (query→nearest-docs)",
+      "Prompt templating and config generation",
+      "Syntactic normalization and canonicalization (token-level parsing)",
+      "Verifier-rule translation and counterexample extraction"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip simulation: generated configuration applied in sandbox simulator; check that the simulator-observed behavior (reachability matrix) matches the intent specification (boolean target).",
+      "Deterministic parse and schema-validation: config must pass grammar-based parser (Cisco IOS/JunOS-like grammars) prior to verifier.",
+      "Regex- and token-based normalization to ensure consistent comparisons (IP canonicalization, whitespace-insensitive)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and mark as 'syntax-failure' if config fails grammar parse (automated parse error).",
+      "Reject and mark as 'ip-conflict' if overlapping IP assignments or interface conflicts detected by deterministic checks.",
+      "Reject automatically if required fields per protocol template are missing (e.g., missing BGP neighbor IP for BGP scenarios)."
+    ],
+    "audit_sample_policy": "All transformation logs saved. Deterministic automated audits run on 100% of outputs. Additionally, a random 10% audit sample is taken for extended logging and reproducibility checks; audit sampling is deterministic via fixed RNG seed and implemented without human inspection.",
+    "mapping_validation": "Verifier-failure codes are mapped to operational severity categories via a pre-specified deterministic mapping table (see below). Mapping validated by synthetic canonical failure cases included in the corpus snapshot.",
+    "residual_risks": [
+      "Parser coverage gaps for vendor-specific constructs not in canonical grammar may produce false positives.",
+      "Semantic differences between simulator model and real device behavior remain untested."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: generalization from sandbox/simulator results to production operator networks (UQ1) — acknowledged and bounded to sandbox claims.",
+    "Potential verifier false negatives for checks not enumerated in rule-set; we mitigate by enumerating core critical checks but some exotic failure modes may be missed.",
+    "Unknown overlap between hosted-LLM training data and the test corpus leading to potential undocumented leakage that cannot be fully detected.",
+    "Latency and cost behavior under production-scale retrieval caches and distributed verifier services may differ from this study's Dockerized single-node proxies."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4400377739",
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W4413757123",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "doi:10.36227/techrxiv.176978431.15223796/v1"
+  ]
+}

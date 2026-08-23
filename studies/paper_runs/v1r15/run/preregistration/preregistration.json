@@ -1,0 +1,77 @@
+{
+  "study_id": "study-2026-netops-rag-verifier-001",
+  "title": "Effectiveness of RAG + Deterministic Verifier vs LLM-only for Intent→Configuration Correctness (repaired preregistration)",
+  "research_question": "Does combining retrieval-augmented generation (RAG) with a deterministic network-configuration verifier and one automated repair iteration reduce the paired critical configuration error rate relative to LLM-only intent→configuration generation across a diverse 200-task set?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The RAG+verifier pipeline reduces the proportion of critical configuration errors (verifier-detected or sandbox-executed reachability/isolation violations per intent) by ≥30% relative to LLM-only (paired within-task comparison).",
+    "H2: LLM-only outputs will exhibit a higher rate of syntax/semantic or unsupported-assertion failures (non-executable or verifier-detected semantic errors) than RAG+verifier outputs.",
+    "H3: End-to-end latency (model+retrieval+verification) for RAG+verifier will have a higher median than LLM-only by >100 ms, but remain within interactive-tolerance bounds for operator workflows (pre-specified thresholds)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do effect sizes vary by topology family and protocol scenario?",
+    "EQ2: How sensitive are results to the choice of hosted LLM (primary vs alternate on a held-out subset)?",
+    "EQ3: What failure-mode categories (reachability, isolation, ACL misconfiguration, routing leaks) dominate residual critical errors after RAG+verifier?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4400377739",
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W4413757123",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "doi:10.36227/techrxiv.176978431.15223796/v1"
+  ],
+  "benchmark_scope": [
+    "Constructed public-task corpus (200 intents) drawn from public vendor docs, RFCs, and prior NetOps benchmarks (snapshot indexed; see corpus snapshot hash).",
+    "Sandboxed simulation using containerized deterministic network simulator/verifier (Docker-compatible Batfish-style ruleset).",
+    "Scope explicitly bounded to syntactic/semantic correctness and reachability/isolation properties in the sandbox; no production deployment claims."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400
+  },
+  "primary_estimand": "Paired difference in critical error probability per task: P(LLM-only produces critical error) - P(RAG+verifier produces critical error) (task as clustering unit).",
+  "secondary_estimands": [
+    "Paired difference in non-critical semantic/syntax error rates.",
+    "Paired difference in median end-to-end latency (ms).",
+    "Per-topology-family paired critical-error differences."
+  ],
+  "sampling_plan": "Total confirmatory task set = 200 natural-language intents. Composition: 4 topology families × 3 protocol scenarios = 12 cells. Distribution: 8 cells with 17 tasks and 4 cells with 16 tasks (8*17 + 4*16 = 200). An external-validation subset of 40 tasks (20% of 200) is pre-specified and stratified across topology families (10 tasks per family). For each task we execute both pipelines (paired design). Inclusion/exclusion rules, prompts, retrieval-index seeds, and the exact task list will be snapshot-published and hashed prior to execution.",
+  "power_and_precision_plan": "Primary estimand: paired difference in critical error rate (task-level). Target effect: ≥30% relative reduction (example baseline p0 = 0.40 → target p1 = 0.28; absolute reduction = 0.12). With N=200 tasks and two-sided α=0.05, approximate power ≈ 0.80–0.90 under assumed baseline; exact power calculated using observed discordant counts and reported. If observed baseline is substantially lower, report reduced power and treat results accordingly. Pre-specified sensitivity: recompute power post-hoc and report detectable effect sizes.",
+  "exclusion_rules": [
+    "Exclude tasks persistently failing due to infrastructure or API outages after one automatic retry; report exclusions with reasons and counts.",
+    "No post-hoc replacement of excluded tasks; all exclusions and reasons published."
+  ],
+  "missingness_plan": "Missing outputs due to infrastructure or API failures are technical failures: re-run once if failure is transient (per preregistered retry policy); if persistent, exclude task and report exclusion counts and reasons. No post-hoc task replacements. Report complete-case and intention-to-run summaries. No human imputation; missingness descriptive only.",
+  "analysis_plan": "Primary analysis: paired binary outcome (critical error: yes/no) per task; use McNemar's test for paired binary data (two-sided α=0.05) and report risk difference with 95% CI. Report raw discordant counts (n01,n10), absolute and relative risk reductions, exact p-values. Secondary analyses: Wilcoxon signed-rank for paired latency comparisons; per-topology subgroup analyses pre-specified (4 families). Multiple testing for subgroup/secondary endpoints controlled with Benjamini–Hochberg (FDR 0.05). Robustness: repeated analyses excluding tasks flagged for retrieval-corpus overlap and excluding tasks with ambiguous intent per pre-specified ambiguity score. All code, seeds, prompts, and raw outputs archived.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired comparison (H1). Secondary and exploratory tests (H2,H3, subgroup analyses) are labeled non-confirmatory; report adjusted p-values for secondary/subgroup tests using Benjamini–Hochberg. No alpha spending beyond the primary test.",
+  "contamination_plan": "{\"benchmark_names\": [\"Constructed public-task corpus (this study snapshot)\"], \"risk_factors\": [\"Retrieval corpus documents containing exact configuration snippets that match test tasks (data leakage).\", \"Pre-lock development artifacts inadvertently appearing in retrieval corpus.\", \"Overlap between training data of hosted LLMs and test-task configurations (unknown; acknowledged).\"], \"detection_procedures\": [\"Record deterministic provenance for every retrieval-corpus document (URL/DOI + SHA-256).\", \"For each task retrieval compute textual-similarity (Levenshtein and token n-gram overlap) vs task gold/expected config; flag similarity > 0.9.\", \"Exact-match detector: flag if any retrieved doc contains an exact configuration block matching the sandbox-verified correct config (string-equal after normalization).\"], \"item_flagging_rules\": [\"Flag 'leakage' if exact-match detector triggers.\", \"Flag 'high-similarity' if normalized token overlap > 90%.\", \"Flag 'corpus-provenance' if document source is from pre-lock development artifacts.\"], \"analysis_treatment\": \"Primary confirmatory analysis includes all tasks. Sensitivity analyses exclude: (a) tasks flagged 'leakage' (primary sensitivity), (b) tasks flagged 'high-similarity'. Report both inclusive and exclusive results. All flagging deterministic and automated; no manual adjudication.\", \"residual_uncertainty\": [\"Unknown overlap between closed-source LLM training data and test tasks (cannot be fully detected).\", \"Small probability of near-duplicate public docs not captured by normalization heuristics.\"]}",
+  "stopping_rule": "No early scientific stopping for efficacy. Execute all 200 paired tasks. Stop only for persistent systemic infrastructure/provider outage preventing completion within the allotted wall-clock window (7 days) or for catastrophic data-corruption; in such cases abort, report exact failure modes, exclusion counts, and hashes. Transient API failures: one automatic retry per task as per missingness_plan.",
+  "planned_outputs": [
+    "IEEE/IFIP CNSM 2026 short paper (≤5 pages) with mandatory Disclosure Statement",
+    "LaTeX source and compiled PDF",
+    "Task corpus snapshot, retrieval corpus with provenance and hashes",
+    "Code, containerized verifier/simulator Docker image, and experiment archive (seeds, prompts, raw outputs)",
+    "Statistical-results file and failure-analysis record",
+    "NotebookLM presentation brief (machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

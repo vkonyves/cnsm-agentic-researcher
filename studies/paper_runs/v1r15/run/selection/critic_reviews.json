@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-7f4a2",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Task corpus may not represent vendor/device corner cases (external validity).",
+        "RAG retrieval-corpus quality could confound effect attributed to verifier.",
+        "Verifier rule coverage (which checks count as ‘critical’) is underspecified.",
+        "Human criticality labels are subjective and not validated for inter-rater reliability.",
+        "Single-LLM focus risks overclaiming generality."
+      ],
+      "required_design_repairs": [
+        "Specify retrieval corpus construction and provide public snapshot/hash.",
+        "Enumerate verifier rule-set and map verifier failures to operational-critical categories; publish rule definitions.",
+        "Increase task diversity across vendors/protocols or justify representativeness; include external-validation subset.",
+        "Define human-annotation protocol and report inter-rater agreement; consider larger annotation sample or automated proxies.",
+        "Add explicit limitations on single-LLM generality or include at least one additional model for sensitivity checks."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2b9e1",
+      "novelty": 0.75,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Baseline (LLM self-correction without verifier) may be an unrealistic strawman unless carefully specified.",
+        "Verifier counterexamples may vary in informativeness; repair success may depend heavily on prompt engineering.",
+        "Risk of overfitting repairs to counterexample phrasing rather than underlying bug class.",
+        "Iteration budget (≤2) may miss long-tail repairs."
+      ],
+      "required_design_repairs": [
+        "Precisely define the self-correction baseline prompts and justify as a realistic operator workflow.",
+        "Pre-register prompt templates for repair and critique steps; include ablation documenting prompt sensitivity.",
+        "Specify measures to detect overfitting to counterexample wording (e.g., held-out failure types).",
+        "Justify iteration budget or include exploratory arm with extended iterations and report diminishing-return analysis; disclose when exploratory results are used."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-5d1c8",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Latency/resource measurements rely on proxies and may not reflect production retrieval/verifier services.",
+        "Chosen SLA thresholds appear arbitrary without operator-context justification.",
+        "Concurrent-load simulation may not capture realistic operator request patterns or network conditions.",
+        "No clear plan to emulate network/service variability (e.g., retrieval cache hits/misses)."
+      ],
+      "required_design_repairs": [
+        "Justify SLA thresholds via citation or operator survey, or present results across multiple threshold choices.",
+        "Instrument and report retrieval and verifier microbenchmarks; include sensitivity analysis varying retrieval/verifier latencies.",
+        "Describe concurrency simulation model and validate it against a plausible operator workload; consider trace-driven simulation if available.",
+        "Report resource-proxy limitations and, where possible, complement with lightweight containerized service examples to approximate production behavior."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-9a03f",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Metric thresholds and definitions may require post-hoc calibration, risking circularity.",
+        "Human-annotation sample (n=50) is small for robust agreement estimates.",
+        "Correlation with verifier severity is associative and may not establish operational causality.",
+        "Metric sensitivity to topology encoding and verifier granularity is not controlled."
+      ],
+      "required_design_repairs": [
+        "Pre-register exact metric definitions, thresholds, and calibration procedure; if calibration required, treat as exploratory and report separately.",
+        "Increase human-label sample or report inter-rater reliability and confidence intervals; pre-specify rater selection and training.",
+        "Include stratified evaluation across topology families and report metric stability; add external validation split.",
+        "State explicitly that metric–verifier relationships are correlational and propose follow-up causal tests; if possible, add small causal perturbation checks (e.g., targeted config variants)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
