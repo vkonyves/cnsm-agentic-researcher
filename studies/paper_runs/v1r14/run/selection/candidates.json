@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-2026-netops-gvr-eval-01",
+      "title": "Empirical evaluation of generate→verify→repair pipelines for NetOps configuration safety in an emulated production-like testbed",
+      "research_question": "Does an integrated generate→verify→repair (GVR) pipeline combining an LLM generator with a deterministic network verifier and automated repair loop reduce unsafe or incorrect network changes (constraint violations, silent misconfigurations, and failed rollouts) versus LLM-only generation in realistic emulated NetOps workloads?",
+      "hypotheses": [
+        "A GVR pipeline will produce significantly fewer post-verification constraint violations than LLM-only generation on the same intent tasks.",
+        "A GVR pipeline will detect and repair >90% of verifier-detectable correctness violations within a single automated repair iteration for the chosen testbed tasks.",
+        "Any remaining unsafe changes after GVR will be attributable to verifier coverage limits or intent ambiguity rather than stochastic LLM hallucination alone."
+      ],
+      "proposed_design": "Construct a reproducible emulated testbed (containerized routers and switch models with realistic ACLs, BGP/OSPF, VLANs) and a task suite of 120 intent-to-change items sampled across topology sizes (small/medium/large emulations). Implement two pipelines: (A) LLM-only generator that emits configuration snippets; (B) GVR pipeline where LLM output is passed to a deterministic verifier (e.g., Batfish-style checks / formal reachability tool) and, if failing, an automated repair prompt loop up to two iterations. Use a single hosted LLM model identifier (recorded in Disclosure) with fixed temperature and seeds. Enforce preregistered replayable prompts, verifier rules, and repair templates. Apply each intent task once per pipeline deterministically (paired design). Record verifier outcomes, post-enactment simulated forwarding state, rollout/rollback simulated procedures, and whether the change would have been enacted safely.",
+      "expected_data": "Per-task binary outcomes for verifier pass/fail, number of repair iterations, final verifier pass status, simulated post-enactment correctness metrics (reachability, ACL policy conformance), rollout success/failure flags, and latency/model-call counts. Expect GVR to show lower verifier-failure rates (projected >50% relative reduction) and higher final-correctness rates; observed counts and proportions with 95% CIs will be produced.",
+      "primary_outcome": "Paired difference in final simulated-correctness rate (fraction of tasks whose final enacted configuration satisfies all verifier-specified properties) between GVR and LLM-only pipelines; null hypothesis: no difference.",
+      "analysis_outline": "Compute per-task paired proportions of final correctness; use McNemar's test for paired binary outcomes and estimate absolute risk reduction with 95% Wilson CIs. Analyze repair iteration counts descriptively (median/IQR). Conduct subgroup analyses by topology scale (small/medium/large) using stratified McNemar or conditional logistic regression. Report exact p-values and effect sizes; control exploratory subgroup tests with Benjamini–Hochberg at q=0.05. Perform failure-mode audit on tasks where GVR fails to produce correct output, coding root causes (verifier coverage, ambiguous intent, generator error).",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W4387634435"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W2889227506",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Emulator fidelity may not capture production corner cases leading to overoptimistic safety estimates",
+        "Verifier coverage may miss semantic properties (causing apparent GVR failures to be misattributed)",
+        "Model API rate limits or non-determinism could inflate variance beyond preregistered budgets",
+        "Preregistration deviations if a repair policy proves insufficient"
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnd-2026-netops-adversarial-02",
+      "title": "Targeted adversarial tool-description attacks against agentic NetOps pipelines",
+      "research_question": "How vulnerable are LLM-based NetOps pipelines that rely on tool descriptions and registries to targeted adversarial manipulations of tool descriptions or prompts (e.g., malicious tool-docs or registry entries) that attempt to induce unsafe configuration changes or bypass verifiers?",
+      "hypotheses": [
+        "Maliciously crafted tool descriptions injected into the agent tool registry will increase the rate of unsafe or verifier-undetected configuration proposals relative to a benign registry baseline.",
+        "A simple registry-validation defense (signature/whitelist check plus short canonicalization) will reduce adversarial success rate but not eliminate it entirely for sophisticated prompt-based manipulations.",
+        "Adversarial success will be higher on tasks with ambiguous high-level intent than on narrowly specified intent tasks."
+      ],
+      "proposed_design": "Use the same emulated testbed and task bank as Candidate 1 (subset of 80 tasks). Implement an agentic pipeline that uses a tool registry (tool descriptions + invocation interface) to call a configuration-emission tool. Create attacker templates that modify tool descriptions to (i) mischaracterize verification behavior, (ii) suggest insecure defaults, or (iii) include persuasive examples. For each intent task, run three conditions: (A) benign registry, (B) adversarial registry, (C) adversarial registry plus registry-validation defense. Measure unsafe proposal rate (config that would violate verifier properties), verifier bypass (cases where agent proposes to skip verification), and adversarial success rate. Randomize task order and fix model seeds; limit adversary variants to a preregistered set and record all prompts/registry entries.",
+      "expected_data": "Counts and rates per condition of unsafe proposals, verifier-bypass attempts, and final enacted-safety after any automated repair. Expect adversarial registry to significantly raise unsafe proposal rate vs benign; validation defense to reduce but not fully remove effect. Data will include full attack templates and success logs for forensic analysis.",
+      "primary_outcome": "Difference in unsafe-proposal rate between adversarial-registry and benign-registry conditions (paired within task); falsifiable null: no difference.",
+      "analysis_outline": "Use paired proportion tests (McNemar) comparing benign vs adversarial and adversarial vs defended. Estimate absolute risk increase with 95% CIs. Conduct qualitative coding of successful attack patterns and correlate success with intent ambiguity score using logistic regression. Report attack transferability across tasks. Use exact tests if counts are small.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6475399",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W4387634435"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4396723768",
+        "doi:10.2139/ssrn.6475399"
+      ],
+      "risks": [
+        "Ethical risk of publishing attack templates that could be weaponized — will redact high-risk details in public artifacts and follow responsible disclosure policies",
+        "Simulator limits may underestimate adversary capability in live systems",
+        "Model API unpredictability could require retries that conflict with preregistered budgets"
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cnd-2026-netops-decoding-tradeoffs-03",
+      "title": "Latency and resource trade-offs of constrained and multi-path decoding for verifiable network-configuration generation",
+      "research_question": "What are the latency, model-call, and success-rate trade-offs when applying constrained decoding and multi-path/adaptive decoding strategies to achieve verifier-passing network configurations compared to unconstrained decoding in NetOps intent-to-configuration tasks?",
+      "hypotheses": [
+        "Constrained decoding or deterministic decoding will reduce verifier-failure rates relative to unconstrained sampling at the cost of increased per-request compute or implementation complexity.",
+        "Multi-path adaptive decoding (parallel short samples with verifier-in-the-loop) will achieve verifier-passing rates comparable to constrained decoding with lower worst-case latency for medium-sized tasks.",
+        "The resource (model-call) cost to reach >95% verifier-pass will be non-linear and task-size dependent, growing faster for larger topologies."
+      ],
+      "proposed_design": "Select 90 intent tasks stratified by topology size. Implement three decoding strategies: (A) unconstrained stochastic decoding (baseline), (B) constrained/deterministic decoding (e.g., constrained beam or decoding with grammar constraints implemented via API where supported), (C) multi-path adaptive decoding: generate N short candidates in parallel (N preregistered), run verifier on each, and accept first passing candidate or fall back to repair. Measure per-task wall-clock latency, total model calls, verifier-pass rate, and end-to-end correctness. Fix model temperature and seeds where applicable; preregister decoding parameters and max-call budgets. Record resource usage and time-to-first-pass.",
+      "expected_data": "Per-task latency distributions, total model-call counts, verifier-pass rates per strategy, and joint distributions of latency vs correctness. Expect constrained decoding and multi-path to both improve verifier-pass rates vs baseline; multi-path may offer lower median latency but higher aggregate model calls. Quantify break-even points where constrained decoding is preferable.",
+      "primary_outcome": "Pareto frontier comparing latency and verifier-pass rate across decoding strategies; falsifiable if unconstrained decoding dominates alternatives on both latency and pass rate.",
+      "analysis_outline": "Compute median and 95% bootstrap CIs for latency and model-call counts per strategy and per topology size. Use pairwise Wilcoxon signed-rank tests for latency comparisons and McNemar tests for paired pass-rate comparisons. Construct Pareto curves and compute area-under-curve metrics for latency-vs-pass-rate trade-off. Report cost per additional percent of verifier-pass (incremental model calls).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.7199158",
+        "https://openalex.org/W4387321091"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4387321091",
+        "doi:10.2139/ssrn.6116106"
+      ],
+      "risks": [
+        "Some constrained-decoding techniques require model-side features not available in hosted APIs, necessitating approximate client-side workarounds that alter generalizability",
+        "Parallel generation increases aggregate cost and may exceed model-call budgets",
+        "Latency measurements in an emulated environment may not match cloud deployment characteristics"
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-2026-netops-enactment-benchmark-04",
+      "title": "Design and validation of a compact end-to-end NetOps enactment-safety benchmark with rollout/rollback and adversarial scenarios",
+      "research_question": "Can a compact, publicly reproducible benchmark that includes end-to-end enactment-safety tasks (generate→verify→deploy including rollout/rollback and adversarial perturbations) reveal operational failure modes not captured by existing QA-style NetOps benchmarks?",
+      "hypotheses": [
+        "A compact enactment-safety benchmark will expose a significantly higher proportion of operationally critical failure modes (silent misconfigurations, failed rollbacks, policy regressions) than matched QA-style tasks drawn from existing suites.",
+        "Including adversarial perturbations in benchmark tasks will materially increase detected failure rates compared to benign tasks, demonstrating gap in standard benchmarks.",
+        "Benchmark tasks with explicit rollout/rollback sequences will reveal different model failure patterns (e.g., order-sensitivity) than single-change tasks."
+      ],
+      "proposed_design": "Design a 48-task benchmark with three modules: (1) single-change correctness tasks, (2) rollout/rollback sequences where staged changes must preserve invariants during transition, and (3) adversarial-perturbation tasks that include noisy or malicious context. Provide standardized emulated topologies, verifier rule sets, and scoring scripts that produce enactment-safety metrics (final correctness, silent-failure counts, rollback success). Validate benchmark by running three pipeline variants (LLM-only, GVR, GVR+defenses) and comparing detected failure-mode distributions to a matched set of QA-style tasks from OpsEval-style sources. Publish benchmark artifact with Dockerized testbed and evaluation harness.",
+      "expected_data": "Benchmark artifact (code + tasks) and experimental runs showing per-task enactment-safety metrics across pipelines, comparison tables showing which failure modes are uncovered uniquely by the benchmark versus QA-style suites. Expect the enactment benchmark to detect a non-overlapping set of operational failures (projected >25% additional unique failures) and to demonstrate feasibility of compact reproducible evaluation.",
+      "primary_outcome": "Proportion of operational failure modes (silent misconfigs, rollback failures, policy regressions) detected by the new benchmark but not by matched QA-style evaluation; null: no difference.",
+      "analysis_outline": "Report counts and proportions of unique failure modes per benchmark module and per pipeline. Use chi-squared or Fisher's exact tests to compare detection rates between the enactment benchmark and QA-style tasks. Provide descriptive categorization of unique failures with examples. Release reproducible artifact and run logs to allow independent verification.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Risk of overfitting benchmark tasks to the tested pipelines; will mitigate by releasing tasks and encouraging external evaluation",
+        "Ethical concern of releasing adversarial task templates — high-risk details will be responsibly redacted and guided disclosure provided",
+        "Simulated rollback semantics may differ from vendor-specific production rollback behavior"
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

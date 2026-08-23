@@ -1,0 +1,242 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Researchers actively apply LLMs and agentic LLM agents to NetOps/AIOps tasks, including intent-to-configuration translation and autonomous remediation prototypes.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "empirical_and_system_descriptions (peer-reviewed + preprints/tech reports + benchmark paper)",
+      "confidence": 0.9,
+      "limitations": [
+        "Several sources are preprints/technical reports rather than mature production deployments",
+        "Many demonstrations report prototype or lab evaluations rather than large-scale field trials"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate–Verify–Repair (GVR) / generate–verify architectures are proposed as an approach to make stochastic LLM outputs compatible with deterministic validation requirements in safety- or compliance-sensitive domains.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6199159",
+        "doi:10.2139/ssrn.6116106"
+      ],
+      "evidence_type": "methodological proposals and case studies (preprints/working papers)",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence consists mainly of architectural proposals and single-case or preliminary evaluations, not large-scale NetOps-specific controlled trials",
+        "Terminology and exact pipeline designs vary across sources"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Tool-augmented agent architectures and Retrieval-Augmented Generation (RAG) are widely recommended to improve factual grounding and domain specificity for LLM-based agents.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4396723768",
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.2139/ssrn.6214418"
+      ],
+      "evidence_type": "surveys and system papers",
+      "confidence": 0.92,
+      "limitations": [
+        "Most reported systems are prototypes; practical efficacy depends on tool quality, retrieval design, and domain sources",
+        "RAG/tool effectiveness is task- and dataset-dependent"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "There exists a mature body of deterministic/formal network verification tools and literature (e.g., Veriflow/Anteater/Batfish and network verification research) that can check reachability, policy, and forwarding correctness and serve as validators for generated network configurations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W2957311447",
+        "https://openalex.org/W2734326062"
+      ],
+      "evidence_type": "survey + verification-tool papers",
+      "confidence": 0.95,
+      "limitations": [
+        "Integration of these formal tools with LLM-agent pipelines is discussed in proposals but large-scale integrated evaluations are limited",
+        "Some verification tools target specific problem classes and may not cover every operational property"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Benchmarks and evaluation suites for LLMs in operations exist (e.g., OpsEval) but studies and surveys highlight evaluation gaps relevant to operational validity.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "benchmark paper and AIOps survey",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks often focus on question-answering or multi-choice tasks rather than end-to-end safety/verification of enacted network changes",
+        "Open-sourcing and coverage vary across benchmarks"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Hallucination, miscalibration/overconfidence, and adversarial/jailbreak vulnerabilities are documented risks for LLMs and agentic systems, raising safety and trust concerns in operational settings.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6475399",
+        "doi:10.64898/2026.02.26.26347212",
+        "https://openalex.org/W4406779522"
+      ],
+      "evidence_type": "survey and empirical red-team studies",
+      "confidence": 0.93,
+      "limitations": [
+        "Adversarial success rates and modes vary by model and defensive setup; exact NetOps-specific exploit studies are limited in the supplied records",
+        "Some quantitative figures are from domain-specific (medical/security) red-team work rather than NetOps"
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Inference-time constrained decoding and path-contrastive/adaptive decoding methods (e.g., IPCD, APCD) have been proposed to reduce constraint violations and improve factual reliability for structured outputs.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.7199158"
+      ],
+      "evidence_type": "method papers (inference-time decoding methods)",
+      "confidence": 0.86,
+      "limitations": [
+        "Evaluations reported are on selected domains (clinical, general QA); direct NetOps/configuration-generation evaluations are not shown in the supplied records",
+        "Computational and implementation trade-offs for strict constrained decoding in large-scale agents require further study"
+      ]
+    },
+    {
+      "claim_id": "F8",
+      "statement": "Formal/compositional verification approaches for agent safety (e.g., AgentVerify) have been proposed to specify and check temporal/control-flow properties of agent architectures.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202604.1029.v1"
+      ],
+      "evidence_type": "preprint proposing formal verification framework for agents",
+      "confidence": 0.82,
+      "limitations": [
+        "Reported evaluation is preliminary (15 scenarios) and focused on agent control-flow properties rather than domain-specific NetOps invariants",
+        "Scalability to large, tool-rich agent deployments remains to be demonstrated"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-based generate→verify→repair pipelines, when combined with deterministic network verifiers (e.g., Batfish), prevent unsafe or incorrect network changes in realistic, large-scale NetOps workloads?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W2889227506",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "architectural proposals + network verification literature indicating the need for empirical integration",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records propose or argue for integration but do not present large-scale, field-realistic empirical results demonstrating reliability"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do current Ops benchmarks (e.g., OpsEval) measure operationally meaningful failure modes (e.g., silent misconfigurations, safety-property violations, rollout/rollback behavior) rather than QA-style correctness?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "benchmark description and AIOps survey",
+      "confidence": 0.65,
+      "limitations": [
+        "Benchmark metadata indicate broad coverage but the supplied records note construct and external validity gaps"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How resilient are agentic NetOps systems to targeted adversarial inputs or tool-registry manipulation (e.g., malicious tool descriptors), given documented jailbreak/adversarial capabilities against LLMs?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6475399",
+        "https://openalex.org/W6607420",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "evidence_type": "adversarial/jailbreak surveys + tool-registry concerns + agentic NetOps proposals",
+      "confidence": 0.6,
+      "limitations": [
+        "Direct NetOps-targeted adversarial studies are not present among supplied records; inference is based on general adversarial literature and agentic-system discussions"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What are the practical latency, resource, and operational-cost trade-offs when enforcing strict constrained decoding or multi-path decoding for zero-violation network configuration generation in production NetOps toolchains?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.7199158",
+        "https://openalex.org/W4387321091"
+      ],
+      "evidence_type": "constrained/advanced decoding papers + LLM-serving system performance paper",
+      "confidence": 0.6,
+      "limitations": [
+        "Papers present methods and serving optimizations separately; an end-to-end cost/latency evaluation in NetOps contexts is not supplied"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A publicly available, NetOps-focused benchmark that evaluates end-to-end configuration enactment safety (generate→verify→deploy) under adversarial and rollout/rollback scenarios is lacking in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "benchmark survey + AIOps survey indicating current benchmarks focus",
+      "confidence": 0.78,
+      "limitations": [
+        "OpsEval and related suites exist but, per supplied descriptions, emphasize QA-style and task-oriented queries rather than full enactment-safety scenarios"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical large-scale evaluations of integrated LLM-agent + formal network verifier pipelines in realistic emulated or production-like network testbeds are not present among supplied records.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W2889227506"
+      ],
+      "evidence_type": "system proposals + network verification literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Some tech reports describe small-scale prototypes using Batfish for checks, but no large-scale controlled empirical studies are supplied"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Systematic adversarial-evaluation protocols tailored to eliciting NetOps-specific failures (e.g., subtle policy regressions, multi-step change escalation) are underdeveloped in the provided literature.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6475399",
+        "https://openalex.org/W4387634435"
+      ],
+      "evidence_type": "adversarial survey + Ops benchmark",
+      "confidence": 0.7,
+      "limitations": [
+        "General adversarial frameworks exist, but NetOps-targeted red-team methodologies are not detailed in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Practical guidelines and reproducible reference implementations for integrating constrained decoding, multi-path decoding, or IPCD-style constraint enforcement with network verifiers remain sparse in the supplied corpus.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.7199158",
+        "https://openalex.org/W2889227506"
+      ],
+      "evidence_type": "method proposals + verification literature",
+      "confidence": 0.72,
+      "limitations": [
+        "Methods are proposed in separate communities; glue code and engineering patterns for NetOps-focused integration are not prominent in the supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based NetOps agents are production-ready and safe for unsupervised deployment (no supplied record provides large-scale production validation).",
+    "There is conclusive empirical evidence in the supplied records that a specific LLM achieves near-perfect intent-to-configuration translation in real-world networks.",
+    "All hallucination and adversarial risks for LLMs have been solved by existing constrained-decoding or verification techniques (supplied methods are proposals/preliminary and not demonstrated to eliminate all risks).",
+    "Any single benchmark (e.g., OpsEval) fully captures operational safety, rollout dynamics, and adversarial robustness for NetOps (supplied records indicate evaluation gaps).",
+    "There is evidence among the supplied records that automated agentic NetOps systems have been validated at Internet-scale in production environments."
+  ]
+}

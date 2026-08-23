@@ -1,0 +1,91 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-2026-netops-gvr-eval-01",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier coverage may not capture all operational invariants, confounding attribution of residual failures to verifier limits vs generator errors.",
+        "Emulator fidelity might overestimate real-world safety (vendor-specific behaviors, timing, rollback semantics).",
+        "Single-model evaluation limits generality; hosted-model non-determinism may inflate variance.",
+        "Retry and error-recovery policy needs clearer bounds to avoid post-hoc reruns."
+      ],
+      "required_design_repairs": [
+        "Add explicit verifier-coverage tests (oracle/unit tasks) and report verifier limitations per property class.",
+        "Document emulator fidelity limits and include at least one vendor-like behavioral test (e.g., vendor CLI semantics) or clearly state scope.",
+        "Prespecify and log retry policy, exact seeds, and API-versioning; record nondeterminism and quantify its contribution to variance.",
+        "Consider a small multi-model robustness check (e.g., one additional model or smaller local model) or justify single-model choice in threats to validity."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-adversarial-02",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "High ethical risk from publishing actionable attack templates that could be weaponized.",
+        "Responsible-disclosure and redaction procedures are underspecified.",
+        "Simulator limits may under- or over-estimate adversary effectiveness; external-impact mitigation is required."
+      ],
+      "required_design_repairs": [
+        "Embed a documented responsible-disclosure policy and explicit redaction rules for any released attack artifacts; include a non-public forensic log for reviewers if required by the track.",
+        "Add an ethics review statement (IRB-equivalent or institutional sign-off) and a rationale for what attack detail will be redacted in public artifacts.",
+        "Prespecify attacker-strength levels and limit public release to high-level patterns; include defended/benign baselines and fully reproducible sanitized artifacts.",
+        "Quantify simulator-to-production transfer risk and add conservative caveats in threat-to-validity section."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-decoding-tradeoffs-03",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Some constrained-decoding methods require model-side features not available via hosted APIs; client-side approximations change comparability.",
+        "Parallel/multi-path generation may exceed budget or change conclusions depending on N; trade-off parameters need prespecification.",
+        "Latency measurement in emulated environment may not generalize to deployed serving environments."
+      ],
+      "required_design_repairs": [
+        "Prespecify feasible constrained-decoding implementations usable with hosted APIs and document approximations (e.g., post-hoc filtering, grammar-guided sampling).",
+        "Preregister N and max aggregate-model-call budgets for multi-path experiments and perform sensitivity analysis across N values.",
+        "Report latency normalized to wall-clock and to model-invocation counts; discuss generalization to production serving in threats to validity."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-enactment-benchmark-04",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Risk of overfitting benchmark tasks to the pipelines under test; small benchmark size may limit generalizability.",
+        "Adversarial task release raises ethical disclosure concerns similar to Candidate 2.",
+        "Rollback semantics in the emulator may diverge from vendor implementations, affecting external validity."
+      ],
+      "required_design_repairs": [
+        "Include a hold-out validation set or community challenge plan to mitigate overfitting and report benchmark creation/selection procedures transparently.",
+        "Adopt and document responsible-disclosure/redaction rules for adversarial tasks; release sanitized artifacts and provide secure forensic logs for reviewers if needed.",
+        "Clarify emulator rollback semantics, map them to representative vendor behaviors, and list which production behaviors are out of scope."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

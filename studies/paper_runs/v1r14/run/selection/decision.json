@@ -1,0 +1,25 @@
+{
+  "selected_candidate_id": "cnd-2026-netops-gvr-eval-01",
+  "selection_rationale": "Candidate cnd-2026-netops-gvr-eval-01 directly targets the highest-priority unresolved question (end-to-end reliability of generate→verify→repair pipelines), is experimentally falsifiable, feasible within available resources, and received a 'pass' verdict from the critic review. It yields clear paired outcomes for rigorous statistical testing and aligns closely with CNSM Agentic-AI-for-NetOps relevance.",
+  "runner_up_candidate_id": "cnd-2026-netops-enactment-benchmark-04",
+  "unresolved_uncertainties": [
+    "Verifier coverage limits vs. semantic/operational properties that are hard to encode in the verifier (will affect attribution of residual failures).",
+    "Emulator fidelity / vendor-specific CLI and rollback semantics may diverge from production behavior and bias safety estimates.",
+    "Single-hosted-model evaluation limits external validity (model heterogeneity and non-determinism may affect repeatability/generalizability).",
+    "Model-provider non-determinism and API-side changes (versions, rate limits) could inflate outcome variance relative to preregistered assumptions.",
+    "Potential need to redact or otherwise responsibly disclose sensitive artefacts if certain repair/attack templates emerge during failure analysis."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W4387634435",
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4389984066"
+  ],
+  "required_repairs_before_preregistration": [
+    "Add explicit verifier-coverage tests (oracle/unit tasks) that enumerate which property-classes the verifier fully supports and document verifier limitations per property class.",
+    "Document emulator fidelity limits and scope; include at least one vendor-like behavioral test or clearly state out-of-scope vendor semantics (rollback/CLI differences) in the preregistration.",
+    "Prespecify and freeze retry policy, exact random seeds, API/model version identifiers, logging/recording of nondeterministic runs, and how retries for infrastructure failures differ from scientific retries.",
+    "Either include a small multi-model robustness check (e.g., one additional hosted or local smaller model) or provide a preregistered justification for a single-model design and specify how generalizability will be qualified in threats-to-validity."
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "selected_candidate_id": "cnd-2026-netops-gvr-eval-01",
+  "title": "Preregistered evaluation of generate→verify→repair (GVR) pipelines for NetOps configuration safety in an emulated testbed",
+  "research_question": "Does an integrated generate→verify→repair (GVR) pipeline combining a hosted LLM generator, a deterministic network verifier, and an automated repair loop reduce unsafe or incorrect network changes (verifier-detectable property violations and simulated rollout failures) versus LLM-only generation on paired intent-to-change tasks in an emulated production-like NetOps testbed?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR pipeline yields a higher final simulated-correctness rate (fraction of tasks whose final enacted configuration satisfies all preregistered verifier properties) than LLM-only generation on the same intent items (paired design).",
+    "H2: For verifier-detectable violations that occur in the initial generation, the automated GVR repair loop resolves >90% within one repair iteration for the preregistered task suite."
+  ],
+  "exploratory_questions": [
+    "E1: How do GVR gains vary by topology scale (small / medium / large emulations)?",
+    "E2: What are root-cause attributions for residual unsafe outcomes (verifier-coverage gap, ambiguous intent, generator error)?",
+    "E3: How much of observed variance is attributable to hosted-model nondeterminism?"
+  ],
+  "benchmark_scope": [
+    "Emulated containerized router/switch testbed with programmable ACLs, BGP/OSPF, VLANs and deterministic packet-level reachability checks",
+    "Intent-to-configuration change tasks sampled from publicly documented NetOps task templates and synthetic variants (no private production data)"
+  ],
+  "model_scope": [
+    "Primary: single hosted LLM (stable model identifier recorded in Disclosure) used for full paired experiment",
+    "Robustness check: one additional hosted smaller model (same provider family or another hosted API) applied to a preregistered random subset (30 tasks) for a small multi-model check"
+  ],
+  "transformation_scope": [
+    "Prompt-to-configuration parsing and canonicalization (token-level normalization, whitespace/indent normalization, CLI token mapping)",
+    "Automated repair-prompt templates that re-invoke the same hosted LLM with verifier feedback (up to two repair iterations)"
+  ],
+  "primary_estimand": "Paired absolute difference in final simulated-correctness probability (GVR minus LLM-only) across the preregistered N=120 intent tasks.",
+  "secondary_estimands": [
+    "Proportion of initial verifier-detectable violations resolved within one repair iteration (GVR pipeline).",
+    "Per-topology-scale (small/medium/large) paired absolute correctness differences.",
+    "Distribution (median, IQR) of repair iterations per task in GVR."
+  ],
+  "sampling_plan": "Confirmatory task set N=120 unique intent-to-change items sampled deterministically from the preregistered task generator and stratified equally across three topology scales: small=40, medium=40, large=40 (40*3=120). Each intent is executed once under each pipeline (paired design): for pipeline A (LLM-only) and pipeline B (GVR). A separate verifier-coverage testset (oracle/unit tasks) of 30 items enumerates property-classes the verifier fully supports; these unit tasks exercise reachability, ACL policy conformance, and BGP-origin constraints (no model calls required). Total confirmatory executions: 120 tasks × 2 pipelines = 240 pipeline executions. Planned task-to-model invocation mapping and counts are in budget scenarios.",
+  "analysis_plan": "Primary analysis: paired binary outcome (final simulated-correctness) per task; use McNemar's exact test for paired differences and report absolute risk reduction with two-sided 95% Wilson CIs. Secondary analyses: compute proportion of repairs resolved within one iteration with 95% CIs; stratified analyses by topology scale using conditional logistic regression or stratified McNemar where appropriate. Report exact p-values. Exploratory subgroup tests controlled via Benjamini–Hochberg (q=0.05). Provide descriptive latency and model-call counts (median, IQR). Report both per-protocol (completed pairs) and sensitivity analyses that impute technical-failure outcomes conservatively (worst-case imputation and best-case). All analysis code and raw outputs will be archived.",
+  "multiplicity_plan": "Primary outcome (H1) is pre-specified and confirmatory. Secondary estimands are confirmatory for H2 only. All other subgroup and exploratory tests are labeled exploratory; multiplicity control for exploratory lists uses Benjamini–Hochberg at q=0.05. Exact confirmatory tests: one primary test (H1) and one confirmatory secondary test (H2).",
+  "missingness_plan": "Technical/API failures: automatic retry policy of up to 2 retries per failed model invocation with exponential backoff (0s, 5s, 15s). If after retries the call fails, mark the pipeline execution as 'technical_failure' and exclude that pipeline run from the paired analysis for the primary confirmatory McNemar test. Automatically log and publish counts of technical failures. Sensitivity analyses: (a) complete-case (per-protocol) analysis using paired tasks with both pipelines completed; (b) worst-case imputation (treat missing GVR as failure and missing LLM-only as success) and opposite best-case to bracket effects. No manual adjudication will be used; all inclusion/exclusion decisions are deterministic and recorded.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Preregistered GVR intent-to-change task suite (N=120)",
+      "Verifier-coverage unit testset (N=30)"
+    ],
+    "risk_factors": [
+      "Hosted-model non-determinism (API-side sampling variance or model-version changes)",
+      "Task leakage due to model pretraining (unknown overlap between synthetic prompts and model training data)",
+      "Unmodeled verifier limitations (property classes not supported)",
+      "Repeated-query-induced caching or API-side rate-limiting"
+    ],
+    "detection_procedures": [
+      "Record model API response hashes and entire response text for each call; compute per-item output-identity checksums to detect identical repeated outputs.",
+      "Log model API version headers and timestamps to detect provider-side version changes.",
+      "Run verifier-coverage unit tests and produce a per-property support matrix (automated PASS/FAIL per unit test).",
+      "Monitor API error codes and rate-limit responses and flag any runs exceeding preregistered retry counts."
+    ],
+    "item_flagging_rules": [
+      "Flag item as 'nondeterminism-suspect' if repeated identical prompts produce differing verifier outcomes across retries.",
+      "Flag item as 'provider-version-change' if model-version header differs from preregistered identifier during execution.",
+      "Flag item as 'verifier-unsupported-property' if unit tests indicate the property-class is unsupported; such items are excluded from attribution claims (but remain in observed outcomes)."
+    ],
+    "analysis_treatment": "Primary analysis excludes items flagged as technical failures per missingness_plan. Items flagged for provider-version-change will be reported and included only in sensitivity analyses; primary confirmatory test will use the preregistered run window (single contiguous execution window). For items with verifier-unsupported properties, report outcomes but analyze them separately and do not attribute residual failures to GVR efficacy. Nondeterminism-suspect items will be examined automatically (reporting counts) and included in sensitivity analyses.",
+    "residual_uncertainty": [
+      "Unknown overlap between task prompts and model training data may bias model performance estimates.",
+      "Residual untested verifier property-classes may explain some GVR residual failures."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scn-minimal",
+      "description": "Minimal planned model-call budget sufficient to execute the preregistered paired experiment with a small robustness subset and reserve for retries.",
+      "planned_model_calls": 700,
+      "models": [
+        "primary_hosted_model (stable identifier recorded in Disclosure)",
+        "secondary_hosted_model_small (robustness subset)"
+      ],
+      "transformations": [
+        "prompt_to_CLI_generation (1 call per generation)",
+        "repair_prompt_iteration (1 additional call per repair iteration, up to 2)",
+        "small-model robustness calls (subset)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Under capability manifest: hosted-model API available, CPU and docker for verifier/emulator. Planned worst-case call budget fits well below capability limit (10,000). Scenario plans for retries and robustness subset. Model-call budget derivation: confirmatory executions = 120 tasks × 2 pipelines = 240 pipeline executions. Call accounting (worst-case): LLM-only pipeline: 120 generation calls. GVR pipeline: 120 initial generation calls + up to 2 repair calls/task = up to 360 calls. Robustness subset: 30 extra calls to secondary hosted model. Total worst-case = 120 + 360 + 30 = 510. Add 190-call buffer for prompt-tuning, debug runs, and audit logs = 700 planned calls."
+    },
+    {
+      "scenario_id": "scn-recommended",
+      "description": "Recommended scenario with conservative buffer for nondeterminism auditing and extended robustness checks (preferred).",
+      "planned_model_calls": 1200,
+      "models": [
+        "primary_hosted_model (stable identifier recorded in Disclosure)",
+        "secondary_hosted_model_small (robustness subset)"
+      ],
+      "transformations": [
+        "prompt_to_CLI_generation",
+        "repair_prompt_iteration",
+        "robustness_subset_multi-call diagnostics (up to 3 calls per selected item for variance estimation)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Same derivation as minimal scenario plus expanded diagnostics: planned base worst-case calls = 510 (see minimal). Additional diagnostics: re-sampling of 30 robustness-subset items up to 3 times each (30×2 extra calls = 60) to measure within-item nondeterminism, plus 200-call buffer for prompt-probing and logging = 510+60+200=770; rounded to 1200 to preserve headroom for provider-side transient retries within the 2-retry policy. This remains well within capability manifest max model-calls=10000."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute difference in final simulated-correctness probability (GVR minus LLM-only) across N=120 tasks.",
+    "target_effect": "Detect an absolute improvement of 0.15 (15 percentage points) in final correctness with two-sided alpha=0.05 and power ≈0.8 under conservative discordant-pair assumptions.",
+    "clustering_unit": "Individual intent task (paired across two pipelines).",
+    "calculation_method": "Approximate paired/sample-size reasoning for McNemar's test: under assumed discordant proportions p01=0.20 (fails under LLM-only, corrected under GVR) and p10=0.05 (opposite), sample N≈100 achieves ~80% power; preregistered N=120 provides margin for technical failures and subgroup analyses.",
+    "assumptions": [
+      "Paired design with independent task-level outcomes",
+      "Primary discordant-pair assumption: p01−p10≈0.15 for target effect",
+      "Alpha=0.05 two-sided",
+      "Per-task outcomes deterministically recorded; technical failures excluded from primary paired test but reported"
+    ],
+    "recommended_scenario_id": "scn-recommended",
+    "minimum_detectable_effect_notes": "With N=120, the minimum detectable paired absolute difference is approximately 0.12–0.18 depending on observed within-pair discordance; sensitivity analyses will report exact MDE given observed discordant counts.",
+    "sensitivity_analyses": [
+      "Recompute power/post-hoc MDE given observed discordant counts and produce 95% CIs for the absolute risk reduction.",
+      "Report per-scale (small/medium/large) MDEs; treat these as exploratory if underpowered."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "CLI parsing and canonicalization (indentation/whitespace normalization, token canonical mapping)",
+      "Configuration AST mapping for verifier input (structured representation)",
+      "Repair-prompt application and re-parsing"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip: generated CLI → AST → rendered CLI → AST equality checks (automated) for syntactic equivalence",
+      "Verifier acceptance: a transformation is considered semantically acceptable if the verifier accepts the rendered AST for the preregistered property-class",
+      "Automated differential-checks across canonicalizers to detect loss of semantics (e.g., ACL ordering changes that alter semantics)"
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated configuration if parsing fails or mandatory fields (interface identifiers, ACL IDs, route-targets) are missing; the pipeline will automatically return a structured 'parse_fail' outcome and, in GVR, trigger repair iteration.",
+      "Reject and flag any configuration that changes property-classes outside the intent specification (e.g., introduces new ACLs not requested) via deterministic token checks."
+    ],
+    "audit_sample_policy": "100% automatic checks for syntactic parseability; additional automated deep-audit on a 10% random sample of successfully parsed transformations using packet-level reachability simulation and cross-verifier consistency checks.",
+    "mapping_validation": "Maintain canonical token mapping tables (interface aliases, vendor-agnostic names) and validate mapping deterministically against the verifier AST schema; failures are automatically flagged and logged.",
+    "residual_risks": [
+      "Vendor-specific CLI semantics (ordering-dependent commands, implicit defaults) may not be fully captured by canonicalization and can produce semantic drift.",
+      "Certain high-level operational intents (e.g., intended partial-rollout semantics) are not directly encoded as verifier properties and remain a source of residual misinterpretation."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity: vendor-specific CLI semantics and rollback behaviors are only approximated; external validity to specific vendor environments is limited and documented.",
+    "Residual verifier-coverage limits: despite unit tests, some operational invariants (timing-dependent behaviors, vendor implicit defaults) may remain untestable by the verifier and will be reported separately.",
+    "Single-hosted-model generalizability: a small multi-model robustness subset mitigates but does not eliminate generalizability limits across the broader model population.",
+    "Possible training-data overlap between synthetic prompts and model training corpora (unknown) may bias generator performance estimates."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W4387634435",
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4389984066"
+  ]
+}
