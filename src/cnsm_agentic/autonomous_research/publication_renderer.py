@@ -30,6 +30,8 @@ def _latex_escape(value: str) -> str:
         "\u2019": "'",
         "\u201c": '"',
         "\u201d": '"',
+        "\u2265": ">=",
+        "\u2264": "<=",
     }
 
     value = "".join(

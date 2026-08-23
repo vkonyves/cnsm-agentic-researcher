@@ -50,19 +50,25 @@ class PreregistrationExecutionContract(BaseModel):
     planned_episode_count: int = Field(gt=0)
     maximum_model_calls: int = Field(gt=0)
 
-@model_validator(mode="after")
-def structurally_complete(self):
-    if not self.conditions:
-        raise ValueError(
-            "At least one executable condition is required."
-        )
+    generation_semantics: str
+    independent_condition_generation: bool
+    initial_generation_calls_per_task: int = Field(gt=0)
+    maximum_repair_calls_per_task: int = Field(ge=0)
+    retrieval_augmented_generation: bool
 
-    if not self.model_names:
-        raise ValueError(
-            "At least one executable model is required."
-        )
+    @model_validator(mode="after")
+    def structurally_complete(self):
+        if not self.conditions:
+            raise ValueError(
+                "At least one executable condition is required."
+            )
 
-    return self
+        if not self.model_names:
+            raise ValueError(
+                "At least one executable model is required."
+            )
+
+        return self
 
 
 class PreregistrationDocument(BaseModel):

@@ -107,6 +107,8 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     manuscript["abstract"] = (
         "Guarded − baseline; "
         "range 1–2; test—case; "
+        "target ≥ 30%; "
+        "value ≤ 5; "
         "Kovačić."
     )
 
@@ -125,9 +127,15 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     assert "−" not in source
     assert "–" not in source
     assert "—" not in source
+    assert "≥" not in source
+    assert "≤" not in source
+
     assert "Guarded - baseline" in source
     assert "range 1--2" in source
     assert "test---case" in source
+    assert r"target >= 30\%" in source
+    assert "value <= 5" in source
+
     assert "Kovačić" in source
     assert r"\usepackage[utf8]{inputenc}" in source
     assert r"\usepackage[T1]{fontenc}" in source

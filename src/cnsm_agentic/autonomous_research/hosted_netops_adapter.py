@@ -64,6 +64,13 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
             "baseline": BASELINE_TRANSFORMATION,
             "guarded": GUARDED_TRANSFORMATION,
         },
+        "generation_semantics": (
+            "shared_initial_candidate"
+        ),
+        "independent_condition_generation": False,
+        "initial_generation_calls_per_task": 1,
+        "maximum_repair_calls_per_task": 1,
+        "retrieval_augmented_generation": False,
         "result_schema_id": (
             PAIRED_BINARY_RESULT_SCHEMA_ID
         ),
@@ -86,7 +93,11 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
             "Exactly task_count unique positive integers."
         ),
         "estimated_model_calls": (
-            "Exactly task_count * 2."
+            "Between task_count and task_count * 2: "
+            "one shared initial generation per task, "
+            "plus at most one guarded repair call "
+            "for each task whose initial candidate "
+            "fails deterministic validation."
         ),
         "maximum_model_calls": (
             "Exactly task_count * 2."

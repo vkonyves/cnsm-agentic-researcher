@@ -300,7 +300,21 @@ def preregistration_execution_contract_issues(
         "design",
         "conditions",
         "model_provider",
+        "generation_semantics",
+        "independent_condition_generation",
+        "initial_generation_calls_per_task",
+        "maximum_repair_calls_per_task",
+        "retrieval_augmented_generation",
     ):
+        if (
+            declared.get(field)
+            != adapter_contract.get(field)
+        ):
+            issues.append(
+                "Preregistration execution_contract "
+                f"{field} does not match the registered "
+                "adapter planning contract."
+            )
         if (
             declared.get(field)
             != adapter_contract.get(field)
@@ -344,6 +358,53 @@ def preregistration_execution_contract_issues(
             "Preregistration transformation_scope must "
             "exactly match the registered adapter "
             "transformations."
+        )
+
+    prereg_text = " ".join(
+        [
+            preregistration.title,
+            preregistration.research_question,
+            preregistration.primary_estimand,
+            preregistration.sampling_plan,
+            preregistration.analysis_plan,
+            *preregistration.confirmatory_hypotheses,
+            *preregistration.benchmark_scope,
+            *preregistration.transformation_scope,
+        ]
+    ).lower()
+
+    if (
+        adapter_contract.get(
+            "retrieval_augmented_generation"
+        ) is False
+        and (
+            "retrieval-augmented" in prereg_text
+            or "retrieval augmented" in prereg_text
+            or "rag+" in prereg_text
+            or "rag +" in prereg_text
+        )
+    ):
+        issues.append(
+            "Preregistration describes retrieval-augmented "
+            "generation, but the registered adapter does not "
+            "execute retrieval-augmented generation."
+        )
+
+    if (
+        adapter_contract.get(
+            "independent_condition_generation"
+        ) is False
+        and (
+            "independent generation" in prereg_text
+            or "independently generated" in prereg_text
+            or "separate generation" in prereg_text
+            or "separately generated" in prereg_text
+        )
+    ):
+        issues.append(
+            "Preregistration describes independent "
+            "per-condition generation, but the registered "
+            "adapter uses one shared initial candidate."
         )
 
     if (

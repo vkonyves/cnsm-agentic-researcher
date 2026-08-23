@@ -177,6 +177,11 @@ def test_preregistration_execution_contract_accepts_structural_mismatch() -> Non
         task_count=160,
         planned_episode_count=2,
         maximum_model_calls=320,
+        generation_semantics="shared_initial_candidate",
+        independent_condition_generation=False,
+        initial_generation_calls_per_task=1,
+        maximum_repair_calls_per_task=1,
+        retrieval_augmented_generation=False,
     )
 
     assert contract.task_count == 160
