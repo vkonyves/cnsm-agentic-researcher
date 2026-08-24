@@ -1,0 +1,31 @@
+{
+  "study_id": "CAND-2026-002",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis of per-intent binary failure flags using the preregistered paired estimand: compute P(failure | baseline) and P(failure | guarded) across the 400 paired intents; report the paired difference (Guarded − Baseline) with 95% bootstrap confidence interval and perform McNemar test (two-sided, α=0.05) as specified in the preregistration; use adapter-provided deterministic scorers (execution/scoring/*.json) and RNG seed=42; apply failed-call treatment = complete_pair_primary.",
+  "secondary_analyses": [
+    "Confirmatory summaries of outage-duration distribution by condition: mean, median, IQR, and empirical skewness using outage_duration_seconds from execution/raw_results.jsonl (nonparametric two-sample tests where applicable).",
+    "Confirmatory rollback rates: rollback count per 100 intents by condition (aggregate from execution scoring artifacts).",
+    "Confirmatory vendor- and change-type subgroup analyses: per-vendor and per-change-type failure proportions by condition with BH FDR (0.05) correction as preregistered."
+  ],
+  "sensitivity_analyses": [
+    "Pairwise exclusion sensitivity per preregistered missingness_plan: apply preregistered persistent-infrastructure exclusion rule (none recorded in execution_manifest) and re-run primary paired test.",
+    "Failed-call treatment sensitivity: re-run primary estimand treating any adapter-recorded failed model/provider calls as baseline-failure=1 (contract identifier: complete_pair_primary_with_failure_as_zero_sensitivity used only as a sensitivity alternative) and report impact on point estimate and p-value.",
+    "Imputation sensitivity for excluded pairs per preregistered plan: report results with multiple imputation and with worst-case/best-case pairwise imputations (labeled exploratory when applied)."
+  ],
+  "uncertainty_quantification": "Primary: 95% bootstrap confidence intervals for paired difference and McNemar exact p-value; secondary: nonparametric bootstrap/CI for medians and means, Kaplan–Meier confidence bands for time-to-recovery plots (per preregistered analysis scripts stored with hashes in execution_manifest). All uncertainty measures computed deterministically by the registered analysis scripts using the adapter-provided scorers and raw results.",
+  "multiplicity_implementation": "One prespecified primary hypothesis/test only. All secondary and subgroup tests controlled with Benjamini–Hochberg FDR (q=0.05) as preregistered. Exploratory analyses explicitly labeled exploratory and not subject to confirmatory multiplicity control.",
+  "contamination_analysis": "Follow preregistered exact/near-duplicate detection on the stored task_manifest (execution/task_manifest.jsonl). Any contaminated intents would be excluded pairwise per preregistration. Execution_manifest reports completed_episode_count=800 and failed_episode_count=0 and records no pairwise exclusions; therefore contamination exclusions = none (manifest and hashes provided). All contamination-detection code and flags preserved in execution artifacts.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired outcome table: for N=400 intents show counts and proportions of failures by condition, paired-difference (Guarded−Baseline), 95% bootstrap CI, and McNemar two-sided p-value; include exact N, number of validator-rejects, number of repair attempts (from execution/result_schema files).",
+    "Table 2 — Outage-duration summary: for failed intents by condition report N_failed, mean, median, IQR, 90th/99th percentiles, and counts of long-tail failures; include per-condition sample sizes.",
+    "Table 3 — Rollbacks: rollback count and rate per 100 intents by condition; include 95% binomial CIs.",
+    "Table 4 — Subgroup results: vendor (VendorA/B/C) and change-type (ACL/Routing/Monitoring) failure proportions by condition, raw counts, proportion differences, and BH-adjusted p-values for subgroup comparisons."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Outage-duration distribution: overlaid kernel density estimates and boxplots (log-scaled) by condition (Baseline vs Guarded) using outage_duration_seconds from scoring outputs.",
+    "Figure 2 — Kaplan–Meier plot of time-to-recovery for failed intents by condition with 95% confidence bands (as preregistered); censoring per deterministic recovery criteria recorded in scoring artifacts.",
+    "Figure 3 — Pipeline Sankey/flow diagram: counts of shared-initial→validator pass/reject→repair attempted→applied→failure outcomes (constructed from execution/transformation_manifest.json and execution/scoring/*.json)."
+  ]
+}

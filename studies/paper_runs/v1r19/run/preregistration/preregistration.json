@@ -1,0 +1,81 @@
+{
+  "study_id": "CAND-2026-002",
+  "title": "Empirical Failure‑Rate and Operational Impact Study of LLM‑driven NetOps Actions in Heterogeneous Simulated Networks (Provisional Preregistration, Adapter‑Aligned)",
+  "research_question": "What are realistic failure rates and operational impacts (reachability loss, policy violation, rollback count, outage duration) of LLM‑driven configuration changes in heterogeneous, multi‑vendor simulated networks, and how much does a lightweight automated validator (with at most one deterministic LLM repair call) reduce those impacts?",
+  "confirmatory_hypotheses": [
+    "H1: LLM‑generated configuration changes applied without automated validation cause operational failures (reachability loss or policy violation) in ≥20% of intents on the sampled heterogeneous simulated topologies.",
+    "H2: Applying a deterministic automated syntax/policy validator (with at most one LLM repair attempt when validator fails) prior to application reduces the operational failure proportion by ≥40% relative to Direct‑apply (target absolute reduction ≈10 percentage points under baseline assumptions).",
+    "H3: Outage‑duration distribution is right‑skewed with a heavy tail (median << mean), indicating rare high‑impact failures that dominate mean downtime.",
+    "H4: Automatic rollback occurrences are concentrated in changes that modify access‑control (ACL) and routing statements versus monitoring‑only changes (statistically detectable association)."
+  ],
+  "exploratory_questions": [
+    "E1: How do failure modes differ by vendor (VendorA, VendorB, VendorC) and by change type (ACL, routing, monitoring)?",
+    "E2: How sensitive are failure rates to validator coverage and to whether a single deterministic LLM repair call is required/not required (measured by validator pass/fail buckets)?",
+    "E3: How do simulated operator intervention‑latency heuristics affect measured outage durations?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "doi:10.1002/nem.2313",
+    "doi:10.2139/ssrn.6608518",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4401857375",
+    "https://openalex.org/W7124141852"
+  ],
+  "benchmark_scope": [
+    "Publicly redistributable sandboxed heterogeneous topologies (three distinct topologies assembled from public topology examples and public device images) executed in emulator replicas.",
+    "Intent→CLI tasks derived from a public/synthetic intent corpus assembled from license‑compatible public sources only (no private production traces)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 400,
+    "planned_episode_count": 800,
+    "maximum_model_calls": 800,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired difference in operational failure proportion per intent: P(failure | Direct‑apply) − P(failure | Guarded validator+optional single repair), measured across 400 paired intents.",
+  "secondary_estimands": [
+    "Mean and median outage duration per failed intent by condition.",
+    "Rollback count per 100 intents by condition.",
+    "Vendor‑specific failure proportions and change‑type conditional failure proportions."
+  ],
+  "sampling_plan": "400 unique intents executed paired across two conditions on sandbox replicas; vendor/change‑type stratification as specified; randomized order within pairs; fixed RNG seed recorded.",
+  "power_and_precision_plan": "Designed to detect ≈10 percentage‑point absolute reduction with >80% power (McNemar framework, α=0.05) under baseline assumptions; sensitivity analyses preplanned.",
+  "exclusion_rules": [
+    "Pairwise exclusion for persistent infrastructure failures after retries.",
+    "Exclusion of contaminated intents flagged by exact/near‑duplicate detection."
+  ],
+  "missingness_plan": "Automated retry up to 2 times; persistent failures exclude pairwise; sensitivity imputation reported.",
+  "analysis_plan": "Primary: paired proportions with 95% bootstrap CIs and McNemar test; secondary: outage duration summaries, nonparametric tests, Kaplan–Meier plots; subgroup tests with BH FDR control; all scripts reproducible with fixed seeds.",
+  "multiplicity_plan": "Single primary test; BH FDR (0.05) for secondary/subgroup tests; exploratory analyses labeled exploratory.",
+  "contamination_plan": "See above contamination_plan object embedded earlier.",
+  "stopping_rule": "Stop on completion of all 400 paired intents or upon triggers detailed in stopping_rule field above (in execution contract aligned document).",
+  "planned_outputs": [
+    "Execution manifest/raw logs",
+    "Reproducible analysis scripts and results",
+    "Failure taxonomy and aggregated tables",
+    "Five‑page IEEE short paper including Disclosure Statement",
+    "NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

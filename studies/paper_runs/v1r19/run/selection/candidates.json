@@ -1,0 +1,140 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "title": "Integrated RAG + Formal Verification + Repair for Multi‑Vendor Intent→CLI Generation",
+      "research_question": "Does an integrated pipeline combining retrieval‑augmented generation (RAG), formal network verification, and automated repair reduce unsafe or incorrect vendor‑specific CLI configurations relative to RAG‑only generation across heterogeneous device CLIs?",
+      "hypotheses": [
+        "Integrating a formal verifier and automated repair loop with RAG reduces the post‑pipeline unsafe configuration rate by at least 50% compared to RAG‑only generation on the same intent set.",
+        "Residual unsafe generations after the integrated pipeline will be concentrated in vendor‑specific CLI idiosyncrasies not covered by the verifier's device model.",
+        "Repair attempts guided by verifier counterexamples will have a successful fix rate ≥70% when the verifier detects a correctness violation."
+      ],
+      "proposed_design": "Preregistered, paired controlled experiment. Assemble a benchmark of 600 natural‑language intents mapped to target device types (Cisco IOS, Juniper Junos, Arista EOS) using public templates and synthetic paraphrases. For each intent, generate device CLI outputs via: (A) RAG→LLM pipeline; (B) RAG→LLM followed by formal verification (Batfish/NetKAT‑style checks) and automated repair loop (up to 3 repair iterations). Use fixed random seeds, identical retrieval corpora, and a single LLM model identifier. Execute generated configs in an emulated network sandbox (vendor virtual devices) to collect observable effects. Record per‑task: initial unsafe flag, verifier detections, number of repair iterations, final safe/unsafe status. Define stopping and retry policies in preregistration.",
+      "expected_data": "Per‑intent records for 600 tasks: initial RAG output, verifier result(s), repair attempts and patches, final CLI, sandbox execution outcome (reachability/ACL violations), timestamps, and logs. Aggregate counts: unsafe_before, unsafe_after_A, unsafe_after_B, repair_success_count, per‑vendor breakdown.",
+      "primary_outcome": "Relative reduction in unsafe configuration proportion: (unsafe_after_A − unsafe_after_B) / unsafe_after_A (target: ≥50% reduction).",
+      "analysis_outline": "Primary analysis: paired comparison of unsafe proportions across matched intents (McNemar test or paired bootstrap of proportions) with 95% CI. Secondary analyses: per‑vendor stratified proportions with Bonferroni correction; repair success rate estimation with Wilson CIs; analysis of residual failures via qualitative taxonomy and error‑type frequency counts. Predefined significance α=0.05. Report exact p‑values, effect sizes, and CIs. All analyses reproducible from logged artifacts.",
+      "novelty_evidence_ids": [
+        "G2",
+        "U2",
+        "E3",
+        "E2",
+        "doi:10.1145/3776656"
+      ],
+      "feasibility_evidence_ids": [
+        "E3",
+        "E5",
+        "E1",
+        "https://openalex.org/W7124141852"
+      ],
+      "risks": [
+        "Emulator/device model mismatch may under‑ or over‑estimate real vendor idiosyncrasy failures.",
+        "Verifier may not model all device semantics, producing false negatives/positives.",
+        "Repair loop could produce oscillating or divergent edits without operational rollback safeguards.",
+        "Integration engineering failures (toolchain bugs) could confound scientific outcomes."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "title": "Empirical Failure‑Rate and Operational Impact Study of LLM‑driven NetOps Actions in Heterogeneous Simulated Networks",
+      "research_question": "What are realistic failure rates and operational impacts (e.g., loss of reachability, configuration rollbacks, mean outage duration) of LLM‑driven configuration changes in heterogeneous, multi‑vendor simulated networks, and how much do RAG and simple validation reduce those impacts?",
+      "hypotheses": [
+        "LLM‑generated configuration changes applied without verification will cause operational failures (loss‑of‑reachability or policy violation) in ≥20% of intents on heterogeneous simulated topologies.",
+        "Applying a lightweight RAG+validator filter before application will reduce the operational failure rate by at least 40% relative to no verification.",
+        "The distribution of outage durations will be right‑skewed with a heavy tail, signaling rare but high‑impact failures that dominate mean downtime.",
+        "Rollback occurrences (automatic or simulated) will correlate strongly with modifications to access, routing, and ACL statements versus purely monitoring‑oriented changes."
+      ],
+      "proposed_design": "Preregistered randomized experiment on 400 intents across three public network topologies emulated with mixed vendors. For each intent, produce configuration(s) via a single LLM in two conditions: (1) Direct‑apply (no verification) and (2) RAG+validator (lightweight syntax and policy checks). Randomize assignment of intents to application order and simulate application in sandboxed emulation with automated monitoring of reachability and policy invariants. Define failure as any violation of a predeclared invariant (reachability loss, ACL block, routing loop). Record rollback-triggered events, time to detect and mitigate, and operator‑simulated intervention using predefined heuristics. Save all raw logs and recorded metrics.",
+      "expected_data": "Task‑level records for 400 intents × 2 conditions: generated config, whether invariant violated, type of invariant, detection timestamp, mitigation timestamp, rollback flag, outage duration, and contextual metadata (vendor, device type). Aggregates: failure rates per condition, mean/median outage durations, rollback counts, and per‑change classification.",
+      "primary_outcome": "Difference in operational failure proportion between Direct‑apply and RAG+validator conditions (absolute and relative reduction).",
+      "analysis_outline": "Estimate proportions with 95% CIs and perform two‑proportion z‑tests and bootstrap CIs for differences. Analyze outage duration with median and mean (with 95% bootstrap CIs) and compare distributions via Mann–Whitney U and survival analysis for time‑to‑mitigation. Conduct subgroup analyses by vendor and change type; correct for multiple comparisons via Benjamini–Hochberg. Sensitivity analyses for detection latency and simulated operator heuristics.",
+      "novelty_evidence_ids": [
+        "U1",
+        "E2",
+        "G1",
+        "https://openalex.org/W4415071524"
+      ],
+      "feasibility_evidence_ids": [
+        "E1",
+        "E5",
+        "E3",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Simulated operator heuristics may not reflect real human interventions, limiting external validity.",
+        "Public emulators may not capture subtle production device behaviors, biasing failure estimates.",
+        "Randomization imbalances could occur if intents unevenly map to vendors; preregistered stratification mitigates this.",
+        "Provider API or emulation outages could force documented reruns under preregistered retry policy."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "title": "Creating and Evaluating a Public Intent→Vendor‑Specific CLI Dataset for Reproducible LLM NetOps Research",
+      "research_question": "Can a curated public dataset of paired natural‑language intents and verified vendor‑specific CLI configurations improve LLM correctness and reproducibility for intent→CLI translation tasks, and how does dataset size affect gains?",
+      "hypotheses": [
+        "Fine‑tuning or RAG using a curated intent→CLI dataset increases exact‑match correctness of vendor‑specific CLI generation by ≥30% over a baseline RAG‑only system on a held‑out test set.",
+        "Accuracy gains from dataset augmentation exhibit diminishing returns: doubling dataset size past a task‑dependent threshold yields <10% additional absolute improvement.",
+        "Verifier‑assisted postprocessing further improves deployed correctness by an additive margin (≥10% absolute) relative to the fine‑tuned model alone.",
+        "Vendor‑specific command idioms are the dominant source of residual errors after dataset‑augmented training."
+      ],
+      "proposed_design": "Assemble a permissively licensed, documented dataset of 5k–20k intent→CLI pairs by combining public config templates, vendor example configs, and synthetic paraphrase generation constrained by device semantics; annotate device/vendor metadata and produce verifier‑checked canonical outputs. Create train/val/test splits with held‑out vendors and unseen intents. Run baseline experiments: (A) RAG with public corpus, (B) fine‑tuned LLM on dataset, (C) fine‑tuned LLM + verifier repair. Evaluate on exact string match, semantic correctness via verifier checks, and operational sandbox execution for a 200‑item test subset. Report scaling experiments at dataset sizes 1k, 5k, 10k, 20k. Preregister data generation, inclusion/exclusion, and evaluation metrics.",
+      "expected_data": "Dataset artifacts (intents, paired canonical CLIs, vendor tags), model checkpoints or retrieval indexes, per‑example metrics across splits, scaling curve results (accuracy vs. dataset size), and sandbox execution results on held‑out subset.",
+      "primary_outcome": "Absolute improvement in exact‑match correctness of vendor‑specific CLI generation on held‑out test set for fine‑tuned model vs. RAG baseline.",
+      "analysis_outline": "Compute exact‑match accuracy and verifier‑pass rates with 95% bootstrap CIs. Fit a log‑linear learning curve to assess marginal gains per data doubling and test hypothesis of diminishing returns via slope comparison. Compare model variants with paired tests (McNemar or paired bootstrap). Report failure taxonomy frequencies. Release dataset and evaluation scripts for reproducibility.",
+      "novelty_evidence_ids": [
+        "G1",
+        "E5",
+        "E1",
+        "doi:10.1002/nem.2313"
+      ],
+      "feasibility_evidence_ids": [
+        "E1",
+        "E5",
+        "G1",
+        "https://openalex.org/W4392875514"
+      ],
+      "risks": [
+        "Licensing and permissive‑use constraints could limit available public vendor examples; careful provenance required.",
+        "Synthetic paraphrases may introduce artifacts that inflate apparent gains absent real human intents.",
+        "Dataset curation biases (overrepresentation of certain vendors/config types) could limit generality.",
+        "Fine‑tuning resource limits and tokenization mismatches across models may affect replicability; provide exact training hyperparameters in artifacts."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "title": "Evaluating Approval‑Gate Designs via Calibrated Simulated Operators for NetOps Agentic Workflows",
+      "research_question": "How do different approval‑gate designs (free‑text review, structured diffs + verifier highlights, and rule‑guided decision prompts) affect approval accuracy, simulated operator workload proxies, and residual unsafe approvals, when evaluated with calibrated simulated operator models?",
+      "hypotheses": [
+        "A structured approval gate that presents verifier highlights and succinct diffs reduces simulated false approvals (unsafe approvals) by ≥40% relative to free‑text review under the same simulated operator error distribution.",
+        "Structured gates reduce simulated decision time (workload proxy) relative to free‑text review while maintaining or improving detection of high‑impact failures.",
+        "Rule‑guided decision prompts that require explicit justification reduce unsafe approvals but may increase simulated decision time compared to structured diffs.",
+        "Simulated operator calibration (error rates) meaningfully changes observed gate performance; relative ordering of gate designs remains stable across reasonable calibration ranges."
+      ],
+      "proposed_design": "Preregistered simulation experiment using a library of 800 generated proposals (mix of safe, minor‑issue, and unsafe configs) produced by an LLM. Construct three approval‑gate UI/interaction models: (1) Free‑text review (full CLI shown), (2) Structured diffs with verifier‑flagged warnings and suggested fixes, (3) Rule‑guided prompt requiring explicit checklist responses. Instead of live humans, implement calibrated simulated operator agents parameterized by detection sensitivity, decision latency distribution, and error profile derived from literature priors. Run a factorial experiment varying gate design and operator calibration (low/medium/high sensitivity). Measure simulated approval accuracy (true accept/reject), false approvals, decision time proxy, and residual unsafe approvals after gating. Save all simulation seeds and agent parameters.",
+      "expected_data": "Per‑proposal simulation logs: true safety label, gate design, simulated operator decision, simulated decision time, flags consulted, and resulting residual unsafe approvals. Aggregates: accuracy, false positive/negative rates, mean/median decision time, sensitivity analyses across calibration settings.",
+      "primary_outcome": "Reduction in simulated false approval rate (unsafe accepted proposals) of structured diffs vs free‑text baseline.",
+      "analysis_outline": "Compare gate designs using paired proportions and bootstrap CIs across the same proposal set. Analyze decision time using parametric and nonparametric comparisons (t and Mann–Whitney U). Perform sensitivity analysis across operator calibration strata; present heatmaps of gate performance versus calibration. Report stability of gate ranking via rank‑order correlation (Spearman) across calibrations.",
+      "novelty_evidence_ids": [
+        "G3",
+        "E4",
+        "E2",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "E3",
+        "E5",
+        "E1",
+        "https://openalex.org/W4413757586"
+      ],
+      "risks": [
+        "Simulated operator models may not capture nuanced human judgement, limiting external generalizability.",
+        "Choice of calibration priors from literature could bias gate ranking; preregistered sensitivity analyses mitigate but do not eliminate this risk.",
+        "UI and human‑factors aspects are approximated; real human studies would be needed for full validation but are out of scope given autonomy constraints.",
+        "Simulation artifacts (e.g., deterministic decision rules) could interact with gate heuristics producing optimistic results."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "selected_candidate_id": "CAND-2026-002",
+  "title": "Empirical Failure‑Rate and Operational Impact Study of LLM‑driven NetOps Actions in Heterogeneous Simulated Networks (Repaired Preregistration)",
+  "research_question": "What are realistic failure rates and operational impacts (reachability loss, policy violation, rollback count, outage duration) of LLM‑driven configuration changes in heterogeneous, multi‑vendor simulated networks, and how much does a lightweight RAG+automated validator reduce those impacts?",
+  "confirmatory_hypotheses": [
+    "H1: LLM‑generated configuration changes applied without automated validation cause operational failures (reachability loss or policy violation) in ≥20% of intents on the sampled heterogeneous simulated topologies.",
+    "H2: Applying a deterministic RAG + automated syntax/policy‑validator filter prior to application reduces the operational failure proportion by ≥40% relative to Direct‑apply (absolute reduction target ≈10 percentage points under baseline assumptions).",
+    "H3: Outage‑duration distribution is right‑skewed with a heavy tail (median << mean), indicating rare high‑impact failures that dominate mean downtime.",
+    "H4: Automatic rollback occurrences are concentrated in changes that modify access‑control (ACL) and routing statements versus monitoring‑only changes (statistically detectable association)."
+  ],
+  "exploratory_questions": [
+    "E1: How do failure modes differ by vendor (VendorA, VendorB, VendorC) and by change type (ACL, routing, monitoring)?",
+    "E2: How sensitive are failure rates to RAG retrieval corpus coverage (measured by retrieval relevance score buckets)?",
+    "E3: How do simulated operator intervention‑latency heuristics affect measured outage durations?"
+  ],
+  "benchmark_scope": [
+    "Publicly redistributable simulated topologies (three distinct topologies representing heterogeneous multi‑vendor mixes) executed in sandboxed emulation.",
+    "Intent→CLI tasks derived from a public / synthetic intent corpus assembled from license‑compatible public sources only (no private production traces)."
+  ],
+  "model_scope": [
+    "A single hosted LLM endpoint will be used (hosted_model_api_available). Exact model identifier will be selected, fixed, and recorded in the execution manifest before runs (and included in the Disclosure Statement). No local GPU or private model training will be used."
+  ],
+  "transformation_scope": [
+    "Intent → vendor‑specific CLI generation (templated prompts); Retrieval‑Augmented Generation (RAG) variant uses a local retrieval index built from public documentation; automated deterministic syntax and policy validation (no human adjudication) implemented via sandbox observables and formalized invariants."
+  ],
+  "primary_estimand": "Paired difference in operational failure proportion per intent: P(failure | Direct‑apply) − P(failure | RAG+validator), measured across 400 paired intents (each intent executed under both conditions on sandbox replicas).",
+  "secondary_estimands": [
+    "Mean and median outage duration per failed intent by condition.",
+    "Rollback count per 100 intents by condition.",
+    "Vendor‑specific failure proportions and change‑type conditional failure proportions."
+  ],
+  "sampling_plan": "Confirmatory sample: 400 unique intents (one intent = a single operator intent to change/configure). Each intent is executed under both conditions (paired design) on separate sandbox replicas to avoid cross‑run contamination. Stratification: intents assigned to vendors and change types before randomization to ensure representation. Exact assignment: VendorA: 134 intents (ACL 47, Routing 44, Monitoring 43); VendorB: 133 intents (ACL 47, Routing 44, Monitoring 42); VendorC: 133 intents (ACL 46, Routing 52, Monitoring 35). Total intents = 134+133+133 = 400; per change‑type totals ACL=140, Routing=140, Monitoring=120. Pairing ensures vendor/change‑type balance across conditions. Randomized application order (Direct‑apply vs RAG first) within each pair using a fixed RNG seed recorded in the execution manifest.",
+  "analysis_plan": "Primary analysis: estimate paired failure proportions and their absolute difference with 95% bootstrap CIs; perform McNemar test for paired binary outcome (alpha=0.05 two‑sided). Secondary analyses: outage durations — report median and mean with 95% bootstrap CIs; compare distributions with Mann–Whitney U and Kaplan–Meier survival curves for time‑to‑mitigation. Subgroup analyses by vendor and change type with Benjamini–Hochberg FDR control across subgroup tests. All analyses implemented as reproducible scripts with fixed RNG seeds and hashes; raw logs preserved. Exploratory analyses (E1–E3) reported as such and clearly labeled.",
+  "multiplicity_plan": "Primary confirmatory test is the paired failure‑proportion comparison (single primary estimand). Secondary and subgroup tests will be corrected for multiple comparisons using Benjamini–Hochberg (FDR 0.05). Exploratory analyses will not be used to revise confirmatory conclusions.",
+  "missingness_plan": "All runs are automated; missingness arises only from infrastructure failures. Predefined retry policy: on transient emulator/API failure, automated rerun up to 2 times; if still failing, mark as infrastructure failure and exclude from confirmatory paired analysis (pair‑wise exclusion: both applications for that intent excluded). Infrastructure failures and exclusions logged and reported; sensitivity analysis will impute worst/best case for excluded pairs.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public sandboxed heterogeneous topologies (three topologies assembled from public topology examples and public device images as documented in execution manifest)"
+    ],
+    "risk_factors": [
+      "RAG retrieval returning verbatim fragments from the evaluation intent corpus (data leakage).",
+      "Intent corpus inadvertently including vendor example configs that match emulator baseline state.",
+      "Model provider nondeterminism across runs causing variability."
+    ],
+    "detection_procedures": [
+      "Deterministic hash and exact‑match checks between retrieval corpus documents and intent corpus; record retrieval document IDs per run.",
+      "Semantic similarity thresholding (automated embedding cosine > 0.98) to flag near‑duplicates between training/retrieval corpus and evaluation intents.",
+      "Record and compare model response hashes for reruns to quantify provider nondeterminism."
+    ],
+    "item_flagging_rules": [
+      "If any retrieval used by RAG for an intent is an exact or near‑duplicate of the evaluation intent or target CLI (as per detection_procedures), flag the intent as contaminated and remove from the primary confirmatory set; report results both with and without contaminated items.",
+      "If model response hash changes across >1 permitted retry for the same prompt, record nondeterminism; include as covariate in sensitivity analysis."
+    ],
+    "analysis_treatment": "Primary confirmatory analysis excludes contaminated items; sensitivity analyses reintroduce contaminated items and report differential estimates. All contamination detections, flagged items, and post‑hoc reanalyses fully logged and included in supplementary artifacts.",
+    "residual_uncertainty": [
+      "Cannot perfectly detect semantic leakage below the similarity threshold; residual contamination risk remains and is reported as noncritical uncertainty."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "conservative-200",
+      "description": "Conservative confirmatory run with 200 intents (paired), used if time or quota constraints require a smaller confirmatory experiment. Useful as a minimal viability check and for rapid debugging.",
+      "planned_model_calls": 600,
+      "models": [
+        "single hosted LLM endpoint (exact identifier to be fixed and recorded in execution manifest prior to runs)"
+      ],
+      "transformations": [
+        "intent→CLI generation prompt; retrieval index query (local); automated syntax/policy validator checks (deterministic); deterministic rollback simulation scripts"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "200 paired intents ⇒ 400 applications. Expected model calls ~3 per intent (Direct 1 + RAG median 2) → ~600 calls; well within capability manifest maximum 10000 and feasible within allotted wall‑clock days."
+    },
+    {
+      "scenario_id": "recommended-400",
+      "description": "Recommended preregistered confirmatory design: 400 intents (paired) as originally proposed and power‑justified.",
+      "planned_model_calls": 1200,
+      "models": [
+        "single hosted LLM endpoint (exact identifier to be fixed and recorded in execution manifest prior to runs)"
+      ],
+      "transformations": [
+        "intent→CLI generation prompt; retrieval index query (local); automated syntax/policy validator checks (deterministic); deterministic rollback simulation scripts"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 400,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "400 paired intents ⇒ 800 applications. Expected worst‑case model calls capped at 3 per intent (Direct 1 + RAG up to 2 calls under preregistered retry policy) → 1200 planned calls, well within maximum_planned_model_calls=10000; execution uses CPU emulation and hosted model API only (no local GPU)."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in failure proportions per intent (Direct‑apply vs RAG+validator).",
+    "target_effect": "Absolute reduction of ~10 percentage points (example baseline P_direct≈0.25 → P_RAG≈0.15), corresponding to ≥40% relative reduction under the baseline.",
+    "clustering_unit": "Intent (paired across two conditions).",
+    "calculation_method": "Paired‑proportion power calculation (McNemar framework) and bootstrap simulation under assumed discordance rates. Analytical baseline: with 400 pairs and assumed discordant proportions consistent with p_direct=0.25, p_rag=0.15, estimated power >0.80 for two‑sided alpha=0.05. Confirmatory sample of 400 pairs chosen to detect ~10 pp absolute reduction with >80% power under these assumptions.",
+    "assumptions": [
+      "Baseline Direct‑apply failure proportion ≈25% (consistent with literature gap U1 and conservative bound ≥20%).",
+      "RAG+validator reduces failures by 40% relative (absolute ~10 pp).",
+      "Within‑intent correlation accounted by paired design (McNemar); simulations assume moderate discordance (discordant fraction ≈0.16).",
+      "Type I error α=0.05 (two‑sided), power target 1−β=0.80."
+    ],
+    "recommended_scenario_id": "recommended-400",
+    "minimum_detectable_effect_notes": "With 400 pairs, detectable absolute difference ≈7–12 percentage points depending on discordant rate assumptions; sensitivity simulation results (precomputed) will be published alongside raw artifacts.",
+    "sensitivity_analyses": [
+      "Power recomputed for baseline p_direct ∈ {0.20,0.25,0.30} and relative reductions ∈ {30%,40%,50%}.",
+      "Alternate analysis treating applications as independent (conservative) to show robustness."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent normalization and slot filling → templated prompt generation",
+      "LLM textual generation → vendor CLI commands",
+      "Automated syntax validator (parser) and automated policy checks (reachability/ACL/routing invariants executed against sandbox telemetry)"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated post‑generation invariant tests: reachability matrix checks, ACL effect simulation, basic routing convergence checks performed in emulator; generation accepted only if syntax parses and validator reports no invariant violation.",
+      "Round‑trip check: when applicable, apply generated CLI to a read‑only sandbox replica and run deterministic probes to confirm intended semantics (e.g., ping matrix)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and mark as 'validator‑rejected' if generated CLI fails vendor syntax parse or triggers any predeclared invariant violation during pre‑apply read‑only simulation.",
+      "If the RAG prompt produces an LLM response that fails a deterministic structure check (missing required fields), automatically reissue up to 1 retry with same seed; if still invalid, mark as generation failure and log."
+    ],
+    "audit_sample_policy": "Automated audit re‑execution for 10% of runs selected deterministically by seed: reapply the same generation+validation pipeline on fresh sandbox replica to check determinism and validator stability; all audit runs logged with hashes.",
+    "mapping_validation": "Mapping rules from intent fields to CLI templates are unit‑tested against vendor model device images with deterministic inputs; mapping tests and unit test hashes recorded in execution manifest.",
+    "residual_risks": [
+      "Validator coverage gaps for vendor CLI idiosyncrasies (documented unit‑test failures reported).",
+      "Semantic equivalence checks limited to sandbox‑observable properties; deeper device‑internal semantics may remain unobserved."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity vs production devices: sandboxed emulators may not reproduce all vendor‑specific runtime behaviours; limits external validity to simulated/near‑production evidence.",
+    "Simulated operator heuristics and latency distributions are approximations and may not reflect real human interventions.",
+    "RAG retrieval corpus coverage and quality could materially influence observed reductions; retrieval corpus is public and may differ from production knowledge bases.",
+    "Model provider nondeterminism and single‑model evaluation limit claims of multi‑model generality; recommended follow‑up studies should test additional model checkpoints.",
+    "Residual semantic leakage detection has limited sensitivity below predefined similarity thresholds; some contamination risk may remain."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "doi:10.1002/nem.2313",
+    "doi:10.2139/ssrn.6608518",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4401857375",
+    "https://openalex.org/W7124141852"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "summary": "Careful, fully preregistered paired experiment with excellent archival rigor, but the core experimental contrast was inert: a shared‑initial candidate generation policy produced identical applied changes in both arms (validator_reject_count=0, repair_calls=0, n11=400), so the study cannot support conclusions about validator efficacy. The submission is valuable as a reproducible boundary case and artifact release, but substantive revisions (additional controls, clearer task/data release, and corrected inferential framing) are required before acceptance.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 4,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Preregistered generation semantics (independent_condition_generation=false; shared_initial_candidate) made Baseline and Guarded identical in this run; validator never rejected and no repair calls occurred, rendering the primary contrast inert and preventing any causal conclusion about validator impact.",
+    "No positive controls or injected failing tasks were executed to demonstrate scorer/validator/emulator sensitivity; without these, zero observed failures could reflect insufficient task difficulty or scorer blind spots rather than genuine model safety in broader settings.",
+    "Statistical inference is misleading in context: standard McNemar/CI machinery is correctly reported but uninformative when all pairs are concordant; manuscript must explicitly acknowledge that the primary test conveys no information about validator efficacy and must present appropriate descriptive/upper‑bound analyses (e.g., Clopper‑Pearson upper bound on failure rate) instead.",
+    "Data and task transparency is incomplete for reproducibility: the paper refers to public/synthetic sources but does not present a clear, accessible package (or stable public URL) containing the exact 400‑intent corpus, selection criteria, and emulator configuration to allow independent replication.",
+    "The manuscript at times implies broader operational relevance; given the single model, single adapter, shared‑generation design, and emulator limits, strong generalization claims are not supported and must be curtailed."
+  ],
+  "required_revisions": [
+    "Revise claims and abstract/introduction to remove or explicitly bound any implication that the study measured validator efficacy; state clearly that the shared_initial design rendered the intervention inert in this run and that results are a documented boundary case.",
+    "Provide empirical positive controls demonstrating scorer/validator sensitivity (e.g., a set of injected intents known to cause reachability or policy failures, with evidence that the emulator and validator detect them). If a full rerun is not possible, provide offline sensitivity analyses or audited scorer tests that validate detection capability.",
+    "Release the exact 400‑intent corpus, intent selection script, per‑intent metadata (vendor, change_type), emulator configuration, validator ruleset, and the analysis scripts in a public repository or archive with stable identifiers; include instructions to reproduce the run and hashes already provided.",
+    "Either (A) rerun the experiment with independent_condition_generation=true (so Baseline and Guarded can diverge) or (B) if rerun is infeasible, add a targeted additional experiment (or simulation) showing how often the validator would have been invoked under independent sampling (e.g., by re‑sampling generation seeds or by synthetic perturbation) and report resulting discordant counts; document any post‑preregistration deviations.",
+    "Replace or augment the primary inferential reporting with analyses appropriate for the all‑success outcome: report exact upper bounds on failure rates, clarify that McNemar p=1.0/CIs at 0 are trivial in this context, and present a discussion of the limits of null results for assessing high‑impact, low‑frequency failures."
+  ],
+  "optional_revisions": [
+    "Expand discussion of task selection bias and include an explicit breakdown (table) of intent difficulty indicators and examples of near‑failure or ambiguous cases.",
+    "Include one or two adversarial or higher‑difficulty intent families (ACL/routing changes known to be brittle) and show how the validator and repair behave on those inputs.",
+    "If feasible, run at least one additional model and/or adapter to assess generality, or clearly frame this work as a single‑model proof‑of‑concept with artifact release for follow‑up.",
+    "Add a short appendix with representative shared_initial outputs and the validator rule traces for a small sample to aid reader inspection."
+  ],
+  "accept_for_finalisation": false
+}

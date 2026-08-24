@@ -1,0 +1,27 @@
+{
+  "summary": "Well‑documented, fully archived paired experiment comparing Direct‑apply vs validator+≤1 repair for LLM→NetOps across 400 intents using gpt‑5‑mini and a hosted NetOps adapter. Execution and artifacts are comprehensive and reproducible. However the preregistered shared_initial_candidate design plus the observed data produced zero validator interventions and zero failures, leaving the primary confirmatory question effectively untested. Reviewer requests focus on additional artifact analyses and stronger, preregistered positive controls or clearer framing of the null/ boundary outcome.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 4,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary intervention was inert in the observed run (validator_reject_count=0, repair_calls=0) because generation semantics used a single shared initial candidate; as a result the confirmatory test cannot assess validator efficacy on the sampled tasks and contradicts the preregistration's intended power assumptions for H1/H2.",
+    "No positive controls or injected failing intents are present to demonstrate scorer/validator sensitivity; the manuscript does not empirically rule out scorer false negatives for some failure modes.",
+    "Single‑model, single‑adapter, single‑generation‑semantics run severely limits external validity and generalizability; manuscript must avoid language implying broader effectiveness or safety.",
+    "Statistical analysis is correctly executed given the data, but the interpretation does not sufficiently account for the trivial (degenerate) paired outcome: reporting CI=[0,0] and p=1.0 is mathematically correct but uninformative; the paper must more strongly emphasize that the design+outcome prevented testing the hypotheses rather than producing evidence of validator equivalence.",
+    "Key operational claims in places risk overgeneralization; despite the strong archival practice, the manuscript should remove any wording that could be read as implying production readiness or validator ineffectiveness without further experiments."
+  ],
+  "required_revisions": [
+    "Explicitly reframe the paper to present this run as a documented boundary case and make clear that the preregistered hypotheses were not testable under the observed outcome; remove any wording that could be read as evidence for validator efficacy or general safety beyond the archived narrow setting.",
+    "Add artifact‑grounded analyses already available in the archive: (a) per‑intent summaries (change_type × vendor) showing task composition and difficulty metrics; (b) validator internal checks/logs and exact validation rules so readers can judge why zero rejects occurred; (c) representative shared_initial candidates and three illustrative per‑task traces (prompt → model shared candidate → validator pass → emulator scoring) as examples in supplementary artifacts referenced from the paper.",
+    "Provide a thorough, artifact‑based sensitivity analysis demonstrating scorer/validator detectability using only archived data (e.g., show scorer behavior on any naturally occurring near‑failure episodes, measurement thresholds, or offline unit tests derived from preserved artifacts). If such demonstrations are impossible with current artifacts, explicitly state this limitation and why it cannot be resolved post hoc.",
+    "Strengthen the Threats to Validity and Discussion sections to (i) clearly state that the shared_initial_candidate generation semantics made the intervention inert unless validator rejected, (ii) quantify how that choice affects interpretability, and (iii) remove any implications beyond the documented sandbox and generation semantics.",
+    "Add an explicit, machine‑readable appendix/table that maps every principal numerical claim to its artifact path+SHA‑256 (execution_manifest already contains hashes but the manuscript must state exact artifact paths for the primary numbers reported)."
+  ],
+  "optional_revisions": [
+    "If feasible, include in revision a short additional analysis using archived artifacts showing how results would differ under independent_condition_generation=true by replaying alternative candidates from provider_call cache if present (labelled explicitly as an exploratory reconstruction), or else clearly state that this was preregistered as a follow‑on and will be executed separately.",
+    "Add a compact summary table of representative prompts and model outputs (redacted if necessary) to help readers assess prompt sensitivity.",
+    "More explicitly compare to closest prior work with a concise nearest‑work matrix that highlights how this boundary outcome informs method design in the literature."
+  ],
+  "accept_for_finalisation": false
+}

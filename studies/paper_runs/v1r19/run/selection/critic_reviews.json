@@ -1,0 +1,104 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator/device-model fidelity may bias measured failure reductions vs. production devices.",
+        "Operational definition of “unsafe” is underspecified and may vary by vendor/context.",
+        "Formal verifier coverage for vendor CLI idiosyncrasies is likely incomplete; false negatives/positives risk confounding results.",
+        "Engineering/integration bugs (toolchain) could masquerade as scientific effects if not isolated.",
+        "Single‑model evaluation risks overclaiming generality across LLMs."
+      ],
+      "required_design_repairs": [
+        "Specify precise, machine‑checkable unsafe predicates and how they map to verifier semantics and sandbox observables.",
+        "Document verifier formalism (Batfish/NetKAT rules) and per‑vendor modeling gaps; include negative/coverage tests for verifier correctness.",
+        "Define dataset provenance/licensing and show representative intent distribution per vendor; preregister inclusion/exclusion rules.",
+        "Add robustness checks: ablation (no‑repair), varying retrieval quality, and at least one sensitivity run on a second LLM or model checkpoint to bound model‑specific effects.",
+        "Predefine retry/engineering‑failure policies and include toolchain unit tests and independent hashable artifact snapshots for each pipeline component."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "External validity: simulated topologies and operator heuristics may not reflect production failure rates.",
+        "Invariant specification (what constitutes a failure) needs formalization to avoid ambiguous labels.",
+        "Potential imbalance in intent→vendor mapping could bias randomized comparisons if not stratified.",
+        "Risk of overstating real‑world applicability given sandboxed emulation.",
+        "Operator‑simulated interventions are design choices that can dominate outage duration estimates."
+      ],
+      "required_design_repairs": [
+        "Formally enumerate invariants with precise test procedures (reachability checks, ACL semantics) and map to observable sandbox metrics.",
+        "Preregister stratification scheme ensuring vendor and change‑type balance across conditions; include power/sample‑size justification.",
+        "Define and justify simulator operator heuristics; preregister sensitivity analyses and ranges for heuristics.",
+        "Log full raw telemetry and provide deterministic replay scripts; include mitigation-detection latency measurement methodology.",
+        "Constrain claims in manuscript to simulated/near‑production evidence and explicitly report limitations on production extrapolation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.5,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Licensing and provenance of vendor examples could prevent public release of the dataset.",
+        "Fine‑tuning resource requirements conflict with available local GPU (none); plan depends on hosted fine‑tuning capabilities.",
+        "Synthetic paraphrase generation risks introducing artifacts that overestimate model gains.",
+        "Dataset curation bias (vendor/command overrepresentation) may limit generality.",
+        "Tokenization and model‑specific training details must be exact to permit reproducibility."
+      ],
+      "required_design_repairs": [
+        "Provide a concrete licensing/provenance plan and remove any non‑redistributable content; document provenance for every sample.",
+        "If local fine‑tuning is infeasible, specify exact hosted‑API fine‑tuning procedure or restrict experiments to RAG/adapter methods that fit capability constraints.",
+        "Describe paraphrase generation controls (semantic preservation checks) and include a human validation subset or verifier pass to limit artifact leakage.",
+        "Define train/val/test splits with held‑out vendors and report tokenization/encoder settings and all hyperparameters; include scripts to reproduce dataset preprocessing.",
+        "Temporally scope claims about dataset impact; include scaling controls and explicit caveats about synthetic vs. human‑authored intents."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Simulated operator agents may not capture real human judgement, limiting external validity of gate rankings.",
+        "Choice of calibration priors could meaningfully change results; risk of presenting simulation as substitute for human studies.",
+        "UI and human‑factors aspects are approximated; workload proxies (decision time) may be weak surrogates.",
+        "Potential deterministic interactions between gate heuristics and simulated agents could produce optimistic results.",
+        "Risk of overclaiming about practical deployment without human validation."
+      ],
+      "required_design_repairs": [
+        "Preregister calibration priors and source literature for simulated operator parameters; include wide sensitivity sweeps and report robustness of gate ordering.",
+        "Validate simulated operator behavior against any available small human study or published human decision data; if unavailable, clearly qualify claims as simulation‑based.",
+        "Define and justify workload proxies; where possible, triangulate decision‑time proxies with other workload indicators (e.g., number of flags consulted).",
+        "Include stochasticity in simulated agents and repeat runs with different seeds; report variance and confidence intervals of gate rankings.",
+        "Limit manuscript claims to simulated evidence and recommend follow‑up human studies; provide reproducible simulation code and parameter tables."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

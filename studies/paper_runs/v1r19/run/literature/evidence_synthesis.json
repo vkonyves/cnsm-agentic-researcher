@@ -1,0 +1,186 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "LLMs and multi‑agent LLM frameworks are being actively applied to intent‑driven network configuration, troubleshooting, and orchestration in NetOps research and prototypes.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4406484968",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "peer-reviewed article / system report / preprint",
+      "confidence": 0.9,
+      "limitations": [
+        "many reports describe prototypes or frameworks rather than large‑scale production deployments",
+        "heterogeneous definitions of 'agentic' or 'multi‑agent' across papers"
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Hallucination and incorrect or unsafe generations are documented failure modes for LLMs applied to configuration and operational tasks; retrieval (RAG) and verifier/validator steps reduce but do not eliminate such failures.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6608518",
+        "https://openalex.org/W4401857375",
+        "doi:10.2139/ssrn.7200222",
+        "https://openalex.org/W4404652946",
+        "https://openalex.org/W4406484968"
+      ],
+      "evidence_type": "preprint / survey / system evaluation",
+      "confidence": 0.9,
+      "limitations": [
+        "quantitative residual error rates vary by task, model, and dataset and are not uniformly reported",
+        "evidence mainly from academic prototypes and benchmarks, not broad production traces"
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Generate–validate–repair (closed‑loop) designs and verifier‑guided training materially improve correctness for configuration generation tasks (demonstrated in IaC and network‑configuration repair studies).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7162218766",
+        "doi:10.1145/3776656",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "peer-reviewed article / system evaluation / tool paper",
+      "confidence": 0.85,
+      "limitations": [
+        "strongest quantitative evidence comes from IaC and curated repair benchmarks; network‑device heterogeneity may reduce transferability",
+        "computational and engineering costs of closed‑loop verification are not consistently reported"
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Operational reliability in LLM‑augmented NetOps depends substantially on surrounding tooling, validation, governance, and human‑in‑the‑loop processes rather than on LLM outputs alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "survey / architecture paper / system report",
+      "confidence": 0.9,
+      "limitations": [
+        "argumentation is supported by surveys and architectural analyses rather than controlled randomized field trials",
+        "degree to which each supporting mechanism (tooling, governance, HITL) contributes varies by deployment"
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Retrieval‑augmented generation (RAG) consistently improves domain factuality for domain‑specific QA and configuration tasks compared with base LLM responses.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6608518",
+        "https://openalex.org/W4404782930",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W7164054454"
+      ],
+      "evidence_type": "preprint / survey / applied evaluation",
+      "confidence": 0.85,
+      "limitations": [
+        "improvement magnitude depends on retrieval quality, corpus coverage, and downstream verification",
+        "RAG reduces but does not guarantee absence of unsupported or inconsistent outputs"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "What are realistic, production‑scale failure rates and operational impacts of LLM‑driven NetOps actions when applied to heterogeneous, multi‑vendor networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "survey / position papers noting gaps",
+      "confidence": 0.7,
+      "limitations": [
+        "surveys identify the gap but do not provide large‑scale production telemetry to answer it",
+        "requires empirical studies on production networks"
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "How effectively can formal network verification (e.g., NetKAT/Relational NetKAT, Batfish pipelines) be integrated end‑to‑end with LLM generation across diverse device CLIs and vendor idiosyncrasies?",
+      "evidence_record_ids": [
+        "doi:10.1145/3776656",
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4406484968"
+      ],
+      "evidence_type": "tool paper / IaC verifier paper / framework report",
+      "confidence": 0.65,
+      "limitations": [
+        "existing works demonstrate components and small‑to‑medium experiments but not comprehensive cross‑vendor deployments",
+        "mapping LLM‑generated intent fragments to formally checkable specs remains partially open"
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "What standardized, workflow‑centred evaluation metrics and public benchmarks best capture operational correctness, safety, and trustworthiness for agentic NetOps?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "surveys / position analyses",
+      "confidence": 0.7,
+      "limitations": [
+        "several benchmark proposals exist in adjacent domains, but NetOps workflow‑centred benchmarks remain fragmented",
+        "designing benchmarks that reflect production risk and permit reproducible public evaluation is nontrivial"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a shortage of large, publicly available intent→device‑specific network‑configuration datasets (paired natural‑language intents with verified vendor CLI outputs) suitable for reproducible LLM training/evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "system paper / intent‑translation study / survey noting data scarcity",
+      "confidence": 0.8,
+      "limitations": [
+        "papers describe dataset construction challenges and limited supervision corpora but some smaller corpora exist",
+        "gap closure requires curated, license‑compatible corpora and community coordination"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Relatively few published studies demonstrate integrated RAG + formal verification + closed‑loop repair pipelines evaluated at production or near‑production network scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4406484968",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "IaC verifier paper / intent translation framework / pretrained config model",
+      "confidence": 0.7,
+      "limitations": [
+        "related work exists for IaC and for smaller network prototypes, but cross‑device, large‑scale validation evidence is limited in the supplied records",
+        "engineering integration complexity (APIs, telemetry, vendor CLIs) is an obstacle"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Evaluations that measure human‑operator workload, trust calibration, and approval‑gate design for LLM‑assisted NetOps remain limited in the public literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W7130596601",
+        "https://openalex.org/W7141119996"
+      ],
+      "evidence_type": "surveys and HITL reviews",
+      "confidence": 0.75,
+      "limitations": [
+        "HITL literature often from other domains (e.g., healthcare) and transferability to NetOps needs empirical validation",
+        "measuring cognitive load and trust requires user studies not widely reported"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM‑only systems are production‑ready for fully autonomous NetOps at Internet scale (unsupported by supplied records).",
+    "RAG or verifier pipelines completely eliminate hallucinations or unsafe configurations (evidence shows reduction but not elimination).",
+    "The supplied records prove no security risks arise from LLM/agentic NetOps (security risks and attack surfaces are documented).",
+    "Any single cited work constitutes a general proof of cross‑vendor, in‑production reliability for agentic NetOps (unsupported; most evidence is prototype/benchmark scale).",
+    "Claims of being the absolute 'first' to deploy fully autonomous LLM‑agents in production NetOps without strong independent verification (unsupported by supplied records)."
+  ]
+}
