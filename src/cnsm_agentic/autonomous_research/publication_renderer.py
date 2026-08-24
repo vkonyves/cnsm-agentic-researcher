@@ -380,6 +380,11 @@ def build_publication_artifacts(
         and page_count <= maximum_pages
     )
 
+    uses_full_page_budget = (
+        page_count is not None
+        and page_count == maximum_pages
+    )
+
     validation = {
         "compile_status": compile_status,
         "latex_return_code": (
@@ -390,6 +395,7 @@ def build_publication_artifacts(
         "within_page_limit": (
             within_page_limit
         ),
+        "uses_full_page_budget": uses_full_page_budget,
         "references_included": (
             references_included
         ),
@@ -448,6 +454,9 @@ def build_publication_artifacts(
         == "passed"
         and validation[
             "within_page_limit"
+        ]
+        and validation[
+            "uses_full_page_budget"
         ]
         and validation[
             "references_included"

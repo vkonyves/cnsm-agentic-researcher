@@ -185,12 +185,48 @@ MANUSCRIPT_AUTHOR = Agent(
     model="gpt-5-mini",
     output_type=ManuscriptPackage,
     instructions=(
-        "Write only from verified evidence, sealed preregistration, "
-        "completed execution artifacts, and completed analysis "
-        "results. Never invent data, references, experiments, "
-        "statistics, implementation details, or outcomes. Clearly "
-        "distinguish confirmatory and exploratory results and include "
-        "limitations and disclosure."
+        """
+        Write only from verified evidence, sealed preregistration,
+        completed execution artifacts, and completed analysis
+        results. Never invent data, references, experiments,
+        statistics, implementation details, or outcomes. Clearly
+        distinguish confirmatory and exploratory results and include
+        limitations and disclosure.
+
+        The final CNSM manuscript has a five-page IEEE conference budget,
+        including references and the mandatory Disclosure Statement.
+
+        Produce a dense, technically substantive, fully written five-page
+        conference paper. Use the full available page budget for scientific
+        content and the elements required by the selected research topic,
+        the executed study, peer review, and the CNSM Agentic AI Researcher
+        track.
+
+        Do not intentionally produce a short manuscript merely because five
+        pages is stated as a maximum. Do not use verbosity, repetition,
+        generic filler, enlarged formatting, artificial spacing, or arbitrary
+        word-count targets to fill pages.
+
+        Prefer concise scientific prose and substantive coverage. As supported
+        by the frozen research artifacts, include the necessary motivation,
+        related work, research question and contribution, methodology and
+        experimental design, implementation details needed to understand the
+        study, quantitative results, appropriate statistical interpretation,
+        representative examples or diagnostics where scientifically useful,
+        limitations, operational implications, reproducibility information,
+        verified references, and the mandatory Disclosure Statement.
+
+        Use tables and figures when they communicate artifact-grounded
+        scientific information more effectively than prose. They are optional,
+        not decorative, and must not be invented merely to consume space.
+
+        Do not invent experiments, observations, statistics, citations,
+        examples, or claims. All manuscript content must remain grounded in
+        the archived autonomous-run artifacts and verified evidence.
+
+        The final compiled IEEE manuscript should occupy exactly five pages,
+        including references and disclosure.
+        """
     ),
 )
 
@@ -200,12 +236,20 @@ PEER_REVIEWER = Agent(
     model="gpt-5-mini",
     output_type=PeerReviewReport,
     instructions=(
-        "Review novelty, technical depth, scientific soundness, "
-        "statistical validity, preregistration fidelity, evidence "
-        "support, reproducibility, and clarity. Reject unsupported "
-        "claims, unverifiable references, missing controls, "
-        "unreported deviations, and conclusions not justified by "
-        "the completed results."
+        """
+        Review novelty, technical depth, scientific soundness,
+        statistical validity, preregistration fidelity, evidence
+        support, reproducibility, and clarity. Reject unsupported
+        claims, unverifiable references, missing controls,
+        unreported deviations, and conclusions not justified by
+        the completed results.
+
+        Set accept_for_finalisation=true only when no critical issue and no
+        required revision remains that should be addressed in the manuscript.
+        If substantive required revisions remain, set
+        accept_for_finalisation=false even if the underlying scientific work
+        is sound.
+        """
     ),
 )
 
@@ -215,17 +259,59 @@ MANUSCRIPT_REVISER = Agent(
     model="gpt-5-mini",
     output_type=ManuscriptPackage,
     instructions=(
-        "Revise the manuscript in response to the peer-review report "
-        "while preserving verified evidence, sealed preregistration, "
-        "completed execution artifacts, and real analysis results. "
-        "Do not resolve criticism by inventing new experiments, data, "
-        "references, or statistical results. When a reviewer requests "
-        "specific information that already exists in supplied execution "
-        "or analysis artifacts, incorporate the actual verified value "
-        "into the manuscript rather than merely pointing to an artifact "
-        "path. Do not invent URLs, repository locations, access commands, "
-        "validator statistics, model identifiers, or configuration values "
-        "that are not present in the supplied artifacts."
+        """
+        Revise the manuscript in response to the peer-review report
+        while preserving verified evidence, sealed preregistration,
+        completed execution artifacts, and real analysis results.
+        Do not resolve criticism by inventing new experiments, data,
+        references, or statistical results. When a reviewer requests
+        specific information that already exists in supplied execution
+        or analysis artifacts, incorporate the actual verified value
+        into the manuscript rather than merely pointing to an artifact
+        path. Do not invent URLs, repository locations, access commands,
+        validator statistics, model identifiers, or configuration values
+        that are not present in the supplied artifacts.
+
+        The final CNSM manuscript has a five-page IEEE conference budget,
+        including references and the mandatory Disclosure Statement.
+
+        Produce a dense, technically substantive, fully written five-page
+        conference paper. Use the full available page budget for scientific
+        content and the elements required by the selected research topic,
+        the executed study, peer review, and the CNSM Agentic AI Researcher
+        track.
+
+        Do not intentionally produce a short manuscript merely because five
+        pages is stated as a maximum. Do not use verbosity, repetition,
+        generic filler, enlarged formatting, artificial spacing, or arbitrary
+        word-count targets to fill pages.
+
+        Prefer concise scientific prose and substantive coverage. As supported
+        by the frozen research artifacts, include the necessary motivation,
+        related work, research question and contribution, methodology and
+        experimental design, implementation details needed to understand the
+        study, quantitative results, appropriate statistical interpretation,
+        representative examples or diagnostics where scientifically useful,
+        limitations, operational implications, reproducibility information,
+        verified references, and the mandatory Disclosure Statement.
+
+        Use tables and figures when they communicate artifact-grounded
+        scientific information more effectively than prose. They are optional,
+        not decorative, and must not be invented merely to consume space.
+
+        Do not invent experiments, observations, statistics, citations,
+        examples, or claims. All manuscript content must remain grounded in
+        the archived autonomous-run artifacts and verified evidence.
+
+        The final compiled IEEE manuscript should occupy exactly five pages,
+        including references and disclosure.
+
+        Address every substantive required revision from peer review that can
+        be supported by the archived artifacts. Do not merely refer reviewers
+        to an artifact when the requested scientific clarification, result,
+        example, diagnostic, or reproducibility information can reasonably be
+        included in the manuscript itself.
+        """
     ),
 )
 
@@ -240,7 +326,7 @@ FINAL_JUDGE = Agent(
         "revision, reproducibility artifacts, disclosure, IEEE source "
         "checks, and PDF checks. Use the supplied deterministic "
         "publication_validation artifact as the authority for compilation "
-        "status, PDF existence, page count, page-limit compliance, "
+        "status, PDF existence, page count, exact full-page-budget compliance, "
         "references, and Disclosure Statement inclusion. Never infer PDF "
         "compliance from manuscript prose alone. Mark the work ready only "
         "if every required gate is supported by real artifacts and no "

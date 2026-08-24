@@ -2895,10 +2895,13 @@ class FinalAutonomousResearchPipeline:
                 latest_peer_review,
             )
 
-            if (
-                latest_peer_review
-                .accept_for_finalisation
-            ):
+            review_is_finalisable = (
+                latest_peer_review.accept_for_finalisation
+                and not latest_peer_review.critical_issues
+                and not latest_peer_review.required_revisions
+            )
+
+            if review_is_finalisable:
                 break
 
             if (
@@ -3008,7 +3011,7 @@ class FinalAutonomousResearchPipeline:
             / "final"
         )
 
-        maximum_format_revision_rounds = 2
+        maximum_format_revision_rounds = 5
         publication_validation: dict[str, Any] | None = None
 
         for format_round in range(
@@ -3049,15 +3052,38 @@ class FinalAutonomousResearchPipeline:
             )
 
             # Manuscript revision is appropriate only for a
-            # successfully compiled paper that exceeds the
-            # frozen page limit. Compilation failures are
-            # infrastructure/rendering failures, not reasons
-            # to alter scientific manuscript content.
+            # successfully compiled paper whose compiled page count
+            # does not exactly match the frozen IEEE page budget.
+            # Compilation failures are infrastructure/rendering
+            # failures, not reasons to alter scientific manuscript
+            # content.
             if compile_status != "passed":
                 break
 
-            if publication_validation.get(
-                "within_page_limit"
+            page_count = (
+                publication_validation.get(
+                    "page_count"
+                )
+            )
+            maximum_pages = (
+                publication_validation.get(
+                    "maximum_pages"
+                )
+            )
+
+            uses_full_page_budget = (
+                publication_validation.get(
+                    "uses_full_page_budget",
+                    False,
+                )
+            )
+
+            if uses_full_page_budget:
+                break
+
+            if (
+                page_count is None
+                or maximum_pages is None
             ):
                 break
 
@@ -3067,21 +3093,63 @@ class FinalAutonomousResearchPipeline:
             ):
                 break
 
+            if page_count > maximum_pages:
+                revision_instruction = (
+                    f"The manuscript compiled successfully but is "
+                    f"{page_count} pages, exceeding the frozen IEEE "
+                    f"conference budget of {maximum_pages} pages. "
+                    f"Revise it to occupy exactly {maximum_pages} "
+                    "pages. Shorten and compact the manuscript while "
+                    "preserving supported scientific claims, the "
+                    "primary methods and results, reviewer-resolved "
+                    "information, required references, reproducibility "
+                    "information, and the mandatory Disclosure "
+                    "Statement. Prefer concise scientific phrasing and "
+                    "efficient presentation over deleting substantive "
+                    "technical material. Do not change empirical "
+                    "results, add unsupported claims, remove required "
+                    "disclosure content, manipulate the IEEE template, "
+                    "shrink fonts or margins, or invent new evidence."
+                )
+            else:
+                revision_instruction = (
+                    f"The manuscript compiled successfully but is only "
+                    f"{page_count} pages within the frozen IEEE "
+                    f"conference budget of {maximum_pages} pages. "
+                    f"Revise it into a dense, technically substantive, "
+                    f"fully written {maximum_pages}-page IEEE "
+                    "conference paper, including references and the "
+                    "mandatory Disclosure Statement. Use the available "
+                    "space for the scientific elements the work "
+                    "requires (e.g., text, figures, tables); do not "
+                    "pad with verbosity, repetition, formatting tricks, "
+                    "or arbitrary word-count targets. Expand only with "
+                    "material supported by the archived autonomous-run "
+                    "artifacts and verified evidence. Prioritize "
+                    "scientific content that is missing, abbreviated, "
+                    "or insufficiently represented in the manuscript, "
+                    "including as appropriate methodology and "
+                    "experimental detail, quantitative results and "
+                    "statistical interpretation, representative "
+                    "examples, diagnostics, reviewer-required "
+                    "clarifications, relevant verified literature, "
+                    "limitations, operational implications, "
+                    "reproducibility information, and scientifically "
+                    "useful tables or figures. Do not invent "
+                    "experiments, observations, statistics, citations, "
+                    "examples, or claims merely to fill space."
+                )
+
             format_feedback = {
-                "page_count": (
-                    publication_validation.get(
-                        "page_count"
-                    )
-                ),
-                "maximum_pages": (
-                    publication_validation.get(
-                        "maximum_pages"
-                    )
-                ),
+                "page_count": page_count,
+                "maximum_pages": maximum_pages,
                 "within_page_limit": (
                     publication_validation.get(
                         "within_page_limit"
                     )
+                ),
+                "uses_full_page_budget": (
+                    uses_full_page_budget
                 ),
                 "references_included_in_limit": (
                     publication_validation.get(
@@ -3099,6 +3167,52 @@ class FinalAutonomousResearchPipeline:
                     )
                 ),
             }
+
+            revised_manuscript = await run_agent(
+                MANUSCRIPT_REVISER,
+                {
+                    "master_prompt": master_prompt,
+                    "verified_records": records,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
+                    "manuscript": (
+                        revised_manuscript
+                        .model_dump()
+                    ),
+                    "peer_review": (
+                        latest_peer_review
+                        .model_dump()
+                    ),
+                    "publication_validation": (
+                        format_feedback
+                    ),
+                    "revision_round": (
+                        "format_"
+                        f"{format_round + 1}"
+                    ),
+                    "revision_instruction": (
+                        revision_instruction
+                    ),
+                },
+                expected_type=ManuscriptPackage,
+                stage_name=(
+                    "Autonomous manuscript format revision "
+                    f"{format_round + 1}"
+                ),
+            )
 
             revised_manuscript = await run_agent(
                 MANUSCRIPT_REVISER,

@@ -71,9 +71,16 @@ def test_render_ieee_latex_contains_required_components():
     assert "Verified Paper" in source
 
 
-def test_build_publication_artifacts_compiles_pdf(
+def test_build_publication_artifacts_compiles_exactly_five_pages(
     tmp_path: Path,
+    monkeypatch,
 ):
+    monkeypatch.setattr(
+        "cnsm_agentic.autonomous_research."
+        "publication_renderer._pdf_page_count",
+        lambda _: 5,
+    )
+
     validation = build_publication_artifacts(
         manuscript=_manuscript(),
         verified_records=[
@@ -88,9 +95,9 @@ def test_build_publication_artifacts_compiles_pdf(
     )
 
     assert validation["compile_status"] == "passed"
-    assert validation["page_count"] is not None
-    assert validation["page_count"] <= 5
+    assert validation["page_count"] == 5
     assert validation["within_page_limit"] is True
+    assert validation["uses_full_page_budget"] is True
     assert validation["disclosure_included"] is True
     assert validation["references_included"] is True
     assert validation["passed"] is True
@@ -101,6 +108,71 @@ def test_build_publication_artifacts_compiles_pdf(
 
     assert validation["tex_sha256"]
     assert validation["pdf_sha256"]
+
+
+def test_publication_underfilled_four_pages_fails(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "cnsm_agentic.autonomous_research."
+        "publication_renderer._pdf_page_count",
+        lambda _: 4,
+    )
+
+    validation = build_publication_artifacts(
+        manuscript=_manuscript(),
+        verified_records=[
+            {
+                "record_id": "record-1",
+                "title": "Verified Paper",
+                "publication_year": 2026,
+            }
+        ],
+        output_dir=tmp_path,
+        paper_run_constraints=_constraints(),
+    )
+
+    assert validation["compile_status"] == "passed"
+    assert validation["page_count"] == 4
+    assert validation["within_page_limit"] is True
+    assert validation["uses_full_page_budget"] is False
+    assert validation["references_included"] is True
+    assert validation["disclosure_included"] is True
+    assert validation["passed"] is False
+
+
+def test_publication_over_limit_six_pages_fails(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "cnsm_agentic.autonomous_research."
+        "publication_renderer._pdf_page_count",
+        lambda _: 6,
+    )
+
+    validation = build_publication_artifacts(
+        manuscript=_manuscript(),
+        verified_records=[
+            {
+                "record_id": "record-1",
+                "title": "Verified Paper",
+                "publication_year": 2026,
+            }
+        ],
+        output_dir=tmp_path,
+        paper_run_constraints=_constraints(),
+    )
+
+    assert validation["compile_status"] == "passed"
+    assert validation["page_count"] == 6
+    assert validation["within_page_limit"] is False
+    assert validation["uses_full_page_budget"] is False
+    assert validation["references_included"] is True
+    assert validation["disclosure_included"] is True
+    assert validation["passed"] is False
+
 
 def test_render_ieee_latex_normalizes_problematic_unicode():
     manuscript = _manuscript()
