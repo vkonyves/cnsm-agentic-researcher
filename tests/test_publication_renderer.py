@@ -5,6 +5,7 @@ from cnsm_agentic.autonomous_research.publication_renderer import (
     render_ieee_latex,
 )
 
+from types import SimpleNamespace
 
 def _manuscript():
     return {
@@ -211,3 +212,52 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     assert "Kovačić" in source
     assert r"\usepackage[utf8]{inputenc}" in source
     assert r"\usepackage[T1]{fontenc}" in source
+
+
+def test_publication_renderer_uses_robust_subprocess_decoding(
+    tmp_path: Path,
+    monkeypatch,
+):
+    observed = {}
+
+    def fake_run(*args, **kwargs):
+        observed.update(kwargs)
+
+        pdf_path = tmp_path / "manuscript.pdf"
+        pdf_path.write_bytes(b"%PDF-1.4\n%%EOF\n")
+
+        return SimpleNamespace(
+            returncode=0,
+            stdout="latex output \ufffd",
+            stderr="",
+        )
+
+    monkeypatch.setattr(
+        "cnsm_agentic.autonomous_research."
+        "publication_renderer.subprocess.run",
+        fake_run,
+    )
+
+    monkeypatch.setattr(
+        "cnsm_agentic.autonomous_research."
+        "publication_renderer._pdf_page_count",
+        lambda _: 5,
+    )
+
+    validation = build_publication_artifacts(
+        manuscript=_manuscript(),
+        verified_records=[
+            {
+                "record_id": "record-1",
+                "title": "Verified Paper",
+                "publication_year": 2026,
+            }
+        ],
+        output_dir=tmp_path,
+        paper_run_constraints=_constraints(),
+    )
+
+    assert observed["text"] is True
+    assert observed["encoding"] == "utf-8"
+    assert observed["errors"] == "replace"
+    assert validation["page_count"] == 5
