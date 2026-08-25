@@ -2852,7 +2852,7 @@ class FinalAutonomousResearchPipeline:
         current_manuscript = draft
         latest_peer_review: PeerReviewReport | None = None
 
-        maximum_peer_review_rounds = 3
+        maximum_peer_review_rounds = 5
 
         for review_round in range(
             1,
@@ -3011,7 +3011,7 @@ class FinalAutonomousResearchPipeline:
             / "final"
         )
 
-        maximum_format_revision_rounds = 5
+        maximum_format_revision_rounds = 7
         publication_validation: dict[str, Any] | None = None
 
         for format_round in range(
