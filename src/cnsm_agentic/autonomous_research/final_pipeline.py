@@ -1273,6 +1273,81 @@ def build_deterministic_reconciliation(
         ),
     }
 
+def analysis_preregistration_fidelity_issues(
+    *,
+    preregistration: PreregistrationDocument,
+    analysis_plan: dict[str, Any],
+    analysis_contracts: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Check that analysis planning preserves the sealed primary estimand."""
+    issues: list[str] = []
+
+    analysis_executor = analysis_plan.get(
+        "analysis_executor"
+    )
+
+    contract = analysis_contracts.get(
+        str(analysis_executor),
+        {},
+    )
+
+    planned_estimand = analysis_plan.get(
+        "estimand"
+    )
+
+    contract_estimand = contract.get(
+        "estimand"
+    )
+
+    if (
+        contract_estimand
+        and planned_estimand != contract_estimand
+    ):
+        issues.append(
+            "Analysis plan estimand does not exactly match "
+            "the selected executor planning contract."
+        )
+
+    prereg_text = " ".join(
+        [
+            preregistration.primary_estimand,
+            preregistration.analysis_plan,
+            *preregistration.confirmatory_hypotheses,
+        ]
+    ).lower()
+
+    if contract_estimand == (
+        "paired_success_rate_difference_guarded_minus_baseline"
+    ):
+        required_concepts = (
+            "success",
+            "baseline",
+            "guarded",
+        )
+
+        if not all(
+            concept in prereg_text
+            for concept in required_concepts
+        ):
+            issues.append(
+                "Selected paired-binary analysis executor "
+                "does not preserve the sealed preregistered "
+                "primary estimand."
+            )
+
+        if (
+            "auc" in prereg_text
+            or "roc" in prereg_text
+            or "composite" in prereg_text
+        ):
+            issues.append(
+                "Sealed preregistration requires an AUC/"
+                "composite estimand that paired_binary_analysis_v1 "
+                "cannot compute."
+            )
+
+    return sorted(set(issues))
+
 async def create_feasible_experiment_plan(
     *,
     master_prompt: str,
@@ -2897,6 +2972,11 @@ class FinalAutonomousResearchPipeline:
                 ] = (
                     "Repair every deterministic analysis compatibility "
                     "failure while preserving the sealed preregistration. "
+                    "Do not substitute a different primary estimand merely "
+                    "to match an available executor. If no registered "
+                    "analysis executor can compute the sealed preregistered "
+                    "primary estimand, preserve that incompatibility rather "
+                    "than changing the estimand. "
                     "Use exact machine-readable identifiers from the "
                     "selected available_analysis_contracts entry. Do not "
                     "paraphrase estimand or failed-call-treatment "
@@ -2930,6 +3010,18 @@ class FinalAutonomousResearchPipeline:
                 analysis_plan=candidate_dict,
                 execution_manifest=execution_manifest,
             )
+
+            issues.extend(
+                analysis_preregistration_fidelity_issues(
+                    preregistration=preregistration,
+                    analysis_plan=candidate_dict,
+                    analysis_contracts=(
+                        available_analysis_contracts
+                    ),
+                )
+            )
+
+            issues = sorted(set(issues))
 
             write_json(
                 analysis_attempts_dir
