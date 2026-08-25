@@ -1,0 +1,24 @@
+{
+  "summary": "Well‑executed, artifact‑backed preregistered run that reproducibly documents a ceiling/null outcome (all 200 held‑out pairs succeeded in both conditions) and identifies precisely which preregistered artifacts are missing so the preregistered primary AUC estimand could not be computed. Execution and validator traces are preserved and consistent; statistical analyses on the preserved contingency are correct. Important clarifications and small manuscript fixes are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The preregistered primary estimand (difference in AUC‑ROC: composite vs best single submetric) is uncomputable on the preserved held‑out test because labels are constant (no outage positives).",
+    "Two preregistered artifacts required to deterministically reconstruct the composite discriminative pipeline—consolidated_submetrics.csv and composite_model_weights.pkl—are absent from the preserved artifact manifest, preventing recomputation of the primary AUC comparison.",
+    "The manuscript does not explicitly cite the exact execution_manifest excerpt that verifies the absence of the two required files and does not fully explain the model_call accounting (planned maximum 400 vs model_calls_used=200) in a way that links to preserved artifacts."
+  ],
+  "required_revisions": [
+    "Add an explicit manifest excerpt (execution/execution_manifest.json or similarly named preserved manifest) in the manuscript (or Disclosure) that shows the absence of consolidated_submetrics.csv and composite_model_weights.pkl, including the manifest path and SHA‑256 of the manifest, so readers can deterministically confirm the missing artifacts from the bundle.",
+    "Add a concise, artifact‑grounded explanation of model_call accounting (why model_calls_used = 200 while planned maximum = 400) that cites preserved artifacts (e.g., execution/model_configuration.json and execution/execution_manifest.json) and explains shared_initial generation and cross‑condition generation policy affecting call counts.",
+    "Include a clear pointer to the machine‑readable verified bibliography record (path and SHA‑256) in the Disclosure Statement (or a footnote) so that the literature‑verification work promised in the master prompt is directly discoverable from the preserved bundle.",
+    "Tighten wording to avoid inadvertent overclaiming: explicitly label the paper and title (and first sentence of the abstract) as an \"artifact‑backed null/ceiling reproducibility report\" and move any forward‑looking claims (about composite performance) to discussion/future‑work, emphasizing that the primary discriminative comparison is uncomputed due to degenerate labels and missing persisted artifacts."
+  ],
+  "optional_revisions": [
+    "Consider adding a short machine‑readable table listing for each preregistered submetric the exact expected filename and canonical field names (e.g., consolidated_submetrics.csv columns) and confirm presence/absence directly from the manifest (this will help reproducibility auditors).",
+    "Briefly expand the threat‑to‑validity section to show per‑cluster difficulty statistics from execution/scoring/*.json (e.g., difficulty.level counts) to give readers evidence that the held‑out tasks were systematically easy or to support the calibration recommendation.",
+    "If available in the bundle, include one representative canary_simulator and rollback_trial log excerpt (even if empty) and show its manifest entry or absence; this helps readers see the intended format for missing artifacts."
+  ],
+  "accept_for_finalisation": false
+}

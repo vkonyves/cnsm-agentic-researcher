@@ -1,0 +1,26 @@
+{
+  "summary": "Well-executed, fully preregistered paired NetOps study with rich artifact provenance that produced an artifact-backed null (ceiling) result; reproducibility is high for persisted artifacts but an execution-collection omission (serialized trained-composite-model weights and a consolidated per-episode submetric summary) and missing train/val label summaries limit interpretability of the preregistered AUC estimand.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 2,
+  "critical_issues": [
+    "Serialized trained-composite-model weights (preregistered artifact) were not persisted; this omission undermines reproducibility of the composite-score training/application step.",
+    "No consolidated per-episode submetric-summary (CSV/table) is included in the evidence bundle or manuscript; without it reviewers/readers cannot inspect submetric distributions or the applied composite scores.",
+    "The preregistered primary estimand (AUC comparison) was uncomputable because the held-out test labels are constant (no outages); the manuscript must make explicit whether positive outage examples existed in train/validation and report train/val label counts — that information is not clearly presented in the current manuscript or evidence-summary.",
+    "Minor internal inconsistency: manuscript states composite scores were \"computed and applied during the run\" while simultaneously reporting that serialized model weights were not persisted; clarify whether per-episode composite outputs exist in the persisted artifacts or were lost.",
+    "Because the primary estimand is uncomputable, some downstream claims about the comparative predictive utility of the composite score cannot be made; the manuscript must avoid wording that implies the planned discriminative comparison was completed."
+  ],
+  "required_revisions": [
+    "Include a consolidated per-episode submetric summary (CSV/table) derived from the persisted scoring JSONs and add it to the manuscript/evidence bundle (descriptive stats: counts, mean, SD, min, max, distinct values for each pre-registered submetric; include per-episode composite-score column if present in artifacts). This can be produced deterministically from execution/scoring/*.json and must be referenced by path and SHA-256.",
+    "If per-episode composite-score outputs are absent in the persisted artifacts, revise the manuscript to state that explicitly and explain the consequence (i.e., that the serialized trained weights and/or composite outputs are missing and therefore the preregistered AUC comparison could not be executed even if labels had varied). Cite the exact missing-artifact paths/SHA-256 and treat this as a reproducibility limitation.",
+    "Report train and validation split label distributions and submetric summaries (counts of outage vs non-outage, and descriptive stats for submetrics) from the persisted artifacts or, if these artifacts were never produced, disclose that fact and its effect on interpretation. Reference artifact paths and hashes for the train/val manifests or scoring files used in composite training.",
+    "Fix any contradictory wording (e.g., \"composite scores were computed and applied\" vs missing serialized weights) so the manuscript consistently reflects which composite-model artifacts and outputs are present vs absent in the evidence bundle."
+  ],
+  "optional_revisions": [
+    "Add a short table or figure showing per-cluster (topology/vendor cluster) success/failure rates and submetric distributions to support the ceiling-effect diagnosis.",
+    "Discuss (briefly) whether and where adversarial seeding or controlled failure injection was present in train/val and, if not, add a clear recommendation for seeding positive examples in future benchmarks.",
+    "If per-episode composite scores exist, include a short ROC diagnostic figure annotated to show degeneracy (constant labels) so readers can immediately see why AUC was uncomputable."
+  ],
+  "accept_for_finalisation": false
+}

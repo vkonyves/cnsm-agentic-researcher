@@ -1,0 +1,109 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CNSM2026-01-GVR-crossvendor",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Vendor-specific device images and CLI semantics may be proprietary or unavailable, reducing reproducibility and external validity.",
+        "Deterministic verifiers (e.g., Batfish) may miss semantic runtime failures leading to optimistic safety estimates.",
+        "Automated repair loops can introduce subtle semantic errors that verifiers do not detect; emulator fidelity may not reflect production behavior."
+      ],
+      "required_design_repairs": [
+        "Restrict vendor set to open-source or freely redistributable network OSes (e.g., FRR, Open vSwitch, containerized network stacks) or explicitly document licensing and provide synthetic vendor-variant generators if proprietary images cannot be redistributed.",
+        "Specify and justify the mapping from vendor-CLI to verifier input (use canonical intermediate representation such as YANG/Netconf/structured templates) and include parser/test-suite artifacts to allow verification of parsing correctness.",
+        "Pre-register verifier coverage tests and a verifier-failure audit procedure (manual adjudication policy only for infrastructure failures), and add additional semantic checks (e.g., reachability test harness) to complement verifier outputs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-02-cost-latency-verification",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "LLM uncertainty signals (token log-probs) may not be available or well calibrated from hosted APIs, undermining threshold policies.",
+        "Cost proxy and verifier-latency models may not reflect realistic deployment economics and load-dependent latencies.",
+        "Policy evaluation depends on realistic latency distributions and verifier throughput under concurrency; simulation must be justified."
+      ],
+      "required_design_repairs": [
+        "Specify concretely how uncertainty will be estimated given available model APIs (e.g., sampling-based entropy, multiple-sample agreement, or use of model-provided token-prob when available) and preregister calibration procedures (reliability diagrams, temperature scaling).",
+        "Define the monetary-cost proxy and sensitivity analyses mapping proxy to real cost; preregister alternative proxies and report sensitivity results.",
+        "Pre-register verifier latency distributions and stress-test scenarios (e.g., load-sweep) or justify synthetic latency models with reference telemetry or prior measurements."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-03-adversarial-robustness",
+      "novelty": 0.9,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "High dual-use/ethical risk from producing adversarial/backdoor patterns that enable unsafe behavior if published verbatim.",
+        "Creating realistic backdoors may require model fine-tuning or privileged access (not permitted) or many API calls; feasibility must be constrained and documented.",
+        "Reproducibility suffers if adversarial patterns depend on nondeterministic model behavior or proprietary model internals."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethical-risk mitigation plan and safe-release policy: redact or abstract concrete trigger payloads in public artifacts, include disclosure controls, and only publish high-level taxonomy and sanitized examples.",
+        "Constrain experiments to non-fine-tuning attack classes (prompt-level injection/backdoor patterns) and/or use locally simulated/synthetic models when possible; preregister exact adversary classes, query budgets, and abstention for dangerous outputs.",
+        "Define and preregister rules for responsible artifact release (redaction, withheld prompts) and include an IRB/ethics-style checklist in the execution manifest."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-04-canary-rollback-metrics",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Composite-score training risks overfitting to synthetic task bank and may not generalize to production distributions.",
+        "Canary simulation fidelity and the definition of rollback-success probability need concrete specification to avoid ambiguous labels.",
+        "Weight-learning and threshold selection can introduce optimistic bias unless cross-validation and held-out test are strictly preregistered."
+      ],
+      "required_design_repairs": [
+        "Pre-register the exact submetric definitions, training/validation/test splits, regularization strategy (e.g., penalized logistic regression), and cross-validation procedure.",
+        "Specify canary topology size and fidelity constraints; include ablation plan and out-of-sample generalization checks with bootstrapped CIs.",
+        "Preregister decision-threshold selection rules and include decision-curve analysis and calibration reporting (Brier score, reliability diagrams)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "CNSM2026-05-toolregistry-selection-robustness",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Constructed deceptive descriptions may lack ecological validity relative to real-world marketplace tactics.",
+        "Runtime capability probes risk inducing side effects if they execute unsafe operations; probe design must be non-invasive and safe.",
+        "Evaluation depends on realistic tool catalogs and agent architectures; results may not generalize to heterogeneous real registries."
+      ],
+      "required_design_repairs": [
+        "Source real open registry descriptions as the baseline (scraped with permission) and generate deceptive variants via controlled paraphrase/overclaim transformations rather than inventing attack templates.",
+        "Design runtime probes to be non-invasive (read-only capability checks, schema/response validation) and preregister probe safety rules; ensure probes never execute privileged/write operations.",
+        "Pre-register agent selection mechanism and provide reproducible agent prompt templates, and include sensitivity analyses over registry size and deception types."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

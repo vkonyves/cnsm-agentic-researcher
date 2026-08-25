@@ -1,0 +1,148 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CNSM2026-01-GVR-crossvendor",
+      "title": "Empirical evaluation of Generate–Verify–Repair (GVR) loops integrated with deterministic network verifiers across vendor-specific CLIs",
+      "research_question": "How effective is a GVR pipeline (LLM generation + Batfish/VeriFlow-style verification + automated repair) at producing syntactically and semantically correct configurations across heterogeneous vendor CLIs and realistic failure perturbations?",
+      "hypotheses": [
+        "A GVR pipeline will significantly reduce unsafe configuration deployments (measured by verifier-detected semantic violations and simulated rollback events) compared to LLM-only generation."
+      ],
+      "proposed_design": "Construct a sandboxed emulation testbed with representative vendor CLIs (e.g., Cisco IOS, Juniper JunOS syntactic variants) using publicly available device images or emulators. Define a task bank of intent-to-configuration prompts (N≈200) including benign, malformed, and adversarial-intent prompts. For each prompt: (1) obtain LLM-generated configuration; (2) run deterministic verifier (Batfish/VeriFlow equivalent) to detect violations; (3) if violations found, invoke automated repair loop up to K=3 iterations; (4) simulate application in emulator and record execution trace and rollback behavior under injectable faults. Preserve full provenance and hashes.",
+      "expected_data": "Per-task artifacts: prompt, generated config versions, verifier reports (violations, coverage), repair iterations, emulator execution logs (success/failure, induced outage), rollback attempts and outcomes. Aggregate counts of initial failures, repaired-success, repaired-failure, and unverifiable cases.",
+      "primary_outcome": "Proportion of tasks resulting in successful, verifier-approved configuration that also execute without simulated semantic failure (simulated-runtime success rate) under heterogeneous vendor CLIs.",
+      "analysis_outline": "Compute per-task paired comparison between LLM-only (first output) and final GVR output: difference in verifier pass rate and simulated-runtime success. Use McNemar’s test for paired binary outcomes (verifier pass; runtime success). Estimate 95% Wilson CIs for proportions. Stratify by vendor and adversarial vs benign prompts; perform logistic regression to identify predictors of repair success (features: vendor, prompt-adversarial flag, initial syntactic error count). Report provenance and failure-mode taxonomy.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4412635081"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412635081",
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6172544"
+      ],
+      "risks": [
+        "Deterministic verifiers may yield false negatives (miss semantic violations) causing overestimation of safety",
+        "Emulator/device-image limitations may not fully capture vendor runtime semantics",
+        "Automated repairs could introduce new, undetected semantic errors",
+        "Adversarial prompts could cause model outputs that break emulators or require manual intervention"
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "CNSM2026-02-cost-latency-verification",
+      "title": "Operational cost-latency tradeoffs of mixed verification policies for LLM-generated NetOps artifacts",
+      "research_question": "Under operational latency constraints, how do mixed verification policies (fast lightweight verifier vs. slow full verifier, with optional abstention) affect false-acceptance, false-rejection, end-to-end latency, and cost for LLM-generated configurations?",
+      "hypotheses": [
+        "A cost-aware mixed verification policy that uses a fast validator first and escalates to a full verifier only when uncertainty exceeds a threshold will achieve lower median latency for accepted changes with comparable false-acceptance rate to always-using full verification at lower average cost."
+      ],
+      "proposed_design": "Simulate a NetOps pipeline with a task bank (N≈500) and two verifier tiers: lightweight (fast syntactic + schema checks) and heavyweight (full semantic model like Batfish). Instrument LLM generation uncertainty estimates (e.g., log-prob drift or calibrated confidence). Define policies: (A) full-verifier always, (B) light-only, (C) mixed-threshold with abstain/escalate. For each task, record verification decisions, latency, monetary-cost proxy, and whether runtime simulation (sandbox) shows semantic failure. Run multiple threshold sweeps to characterize Pareto frontier under latency budgets.",
+      "expected_data": "Per-policy distributions: verification latency, total pipeline cost, verifier pass/fail counts, simulated-runtime failures, abstention rates; ROC-like curves of false-acceptance vs latency/cost.",
+      "primary_outcome": "Tradeoff curve (latency vs false-acceptance rate) and policy Pareto frontier; quantify cost reduction at fixed false-acceptance target.",
+      "analysis_outline": "Estimate median and 95% quantiles of latency and cost per policy. Use bootstrapped CIs for false-acceptance rates. Compare policies using paired comparisons across tasks; compute area under latency-vs-falseaccept curve. Perform sensitivity analysis across model uncertainty calibration and task difficulty strata. Report threshold values achieving specified operational budgets.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6810160",
+        "doi:10.2139/ssrn.6438169",
+        "https://openalex.org/W4390730779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4390730779"
+      ],
+      "risks": [
+        "Uncertainty estimates from LLMs may be poorly calibrated, invalidating threshold policies",
+        "Cost proxies may not map linearly to real economic costs in production",
+        "Simulated verifier performance (latency/throughput) may differ from production services under load"
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "CNSM2026-03-adversarial-robustness",
+      "title": "Adversarial-prompt and backdoor robustness of LLM-driven NetOps pipelines with verifier defenses",
+      "research_question": "How susceptible are LLM-based NetOps pipelines (with standard verifier defenses) to adversarial prompts and implanted backdoor patterns that cause unsafe configuration outputs, and how effectively can verifier-based detection and repair mitigate such attacks?",
+      "hypotheses": [
+        "Verifier-based defenses will detect a majority of naive adversarial prompts that induce syntactic/semantic violations, but carefully crafted backdoor-style prompt patterns can evade detection and lead to unsafe simulated runtime outcomes at a non-negligible rate.",
+        "Automated repair mechanisms will reduce but not eliminate successful backdoor-induced unsafe deployments."
+      ],
+      "proposed_design": "Design adversarial prompt classes: (1) prompt-injection that subtly changes intent, (2) backdoor trigger phrases embedded in benign-looking prompts, and (3) distribution-shift prompts. Use an LLM to generate configs for a curated task set (N≈300) under attack and control. Apply verifier detection/repair pipeline identical to Candidate 1. Measure attack success rate (unsafe runtime despite verifier) and attacker stealth (verifier pass rate despite malicious intent). Evaluate detection enhancement strategies (pattern detection, prompt-sanitization) as mitigations.",
+      "expected_data": "Per-attack-class metrics: generated config artifacts, verifier reports, repair iterations, emulator runtime safety outcomes, detection/stealth rates, mitigation effectiveness metrics.",
+      "primary_outcome": "Attack success rate after verifier+repair (fraction of malicious inputs resulting in unsafe simulated runtime under verifier-approved deployment).",
+      "analysis_outline": "Compute attack success proportions per class with 95% CIs. Compare success rates between baseline verifier and enhanced-mitigation pipelines using Fisher’s exact test. Model factors associated with successful evasion via logistic regression (features: attack class, trigger complexity, prompt length). Provide qualitative taxonomy of successful evasion patterns.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.170975411.12532297/v1",
+        "doi:10.4018/979-8-3373-8252-4.ch010",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6172544",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4386501849"
+      ],
+      "risks": [
+        "Creating realistic backdoor triggers may require many model queries and risk unintentional propagation if artifacts are misused",
+        "Ethical concerns around publishing vulnerable prompt patterns (will contain disclosure controls)",
+        "Simulated runtime may under- or over-estimate real-world exploit impact"
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "CNSM2026-04-canary-rollback-metrics",
+      "title": "Design and validation of canary- and rollback-aware scoring metrics to predict operational risk of agentic NetOps actions",
+      "research_question": "Can a composite scoring metric (combining verifier coverage, canary deployment simulation success, rollback-success probability, and abstention utility) predict actual operational risk (simulated outage probability) better than single-factor metrics?",
+      "hypotheses": [
+        "A composite canary-rollback score will show stronger correlation with simulated runtime safety (lower outage probability) than any single metric (e.g., verifier pass rate) across diverse tasks and vendors.",
+        "Thresholding on the composite score will yield more practical operating points (higher true-negative rate for risky changes) for canary deployments than verifier pass/fail alone."
+      ],
+      "proposed_design": "Define candidate submetrics: verifier-coverage fraction, canary-simulation pass rate (small-scale emulation), rollback-success rate under injected faults, LLM-confidence signal, and abstention rate. Compute composite score via weighted sum; learn weights on a training subset (Ntrain≈300) and test predictive performance on held-out tasks (Ntest≈200). For each candidate config, run canary simulation and full simulation to label actual runtime risk. Evaluate ROC/AUPRC of composite vs single metrics.",
+      "expected_data": "Per-config submetric values, composite scores, binary labels (simulated outage/no outage), canary vs full outcomes, confusion matrices, ROC and calibration plots.",
+      "primary_outcome": "Predictive performance (AUC-ROC and AUPRC) of composite score vs best individual metric for predicting simulated outage on held-out tasks.",
+      "analysis_outline": "Train composite scoring weights with logistic regression (regularized) on training set; evaluate AUC-ROC and AUPRC with bootstrapped CIs on test set. Compare AUCs using DeLong’s test. Report calibration (Brier score) and decision-curve analysis for operational thresholds. Perform ablation studies removing each submetric.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6438169"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412635081",
+        "https://openalex.org/W7164234485",
+        "doi:10.2139/ssrn.6172544"
+      ],
+      "risks": [
+        "Learned weights may overfit to synthetic task bank and not generalize to production distributions",
+        "Canary simulation fidelity limits external validity",
+        "Operational thresholds may be context-specific and require per-organization tuning"
+      ],
+      "estimated_model_calls": 600
+    },
+    {
+      "candidate_id": "CNSM2026-05-toolregistry-selection-robustness",
+      "title": "Evaluating robustness of agentic tool-selection to deceptive tool descriptions in NetOps tool registries",
+      "research_question": "How robust are LLM-based agent tool-selection mechanisms to deceptive or marketing-biased tool descriptions, and can lightweight registry-validation checks reduce selection of unsuitable tools?",
+      "hypotheses": [
+        "Agents relying on textual tool descriptions will select suboptimal or unsafe tools at a non-trivial rate when registry descriptions are deceptive, increasing downstream failure rate; adding structured capability metadata and registry validation checks will reduce unsafe tool selection.",
+        "A small set of automated registry-validation heuristics (schema checks, capability tests) will significantly decrease downstream failure rates with modest additional registry-maintenance cost."
+      ],
+      "proposed_design": "Simulate a tool registry with Ntools≈50 entries, some intentionally given deceptive descriptions (overclaims, missing constraints). Implement an LLM-based agent that selects tools based on descriptions to accomplish NetOps tasks (N≈200). Compare agent performance under: (A) raw registry, (B) registry with structured metadata enforced, (C) registry with metadata plus runtime capability probes (lightweight validation). Measure tool-selection mismatch rate and downstream configuration/runtime failure rate.",
+      "expected_data": "Per-task records: selected tool, description text, structured metadata, registry-validation flags, downstream verifier/ emulator failure outcomes, selection mismatch counts, and probe results.",
+      "primary_outcome": "Reduction in downstream failure rate attributable to registry validation (difference in failure proportion between raw registry and validated registry conditions).",
+      "analysis_outline": "Compare proportions of tool-selection mismatch and downstream failures across conditions using paired tests (McNemar). Model predictors of misselection via multinomial logistic regression (features: deception-type, tool-category, prompt ambiguity). Report cost/benefit estimate of registry validation (effort vs reduction in failures).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4390730779",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4390730779",
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6438169"
+      ],
+      "risks": [
+        "Constructed deceptive descriptions may not fully capture real-world marketplace tactics",
+        "Runtime probes may have false negatives/positives, leading to incorrect registry flags",
+        "Ethical considerations in publishing deceptive-description templates; mitigations will redact exploitative details"
+      ],
+      "estimated_model_calls": 400
+    }
+  ]
+}

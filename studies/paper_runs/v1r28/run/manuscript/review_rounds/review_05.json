@@ -1,0 +1,19 @@
+{
+  "summary": "Well-executed, preregistered, artifact-backed paired confirmatory run that documents a ceiling/null outcome (all 200 held-out tasks succeeded in both baseline and guarded conditions) and an artifact-collection omission that prevents recomputing the preregistered AUC-based discriminative comparison. The manuscript provides comprehensive artifact pointers and a deterministic reconstruction recipe and frames the contribution as a methodological / reproducibility report rather than a positive discriminative result.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add a concise claim-to-artifact table (one paragraph or small table) in the manuscript that maps each principal empirical claim (paired counts, contingency table, inability to compute AUC, missing persisted artifacts) to the exact persisted artifact path(s) and SHA‑256 hash(es) that support it. Use only artifacts present in the evidence bundle.",
+    "Provide a clear per-preregistered-submetric availability table (or compact list) that states, for each preregistered submetric (verifier_coverage; canary_sim_pass; rollback_success_prob; LLM_confidence; abstention_utility): (a) whether the submetric was persisted directly, (b) the artifact path/JSON field to extract it from (if present), or (c) that it is absent and therefore cannot be reconstructed without deriving new artifacts. This must be determined from the supplied scoring/provider_calls JSONs and manifest and recorded verbatim in the manuscript.",
+    "Temporally and linguistically tighten all wording that could suggest the preregistered AUC-ROC composite-vs-best-submetric comparison was executed. Replace any remaining ambiguous phrases with an explicit statement that (i) the AUC primary estimand is uncomputable from the supplied bundle because the test labels are constant (n_pos=0), and (ii) the trained composite-model weights and consolidated per-episode submetric CSV required by the preregistration were not persisted. (The manuscript already notes the omission; make these three facts unambiguous and colocated in Results/Limitations/Disclosure.)"
+  ],
+  "optional_revisions": [
+    "If space permits, include a single compact supplemental CSV (or an appendix paragraph) that enumerates representative JSON keys and example provider_call entries demonstrating whether canary/rollback/model-confidence fields appear in execution/provider_calls/*.json (this helps external reconstructability).",
+    "Add a short paragraph in Discussion summarizing practical checklist items (file names & canonical field names) to be persisted in future runs; include exact filenames used in your infrastructure so others can follow your artifact-hygiene recommendation.",
+    "Consider adding a short graphic (1/4 page) that shows the degenerate ROC diagnostic (vertical line / degenerate curve) and the paired contingency table side-by-side to assist quick comprehension."
+  ],
+  "accept_for_finalisation": false
+}

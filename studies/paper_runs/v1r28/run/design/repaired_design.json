@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "CNSM2026-04-canary-rollback-metrics",
+  "title": "Design and validation of canary- and rollback-aware scoring metrics to predict operational risk of agentic NetOps actions",
+  "research_question": "Can a composite scoring metric (combining verifier coverage, canary deployment simulation success, rollback-success probability, and abstention utility) predict simulated operational risk (outage probability) better than single-factor metrics?",
+  "confirmatory_hypotheses": [
+    "A composite canary-rollback score will have a larger AUC-ROC for predicting simulated runtime outage than any single submetric (e.g., verifier pass rate) on a held-out test set.",
+    "Applying a decision threshold on the composite score yields higher practical true-negative rate (reduction in risky full-deployment changes accepted) at comparable true-positive rate than thresholding on verifier pass/fail alone when used with canary deployments."
+  ],
+  "exploratory_questions": [
+    "Which submetrics (verifier coverage, canary-sim pass rate, rollback success, LLM-confidence, abstention utility) contribute most to predictive performance in ablation?",
+    "How stable are learned composite weights across task clusters (topology/vendor variants)?",
+    "How sensitive are operational decision curves to threshold choice and class-imbalance?"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps Task Bank v1 (publicly releasable) consisting of intent-to-configuration tasks, canonicalized vendor-CLI variants generated for open-source network stacks (FRR, Open vSwitch) and containerized network functions.",
+    "Sandboxed emulation traces from containerized topology emulators (no proprietary vendor images)."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (commercial or research-hosted model accessible via API) used only for configuration generation/text-to-config transforms; token-level or sampling-based uncertainty estimated via repeat-sampling where API permits.",
+    "No model fine-tuning; no local GPU inference."
+  ],
+  "transformation_scope": [
+    "Textual intent -> structured canonical configuration (JSON/YANG-like intermediate) via LLM generation.",
+    "Canonical -> vendor-CLI renderer for open-source stacks (deterministic templates).",
+    "Deterministic parser from vendor-CLI back to canonical form for equivalence checks."
+  ],
+  "primary_estimand": "Difference in AUC-ROC (composite score vs best single submetric) for predicting binary simulated outage on held-out test tasks.",
+  "secondary_estimands": [
+    "Difference in AUPRC between composite and best submetric.",
+    "True-negative rate (TNR) at operationally relevant true-positive rate (TPR) threshold.",
+    "Calibration (Brier score) of composite score on test set."
+  ],
+  "sampling_plan": "Construct a reproducible synthetic task bank of 600 unique tasks (intent + topology + vendor-variant). Random RNG seed fixed in preregistration. Split deterministically by hash into: train N=300, validation N=100 (used for cross-validation and hyperparameter selection), test N=200 (held-out, only used once for final evaluation). Task clusters: 10 topology/vendor clusters; tasks distributed evenly (60 tasks/cluster => 30 train,10 val,20 test per cluster). All splits and seeds are recorded and published.",
+  "analysis_plan": "Compute submetrics per task deterministically (verifier-coverage fraction; canary-simulation pass/fail rate aggregated over deterministic emulator seeds; rollback-success probability estimated via scripted fault-injection trials in the emulator). Train penalized logistic regression (L2) mapping submetrics to binary outage label on train+val via 5-fold cross-validation over the training+validation set (300+100=400). Final weights fixed from cross-validation. Evaluate primary estimand on test N=200: report AUC-ROC, AUPRC, Brier score with 95% bootstrap CIs (10k bootstrap samples capped by wall-clock/compute budget). Compare AUCs using DeLong’s test; primary comparison is composite vs best single submetric. Pre-register primary comparison only; other comparisons are exploratory with Benjamini–Hochberg FDR control reported.",
+  "multiplicity_plan": "Primary hypothesis: single pre-registered comparison (composite vs best single submetric) at alpha=0.05. Secondary and exploratory outcomes corrected via FDR (Benjamini–Hochberg) where multiple tests apply. Report unadjusted p-values and adjusted FDR q-values; clearly label exploratory analyses.",
+  "missingness_plan": "Technical failures (emulator crash, verifier timeout) are treated as technical missingness. Automatic retry policy: up to 2 automatic re-executions with identical deterministic seeds. If still failing, mark item as failed-technical, exclude from confirmatory primary analysis, and include in sensitivity analysis: (a) worst-case imputation (assume outage), (b) best-case imputation (assume no outage). All exclusions and counts are logged and published.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic NetOps Task Bank v1"
+    ],
+    "risk_factors": [
+      "Train/test contamination via duplicate or near-duplicate tasks (intent, topology, vendor-variant).",
+      "Seed leakage when generating canonical->vendor variants.",
+      "Data-derivation drift if template generators reuse identical renderings across splits."
+    ],
+    "detection_procedures": [
+      "Deterministic content hashing (intent + topology canonical form + vendor-variant) to detect duplicates across splits.",
+      "Approximate nearest-neighbor (token-based Jaccard/MinHash) deduplication to flag near-duplicates.",
+      "Seed/hashing provenance checks to ensure deterministic split assignment."
+    ],
+    "item_flagging_rules": [
+      "Exact duplicates across splits: automatic exclusion from training (if a test duplicate exists) and relocation to a quarantined replication set for sensitivity analysis.",
+      "Near-duplicates (Jaccard similarity > 0.85): flag for sensitivity analysis (no manual adjudication)."
+    ],
+    "analysis_treatment": "Primary analysis excludes exact duplicates and retains only canonical split-assigned items. Sensitivity analyses evaluate (a) inclusion of near-duplicates, (b) removal of entire flagged clusters. All treatments and counts reported.",
+    "residual_uncertainty": [
+      "Residual semantic similarity not captured by token similarity metrics may remain; placed in remaining_noncritical_uncertainties."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended",
+      "description": "Conservative feasible run aligned with capability manifest and candidate estimate. One LLM generation call per task (train+val+test = 600 tasks) => 600 model calls. Deterministic verifiers and emulators run on CPU/docker; no human annotation.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted LLM API (single-model generation calls)"
+      ],
+      "transformations": [
+        "Intent -> canonical JSON via LLM (1 generation call per task)",
+        "Canonical -> vendor-CLI via deterministic renderer (no model calls)"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Total tasks = discovery (train+val) 400 + confirmatory (test) 200 = 600 tasks. Planned_model_calls = 1 generation call/task * 600 tasks = 600 calls. This matches the candidate estimated_model_calls (600) and is within the manifest maximum planned_model_calls (10000). Verifiers and emulators execute deterministically in Docker on CPU; no unavailable resources required."
+    },
+    {
+      "scenario_id": "high-powered",
+      "description": "Larger-budget ensemble sampling scenario to improve calibration and uncertainty estimation: 3 generation variants per task (ensemble/prompt-variants) for richer uncertainty signals.",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted LLM API (3-prompt ensemble per task)"
+      ],
+      "transformations": [
+        "Intent -> 3 generated candidate canonical configs per task; canonicalization and deterministic renderer applied; ensemble-derived submetrics aggregated"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "3 generation calls/task * 600 tasks = 1800 model calls. Uses hosted API (allowed) and deterministic downstream processing; increases compute/time cost but remains within the manifest max (10000). Recommended only if budget/time permit and if additional sampling is needed for uncertainty estimation."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Difference in AUC-ROC (composite - best single submetric) on held-out test set (N=200).",
+    "target_effect": "Detect a delta_AUC ≈ 0.07 (composite improves AUC by 0.07 over best submetric), two-sided alpha=0.05, desired power ≈ 0.8.",
+    "clustering_unit": "Task cluster (topology/vendor variant); tasks assumed approximately independent across clusters; intra-cluster dependence assessed in sensitivity analyses.",
+    "calculation_method": "Empirical bootstrap on held-out test set (200) for CI estimation of AUC; DeLong’s test for AUC difference. No analytic AUC-power closed form used; justification: bootstrap CI width with 200 samples expected to detect ~0.07 AUC difference with ~80% probability under assumed baseline AUC 0.75 (assumption below).",
+    "assumptions": [
+      "Baseline best-submetric AUC ≈ 0.75 (conservative estimate from prior small-scale studies in evidence).",
+      "Test set size fixed at N=200; tasks approximately IID conditional on cluster stratification.",
+      "Bootstrap with 10k resamples (or as many as permitted by wall-clock) provides stable CI; DeLong test assumptions approximately hold for AUC comparison."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With Ntest=200 and baseline AUC=0.75, a delta_AUC ≈ 0.07 is approximately detectable with bootstrap CIs and DeLong’s test at ~80% power; if baseline AUC is higher (e.g., 0.80) detectable delta increases. Report observed effect sizes with CIs rather than relying solely on p-values.",
+    "sensitivity_analyses": [
+      "Bootstrap-based power sensitivity varying test N in {100,200,300} to show effect-size detection limits.",
+      "Per-cluster stratified evaluation to assess intra-cluster dependence impact.",
+      "High-powered scenario (3-sample ensemble) re-evaluated to measure calibration improvements."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "LLM-generated text -> canonical JSON/YANG-like intermediate",
+      "Canonical -> vendor-CLI deterministic rendering (template-driven for FRR/OVS)",
+      "Vendor-CLI parse -> canonical roundtrip check"
+    ],
+    "semantic_equivalence_checks": [
+      "Roundtrip equivalence: canonical -> vendor-CLI -> parser -> canonical' and deterministic equality or specified semantic-preserving equivalence (reachability matrix equality) using emulated topology.",
+      "Reachability matrix comparison between generated configuration and canonical specification using deterministic emulation for a subset."
+    ],
+    "automatic_rejection_rules": [
+      "If parser fails to parse vendor-CLI output deterministically -> automatic exclusion of that generated item with logged reason.",
+      "If roundtrip canonical' differs syntactically from canonical beyond pre-registered tolerance thresholds (e.g., >2 differing statements) -> automatic flag and exclusion from training; included in diagnostic counts.",
+      "If verifier input generation produces syntax errors or verifier timeouts -> automatic retry (up to 2) then mark as technical failure."
+    ],
+    "audit_sample_policy": "Automated deep-audit on a random 5% sample of transformations using full emulation-based semantic equivalence checks (reachability and ACL-equivalence); audit is automated (no human adjudication).",
+    "mapping_validation": "Unit-test suite of deterministic parsers and renderers using a curated set of 100 canonical examples with known vendor renderings; these unit-tests run in CI and are published.",
+    "residual_risks": [
+      "Template-driven renderers for open-source stacks may not capture proprietary vendor semantics; residual semantic drift remains and is reported as noncritical uncertainty.",
+      "Roundtrip equality tolerances may hide subtle semantic differences not exercised in emulation sample; flagged as residual risk."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity: composite weights learned on synthetic/open-source stacks may not generalize to proprietary vendor devices or production traffic distributions.",
+    "Canary simulation fidelity: containerized emulators of FRR/OVS may not capture all production device failure modes or vendor-specific behaviors.",
+    "Threshold-transferability: operational thresholds may require per-organization tuning; decision-curve results are illustrative rather than universally prescriptive.",
+    "Hosted LLM API nondeterminism: model-side nondeterminism and token-prob availability vary by provider; uncertainty estimation may be imperfect."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7203776655",
+    "doi:10.2139/ssrn.6438169",
+    "https://openalex.org/W4412635081",
+    "https://openalex.org/W7164234485",
+    "doi:10.2139/ssrn.6172544"
+  ]
+}

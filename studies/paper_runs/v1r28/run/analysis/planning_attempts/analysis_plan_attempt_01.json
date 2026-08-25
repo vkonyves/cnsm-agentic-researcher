@@ -1,0 +1,34 @@
+{
+  "study_id": "CNSM2026-04-canary-rollback-metrics-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory primary estimand: compute per-task binary success = (not outage_label) using execution/raw_results.jsonl or execution/scoring/*.json. For each paired task (task_id), compute success_baseline and success_guarded; estimand = mean_t[success_guarded - success_baseline]. Estimate 95% CI via paired bootstrap over task indices (pre-registered 10,000 resamples, capped by compute budget) and report two-sided p-value for null=0 using bootstrap percentile method; also report paired-proportion exact test (McNemar) as corroboration. All inputs and deterministic hashes are taken from execution/result_schema_id paired_binary_episode_v1 and execution/task_manifest.jsonl; primary confirmatory labeling preserved.",
+  "secondary_analyses": [
+    "Confirmatory-secondary: compute difference in composite-score-derived operational decision outcomes (mean composite_score_guarded - composite_score_baseline) with 95% bootstrap CI on paired tasks.",
+    "Secondary: compute AUPRC of composite_score for predicting outage_label on held-out paired tasks (report AUPRC with 95% bootstrap CI) and Brier score (calibration) for composite_score with bootstrap CIs.",
+    "Operational TNR@operational_TPR: using pre-specified operational TPR threshold from preregistration, compute TNR for composite_score thresholding; compare guarded vs baseline via paired bootstrap; report CIs and unadjusted p-values."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call sensitivity per registered contract: (a) complete_pair_primary — primary analysis excluding any failed-technical episodes (per preregistered missingness_plan); (b) complete_pair_primary_with_failure_as_zero_sensitivity — treat any failed-technical episode as failure (success=0) and recompute primary estimand.",
+    "Contamination sensitivity: include near-duplicates (items flagged by MinHash Jaccard >0.85) into analysis and recompute estimand.",
+    "Cluster stratified sensitivity: per-topology/vendor cluster (10 clusters) compute paired difference and report heterogeneity (per-cluster CIs).",
+    "Imputation extreme-case sensitivity: worst-case (assume outage for missing) and best-case (assume no outage) per preregistered missingness_plan."
+  ],
+  "uncertainty_quantification": "Primary and secondary CIs: paired bootstrap (pre-registered 10k resamples, capped by compute budget) over task indices with percentile 95% intervals. For AUC/AUPRC comparisons use DeLong where applicable and report DeLong p-values; report bootstrap-based p-values for paired differences. Report exact McNemar for paired binary success difference as corroborative test. All uncertainty computations use deterministic seeds and the cached scoring artifacts under execution/scoring/*.json.",
+  "multiplicity_implementation": "Primary hypothesis: single pre-registered confirmatory comparison (paired success-rate difference) tested at alpha=0.05. Secondary and exploratory outcomes (AUPRC, Brier, multiple threshold/TNR comparisons, ablations) are reported with unadjusted p-values and Benjamini–Hochberg FDR-adjusted q-values where multiple tests apply; exploratory analyses explicitly labeled.",
+  "contamination_analysis": "Performed exactly per preregistered contamination_plan using execution/task_manifest.jsonl and deterministic content hashes: (1) exact-duplicate detection via canonical intent+canonical+vendor hashing (logs stored in execution/execution_log.jsonl and artifacts hashed under execution/task_manifest.jsonl); exact duplicates are quarantined per preregistration and excluded from confirmatory primary analysis; (2) near-duplicate detection via MinHash/Jaccard similarity >0.85 (flags recorded in execution/execution_log.jsonl) and evaluated in sensitivity analyses. All provenance and hash evidence referenced to execution/artifact_hashes in the execution_manifest.",
+  "failed_call_treatment": "[\"complete_pair_primary\",\"complete_pair_primary_with_failure_as_zero_sensitivity\"]",
+  "table_specifications": [
+    "Table 1 — Execution manifest summary: episodes planned vs completed (execution/manifest fields: planned_episode_count, completed_episode_count, failed_episode_count), model_calls_used, maximum_model_calls, preregistration_sha256 (execution/execution_manifest.json).",
+    "Table 2 — Task manifest and splits: per-task identifiers, assigned condition pairs, cluster assignments (from execution/task_manifest.jsonl); counts per cluster and per-condition episode counts.",
+    "Table 3 — Primary confirmatory result: paired success-rate difference (guarded minus baseline), 95% paired-bootstrap CI, bootstrap p-value, McNemar p-value; indicate sample N = number of paired tasks used (derived from execution/result_schema and execution/scoring files).",
+    "Table 4 — Secondary results: composite-score AUPRC, Brier score, TNR@operational_TPR with 95% CIs and DeLong/bootstrap comparison outputs (artifact references execution/scoring/*.json).",
+    "Table 5 — Sensitivity and contamination summary: counts of exact duplicates quarantined, counts of near-duplicates flagged, summary of sensitivity analyses (failed-call treatments, imputations, cluster-stratified estimates)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — ROC and precision–recall curves for composite_score pooled across paired test tasks (data from execution/scoring/*.json); annotate AUC/AUPRC and 95% bootstrap CIs.",
+    "Figure 2 — Paired task-level waterfall or paired-difference barplot: per-task (or per-cluster aggregated) success difference (guarded − baseline) sorted; shows distribution and median with 95% CI (data from raw_results.jsonl/execution/scoring).",
+    "Figure 3 — Decision-curve plot: TPR vs FPR (or TNR at fixed TPR) tradeoff curves for composite_score vs verifier-only thresholding, with operational threshold annotated; data from execution/scoring/*.json and threshold sweep.",
+    "Figure 4 — Sensitivity-panel: per-cluster paired differences (10 bars) with 95% CIs to display heterogeneity across topology/vendor clusters (derived from execution/task_manifest.jsonl cluster assignments and execution/scoring outputs)."
+  ]
+}

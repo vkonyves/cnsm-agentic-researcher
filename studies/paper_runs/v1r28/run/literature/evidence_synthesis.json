@@ -1,0 +1,232 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLM-based agents are being proposed and explored for NetOps/AIOps tasks (intent translation, configuration synthesis, diagnosis, limited remediation), but operational reliability depends heavily on surrounding orchestration, validators, and tool pipelines rather than the base LLM alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "peer-reviewed surveys and technical reports",
+      "confidence": 0.88,
+      "limitations": [
+        "Primarily survey/architectural and prototype system reports rather than large-scale production deployments",
+        "Heterogeneous sources include preprints and engineering reports with variable empirical scope"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate–Verify–Repair (GVR) and similar generate–validate–repair architectures are a recurring recommended mitigation to make stochastic LLM outputs acceptable for deterministic or safety-critical artifacts (code, configs).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6607420",
+        "doi:10.2139/ssrn.6172544"
+      ],
+      "evidence_type": "conceptual/empirical studies and design proposals",
+      "confidence": 0.82,
+      "limitations": [
+        "Evaluations are case studies or single-case proofs-of-concept; robustness across diverse NetOps tasks is not comprehensively demonstrated",
+        "Detection/repair effectiveness depends on available deterministic verifiers and the class of errors"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Tool-augmented agent frameworks (LLM + tool invocation / orchestration) improve capability for multi-step operational workflows but introduce new reliability modes (tool-selection, tool-schema mismatch, runtime/tool queueing) that require explicit runtime controls and verification policies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4390730779",
+        "https://openalex.org/W4393160302",
+        "doi:10.2139/ssrn.6438169",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "surveys and systems studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Most evidence analyzes failures at the architectural/runtime level; empirical frequency/severity in production NetOps remains underreported",
+        "Work spans multiple domains (not exclusively networking), so some tool-failure modes are general"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Hallucination/confabulation and reasoning failures in LLM outputs are well-documented and pose practical risks for actionable NetOps outputs; detection, calibration, and sequential verification strategies are active research directions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386501849",
+        "doi:10.69987/aimlr.2025.60401",
+        "doi:10.2139/ssrn.6810160",
+        "doi:10.2139/ssrn.6607420"
+      ],
+      "evidence_type": "surveys and methodological proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Most detection/verification work evaluated on benchmarks or non-networking domains; direct NetOps-domain detection performance varies with available grounding data/tools",
+        "Terminology and taxonomy vary across studies (hallucination vs confabulation)"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Constrained or schema-preserving output formats (DSLs, YANG profiles, structured decoding) increase syntactic/semantic reliability of model-generated configurations in controlled evaluations.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6172544",
+        "https://openalex.org/W4412635081",
+        "doi:10.20944/preprints202602.0525.v1"
+      ],
+      "evidence_type": "method/benchmark studies and profile design",
+      "confidence": 0.79,
+      "limitations": [
+        "High syntactic accuracy in controlled tasks does not guarantee safe runtime semantics when applied to diverse vendor CLIs or live devices",
+        "Evaluations are lab-based with limited topology/device diversity"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Existing literature and reviews identify a gap between analytical capability (detection/diagnosis) and evidence required to grant authority for autonomous changes in production systems; the production evidence for general autonomous action is weak.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7164092904",
+        "https://openalex.org/W7164234485"
+      ],
+      "evidence_type": "narrative/rapid reviews and vision papers",
+      "confidence": 0.87,
+      "limitations": [
+        "Reviews synthesize available reports up to 2026; absence of evidence for broad autonomous authority is observational (lack of published production studies)",
+        "Specific regulated or safety-critical deployment evidence may exist but is not represented in the supplied records"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM-generated, validator-approved configurations behave correctly on heterogeneous, vendor-specific live devices across realistic failure modes and adversarial inputs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412635081",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "motivation drawn from prototype/lab studies and review gaps",
+      "confidence": 0.52,
+      "limitations": [
+        "Existing evidence demonstrates lab/prototype success (YANG profile, MeshAgent) but does not settle heterogeneous live-device behavior under adversarial conditions"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How effective and cost-efficient are sequential, cost-aware verification policies (mixed verifiers, token-level drift detection) when deployed at NetOps scale under firm latency or operational-deadline constraints?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6810160",
+        "doi:10.2139/ssrn.6438169",
+        "https://openalex.org/W4390730779"
+      ],
+      "evidence_type": "operations-research and queueing-control proposals",
+      "confidence": 0.48,
+      "limitations": [
+        "Proposals provide theoretical/trace-driven simulations; operational cost–latency tradeoffs in real NetOps pipelines remain empirically unresolved"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What standard evaluation metrics, datasets, and canary/rollback-aware protocols best capture operational safety and readiness for agentic NetOps actions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6607420"
+      ],
+      "evidence_type": "survey-identified gaps and framework proposals",
+      "confidence": 0.55,
+      "limitations": [
+        "Multiple papers call for such standards, but no single, widely adopted operational benchmark/protocol is evidenced among supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How robust are tool-selection and tool-registry mechanisms to deceptive or marketing-biased tool descriptions in NetOps agent ecosystems?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W4390730779"
+      ],
+      "evidence_type": "empirical registry/agent-selection study and surveys",
+      "confidence": 0.5,
+      "limitations": [
+        "Registry evidence is cross-domain; NetOps-specific tool-market dynamics need domain-targeted study"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of publicly available, provenance-rich NetOps datasets and testbeds that pair LLM-generated configurations with deterministic verifier outcomes and (sandboxed) execution traces for reproducible evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4412635081"
+      ],
+      "evidence_type": "review-identified gap and dataset/profile papers",
+      "confidence": 0.79,
+      "limitations": [
+        "Some projects provide lab/topology artifacts (YANG profile) but comprehensive provenance-rich datasets coupling generation/verification/execution are not evident in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient operational evaluation of GVR/verify-repair loops integrated with network verifiers (Batfish/VeriFlow/HSA) across diverse vendor CLIs and real-world topology/failure distributions.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "architecture proposals and surveys",
+      "confidence": 0.76,
+      "limitations": [
+        "Architectural proposals argue for integration; concrete cross-vendor empirical studies are not present in the record set"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Absence of standardized, canary/rollback-aware scoring metrics that reflect operational risk (e.g., verification coverage, rollback-success rate, real-time abstention utility) for agentic NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6438169"
+      ],
+      "evidence_type": "survey and framework recommendations",
+      "confidence": 0.74,
+      "limitations": [
+        "Papers recommend such metrics but do not converge on a single standard set or provide broad empirical validation"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Need for reproducible auditing/preregistration practices and automated claim–evidence mapping for agentic NetOps experiments (provenance, hashes, execution manifests) to support trustworthy claims.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4390730779"
+      ],
+      "evidence_type": "vision/protocol and review articles",
+      "confidence": 0.81,
+      "limitations": [
+        "Protocol proposals exist; community adoption and toolchains for automated audit remain emergent"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Limited published evidence on the impact of distribution shift, adversarial prompts, or backdoor attacks specifically on NetOps-oriented agentic LLM pipelines.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.170975411.12532297/v1",
+        "doi:10.4018/979-8-3373-8252-4.ch010",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "adversarial/robustness studies and surveys",
+      "confidence": 0.72,
+      "limitations": [
+        "Adversarial/backdoor work covers agentic systems generally; explicit NetOps-domain empirical attacks/exploit studies are scarce in supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs alone (without validators, toolchains, and orchestration) are sufficient for safe autonomous network configuration deployment.",
+    "There is published, reproducible production evidence that general-purpose LLM agents can be granted autonomous write authority over live, heterogeneous network infrastructure without additional safeguards.",
+    "Existing constrained-generation or DSL approaches guarantee semantic correctness on all vendor devices in production.",
+    "No significant failure modes exist beyond those documented in general LLM agent literature."
+  ]
+}

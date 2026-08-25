@@ -1,0 +1,34 @@
+{
+  "study_id": "CNSM2026-04-canary-rollback-metrics-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory primary estimand: for each paired task_id compute binary success = (not outage_label) using the completed execution artifacts (execution/raw_results.jsonl and execution/scoring/task-*.json). For every paired episode (same task_id, conditions baseline and guarded) compute success_baseline and success_guarded; estimand = mean_t[success_guarded - success_baseline]. Exclude episodes marked as failed-technical per preregistered missingness_plan (apply failed_call_treatment = complete_pair_primary). Estimate 95% paired-bootstrap CI via bootstrap over task indices (pre-registered 10,000 resamples, capped by compute budget) with percentile intervals; report two-sided bootstrap p-value for null=0. Report McNemar exact test on paired binary outcomes as corroboration. All inputs and deterministic hashes referenced to execution_manifest artifact paths (execution/raw_results.jsonl, execution/scoring/*.json, execution/task_manifest.jsonl, execution/execution_log.jsonl).",
+  "secondary_analyses": [
+    "Confirmatory-secondary: paired difference in mean composite_score (mean composite_score_guarded - composite_score_baseline) with 95% paired-bootstrap CI using execution/scoring/task-*.json.",
+    "Secondary: composite_score AUPRC for predicting outage_label pooled across paired tasks (report AUPRC and 95% bootstrap CI) and Brier score (calibration) with bootstrap CIs, computed from execution/scoring/*.json.",
+    "Operational TNR@operational_TPR: using the preregistered operational TPR threshold, compute TNR for composite_score thresholding per task and compare guarded vs baseline via paired bootstrap; report CIs and unadjusted p-values."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call sensitivity (registered contract): (a) complete_pair_primary — primary analysis excluding failed-technical episodes (as the primary plan); (b) complete_pair_primary_with_failure_as_zero_sensitivity — treat any failed-technical episode as failure (success=0) and recompute primary estimand.",
+    "Contamination sensitivity: include near-duplicates (MinHash/Jaccard > 0.85 flags recorded in execution/execution_log.jsonl) into analysis and recompute estimand.",
+    "Cluster stratified sensitivity: per-topology/vendor cluster (10 clusters from execution/task_manifest.jsonl) compute paired difference and report per-cluster CIs to assess heterogeneity.",
+    "Imputation extreme-case sensitivity: worst-case (assume outage for missing) and best-case (assume no outage) per preregistered missingness_plan."
+  ],
+  "uncertainty_quantification": "Primary and secondary CIs: paired bootstrap (pre-registered 10,000 resamples, capped by compute budget) over task indices with percentile 95% intervals. For AUPRC/AUC use bootstrap CIs; where applicable report DeLong p-values for AUC comparisons. Paired-bootstrap p-values reported for paired differences. McNemar exact test reported for paired binary outcome corroboration. All uncertainty computations use deterministic seeds and cached scoring artifacts under execution/scoring/*.json.",
+  "multiplicity_implementation": "Primary hypothesis: single pre-registered confirmatory comparison (paired success-rate difference) tested at alpha=0.05. Secondary and exploratory outcomes (AUPRC, Brier, multiple threshold/TNR comparisons, ablations) reported with unadjusted p-values and Benjamini–Hochberg FDR-adjusted q-values where multiple tests apply; exploratory analyses explicitly labeled.",
+  "contamination_analysis": "Performed per preregistered contamination_plan using execution/task_manifest.jsonl and deterministic content hashes: (1) exact-duplicate detection via canonical intent+canonical+vendor hashing (records and quarantines in execution/execution_log.jsonl and execution/task_manifest.jsonl) — exact duplicates excluded from confirmatory primary analysis; (2) near-duplicate detection via MinHash/Jaccard similarity >0.85 (flags recorded in execution/execution_log.jsonl) — evaluated in sensitivity analyses. All provenance and hash evidence referenced to execution_manifest artifact_hashes and execution/execution_log.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Execution manifest summary: planned_episode_count, completed_episode_count, failed_episode_count, model_calls_used, maximum_model_calls, preregistration_sha256 (from execution_manifest fields and preregistration_sha256).",
+    "Table 2 — Task manifest and clusters: task_id, condition pair assignment, cluster assignment, counts per cluster and per-condition episode counts (from execution/task_manifest.jsonl).",
+    "Table 3 — Primary confirmatory result: paired success-rate difference (guarded − baseline), N paired tasks used, 95% paired-bootstrap CI, bootstrap p-value, McNemar p-value; list of excluded/failed-technical episodes with counts and hashes (from execution/scoring/*.json and execution/execution_log.jsonl).",
+    "Table 4 — Secondary results: composite_score AUPRC (with 95% CI), Brier score (with 95% CI), paired mean composite_score difference (with 95% CI), TNR@operational_TPR for guarded vs baseline with CIs and comparison statistics (artifacts: execution/scoring/*.json).",
+    "Table 5 — Sensitivity and contamination summary: counts of exact duplicates quarantined, counts of near-duplicates flagged, summary rows for each sensitivity analysis (failed-call treatments, imputations, per-cluster estimates) with links to artifact hashes in execution_manifest."
+  ],
+  "figure_specifications": [
+    "Figure 1 — ROC and precision–recall curves for composite_score pooled across paired tasks (data from execution/scoring/*.json); annotate AUC/AUPRC and 95% bootstrap CIs.",
+    "Figure 2 — Paired-difference waterfall: per-task (or per-cluster-aggregated) success difference (guarded − baseline) sorted, showing distribution, median and 95% CI (from execution/raw_results.jsonl and execution/scoring/*.json).",
+    "Figure 3 — Decision-curve: TPR vs FPR (and/or TNR at fixed TPR) tradeoff curves comparing composite_score vs verifier-only thresholding, operational threshold annotated; data from execution/scoring/*.json and threshold sweep.",
+    "Figure 4 — Sensitivity panel: per-cluster paired differences (10 bars) with 95% CIs showing heterogeneity across topology/vendor clusters (derived from execution/task_manifest.jsonl cluster assignments and execution/scoring outputs)."
+  ]
+}

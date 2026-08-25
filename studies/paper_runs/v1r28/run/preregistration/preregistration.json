@@ -1,0 +1,86 @@
+{
+  "study_id": "CNSM2026-04-canary-rollback-metrics-v1",
+  "title": "Design and validation of canary- and rollback-aware scoring metrics to predict operational risk of agentic NetOps actions",
+  "research_question": "Can a composite scoring metric (combining verifier coverage, canary deployment simulation success, rollback-success probability, and abstention utility) predict simulated operational risk (outage probability) better than single-factor metrics?",
+  "confirmatory_hypotheses": [
+    "A composite canary-rollback score will have a larger AUC-ROC for predicting simulated runtime outage than any single submetric (e.g., verifier pass rate) on a held-out test set.",
+    "Applying a decision threshold on the composite score yields higher practical true-negative rate (reduction in risky full-deployment changes accepted) at comparable true-positive rate than thresholding on verifier pass/fail alone when used with canary deployments."
+  ],
+  "exploratory_questions": [
+    "Which submetrics (verifier coverage, canary-sim pass rate, rollback success, LLM-confidence, abstention utility) contribute most to predictive performance in ablation?",
+    "How stable are learned composite weights across task clusters (topology/vendor variants)?",
+    "How sensitive are operational decision curves to threshold choice and class-imbalance?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7203776655",
+    "doi:10.2139/ssrn.6438169",
+    "https://openalex.org/W4412635081",
+    "https://openalex.org/W7164234485",
+    "doi:10.2139/ssrn.6172544"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps Task Bank v1 (publicly releasable) consisting of intent-to-configuration tasks, canonicalized vendor-CLI variants generated for open-source network stacks (FRR, Open vSwitch) and containerized network functions.",
+    "Sandboxed emulation traces from containerized topology emulators (no proprietary vendor images)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Difference in AUC-ROC (composite score vs best single submetric) for predicting binary simulated outage on held-out test tasks.",
+  "secondary_estimands": [
+    "Difference in AUPRC between composite and best submetric.",
+    "True-negative rate (TNR) at an operationally relevant true-positive rate (TPR) threshold.",
+    "Calibration (Brier score) of composite score on test set."
+  ],
+  "sampling_plan": "Construct a reproducible synthetic task bank of 600 unique tasks (intent + topology + vendor-variant). Random RNG seed fixed in preregistration. Split deterministically by hash into: train N=300, validation N=100 (used for cross-validation and hyperparameter selection), test N=200 (held-out, only used once for final evaluation). Task clusters: 10 topology/vendor clusters; tasks distributed evenly (60 tasks/cluster => 30 train,10 val,20 test per cluster). All splits and seeds are recorded and published.",
+  "power_and_precision_plan": "Primary estimand: difference in AUC-ROC (composite - best single submetric) on held-out test set (N=200). Target effect: detect delta_AUC ≈ 0.07 (two-sided alpha=0.05) with desired power ≈ 0.8. Use empirical bootstrap on held-out test set for CI estimation; DeLong's test for AUC difference. Bootstrap planned 10k resamples capped by wall-clock/compute budget; report 95% bootstrap CIs. Sensitivity analyses: bootstrap power sensitivity for N in {100,200,300}, per-cluster stratified evaluation, and high-powered (3-sample ensemble) re-evaluation where budget permits.",
+  "exclusion_rules": [
+    "Exact duplicates across splits (identical intent + topology canonical form + vendor-variant): exclude from training and relocate duplicate to quarantined replication set for sensitivity analysis.",
+    "Parser failures or roundtrip canonicalization failures beyond tolerance: exclude from training; log reason and include in diagnostic counts.",
+    "Items with unresolved deterministic verifier timeouts after retries: mark as technical failure and treat per missingness_plan."
+  ],
+  "missingness_plan": "Technical failures (emulator crash, verifier timeout) are treated as technical missingness. Automatic retry policy: up to 2 automatic re-executions with identical deterministic seeds. If still failing, mark item as failed-technical, exclude from confirmatory primary analysis, and include in sensitivity analysis: (a) worst-case imputation (assume outage), (b) best-case imputation (assume no outage). All exclusions and counts are logged and published.",
+  "analysis_plan": "Compute submetrics per task deterministically (verifier-coverage fraction; canary-simulation pass/fail rate aggregated over deterministic emulator seeds; rollback-success probability estimated via scripted fault-injection trials in the emulator). Train penalized logistic regression (L2) mapping submetrics to binary outage label on train+val via 5-fold cross-validation over the combined 400 examples. Final weights fixed from cross-validation. Evaluate primary estimand on test N=200: report AUC-ROC, AUPRC, Brier score with 95% bootstrap CIs (10k resamples capped by budget). Compare AUCs using DeLong’s test; primary pre-registered comparison is composite vs best single submetric. Secondary/exploratory comparisons reported with Benjamini–Hochberg FDR control.",
+  "multiplicity_plan": "Primary hypothesis: single pre-registered comparison (composite vs best single submetric) at alpha=0.05. Secondary and exploratory outcomes corrected via FDR (Benjamini–Hochberg) where multiple tests apply. Report unadjusted p-values and adjusted FDR q-values; label exploratory analyses clearly.",
+  "contamination_plan": "Benchmark: Synthetic NetOps Task Bank v1. Risk factors: train/test contamination via duplicate or near-duplicate tasks; seed leakage in canonical->vendor rendering; template reuse across splits. Detection: deterministic content hashing (intent+canonical+vendor) to find exact duplicates; token-based approximate deduplication (MinHash/Jaccard) to flag near-duplicates (similarity > 0.85); provenance/hash checks for deterministic split assignment. Item rules: exact duplicates excluded from training and quarantined; near-duplicates flagged for sensitivity (no manual adjudication). Primary analysis excludes exact duplicates; sensitivity analyses evaluate inclusion of near-duplicates and cluster removals. All detections and counts are logged and published.",
+  "stopping_rule": "Stop experiment if cumulative model calls reach the registered-contract maximum (400) or if wall-clock execution exceeds the manifest limit (7 days). Additionally, stop early if catastrophic infrastructure failure prevents completion after automated recovery attempts; record and report the failure and treat affected items per missingness_plan.",
+  "planned_outputs": [
+    "Machine-readable preregistration JSON",
+    "Synthetic NetOps Task Bank v1 (task descriptions, canonical forms, vendor variants, split assignments)",
+    "Experiment code (generation prompts, renderers, parsers, verifier, emulator scripts, CI unit-tests)",
+    "Raw model-generation outputs and deterministic logs (hashed)",
+    "Execution manifest and logs (including retries and technical-failure records)",
+    "Statistical results (AUC, AUPRC, Brier, CIs, DeLong test outputs)",
+    "Failure-analysis record and sensitivity analyses",
+    "Evidence-to-claim table and nearest-work comparison matrix",
+    "IEEE LaTeX manuscript and BibTeX",
+    "Compiled PDF (≤5 pages) including Disclosure Statement",
+    "NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}
