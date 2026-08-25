@@ -1,0 +1,24 @@
+{
+  "summary": "Well-executed, fully archived paired study testing a verifier-augmented LLM NetOps pipeline. The run is reproducible and artifact-rich, but produced a deterministic ceiling effect (all 150 paired tasks produced identical, validator-acceptable candidates) that makes the preregistered inferential test uninformative. The manuscript is transparent about the ceiling effect and shares hashes for all principal artifacts. Key flaws are a preregistration/execution mismatch around the preregistered rollback hypothesis and a few manuscript statements that claim no preregistration deviation despite evidence that H2 (rollback) was not executed; these must be corrected. Several clarifying edits (resolvable from the archived artifacts) are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 2,
+  "critical_issues": [
+    "Undeclared preregistration/execution inconsistency: preregistration lists a secondary hypothesis (H2) about an LLM+verifier+automatic-rollback condition, but the confirmatory execution and deterministic_reconciliation only include two conditions (baseline and guarded). The manuscript and analysis currently state 'no deviations'—this is incorrect and must be corrected and fully disclosed.",
+    "Manuscript claims 'deviations_from_preregistration: []' in analysis metadata despite the H2 mismatch; this internal inconsistency undermines trust in preregistration fidelity reporting and must be rectified.",
+    "Insufficient explicit aggregated evidence in the manuscript for the validator-field claim that violation_count==0 for every confirmatory episode. While scoring JSONs and artifacts are provided, the paper must cite and display (briefly) the deterministic summary artifact (e.g., analysis/condition_summary.csv or equivalent) to directly support the universal-acceptance claim."
+  ],
+  "required_revisions": [
+    "Add an explicit, prominent disclosure that H2 (the preregistered rollback hypothesis and its associated estimands) was not executed in the confirmatory run, explain why (design vs. resource vs. preregistered conditions), and label H2 as untested. Update the preregistration-fidelity section and any analysis metadata that currently claim 'no deviations'.",
+    "Correct analysis/manuscript fields that assert 'deviations_from_preregistration: []' to reflect the actual deviation (H2 unexecuted) and provide a short, artifact-backed rationale tying the deviation to the frozen execution manifest (cite execution manifest hashes).",
+    "Include an explicit aggregated validator-summary statement and citation in Results that shows the per-episode distribution of validator fields (particularly violation_count) across all confirmatory episodes (e.g., cite analysis/condition_summary.csv and/or analysis/paired_contingency_table.csv with their SHA256 hashes). If present but uncited, cite the files and show the one-line numeric summary in the paper (resolvable from archived artifacts)."
+  ],
+  "optional_revisions": [
+    "Clarify the preregistered rationale for using the shared_initial_candidate policy and discuss how that design decision influenced interpretability of a verifier effect; explicitly state whether independent per-condition generation would be a preferable alternative for future confirmatory runs and why.",
+    "Report brief stratified outcome summaries by the three intent-ambiguity strata (benign / ambiguous / partially-specified) using the archived per-task scoring CSVs (if available) and state whether any strata contained nonzero validator violations in pilot/auxiliary logs.",
+    "Clarify in the Discussion how the ceiling effect interacts with construct validity: e.g., whether validator predicates emphasize syntactic/parsing checks rather than live-state or temporal invariants, and point to the exact validator configuration fields archived in execution/model_configuration.json.",
+    "Explicitly call out that the preregistered secondary estimands (rollback success rate, time-to-detect/rollback) are uncomputable given the run; propose how these estimands could be measured using the existing harness without new model calls (e.g., by enabling an archived rollback branch and replaying saved candidate variants if such data exist)."
+  ],
+  "accept_for_finalisation": false
+}

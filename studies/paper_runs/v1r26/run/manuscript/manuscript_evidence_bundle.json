@@ -1,0 +1,885 @@
+{
+  "execution_summary": {
+    "status": "COMPLETED",
+    "schema_version": "1.0",
+    "adapter_family": "hosted_netops_gvr_v1",
+    "study_id": "CNSM2026-GVR-AV1-001",
+    "started_at_utc": "2026-08-25T18:55:00.438927+00:00",
+    "completed_at_utc": "2026-08-25T19:10:50.962218+00:00",
+    "planned_episode_count": 300,
+    "completed_episode_count": 300,
+    "failed_episode_count": 0,
+    "model_calls_used": 150,
+    "maximum_model_calls": 300,
+    "results_path": "execution/raw_results.jsonl",
+    "result_schema_path": "execution/result_schema.json",
+    "execution_log_path": "execution/execution_log.jsonl",
+    "task_manifest_path": "execution/task_manifest.jsonl",
+    "transformation_manifest_path": "execution/transformation_manifest.json",
+    "model_configuration_path": "execution/model_configuration.json",
+    "result_schema_id": "paired_binary_episode_v1",
+    "result_schema_version": "1.0",
+    "execution_mode": "scientific_confirmatory",
+    "warnings": [],
+    "preregistration_sha256": "66fbf2c56649115c66412326fcc739ebacced84ec2df3fca796f4e7eac4a9b04",
+    "artifact_hash_summary": {
+      "artifact_count": 1056,
+      "full_hash_manifest_available": true,
+      "full_hash_manifest_path": "execution/execution_manifest.json"
+    }
+  },
+  "analysis_results": {
+    "status": "COMPLETED",
+    "schema_version": "1.0",
+    "analysis_executor": "paired_binary_analysis_v1",
+    "study_id": "CNSM2026-GVR-AV1-001",
+    "input_results_sha256": "f6bf1f790a9e4f559896f4d195f47361958d1aa48e202eb57d926555dd43ed60",
+    "confirmatory_results": [
+      {
+        "hypothesis_id": "H1",
+        "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+        "complete_pair_count": 150,
+        "baseline_success_count": 150,
+        "guarded_success_count": 150,
+        "baseline_success_rate": 1.0,
+        "guarded_success_rate": 1.0,
+        "estimate": 0.0,
+        "n_11": 150,
+        "n_10": 0,
+        "n_01": 0,
+        "n_00": 0,
+        "discordant_ordering": "n_10=guarded_only;n_01=baseline_only",
+        "test": "exact_mcnemar_two_sided",
+        "p_value": 1.0,
+        "confidence_interval_method": "paired_bootstrap_percentile",
+        "confidence_level": 0.95,
+        "confidence_interval_lower": 0.0,
+        "confidence_interval_upper": 0.0,
+        "bootstrap_seed": 1729,
+        "bootstrap_resamples": 10000
+      }
+    ],
+    "secondary_results": [],
+    "missingness_summary": {
+      "complete_pairs": 150,
+      "baseline_only_observed_pairs": 0,
+      "guarded_only_observed_pairs": 0,
+      "both_missing_pairs": 0,
+      "failed_baseline_episodes": 0,
+      "failed_guarded_episodes": 0,
+      "unscorable_baseline_episodes": 0,
+      "unscorable_guarded_episodes": 0
+    },
+    "exclusions": [],
+    "deviations_from_preregistration": [],
+    "warnings": [],
+    "execution_mode": "scientific_confirmatory",
+    "results_path": "analysis/results.json",
+    "artifact_hashes": {
+      "analysis/paired_contingency_table.csv": "c2ba9cdb5d0938eae910129ba511eadf309319e6e05b36d9e3b4860032deb80e",
+      "analysis/condition_summary.csv": "9d3de16521f01d53c002b69512a6edc0253a8953e413faeed5d1c0feb3e6d4f9",
+      "analysis/missingness_summary.csv": "8906716548d98afb28f3272eddb13321a922d59af2563d459f15cef7747fefe8",
+      "analysis/contamination_summary.csv": "389227f0d1e81239c7498abd4944a04c59c92c5fa042b990e332796cd61c3222",
+      "analysis/paired_difference_figure.svg": "ae5b8e0c644f8cf7579ff0b2daec77475310d4de96da6a4f1a9266a6ebd72aad",
+      "analysis/analysis_log.jsonl": "8ad15be04307a4fc80d8b5d17fcedec389e8e9c49633553cc72f0644346e345b"
+    }
+  },
+  "artifact_examples": [
+    {
+      "path": "execution/scoring/task-000001-baseline.json",
+      "sha256": "9ae4c9db62d09a44b547cc57e191582c1e303ab95a91fe5c44085fa5cdbd0701",
+      "content": {
+        "condition": "baseline",
+        "episode_id": "task-000001-baseline",
+        "normalized_reference_answer": "interface edge1 admin down\ninterface edge1 mtu 1600\ninterface edge1 vlan 30\ninterface edge1 admin up",
+        "normalized_response": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+        "pair_id": "pair-000001",
+        "raw_response_sha256": "8f38c8becd7e1e36d8902e9ba2f09218baad021d77365b20eb52914a4bdf4080",
+        "reference_answer_sha256": "b67998af8ce6471bc11460eebc61cf6994ecfe7ca85ea97763002d885bc844f8",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000001-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "aa28c4c9013ecb019f53403a9f028ca3fd7d78986f202f6fbaecc4229602b38d",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000001",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+          "shared_initial_candidate_sha256": "8f38c8becd7e1e36d8902e9ba2f09218baad021d77365b20eb52914a4bdf4080",
+          "shared_initial_response_path": "execution/responses/task-000001-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 1,
+              "dependency_rule_count": 1,
+              "level": "medium",
+              "pattern": "shutdown_configure_restore",
+              "required_command_count": 4,
+              "transient_rule_count": 2
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1600,
+                "vlan": 30
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+            "observed_touched_field_count": 3,
+            "parsed_command_count": 4,
+            "required_command_count": 4,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 1,
+              "dependency_rule_count": 1,
+              "level": "medium",
+              "pattern": "shutdown_configure_restore",
+              "required_command_count": 4,
+              "transient_rule_count": 2
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1600,
+                "vlan": 30
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+            "observed_touched_field_count": 3,
+            "parsed_command_count": 4,
+            "required_command_count": 4,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    },
+    {
+      "path": "execution/scoring/task-000002-baseline.json",
+      "sha256": "2cdae2be1faf5160c5e5b7b1089186ed4d3a1ffd3770cbda99bfd5d4a9a50a93",
+      "content": {
+        "condition": "baseline",
+        "episode_id": "task-000002-baseline",
+        "normalized_reference_answer": "interface uplink2 admin up\ninterface uplink1 admin down",
+        "normalized_response": "interface uplink2 admin up\ninterface uplink1 admin down",
+        "pair_id": "pair-000002",
+        "raw_response_sha256": "ae967f70dfb6ccb8b5dbcb1491775f30b8b06497cd3020139285aacbb13f491e",
+        "reference_answer_sha256": "fedf977be37f4a2174a17a5e80f54786b810aac6cbb3d9d9e25a127d6dfde173",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000002-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "6a8ffc2491c8d612ab04cb42dfa375002de37a080c3bc6d8745136f692f03c69",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000002",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface uplink2 admin up\ninterface uplink1 admin down",
+          "shared_initial_candidate_sha256": "ae967f70dfb6ccb8b5dbcb1491775f30b8b06497cd3020139285aacbb13f491e",
+          "shared_initial_response_path": "execution/responses/task-000002-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "make_before_break_uplink_switchover",
+              "required_command_count": 2,
+              "transient_rule_count": 1
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+            "observed_touched_field_count": 2,
+            "parsed_command_count": 2,
+            "required_command_count": 2,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "make_before_break_uplink_switchover",
+              "required_command_count": 2,
+              "transient_rule_count": 1
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+            "observed_touched_field_count": 2,
+            "parsed_command_count": 2,
+            "required_command_count": 2,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    },
+    {
+      "path": "execution/scoring/task-000003-baseline.json",
+      "sha256": "46ed176ff05ce98dac63c3ca2b55d62a6ecded67a9d572e711677c8fdc6fd526",
+      "content": {
+        "condition": "baseline",
+        "episode_id": "task-000003-baseline",
+        "normalized_reference_answer": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+        "normalized_response": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+        "pair_id": "pair-000003",
+        "raw_response_sha256": "f7f4db249ecbbcefd2b9dc8bf060176f85ca3b01c46e0429cf7a519e95455694",
+        "reference_answer_sha256": "30b667fa62e032eae53c505694f25abf9507abcb5bb94f95e8bb3609e87cdd35",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000003-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "2696b1a696ab96a45dd05e2b6ae996963798bcb640f68d405013f5e476bb44f3",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000003",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+          "shared_initial_candidate_sha256": "f7f4db249ecbbcefd2b9dc8bf060176f85ca3b01c46e0429cf7a519e95455694",
+          "shared_initial_response_path": "execution/responses/task-000003-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "paired_link_atomic_mtu_change",
+              "required_command_count": 6,
+              "transient_rule_count": 3
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+            "observed_touched_field_count": 4,
+            "parsed_command_count": 6,
+            "required_command_count": 6,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "paired_link_atomic_mtu_change",
+              "required_command_count": 6,
+              "transient_rule_count": 3
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+            "observed_touched_field_count": 4,
+            "parsed_command_count": 6,
+            "required_command_count": 6,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    },
+    {
+      "path": "execution/scoring/task-000001-guarded.json",
+      "sha256": "974cab2a4237a0fca9ebe61616d6b471cf2e6bfbd5e5cbabe82701957cbeea14",
+      "content": {
+        "condition": "guarded",
+        "episode_id": "task-000001-guarded",
+        "normalized_reference_answer": "interface edge1 admin down\ninterface edge1 mtu 1600\ninterface edge1 vlan 30\ninterface edge1 admin up",
+        "normalized_response": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+        "pair_id": "pair-000001",
+        "raw_response_sha256": "8f38c8becd7e1e36d8902e9ba2f09218baad021d77365b20eb52914a4bdf4080",
+        "reference_answer_sha256": "b67998af8ce6471bc11460eebc61cf6994ecfe7ca85ea97763002d885bc844f8",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000001-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "aa28c4c9013ecb019f53403a9f028ca3fd7d78986f202f6fbaecc4229602b38d",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000001",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+          "shared_initial_candidate_sha256": "8f38c8becd7e1e36d8902e9ba2f09218baad021d77365b20eb52914a4bdf4080",
+          "shared_initial_response_path": "execution/responses/task-000001-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 1,
+              "dependency_rule_count": 1,
+              "level": "medium",
+              "pattern": "shutdown_configure_restore",
+              "required_command_count": 4,
+              "transient_rule_count": 2
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1600,
+                "vlan": 30
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+            "observed_touched_field_count": 3,
+            "parsed_command_count": 4,
+            "required_command_count": 4,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 1,
+              "dependency_rule_count": 1,
+              "level": "medium",
+              "pattern": "shutdown_configure_restore",
+              "required_command_count": 4,
+              "transient_rule_count": 2
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1600,
+                "vlan": 30
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge1 vlan 30\ninterface edge1 mtu 1600\ninterface edge1 admin up",
+            "observed_touched_field_count": 3,
+            "parsed_command_count": 4,
+            "required_command_count": 4,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    },
+    {
+      "path": "execution/scoring/task-000002-guarded.json",
+      "sha256": "da5d125736f755daca84dfe775edc33b5794dfc0e6bf8a8e3b2bd7c9b8a72bee",
+      "content": {
+        "condition": "guarded",
+        "episode_id": "task-000002-guarded",
+        "normalized_reference_answer": "interface uplink2 admin up\ninterface uplink1 admin down",
+        "normalized_response": "interface uplink2 admin up\ninterface uplink1 admin down",
+        "pair_id": "pair-000002",
+        "raw_response_sha256": "ae967f70dfb6ccb8b5dbcb1491775f30b8b06497cd3020139285aacbb13f491e",
+        "reference_answer_sha256": "fedf977be37f4a2174a17a5e80f54786b810aac6cbb3d9d9e25a127d6dfde173",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000002-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "6a8ffc2491c8d612ab04cb42dfa375002de37a080c3bc6d8745136f692f03c69",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000002",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface uplink2 admin up\ninterface uplink1 admin down",
+          "shared_initial_candidate_sha256": "ae967f70dfb6ccb8b5dbcb1491775f30b8b06497cd3020139285aacbb13f491e",
+          "shared_initial_response_path": "execution/responses/task-000002-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "make_before_break_uplink_switchover",
+              "required_command_count": 2,
+              "transient_rule_count": 1
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+            "observed_touched_field_count": 2,
+            "parsed_command_count": 2,
+            "required_command_count": 2,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "make_before_break_uplink_switchover",
+              "required_command_count": 2,
+              "transient_rule_count": 1
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface uplink2 admin up\ninterface uplink1 admin down",
+            "observed_touched_field_count": 2,
+            "parsed_command_count": 2,
+            "required_command_count": 2,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    },
+    {
+      "path": "execution/scoring/task-000003-guarded.json",
+      "sha256": "5767abe57db29cc656f00de7ac9bb07c69fd08244b53fd29ab302a8342b5e20b",
+      "content": {
+        "condition": "guarded",
+        "episode_id": "task-000003-guarded",
+        "normalized_reference_answer": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+        "normalized_response": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+        "pair_id": "pair-000003",
+        "raw_response_sha256": "f7f4db249ecbbcefd2b9dc8bf060176f85ca3b01c46e0429cf7a519e95455694",
+        "reference_answer_sha256": "30b667fa62e032eae53c505694f25abf9507abcb5bb94f95e8bb3609e87cdd35",
+        "repair_provider_trace_path": null,
+        "repair_provider_trace_sha256": null,
+        "schema_version": "1.0",
+        "score": 1,
+        "score_reason_code": "VALID_CONFIGURATION",
+        "scorer_id": "deterministic_netops_validator_v5",
+        "scorer_version": "5.0",
+        "scoring_rule": "full_intent_constraint_validation",
+        "scoring_status": "COMPLETED",
+        "shared_initial_provider_trace_path": "execution/provider_calls/task-000003-shared-initial.json",
+        "shared_initial_provider_trace_sha256": "2696b1a696ab96a45dd05e2b6ae996963798bcb640f68d405013f5e476bb44f3",
+        "study_id": "CNSM2026-GVR-AV1-001",
+        "task_id": "task-000003",
+        "terminal_error_type": null,
+        "validator_trace": {
+          "final_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+          "repair_applied": false,
+          "repair_prompt_sha256": null,
+          "shared_initial_candidate": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+          "shared_initial_candidate_sha256": "f7f4db249ecbbcefd2b9dc8bf060176f85ca3b01c46e0429cf7a519e95455694",
+          "shared_initial_response_path": "execution/responses/task-000003-shared-initial.txt",
+          "validation_after": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "paired_link_atomic_mtu_change",
+              "required_command_count": 6,
+              "transient_rule_count": 3
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+            "observed_touched_field_count": 4,
+            "parsed_command_count": 6,
+            "required_command_count": 6,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          },
+          "validation_before": {
+            "difficulty": {
+              "changed_interface_count": 2,
+              "dependency_rule_count": 2,
+              "level": "hard",
+              "pattern": "paired_link_atomic_mtu_change",
+              "required_command_count": 6,
+              "transient_rule_count": 3
+            },
+            "final_state": {
+              "edge1": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 10
+              },
+              "edge2": {
+                "admin": "up",
+                "mtu": 1800,
+                "vlan": 20
+              },
+              "mgmt1": {
+                "admin": "up",
+                "mtu": 1500,
+                "vlan": 99
+              },
+              "uplink1": {
+                "admin": "up",
+                "mtu": 9000,
+                "vlan": 200
+              },
+              "uplink2": {
+                "admin": "down",
+                "mtu": 9000,
+                "vlan": 201
+              }
+            },
+            "normalized_configuration": "interface edge1 admin down\ninterface edge2 admin down\ninterface edge1 mtu 1800\ninterface edge2 mtu 1800\ninterface edge1 admin up\ninterface edge2 admin up",
+            "observed_touched_field_count": 4,
+            "parsed_command_count": 6,
+            "required_command_count": 6,
+            "valid": true,
+            "validator_id": "deterministic_netops_validator_v5",
+            "validator_version": "5.0",
+            "violation_codes": [],
+            "violation_count": 0,
+            "violations": []
+          }
+        }
+      }
+    }
+  ],
+  "analysis_artifacts": {
+    "paired_contingency_table.csv": {
+      "path": "analysis/paired_contingency_table.csv",
+      "sha256": "c2ba9cdb5d0938eae910129ba511eadf309319e6e05b36d9e3b4860032deb80e",
+      "content": "guarded,baseline,count\n1,1,150\n1,0,0\n0,1,0\n0,0,0\n"
+    },
+    "contamination_summary.csv": {
+      "path": "analysis/contamination_summary.csv",
+      "sha256": "389227f0d1e81239c7498abd4944a04c59c92c5fa042b990e332796cd61c3222",
+      "content": "flag,condition,episode_count\n"
+    },
+    "analysis_log.jsonl": {
+      "path": "analysis/analysis_log.jsonl",
+      "sha256": "8ad15be04307a4fc80d8b5d17fcedec389e8e9c49633553cc72f0644346e345b",
+      "content": "{\"bootstrap_resamples\": 10000, \"bootstrap_seed\": 1729, \"complete_pair_count\": 150, \"event_type\": \"paired_analysis_completed\", \"study_id\": \"CNSM2026-GVR-AV1-001\"}\n"
+    },
+    "deterministic_reconciliation.json": {
+      "path": "analysis/deterministic_reconciliation.json",
+      "sha256": "e63ed6a97dd23a930619b934dafdb2253959f6cea76a7661b121c540770669bb",
+      "content": "{\n  \"schema_version\": \"1.0\",\n  \"study_id\": \"CNSM2026-GVR-AV1-001\",\n  \"task_count\": 150,\n  \"conditions\": [\n    \"baseline\",\n    \"guarded\"\n  ],\n  \"planned_episode_count\": 300,\n  \"completed_episode_count\": 300,\n  \"failed_episode_count\": 0,\n  \"complete_pair_count\": 150,\n  \"baseline_success_count\": 150,\n  \"guarded_success_count\": 150,\n  \"n_11\": 150,\n  \"n_10\": 0,\n  \"n_01\": 0,\n  \"n_00\": 0,\n  \"baseline_from_contingency\": 150,\n  \"guarded_from_contingency\": 150,\n  \"pair_total_from_contingency\": 150,\n  \"marginal_contingency_consistent\": true,\n  \"pair_accounting_consistent\": true,\n  \"episode_accounting_consistent\": true,\n  \"provider_call_audit\": {\n    \"hosted_model_call_event_count\": 150,\n    \"completed_hosted_model_call_event_count\": 150,\n    \"failed_hosted_model_call_event_count\": 0,\n    \"cache_hit_count\": 0,\n    \"cache_miss_count\": 150,\n    \"stage_counts\": {\n      \"shared_initial_generation\": 150\n    },\n    \"condition_counts\": {\n      \"shared\": 150\n    },\n    \"cross_condition_cache_key_reuse_observed\": false,\n    \"cross_condition_cache_keys\": []\n  },\n  \"all_deterministic_consistency_checks_passed\": true\n}\n"
+    }
+  }
+}

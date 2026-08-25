@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "a1f9d3b2-7c4e-4d2b-9e6a-0b2f6c8e1d11",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator fidelity vs production may limit external validity.",
+        "Verifier false negatives/positives could bias effectiveness estimates.",
+        "Single-hosted-LLM design risks overclaiming single-model generality; prompt sensitivity not fully addressed.",
+        "Sample size (120 tasks) may be marginal for some subgroup analyses."
+      ],
+      "required_design_repairs": [
+        "Specify exact verifier implementation (e.g., Batfish variant) and how invariants map to emulator artifacts.",
+        "Add prompt-sensitivity and seed-robustness probes (small perturbation set).",
+        "Pre-register power calculation justifying 120 tasks or increase task count for key strata.",
+        "Include at least one secondary LLM (or an open checkpoint) for effect-robustness ablation and report provider-denial handling policy."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "b2c4e7a9-3d0f-4a8e-9f2b-2e6a7d4c5f22",
+      "novelty": 0.85,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial prompt construction may trigger provider safety filters and cause non-scientific interruptions.",
+        "Corpus representativeness vs adaptive real-world attackers is weak unless construction is systematic.",
+        "Reproducibility of adversarial attacks is challenging without deterministic generation procedure.",
+        "Ethical/safety considerations for publishing adversarial prompts need addressing."
+      ],
+      "required_design_repairs": [
+        "Define an automated, deterministic adversarial-generation procedure (scripts, seedable RNG) and publish it.",
+        "Run provider-safety-signal tests and document handling of API denials; consider offline/local model proxy for attacks to avoid provider censorship impacts.",
+        "Add human-review redaction policy for any prompts that could be abused; include IRB/ethical review note if applicable.",
+        "Include multiple LLMs or an open-checkpoint baseline to assess transferability of adversarial success."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3d5f8b4-1a2b-4e9f-8c3d-4f7b9a6e3c33",
+      "novelty": 0.75,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Task selection bias could favor particular pipeline designs unless selection criteria are explicit.",
+        "Benchmark scope (vendors/protocols) may be narrow; risk of over-interpretation as production readiness.",
+        "Sustaining benchmark maintenance and clear evaluation harness release must be planned."
+      ],
+      "required_design_repairs": [
+        "Document explicit task-selection methodology and include stratified sampling across intent complexity and property types.",
+        "Publish full evaluation harness with deterministic seeds, emulator images/configs, and baseline pipeline code to maximize reproducibility.",
+        "Include a small pilot showing benchmark discriminative power and report limitations and recommended responsible-usage guidelines.",
+        "Add clear licensing and disclaimer text to avoid misuse as production validation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "d4e6a9c7-5b1f-4f0a-8b6d-6c8e2f9b4a44",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.45,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Digital-twin fidelity and staleness are key confounders; causal attribution to the twin may be unclear.",
+        "Longitudinal runs (50 cycles) amplify infrastructure-failure risk and may bias outcomes if interruptions occur.",
+        "Agent orchestration complexity may obscure which component caused observed effects."
+      ],
+      "required_design_repairs": [
+        "Define precise twin synchronization model and controlled staleness injections; preregister staleness levels and manipulation schedule.",
+        "Include ablation arms: agentic orchestrator + no-twin, + stale-twin, + accurate-twin to support causal claims.",
+        "Predefine handling for infrastructure interruptions and include checkpoints/hashing to enable reproducible resumed runs.",
+        "Specify mixed-effects or hierarchical statistical model in preregistration to attribute effects across cycles and control for auto-correlation."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

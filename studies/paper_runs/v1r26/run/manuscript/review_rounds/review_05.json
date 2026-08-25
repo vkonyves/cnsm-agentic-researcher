@@ -1,0 +1,24 @@
+{
+  "summary": "Well-designed, fully preregistered, and artifact-backed paired study comparing an LLM-only intent→configuration pipeline with an LLM+verifier (block-on-violation). Execution artifacts (responses, scoring JSONs, manifests, hashes) are complete and consistent. The run produced a deterministic ceiling (n11=150, n10=n01=n00=0): baseline and guarded pipelines produced identical, validator-accepted candidates for all confirmatory tasks, leaving the preregistered confirmatory test uninformative. The manuscript transparently diagnoses this ceiling effect and provides artifact-grounded recommendations. Key remaining issues are clarifications and compact artifact summarization that can be resolved from the supplied bundle.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Deterministic ceiling effect rendered the preregistered confirmatory hypothesis uninformative (n11=150, n10=n01=0). The paper correctly discloses this, but the ceiling is the study's central scientific limitation and must be highlighted in a single, unambiguous claim of non-evidence rather than language that could be read as a negative result supporting equivalence.",
+    "Disclosure Statement does not include the exact initial master prompt text or an immutable artifact reference (file path and/or SHA256) to that prompt as required by the track rules; the manuscript must point to the supplied frozen initial master prompt or an immutable reference to it.",
+    "Some assertions that motivate prescriptions (e.g., frequency of particular validator difficulty.pattern values across strata, and that shared_initial outputs were identical across strata) are currently supported by many archived files but lack a compact, per-stratum summary table or representative examples in the manuscript to let readers verify the diagnosis quickly."
+  ],
+  "required_revisions": [
+    "Insert, within the five-page manuscript, an explicit, compact per-stratum descriptive table (benign / ambiguous / partially-specified) summarizing counts of episodes, validator fields (violation_count distribution, valid=true counts), and the top difficulty.pattern values — derived from execution/scoring/*.json and analysis/condition_summary.csv — so readers can verify the ceiling diagnosis without inspecting all raw JSONs.",
+    "Add in-manuscript references (file paths + SHA256) to representative generated-candidate response files for at least one task from each intent-stratum (benign, ambiguous, partially-specified) demonstrating (a) the shared_initial candidate identity across conditions (identical SHA256s) and (b) the candidate text excerpt or pointer. Use only artifacts already archived (execution/responses/* and execution/task_manifest.jsonl).",
+    "Amend the Disclosure Statement to include the exact initial master prompt text or an immutable reference to it (file path and SHA256 or other artifact identifier present in the frozen input bundle) so the submission satisfies the track requirement to report the exact initial prompt or its immutable reference.",
+    "Make a single concise editorial change to the Abstract (one sentence) and the Introduction's final paragraph to state unambiguously that the confirmatory H1/H2 hypotheses were not testable in this execution due to the ceiling effect (avoid any phrasing that might be interpreted as evidence of equivalence)."
+  ],
+  "optional_revisions": [
+    "Include a very short appendix-style inline summary (1–2 sentences) with representative scoring JSON fields for an example task (violation_count, valid, difficulty.pattern, parsed_command_count) to illustrate validator predicate limitations; reference the specific scoring JSON SHA256.",
+    "Provide a brief, artifact-backed example (one or two tasks) showing how an independent-per-condition generation policy would have created discordant candidates (e.g., point to nearby response cache keys or call-cache entries) to clarify recommended future design changes.",
+    "If space allows, add a one-paragraph roadmap in Discussion enumerating the minimal adversarial task properties (temporal invariants, stateful sequences) derived from the recorded difficulty.pattern values that should be included in future confirmatory benchmarks."
+  ],
+  "accept_for_finalisation": false
+}

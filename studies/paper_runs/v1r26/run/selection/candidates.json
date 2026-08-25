@@ -1,0 +1,117 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "a1f9d3b2-7c4e-4d2b-9e6a-0b2f6c8e1d11",
+      "title": "Verifier-integrated LLM intent-to-configuration pipeline: end-to-end safety and rollback evaluation",
+      "research_question": "Does integrating a formal network verifier into an LLM-driven intent-to-configuration pipeline measurably reduce unsafe configuration enactments and increase successful automatic rollback rates in controlled NetOps scenarios?",
+      "hypotheses": [
+        "A verifier-checked pipeline will produce fewer unsafe enactments (reachability/policy violations) than an LLM-only pipeline.",
+        "When verifier-detected violations trigger automated rollback, end-to-end service-impact (measured by canary reachability) will be lower than without verifier integration."
+      ],
+      "proposed_design": "Construct a simulated multi-vendor network testbed (emulation using containerized routers) with a suite of 120 intent tasks (mix of benign, ambiguous, and partially-specified intents). Implement three pipelines: LLM-only intent-to-config, LLM+post-generation verifier (e.g., Batfish-like checks) that blocks enactment, and LLM+verifier+automatic-rollback on violation. Use one off-the-shelf hosted LLM for generation (fixed prompt templates) and an open-source verifier adapted to the emulated environment. Freeze prompts, seeds, and retry policy; record all model calls and verifier outputs. For enactment, apply configurations in a staged canary fashion to minimize risk in the emulator and simulate rollbacks when triggered.",
+      "expected_data": "Per-task logs containing: intent text; generated configuration; verifier pass/fail with explicit property checks; enactment outcome (applied/blocked/rolled back); post-enactment connectivity matrix (reachability/isolation); time-to-detect and time-to-rollback; model-call counts and tokens; error traces for failed enactions.",
+      "primary_outcome": "Per-task rate of unsafe enactments (configurations that violate specified invariants after enactment) and conditional rollback success rate (proportion of verifier-detected violations that are successfully rolled back with restored invariants).",
+      "analysis_outline": "Compute per-pipeline unsafe-enactment rates with 95% binomial CIs; compare pipelines using paired McNemar tests on task-level binary outcomes. Analyze rollback success with conditional proportions and Fisher exact tests. Report median time-to-detect/rollback and model-call overheads; perform subgroup analysis by intent ambiguity level. Qualitatively categorize residual failure modes from verifier mismatches and LLM hallucinations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Emulator diverges from production behavior limiting external validity.",
+        "Verifier false negatives/positives may bias effectiveness estimates.",
+        "LLM provider API rate limits or outages could interrupt experiments (mitigate via retry policy)."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "b2c4e7a9-3d0f-4a8e-9f2b-2e6a7d4c5f22",
+      "title": "Adversarial and ambiguous intent attacks on generate–validate–repair loops",
+      "research_question": "How robust are generate–validate–repair LLM pipelines to adversarially-crafted or ambiguously-specified intents that aim to induce unsafe network configurations?",
+      "hypotheses": [
+        "Generate–validate–repair pipelines will show reduced but non-zero susceptibility to adversarial intents compared to naive generation.",
+        "Ambiguity in intent specification will systematically increase the need for repair iterations and the residual unsafe-enactment rate even with a validator present."
+      ],
+      "proposed_design": "Define a corpus of 200 intent prompts including: clean intents, ambiguous intents (missing constraints), and adversarially-crafted prompts (prompt-injection style aiming to bypass validators). Implement a generate–validate–repair pipeline with fixed generation prompt, deterministic validator checks, and up to three repair iterations using the same LLM. For adversarial construction, derive perturbations from literature attack patterns. Run all tasks, log each generation/validation/repair cycle, and mark when the validator is bypassed or repair converges.",
+      "expected_data": "Per-prompt cycle logs: original intent type; generated configs per iteration; validator verdicts and failed property items; number of repair iterations to convergence; final enactment safety label in emulator; textual traces of LLM responses to adversarial cues.",
+      "primary_outcome": "Residual unsafe-enactment rate after up-to-three repairs per prompt, stratified by intent type (clean/ambiguous/adversarial) and repair iteration count.",
+      "analysis_outline": "Estimate residual unsafe rates with 95% CIs per stratum. Use logistic regression to model probability of unsafe enactment as a function of intent type and number of repair iterations; include interaction terms. Perform survival-style analysis on repair iterations to convergence. Qualitatively code and quantify common adversarial bypass patterns.",
+      "novelty_evidence_ids": [
+        "10.48550/arxiv.2501.01335",
+        "10.2139/ssrn.6956641",
+        "10.69987/jacs.2024.40206"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Adversarial prompts may exploit provider safety filters and cause API denials, requiring transparent logging of interruptions.",
+        "Constructed adversarial corpus may not represent adaptive real-world attackers, limiting generality.",
+        "Repeated LLM calls increase cost and risk of quota limits."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "c3d5f8b4-1a2b-4e9f-8c3d-4f7b9a6e3c33",
+      "title": "Design and release of an action-level operational benchmark for LLM-driven NetOps workflows",
+      "research_question": "Can a compact, reproducible benchmark of action-level NetOps tasks (reachability, isolation, canary rollback, policy compliance) discriminate meaningful differences between LLM-only, RAG+verifier, and agentic pipelines?",
+      "hypotheses": [
+        "A curated action-level benchmark will reveal statistically significant performance differences between LLM-only and verifier-assisted pipelines on operational metrics.",
+        "Benchmark metrics (unsafe-enactment rate, rollback success, canary impact) will correlate with qualitative failure-mode categories, enabling interpretable diagnostics for pipeline improvement."
+      ],
+      "proposed_design": "Create a benchmark suite of 150 tasks spanning intent complexity and operational properties (reachability, isolation, ACL correctness, canary rollback). Define standardized input formats, reference invariants, emulated topology templates, and a canonical evaluation harness. Evaluate three reference pipeline implementations (LLM-only, RAG+verifier, agentic orchestrator with staged canaries) using fixed prompts and RAG index for augmented pipelines. Publish dataset, harness, and baseline results with full logs and reproducibility instructions.",
+      "expected_data": "Benchmark artifacts: canonical task set; per-task pipeline outputs; verifier reports; enactment outcomes; per-pipeline summary metrics; aggregated leaderboard CSV; failure-mode taxonomy and labeled examples.",
+      "primary_outcome": "A benchmark discrimination metric: area under the task-level difference curve (e.g., difference in unsafe-enactment rates across pipelines) and per-pipeline operational metrics enabling reproducible comparison.",
+      "analysis_outline": "Compute per-pipeline metrics and rank pipelines; use paired tests (e.g., Wilcoxon signed-rank) across tasks for metric comparisons. Measure correlation between quantitative metrics and human-labeled failure categories (Spearman rho). Release baseline code and reproducibility checklist; document limitations and recommended extensions.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.6664738",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4415071524"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Bias in task selection could advantage particular pipeline designs.",
+        "Maintaining benchmark relevance across vendors/protocols is challenging; initial release will be limited in scope.",
+        "Users may misinterpret benchmark results as production-readiness signals."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "d4e6a9c7-5b1f-4f0a-8b6d-6c8e2f9b4a44",
+      "title": "Digital-twin-assisted agentic NetOps: canary stability and longitudinal rollback reliability",
+      "research_question": "Does integrating a digital twin into an agentic LLM orchestration pipeline improve canary deployment stability and longitudinal rollback reliability over repeated change cycles?",
+      "hypotheses": [
+        "Agentic pipelines with an up-to-date digital twin will achieve higher canary stability (fewer regressions) than agentic pipelines without a twin.",
+        "Digital-twin-assisted agents will require fewer emergency/manual interventions across 50 simulated change cycles compared to non-twin agents."
+      ],
+      "proposed_design": "Implement an agentic orchestrator that consults a simulated digital twin (synchronized network model) before generating change plans; compare to the same agentic orchestrator without twin consultation. Use an emulated network and run 50 consecutive automated change cycles per pipeline where each cycle introduces incremental policy or topology changes drawn from a change bank. Use canary staging for enactment and simulate background traffic to detect regressions. Track twin staleness by injecting controlled state drift in some runs.",
+      "expected_data": "Per-cycle logs: proposed plan, twin state snapshot, validation outcomes, canary metrics (reachability/latency/regression count), intervention flags, twin staleness level, and final rollback events with timestamps.",
+      "primary_outcome": "Canary regression rate per cycle and mean number of manual/emergency interventions required over 50 cycles, comparing twin vs non-twin pipelines and stratified by twin staleness.",
+      "analysis_outline": "Use repeated-measures ANOVA or mixed-effects models to assess effect of digital twin presence and staleness on canary regression rates across cycles. Report cumulative intervention counts with Poisson or negative-binomial regression. Present time-series plots of regression incidence and failure-mode case studies.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4413756536"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W7114889968"
+      ],
+      "risks": [
+        "Digital twin fidelity limitations may create false confidence or mismatches with emulated enactments.",
+        "Longitudinal experiments require stable infrastructure; interruptions may bias cycle outcomes.",
+        "Agent orchestration complexity could obscure causal attribution between twin assistance and outcomes."
+      ],
+      "estimated_model_calls": 2800
+    }
+  ]
+}

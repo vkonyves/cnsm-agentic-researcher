@@ -1,0 +1,82 @@
+{
+  "study_id": "CNSM2026-GVR-AV1-001",
+  "title": "Verifier-integrated LLM intent-to-configuration pipeline: end-to-end safety and rollback evaluation (repaired preregistration)",
+  "research_question": "Does integrating an open-source formal network verifier (Batfish) into an LLM-driven intent-to-configuration pipeline measurably reduce unsafe configuration enactments and increase successful automatic rollback rates in controlled emulated NetOps scenarios?",
+  "confirmatory_hypotheses": [
+    "H1: The LLM+verifier (block-on-violation) pipeline yields a lower per-task unsafe-enactment rate than the LLM-only pipeline (primary confirmatory test).",
+    "H2: When verifier-detected violations trigger the automated rollback procedure, end-to-end service-impact (canary reachability loss) is lower than under the LLM-only pipeline (secondary confirmatory test)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does intent ambiguity level (benign / ambiguous / partially-specified) modulate verifier effectiveness?",
+    "EQ2: What are common residual failure modes (verifier false negatives, LLM hallucinated config fragments, parser-level syntax failures)?",
+    "EQ3: How sensitive are results to small, deterministic prompt perturbations (prompt-sensitivity probe)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7161354925",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413756536",
+    "https://openalex.org/W4415071524"
+  ],
+  "benchmark_scope": [
+    "CNSM-AI-NetOps-Intent-Bench-v1 (synthetic intent set generated under RFC1918 addressing conventions; three strata: benign, ambiguous, partially-specified)",
+    "Emulated multi-vendor routing/switching topologies implemented in containerized router images (Docker)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 150,
+    "planned_episode_count": 300,
+    "maximum_model_calls": 300,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Per-task unsafe-enactment rate difference (LLM-only minus LLM+verifier-block) measured on confirmatory tasks (absolute percentage-point reduction).",
+  "secondary_estimands": [
+    "Conditional rollback success rate: proportion of verifier-detected violations that are automatically rolled back and for which declared invariants are restored within the emulation.",
+    "Median time-to-detect and median time-to-rollback (seconds) per detected violation."
+  ],
+  "sampling_plan": "Two-stage design: deterministic pilot (30 tasks) followed by confirmatory run. Intents stratified equally across three ambiguity strata (benign, ambiguous, partially-specified). For each confirmatory task we execute all pipelines (LLM-only; LLM+verifier-block; LLM+verifier+automatic-rollback) on the same initial intent to support paired comparisons. Pilot validates harness and freezes parser/verifier mappings prior to confirmatory run.",
+  "power_and_precision_plan": "Primary estimand target: detect an absolute reduction of 15 percentage points (e.g., from 30% to 15%). Using conservative paired-to-independent approximation, two-sided Bonferroni-adjusted alpha=0.025 and power=0.80, required confirmatory task count = 150 (recommended scenario). Report 95% binomial CIs for per-pipeline rates. Sensitivity analyses: recompute estimates excluding contaminated/infrastructure-missing tasks and perform worst/best-case imputations if infrastructure-missing >5%.",
+  "exclusion_rules": [
+    "Auto-exclude any generated config containing non-RFC1918 public IP addresses or detected organization names (automatic exclusion from experimental corpus).",
+    "Auto-exclude tasks whose generated config triggers vendor-syntax parser failure (counted and reported; no human repair).",
+    "Auto-exclude tasks with exact-match to curated public-repo config fingerprints (contamination handling)."
+  ],
+  "missingness_plan": "Retry policy: up to 3 retries per model call with exponential backoff for transient provider/infrastructure failures. If a task has unresolved model/provider failures on both permitted hosted models (primary API and configured fallback per adapter) after retries, mark as 'infrastructure-missing' and exclude from confirmatory analyses only if infrastructure-missing ≤ 5% of confirmatory tasks; otherwise run and report sensitivity analyses (best/worst-case imputations). All missingness instances logged with error codes and hashes.",
+  "analysis_plan": "Primary analysis: paired McNemar-style comparisons (task-level binary outcome: unsafe enactment yes/no) between LLM-only and LLM+verifier-block with two-sided alpha adjusted per multiplicity plan. Compute 95% binomial/confidence intervals for per-pipeline rates. Secondary: conditional proportions (rollback success) tested with Fisher exact tests. Report median and IQR for time-to-detect and time-to-rollback. Subgroup (strata) analyses are exploratory and unadjusted. All analysis implemented in deterministic scripts with fixed RNG seeds; preserve raw per-task log table for reproducibility.",
+  "multiplicity_plan": "Two confirmatory comparisons (H1 primary, H2 secondary). Control family-wise error using Bonferroni adjustment (per-comparison alpha = 0.05/2 = 0.025). Exploratory subgroup analyses are unadjusted and explicitly labelled exploratory.",
+  "contamination_plan": "{\"benchmark_names\": [\"CNSM-AI-NetOps-Intent-Bench-v1\"], \"risk_factors\": [\"Inadvertent inclusion of private/real-customer network identifiers in intents or configs.\", \"LLM output reusing verbatim configuration snippets from public repositories (data contamination).\", \"Cross-task leakage via non-deterministic prompt wording.\"], \"detection_procedures\": [\"All intents are synthetic; automatically scan intent and generated-config text for organization names, real public-domain ASNs, or non-RFC1918 addresses using deterministic regex detectors.\", \"Exact-match detection against a curated set of public-repository config fingerprints; flag matches.\", \"Per-task hash-based deduplication to detect cross-task repetition patterns.\"], \"item_flagging_rules\": [\"Flag and automatically exclude any generated config containing non-RFC1918 public IP addresses or detected organization names (automatic exclusion from experimental corpus).\", \"Flag configs with exact-match to public-repo fingerprints; such tasks are removed from confirmatory set and recorded as contaminated.\", \"If >2% of planned confirmatory tasks are flagged contaminated, abort run and expand synthetic-intent generation rules (preregistered stop-and-fix rule).\"], \"analysis_treatment\": \"Contaminated tasks are excluded from confirmatory hypothesis tests and recorded in a contamination log. Sensitivity analysis reports confirmatory results with and without contaminated-task exclusion. All contamination handling is deterministic and automated; no manual adjudication is used.\", \"residual_uncertainty\": [\"Cannot fully rule out subtle training-data leakage not caught by exact- or regex-based detectors (noncritical external-validity limitation).\"]}",
+  "stopping_rule": "Abort and halt the confirmatory run if >2% of planned confirmatory tasks are flagged as contaminated (preregistered stop-and-fix). Additionally, the pilot stage (30 tasks) must complete and validate parser/verifier mappings before any confirmatory execution; failures in pilot harness that cannot be resolved within scheduled automated retries abort the run.",
+  "planned_outputs": [
+    "Machine-readable preregistration JSON (this document).",
+    "Deterministic experiment harness code, Docker emulation artifacts, and Batfish mappings.",
+    "Raw per-task logs, model-call transcripts, and hashes.",
+    "Analysis scripts and results tables (CSV/JSON) with exact seeds.",
+    "IEEE-format five-page short-paper LaTeX source, BibTeX, and compiled PDF (≤5 pages) including Disclosure Statement.",
+    "Contamination, missingness, and failure-mode logs and taxonomy.",
+    "NotebookLM presentation brief (machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}

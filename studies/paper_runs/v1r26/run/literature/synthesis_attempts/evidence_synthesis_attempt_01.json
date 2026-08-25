@@ -1,0 +1,148 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "There is a recent and substantial body of literature proposing and surveying use of LLMs and agentic AI for NetOps/AIOps (architectures, applications, evaluation concerns).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4407106963"
+      ],
+      "evidence_type": "Survey/Review",
+      "confidence": 0.9,
+      "limitations": [
+        "Many items are surveys or conceptual reviews rather than large-scale production studies.",
+        "Temporal focus is recent (2024–2026) and may reflect rapid, ongoing work."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "LLM-based intent-to-configuration translation and intent-driven configuration generation have been demonstrated as feasible in controlled experiments and prototype evaluations.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4400611559"
+      ],
+      "evidence_type": "Empirical/prototype studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are typically on curated/use-case datasets or exercises (not broad production fleets).",
+        "Performance claims depend on specific models, fine-tuning or PEFT procedures, and evaluation protocols."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–validate–repair patterns, retrieval-augmented generation (RAG), and constraint/verifier-assisted architectures are common prescriptions to improve reliability of LLM-generated NetOps artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W7161090935",
+        "doi:10.37082/ijirmps.v13.i6.232848"
+      ],
+      "evidence_type": "Method/architecture papers and reviews",
+      "confidence": 0.85,
+      "limitations": [
+        "Paper-level prescriptions are supported by prototype experiments; end-to-end effectiveness across realistic operational pipelines is not exhaustively validated.",
+        "Terminology and exact pipeline implementations vary across works."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Agentic architectures that integrate digital twins, multi-agent orchestration, or dedicated agents for intent analysis, verification, and testing have been proposed to automate network-change validation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "System/architecture proposals with prototype evaluation",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are reported on synthetic scenarios and selected past incidents rather than comprehensive production deployment trials.",
+        "Details on scale, freshness of digital-twin state, and long-term maintenance are limited."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Adversarial threats (prompt injection/jailbreaking) and concrete guardrail or secure-prompt frameworks have been studied; domain-specific adversarial benchmark datasets exist for security evaluation.",
+      "evidence_record_ids": [
+        "10.48550/arxiv.2501.01335",
+        "10.2139/ssrn.6956641",
+        "doi:10.35542/osf.io/6xr5q_v1"
+      ],
+      "evidence_type": "Adversarial-evaluation and defenses literature",
+      "confidence": 0.88,
+      "limitations": [
+        "Benchmarks focus on attack classes and defensive architectures but not specifically on network-config-change enactment in live NetOps pipelines.",
+        "Defense efficacy is often measured against curated adversarial corpora; adaptive attackers may differ in practice."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Whether agentic LLM systems can safely enact network changes in production with rigorous rollback, auditability, and longitudinal stability remains insufficiently evidenced.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7162496031",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "Argumentative/systematic-positioning and limited-deployment reports",
+      "confidence": 0.65,
+      "limitations": [
+        "Some systems report prototype or limited deployments (e.g., assistive tools), but comprehensive production-safety evaluations and long-term operational metrics are not available in the supplied records.",
+        "Operational context, scope of permitted actions, and human-in-the-loop controls differ across reports."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "The empirical integration of formal network verification tools (e.g., Batfish/NetKAT-like verifiers) with LLM-driven agentic pipelines is referenced as desirable but lacks broad, reproducible empirical evidence in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7155247165"
+      ],
+      "evidence_type": "Review and architecture proposal",
+      "confidence": 0.6,
+      "limitations": [
+        "References discuss the value of verifier-assisted architectures, but concrete, reproducible evaluations that measure verifier+LLM end-to-end efficacy on operational property metrics are not present among the supplied records.",
+        "Absence of explicit Batfish/NetKAT experimental integrations in the provided set."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a gap in standardized, operationally meaningful benchmarks that measure action-level correctness (e.g., reachability, isolation/policy compliance, rollback success, canary outcomes) for LLM-driven NetOps workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7161354925",
+        "10.2139/ssrn.6664738"
+      ],
+      "evidence_type": "Meta-analysis / position papers",
+      "confidence": 0.75,
+      "limitations": [
+        "Some niche benchmarks and evaluation taxonomies exist, but a unified, commonly adopted operational benchmark suite for action-level NetOps validation is not evidenced in the provided records.",
+        "Creation of such benchmarks would require cross-vendor, multi-protocol testbeds not documented here."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical studies evaluating robustness of generate–validate–repair loops under adversarial, ambiguous, or incomplete intent specifications in realistic NetOps settings are limited.",
+      "evidence_record_ids": [
+        "10.69987/jacs.2024.40206",
+        "10.2139/ssrn.6956641",
+        "10.48550/arxiv.2501.01335"
+      ],
+      "evidence_type": "Program-repair and adversarial-eval literature mapped to NetOps context",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing repair and adversarial-evaluation work is informative, but direct NetOps-targeted controlled adversarial robustness experiments (e.g., mis-specified intents leading to unsafe config enactment) are not prominent in the supplied records.",
+        "Transferring lessons from program repair to network configuration requires careful task-specific validation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready to autonomously perform network-change enactment without human oversight (unsupported by supplied records).",
+    "There is broad, reproducible evidence that verifier-assisted LLM agents eliminate all misconfiguration risk in live networks (no supplied records provide such universal evidence).",
+    "A single architectural pattern (e.g., RAG alone) is sufficient to guarantee safe autonomous NetOps across vendors and topologies (unsupported by the provided literature)."
+  ]
+}

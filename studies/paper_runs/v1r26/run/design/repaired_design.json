@@ -1,0 +1,152 @@
+{
+  "selected_candidate_id": "a1f9d3b2-7c4e-4d2b-9e6a-0b2f6c8e1d11",
+  "title": "Verifier-integrated LLM intent-to-configuration pipeline: end-to-end safety and rollback evaluation (repaired preregistration)",
+  "research_question": "Does integrating an open-source formal network verifier (Batfish) into an LLM-driven intent-to-configuration pipeline measurably reduce unsafe configuration enactments and increase successful automatic rollback rates in controlled emulated NetOps scenarios?",
+  "confirmatory_hypotheses": [
+    "H1: The LLM+verifier (block-on-violation) pipeline yields a lower per-task unsafe-enactment rate than the LLM-only pipeline (primary confirmatory test).",
+    "H2: When verifier-detected violations trigger the automated rollback procedure, end-to-end service-impact (canary reachability loss) is lower than under the LLM-only pipeline (secondary confirmatory test)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does intent ambiguity level (benign / ambiguous / partially-specified) modulate verifier effectiveness?",
+    "EQ2: What are common residual failure modes (verifier false negatives, LLM hallucinated config fragments, parser-level syntax failures)?",
+    "EQ3: How sensitive are results to small, deterministic prompt perturbations (prompt-sensitivity probe)?"
+  ],
+  "benchmark_scope": [
+    "CNSM-AI-NetOps-Intent-Bench-v1 (synthetic intent set generated under RFC1918 addressing conventions; three strata: benign, ambiguous, partially-specified)",
+    "Emulated multi-vendor routing/switching topologies implemented in containerized router images (Docker)."
+  ],
+  "model_scope": [
+    "Hosted-LLM-primary (API) — fixed-generation endpoint (primary experimental model).",
+    "Hosted-LLM-secondary (API, lower-capacity) — for robustness ablation and provider-failure fallback."
+  ],
+  "transformation_scope": [
+    "Intent (natural language) -> LLM-generated vendor-specific configuration snippets (Cisco-IOS-like, Juniper-like) using templated prompts.",
+    "Automated parser-based syntax validation (vendor CLI parser emulation), and verifier (Batfish) snapshot-based semantic checks (reachability/policy invariants)."
+  ],
+  "primary_estimand": "Per-task unsafe-enactment rate difference (LLM-only minus LLM+verifier-block) measured on confirmatory tasks (absolute percentage-point reduction).",
+  "secondary_estimands": [
+    "Conditional rollback success rate: proportion of verifier-detected violations that are automatically rolled back and for which declared invariants are restored within the emulation.",
+    "Median time-to-detect and median time-to-rollback (seconds) per detected violation."
+  ],
+  "sampling_plan": "Two-stage design: small deterministic pilot (see budget scenarios) followed by confirmatory run. Intents stratified equally across three ambiguity strata (benign, ambiguous, partially-specified). For each confirmatory task we execute all three pipelines (LLM-only; LLM+verifier-block; LLM+verifier+automatic-rollback) on the same initial intent to support paired comparisons. Pilot tasks validate harness and calibrate parser/verifier mappings.",
+  "analysis_plan": "Primary analysis: paired McNemar-style comparisons (task-level binary outcome: unsafe enactment yes/no) between LLM-only and LLM+verifier-block with two-sided alpha adjusted per multiplicity plan. Compute 95% binomial CIs for per-pipeline rates. Secondary: conditional proportions (rollback success) with Fisher exact tests. Report median and IQR for time measures. Subgroup analysis by intent-stratum (exploratory). All analysis implemented in deterministic scripts with stored seeds; raw per-task log table preserved for reproducibility.",
+  "multiplicity_plan": "Two confirmatory comparisons (H1 primary, H2 secondary). Control family-wise error using Bonferroni adjustment (per-comparison alpha = 0.05/2 = 0.025). Exploratory subgroup analyses unadjusted and clearly labelled as exploratory.",
+  "missingness_plan": "Persistent infrastructure/model-call failures: apply preregistered retry policy (up to 3 retries per call with exponential backoff). If a task has unresolved model/provider failures on both primary and secondary LLMs, mark as 'infrastructure-missing' and exclude from confirmatory analyses only if infrastructure-missing ≤ 5% of confirmatory tasks; otherwise perform sensitivity analyses (best/worst-case imputation) and report both results and missingness extent. All missingness instances logged with error codes and hashes.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "CNSM-AI-NetOps-Intent-Bench-v1"
+    ],
+    "risk_factors": [
+      "Inadvertent inclusion of private/real-customer network identifiers in intents or configs.",
+      "LLM output reusing verbatim configuration snippets from public repositories (data contamination).",
+      "Cross-task leakage via non-deterministic prompt wording."
+    ],
+    "detection_procedures": [
+      "All intents are synthetic; automatically scan intent and generated-config text for organization names, real public-domain ASNs, or non-RFC1918 addresses using deterministic regex detectors.",
+      "Exact-match detection against a small curated set of public-repository config fingerprints; flag matches.",
+      "Per-task hash-based deduplication to detect cross-task repetition patterns."
+    ],
+    "item_flagging_rules": [
+      "Flag and automatically exclude any generated config containing non-RFC1918 public IP addresses or detected organization names (automatic exclusion from experimental corpus).",
+      "Flag configs with exact-match to public-repo fingerprints; such tasks are removed from confirmatory set and recorded as contaminated.",
+      "If >2% of planned confirmatory tasks are flagged contaminated, abort run and expand synthetic-intent generation rules (this is a preregistered stop-and-fix rule)."
+    ],
+    "analysis_treatment": "Contaminated tasks are excluded from confirmatory hypothesis tests and reported in a contamination log. Sensitivity analysis reports confirmatory results with and without contaminated-task exclusion. All contamination handling is deterministic and automated; no manual adjudication is used.",
+    "residual_uncertainty": [
+      "Cannot fully rule out subtle training-data leakage not caught by exact- or regex-based detectors (noncritical external-validity limitation)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal-120",
+      "description": "Minimal confirmatory run (120 total tasks) to fit lower compute and model-call budgets while retaining paired design. Includes pilot of 20 tasks + 100 confirmatory tasks (stratified across 3 ambiguity strata).",
+      "planned_model_calls": 720,
+      "models": [
+        "Hosted-LLM-primary (API)",
+        "Hosted-LLM-secondary (API) for fallback/ablation"
+      ],
+      "transformations": [
+        "Intent -> single-shot LLM generation (LLM-only).",
+        "Intent -> LLM generation + Batfish verification (block) with up to 2 automatic regen attempts.",
+        "Intent -> LLM generation + Batfish verification + staged canary enact + automated rollback generation when violation detected."
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 100,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task average expected LLM calls ≈ 6 across three pipelines (generate + possible regen attempts + rollback generation). 120 tasks × 6 calls = 720 calls, well within hosted-model-call cap (manifest max 10,000). Pilot (20) verifies harness and mappings deterministically before confirmatory run."
+    },
+    {
+      "scenario_id": "recommended-180",
+      "description": "Recommended confirmatory run (180 total tasks) to achieve >80% power for the primary estimand under conservative assumptions. Includes pilot of 30 tasks + 150 confirmatory tasks (equal stratification across 3 ambiguity strata).",
+      "planned_model_calls": 1080,
+      "models": [
+        "Hosted-LLM-primary (API)",
+        "Hosted-LLM-secondary (API) for fallback/ablation"
+      ],
+      "transformations": [
+        "Intent -> single-shot LLM generation (LLM-only).",
+        "Intent -> LLM generation + Batfish verification (block) with up to 2 automatic regen attempts.",
+        "Intent -> LLM generation + Batfish verification + staged canary enact + automated rollback generation when violation detected."
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 150,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task average expected LLM calls ≈ 6 (generate + possible regen + rollback generation). 180 tasks × 6 calls = 1,080 calls < manifest limit of 10,000. Uses only hosted APIs and CPU-executable verifier and Dockerized emulation; no human labour required."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Absolute reduction in per-task unsafe-enactment rate (LLM-only minus LLM+verifier-block).",
+    "target_effect": "Detect an absolute reduction of 15 percentage points (e.g., from 30% to 15%).",
+    "clustering_unit": "Task (intent); pipelines executed on same intent support paired comparisons.",
+    "calculation_method": "Approximate two-sample proportions formula (conservative approximation for paired McNemar): n_per_group ≈ ((Z_{alpha}*sqrt(2 pbar (1-pbar)) + Z_{beta}*sqrt(p1(1-p1)+p2(1-p2)))^2) / (p1-p2)^2. Using p1=0.30, p2=0.15, two-sided alpha=0.025 (Bonferroni-adjusted), power=0.80 gives n ≈ 120 tasks. To be conservative and support subgroup analyses, recommended confirmatory tasks = 150 (after a 30-task pilot), total planned confirmatory tasks = 150 (recommended scenario).",
+    "assumptions": [
+      "Baseline unsafe-enactment rate for LLM-only ≈ 30% (conservative prior from prototype literature and domain judgment).",
+      "Improvement with verifier expected to reduce unsafe enactments by ≈ 15 percentage points.",
+      "Paired execution on same intents yields higher sensitivity; conservative independent-sample formula used as approximation.",
+      "Two confirmatory tests use Bonferroni-adjusted alpha=0.025 each."
+    ],
+    "recommended_scenario_id": "recommended-180",
+    "minimum_detectable_effect_notes": "With 150 confirmatory tasks (recommended scenario), the design has ≈80% power to detect ~15 pp absolute reduction; with 100 confirmatory tasks (minimal scenario) power falls below 80% for the same effect size—120 was marginal; 150 chosen to support subgroup (three-strata) descriptive comparisons.",
+    "sensitivity_analyses": [
+      "Recompute effect estimates and CIs excluding any tasks excluded for contamination or infrastructure failure.",
+      "Worst-case/best-case imputation for missingness if infrastructure-missing >5%."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor-CLI syntax validation (parser emulation).",
+      "Semantic invariants checks via Batfish snapshot queries (reachability, ACL/policy compliance).",
+      "Rollback-generation (automated inverse-stage) validation by re-applying post-rollback snapshot and re-checking invariants."
+    ],
+    "semantic_equivalence_checks": [
+      "Automated reachability matrix comparison: generated config must match intended connectivity constraints per intent; verifier queries produce binary pass/fail for each declared invariant.",
+      "Round-trip check for rollback: after automatic rollback enactment, rerun Batfish checks to confirm invariants are restored."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (automatic exclusion) any generated config that fails vendor-syntax parsing (parser error) — counted and reported; do not attempt human repair.",
+      "If Batfish returns a verifier-pass, pipeline proceeds to staged canary enactment; if Batfish returns verifier-fail, pipeline either blocks enactment (block arm) or triggers rollback generation (rollback arm) per pipeline definition."
+    ],
+    "audit_sample_policy": "Deterministic 10% random sample (fixed RNG seed) of generated configs undergo automated additional static-analysis checks (e.g., token-frequency heuristics for hallucination patterns) and are re-verified; discrepancies are logged for failure-mode taxonomy.",
+    "mapping_validation": "Predefine a mapping table from declared invariants (e.g., 'no cross-tenant reachability', 'management-plane reachability preserved') to Batfish queries and to emulator artifacts (interfaces, VRFs, ACLs). Mapping validated in pilot and frozen before confirmatory run.",
+    "residual_risks": [
+      "Verifier limitations: Batfish snapshot modeling may not capture some vendor-specific runtime behaviors (noncritical, reported as limitation).",
+      "Semantic equivalence checks depend on the preciseness of mapping invariants to queries; mismatches can produce false positives/negatives in measured unsafe enactment rates."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity vs. production hardware and edge-case vendor features (external-validity limitation; study claims are explicitly bounded to the emulated benchmark).",
+    "Verifier false negatives remain possible where modeling abstractions diverge from vendor runtime; will be described and counted as residual failure modes.",
+    "Single-primary-hosted-LLM limits model-generalization claims; a secondary hosted LLM is included for a robustness ablation but broad multi-model generalization is outside the preregistered claim."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7161354925",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413756536",
+    "https://openalex.org/W4415071524"
+  ]
+}

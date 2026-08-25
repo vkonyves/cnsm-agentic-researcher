@@ -1,0 +1,26 @@
+{
+  "summary": "Careful, well-documented preregistered paired experiment testing whether an automated verifier (and rollback) reduces unsafe LLM-generated network enactments. Execution and archival appear complete and deterministic. The confirmatory run produced a ceiling outcome (0 unsafe enactments in both baseline and guarded conditions for all 150 tasks), so the preregistered benefit could not be demonstrated. Artifacts, hashes, and analysis scripts are present and appear consistent with the reported results.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary confirmatory comparison is uninterpretable for the intended operational question because of a full-ceiling outcome (no verifier-detected violations in any confirmatory episode). The manuscript acknowledges this, but the report must make the untestability of H2 and other secondary estimands explicit and show how that affects inference.",
+    "The manuscript does not summarize the validator acceptance predicates / rule set used by deterministic_netops_validator_v5 in the body (only archived traces are cited). Without a concise description (or representative rule excerpts) it is difficult for readers to judge whether the validator’s acceptance criteria produce the observed ceiling.",
+    "Nearest-work and methodological claims reference an intended open-source verifier (e.g., Batfish-style) in the preregistration but the execution used a different validator implementation (deterministic_netops_validator_v5). The manuscript needs an explicit, evidence-backed justification for that choice and a clear statement of consequences for generalizability.",
+    "The primary confirmatory result (no discordant pairs) makes the preregistered inferential targets (including H2) not testable; this should be transparently stated in the Abstract, Results, and Conclusion as an untested outcome rather than framed as a straightforward null result."
+  ],
+  "required_revisions": [
+    "Add a concise, machine-verifiable summary of the validator acceptance rules used by deterministic_netops_validator_v5 (predicate list or representative rule excerpts), and indicate where in the archived artifacts readers can find the full validator configuration and example rule evaluations (task IDs and file hashes). This must be drawn from the supplied execution artifacts; do not require new runs.",
+    "Explicitly state in the Abstract and Results that the preregistered secondary estimands (including rollback-success and time-to-rollback) were not testable in the confirmatory run because the verifier detected zero violations; update wording to avoid implying that H2 was evaluated when it was not.",
+    "Explain and justify the difference between the verifier interface described in the preregistration (Batfish-style / open-source verifier lead) and the actual validator implementation used (deterministic_netops_validator_v5). Include concise discussion of how validator choice may produce ceiling effects and how that limits external validity; reference the archived validator config and traces (by file path and sha256).",
+    "Include a short evidence-to-claim mapping table (one paragraph or compact table) that maps each principal claim in the Introduction/Contributions to the exact artifact(s) (file path and sha256 hash) that substantiates it (e.g., preregistration JSON, execution_manifest, selected task transcripts, scoring JSON for representative tasks). Use only artifacts already present in the bundle.",
+    "Clarify in the Threats-to-Validity section that the confirmatory inferences are limited by (a) the synthetic task bank difficulty and (b) validator acceptance criteria, and explicitly label exploratory analyses (EQ1–EQ3) as unresolved in confirmatory sense. Point readers to artifact examples that illustrate these limitations."
+  ],
+  "optional_revisions": [
+    "Provide a brief (1–2 paragraph) representative example in the Results: show one or two full task transcripts (intent → shared initial candidate → parser status → validator trace) drawn from the archived responses and include their file hashes as examples to help readers judge task difficulty.",
+    "Expand the Related Work paragraph to cite and briefly compare any closest prior empirical studies that attempted verifier-stress or adversarial NetOps benchmarks, if such sources exist in the verified bibliography.",
+    "Add a short, practical checklist for constructing adversarial/stateful task banks and validator rules that would avoid the ceiling effect in follow-up studies (drawn from archived failure-mode diagnostics)."
+  ],
+  "accept_for_finalisation": false
+}

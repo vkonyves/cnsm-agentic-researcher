@@ -1,0 +1,30 @@
+{
+  "study_id": "CNSM2026-GVR-AV1-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Using execution/scoring/*.json (paired_binary_episode_v1), compute per-task unsafe_enactment (boolean) for baseline and guarded; construct paired contingency table and perform two-sided McNemar test on paired unsafe_enactment outcomes. Report absolute percentage-point reduction (guarded minus baseline) as the primary estimand and per-pipeline rates with 95% binomial (Wilson) CIs. Apply preregistered exclusion rules and cached artifacts deterministically.",
+  "secondary_analyses": [
+    "Conditional rollback success rate: proportion of verifier-detected violations that were automatically rolled back and for which declared invariants were restored (Fisher exact test on counted events from execution/scoring/*.json).",
+    "Median and IQR of time_to_detect_seconds and time_to_rollback_seconds for detected violations (deterministic summary from result JSON lines)."
+  ],
+  "sensitivity_analyses": [
+    "Recompute primary analysis with contaminated-task exclusion removed (report both sets).",
+    "If infrastructure-missing tasks >5% report best/worst-case imputations per preregistration and recompute primary estimand.",
+    "Failure-as-zero sensitivity: treat any incomplete pair/infrastructure failure as an unsafe outcome for baseline/guarded as appropriate and recompute paired comparison (see contract identifier included below)."
+  ],
+  "uncertainty_quantification": "95% binomial (Wilson) CIs for per-pipeline rates; exact McNemar two-sided p-values for paired test; Fisher exact p-values for rollback conditional proportions; medians with IQR for times. All intervals and p-values computed deterministically from stored scoring files and seeds.",
+  "multiplicity_implementation": "Two confirmatory tests (H1 primary, H2 secondary). Family-wise error controlled by Bonferroni: per-comparison alpha = 0.05/2 = 0.025 (two-sided). Exploratory subgroup analyses unadjusted and labeled exploratory.",
+  "contamination_analysis": "Apply preregistered deterministic detectors (regex non-RFC1918/public-IP/org-name scan; exact-match fingerprint lookup; per-task deduplication) using execution/task_manifest.jsonl and execution/raw_results.jsonl. Flagged contaminated tasks are excluded from confirmatory hypothesis tests and recorded in the contamination log; sensitivity analyses report results including contaminated tasks. Abort rule (>2% contaminated) was monitored deterministically (checked against execution logs).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Per-pipeline unsafe_enactment summary — n tasks considered, unsafe count, rate (%), 95% Wilson CI, absolute paired difference, McNemar p-value (sources: execution/scoring/*.json and execution/raw_results.jsonl).",
+    "Table 2: Paired contingency table (baseline vs guarded unsafe/enacted counts) used for McNemar (sources: paired scoring JSONs).",
+    "Table 3: Rollback outcomes — verifier-detected violations, rollback attempts, rollback success counts and proportions, Fisher p-value; median/IQR time_to_detect and time_to_rollback (sources: execution/raw_results.jsonl and execution/scoring/*.json).",
+    "Table 4: Exclusions, contamination, and missingness summary — counts, reasons, affected task IDs and artifact hashes (sources: execution/task_manifest.jsonl, execution/execution_log.jsonl, artifact_hashes)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of per-pipeline unsafe-enactment rates with 95% Wilson CIs (data from execution/scoring/*.json).",
+    "Figure 2: Boxplots (or violin) of time_to_detect_seconds and time_to_rollback_seconds for detected violations with median/IQR (data from execution/raw_results.jsonl).",
+    "Figure 3: Sankey/flow diagram of episode outcomes (shared_initial → parser_status → verifier_status → enacted_safe/unsafe → rollback outcomes) computed from paired_binary_episode_v1 JSON lines (execution/raw_results.jsonl)."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "summary": "Well-executed, artifact-rich preregistered paired study that transparently reports a deterministic ceiling effect (identical shared-initial outputs accepted by the verifier in all 150 paired tasks). The manuscript's main value is reproducible negative evidence and concrete, artifact-backed recommendations for future adversarial/validator-aware benchmarking. However, several manuscript clarifications are required to resolve interpretability and reproducibility ambiguities before finalisation.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary confirmatory inference is uninformative because every paired episode produced identical validator-accepted candidates (n11=150, n10=n01=n00=0). The manuscript must avoid implying the study 'tested' verifier utility without clearly reframing the outcome as a design-driven null (ceiling) result.",
+    "Ambiguity in the operational definition of 'unsafe enactment' — manuscript appears to equate validator acceptance (valid==true, violation_count==0) with absence of unsafe enactment, but it lacks a clear justification and coverage argument for the validator predicates used (what classes of failures the verifier detects/misses).",
+    "Statistical reporting is potentially misleading: paired McNemar p=1.0 and bootstrap CI = [0.0,0.0] are degenerate due to zero discordant pairs. The manuscript must explicitly explain why these statistics are uninformative here and avoid using them as evidence of equivalence or of verifier irrelevance."
+  ],
+  "required_revisions": [
+    "Explicitly reframe claims: remove or reword any language that suggests the confirmatory hypotheses (H1/H2) were meaningfully tested and resolved; clearly state H1 was untestable in practice due to a deterministic shared_initial generation policy producing identical candidates and therefore a ceiling effect (place this statement prominently in Abstract and Conclusion).",
+    "Add a succinct, formal definition of 'unsafe enactment' used for scoring and show the mapping from validator fields (e.g., violation_count, valid, required_command_count) to the binary outcome used in the confirmatory tests. Include a short justification of validator coverage and known blind spots (e.g., syntactic vs reachability/timing invariants) supported by referenced scoring JSON examples.",
+    "Explain the degenerate inferential results in the Methods/Analysis section: state why McNemar and the paired-bootstrap produce p=1.0 and CI [0,0] when n_10=n_01=0, and explicitly label these outputs as uninformative rather than evidence of no effect. Prefer a deterministic failure-mode explanation over null-hypothesis language.",
+    "Clarify artifact availability and navigation: add a compact table or paragraph in the manuscript that (a) lists the minimal set of essential files required to reproduce the analysis (preregistration JSON, task_manifest, per-task intent file, execution/responses/*.txt, execution/scoring/*.json, analysis scripts, and the SHA256 manifest), (b) states where/how these archived artifacts are included with the submission (paths already cited in the execution bundle are acceptable), and (c) gives exact filenames and the corresponding SHA256 hashes for those minimal files so reviewers can locate and verify them easily."
+  ],
+  "optional_revisions": [
+    "Include an explicit example episode (intent text, generated candidate, scoring JSON excerpt) in the Appendix or a short figure to illustrate the deterministic identity of baseline vs guarded outputs and the validator acceptance fields.",
+    "Add a brief table enumerating per-stratum (benign/ambiguous/partially-specified) counts and representative scores (even if identical) to substantiate the claim that the ceiling effect spanned strata.",
+    "Expand the Limitations/Discussion with a concise comparison to one or two closest prior works (cite-verified) emphasizing how those works avoided or addressed similar ceiling/design issues; recommend concrete validator/enumeration changes (e.g., independent per-condition generation, adversarial-intent injection, multi-verifier matrices) prioritized for next runs."
+  ],
+  "accept_for_finalisation": false
+}
