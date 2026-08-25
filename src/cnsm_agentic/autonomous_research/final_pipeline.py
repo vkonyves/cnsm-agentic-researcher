@@ -3269,6 +3269,9 @@ class FinalAutonomousResearchPipeline:
                     "deterministic_reconciliation": (
                         deterministic_reconciliation
                     ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_evidence_bundle
+                    ),
                     "manuscript": (
                         current_manuscript.model_dump()
                     ),
@@ -3418,7 +3421,7 @@ class FinalAutonomousResearchPipeline:
             / "final"
         )
 
-        maximum_format_revision_rounds = 7
+        maximum_format_revision_rounds = 10
         publication_validation: dict[str, Any] | None = None
 
         for format_round in range(
@@ -3657,6 +3660,47 @@ class FinalAutonomousResearchPipeline:
                 / "revised_package.json",
                 revised_manuscript,
             )
+
+        latest_peer_review = await run_agent(
+            PEER_REVIEWER,
+            {
+                "master_prompt": master_prompt,
+                "evidence_verification": (
+                    evidence_report
+                ),
+                "preregistration": (
+                    preregistration.model_dump()
+                ),
+                "execution_manifest": (
+                    execution_manifest
+                ),
+                "analysis_results": (
+                    analysis_results
+                ),
+                "deterministic_reconciliation": (
+                    deterministic_reconciliation
+                ),
+                "manuscript_evidence_bundle": (
+                    manuscript_evidence_bundle
+                ),
+                "manuscript": (
+                    revised_manuscript.model_dump()
+                ),
+                "review_round": (
+                    maximum_peer_review_rounds + 1
+                ),
+            },
+            expected_type=PeerReviewReport,
+            stage_name=(
+                "Terminal AI peer review after format revision"
+            ),
+        )
+
+        write_json(
+            review_rounds_dir
+            / "review_terminal.json",
+            latest_peer_review,
+        )
 
         if publication_validation is None:
             raise RuntimeError(

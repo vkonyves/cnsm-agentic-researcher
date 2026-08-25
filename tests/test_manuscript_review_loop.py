@@ -50,7 +50,7 @@ def test_final_pipeline_requires_full_five_page_budget():
         "final_pipeline.py"
     ).read_text()
 
-    assert "maximum_format_revision_rounds = 7" in source
+    assert "maximum_format_revision_rounds = 10" in source
 
     assert (
         'publication_validation.get(\n'
@@ -243,7 +243,7 @@ def test_format_revision_performs_only_one_revision_per_round():
     ).read_text()
 
     start = source.index(
-        "maximum_format_revision_rounds = 7"
+        "maximum_format_revision_rounds = 10"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -339,4 +339,92 @@ def test_underfill_revisions_are_cumulative():
     assert (
         "do not shorten, "
         in source
+    )
+
+
+def test_terminal_peer_review_runs_after_format_revision():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert '"review_terminal.json"' in source
+    assert (
+        "Terminal AI peer review after format revision"
+        in source
+    )
+    assert (
+        "maximum_peer_review_rounds + 1"
+        in source
+    )
+
+
+def test_terminal_peer_review_receives_evidence_bundle():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    terminal_start = source.index(
+        "latest_peer_review = await run_agent(",
+        source.index(
+            "maximum_format_revision_rounds"
+        ),
+    )
+
+    terminal_end = source.index(
+        '"review_terminal.json"',
+        terminal_start,
+    )
+
+    terminal_section = source[
+        terminal_start:terminal_end
+    ]
+
+    assert (
+        '"manuscript_evidence_bundle"'
+        in terminal_section
+    )
+
+
+def test_terminal_review_precedes_final_judge():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    terminal_pos = source.index(
+        '"review_terminal.json"'
+    )
+
+    final_judge_pos = source.index(
+        "FINAL_JUDGE",
+        terminal_pos,
+    )
+
+    assert terminal_pos < final_judge_pos
+
+
+def test_regular_peer_review_receives_evidence_bundle():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    review_loop_start = source.index(
+        "for review_round in range("
+    )
+
+    review_loop_end = source.index(
+        "maximum_format_revision_rounds",
+        review_loop_start,
+    )
+
+    review_section = source[
+        review_loop_start:review_loop_end
+    ]
+
+    assert (
+        '"manuscript_evidence_bundle"'
+        in review_section
     )
