@@ -234,3 +234,69 @@ def test_manuscript_payload_compacts_execution_manifest():
         "compact_execution_manifest_for_manuscript("
         in source
     )
+
+
+def test_format_revision_performs_only_one_revision_per_round():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    start = source.index(
+        "maximum_format_revision_rounds = 7"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    format_section = source[start:end]
+
+    assert (
+        format_section.count(
+            "revised_manuscript = await run_agent("
+        )
+        == 1
+    )
+
+    assert (
+        '"revision_instruction": (\n'
+        '                        revision_instruction'
+        in format_section
+    )
+
+
+def test_manuscript_revision_receives_compact_evidence_bundle():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert (
+        "def build_manuscript_evidence_bundle("
+        in source
+    )
+    assert (
+        '"artifact_examples"'
+        in source
+    )
+    assert (
+        '"analysis_artifacts"'
+        in source
+    )
+    assert (
+        '"manuscript_evidence_bundle"'
+        in source
+    )
+
+
+def test_manuscript_evidence_bundle_is_archived():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert (
+        '"manuscript_evidence_bundle.json"'
+        in source
+    )

@@ -235,6 +235,92 @@ def compact_execution_manifest_for_manuscript(
 
     return compact
 
+def build_manuscript_evidence_bundle(
+    run_dir: Path,
+    execution_manifest: dict[str, Any],
+    analysis_results: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Build a compact, deterministic evidence bundle for manuscript revision.
+
+    The bundle is derived only from existing autonomous-run artifacts.
+    It does not create new scientific results or alter the analysis.
+    """
+    bundle: dict[str, Any] = {
+        "execution_summary": (
+            compact_execution_manifest_for_manuscript(
+                execution_manifest
+            )
+        ),
+        "analysis_results": analysis_results,
+        "artifact_examples": [],
+        "analysis_artifacts": {},
+    }
+
+    scoring_dir = (
+        run_dir
+        / "execution"
+        / "scoring"
+    )
+
+    if scoring_dir.is_dir():
+        scoring_files = sorted(
+            scoring_dir.glob("*.json")
+        )
+
+        # Deterministic representative sample:
+        # first three baseline and first three guarded files.
+        baseline_files = [
+            p for p in scoring_files
+            if p.name.endswith("-baseline.json")
+        ][:3]
+
+        guarded_files = [
+            p for p in scoring_files
+            if p.name.endswith("-guarded.json")
+        ][:3]
+
+        for p in baseline_files + guarded_files:
+            data = read_json(p)
+
+            bundle["artifact_examples"].append(
+                {
+                    "path": str(
+                        p.relative_to(run_dir)
+                    ),
+                    "sha256": sha256_file(p),
+                    "content": data,
+                }
+            )
+
+    analysis_dir = run_dir / "analysis"
+
+    for name in (
+        "paired_contingency_table.csv",
+        "contamination_summary.csv",
+        "analysis_log.jsonl",
+        "deterministic_reconciliation.json",
+    ):
+        p = analysis_dir / name
+
+        if not p.is_file():
+            continue
+
+        text = p.read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        bundle["analysis_artifacts"][name] = {
+            "path": str(
+                p.relative_to(run_dir)
+            ),
+            "sha256": sha256_file(p),
+            "content": text[:12000],
+        }
+
+    return bundle
+
 async def run_agent(
     agent: Agent,
     payload: dict[str, Any],
@@ -2883,6 +2969,25 @@ class FinalAutonomousResearchPipeline:
             deterministic_reconciliation,
         )
 
+        manuscript_evidence_bundle = (
+            build_manuscript_evidence_bundle(
+                run_dir=run_dir,
+                execution_manifest=(
+                    execution_manifest
+                ),
+                analysis_results=(
+                    analysis_results
+                ),
+            )
+        )
+
+        write_json(
+            run_dir
+            / "manuscript"
+            / "manuscript_evidence_bundle.json",
+            manuscript_evidence_bundle,
+        )
+
         # -------------------------------------------------
         # 11. Autonomous manuscript generation
         # -------------------------------------------------
@@ -2918,6 +3023,9 @@ class FinalAutonomousResearchPipeline:
                 ),
                 "deterministic_reconciliation": (
                     deterministic_reconciliation
+                ),
+                "manuscript_evidence_bundle": (
+                    manuscript_evidence_bundle
                 ),
             },
             expected_type=ManuscriptPackage,
@@ -3038,6 +3146,9 @@ class FinalAutonomousResearchPipeline:
                     "deterministic_reconciliation": (
                         deterministic_reconciliation
                     ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_evidence_bundle
+                    ),
                     "manuscript": (
                         current_manuscript
                         .model_dump()
@@ -3050,26 +3161,38 @@ class FinalAutonomousResearchPipeline:
                         review_round
                     ),
                     "revision_instruction": (
-                        "Address every required revision that can be "
-                        "resolved from existing verified evidence, "
-                        "execution artifacts, and analysis results. "
-                        "Do not invent new experiments, data, references, "
-                        "statistics, URLs, artifact locations, or empirical "
-                        "claims. If a reviewer request cannot be resolved "
-                        "from existing artifacts, preserve it explicitly "
-                        "as an unresolved limitation rather than fabricating "
-                        "support."
-                        " Treat deterministic_reconciliation "
-                        "as authoritative for arithmetic "
-                        "consistency, execution accounting, "
-                        "and observed cache-key reuse. Do not "
-                        "adopt a reviewer claim that contradicts "
-                        "a passing deterministic reconciliation "
-                        "check. If reviewer prose conflicts with "
-                        "the deterministic artifact, preserve the "
-                        "artifact-backed facts and explicitly "
-                        "resolve the reviewer concern from those "
-                        "facts."
+                        """
+                        Address every required revision that can be
+                        resolved from existing verified evidence,
+                        execution artifacts, and analysis results.
+                        Do not invent new experiments, data, references,
+                        statistics, URLs, artifact locations, or empirical
+                        claims. If a reviewer request cannot be resolved
+                        from existing artifacts, preserve it explicitly
+                        as an unresolved limitation rather than fabricating
+                        support.
+
+                        Treat deterministic_reconciliation
+                        as authoritative for arithmetic
+                        consistency, execution accounting,
+                        and observed cache-key reuse. Do not
+                        adopt a reviewer claim that contradicts
+                        a passing deterministic reconciliation
+                        check. If reviewer prose conflicts with
+                        the deterministic artifact, preserve the
+                        artifact-backed facts and explicitly
+                        resolve the reviewer concern from those
+                        facts.
+
+                        A compact manuscript_evidence_bundle may be supplied. Treat it as
+                        authoritative for artifact-grounded manuscript details such as
+                        representative scoring examples, canonical artifact paths and hashes,
+                        contamination-summary outputs, paired contingency results, execution
+                        accounting, and reproducibility details. When a reviewer requests such
+                        information and it is present in this bundle, incorporate the actual
+                        value into the manuscript rather than merely stating that an artifact
+                        exists.
+                        """
                     ),
                 },
                 expected_type=ManuscriptPackage,
@@ -3303,6 +3426,9 @@ class FinalAutonomousResearchPipeline:
                     "deterministic_reconciliation": (
                         deterministic_reconciliation
                     ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_evidence_bundle
+                    ),
                     "manuscript": (
                         revised_manuscript
                         .model_dump()
@@ -3320,62 +3446,6 @@ class FinalAutonomousResearchPipeline:
                     ),
                     "revision_instruction": (
                         revision_instruction
-                    ),
-                },
-                expected_type=ManuscriptPackage,
-                stage_name=(
-                    "Autonomous manuscript format revision "
-                    f"{format_round + 1}"
-                ),
-            )
-
-            revised_manuscript = await run_agent(
-                MANUSCRIPT_REVISER,
-                {
-                    "master_prompt": master_prompt,
-                    "verified_records": records,
-                    "evidence_verification": (
-                        evidence_report
-                    ),
-                    "preregistration": (
-                        preregistration.model_dump()
-                    ),
-                    "execution_manifest": (
-                        execution_manifest
-                    ),
-                    "analysis_results": (
-                        analysis_results
-                    ),
-                    "deterministic_reconciliation": (
-                        deterministic_reconciliation
-                    ),
-                    "manuscript": (
-                        revised_manuscript
-                        .model_dump()
-                    ),
-                    "peer_review": (
-                        latest_peer_review
-                        .model_dump()
-                    ),
-                    "publication_validation": (
-                        format_feedback
-                    ),
-                    "revision_round": (
-                        "format_"
-                        f"{format_round + 1}"
-                    ),
-                    "revision_instruction": (
-                        "The manuscript compiled successfully but exceeds "
-                        "the frozen IEEE page limit. Shorten and compact "
-                        "the manuscript sufficiently to satisfy the page "
-                        "limit while preserving supported scientific "
-                        "claims, the primary methods and results, reviewer-"
-                        "resolved information, required references, and the "
-                        "mandatory Disclosure Statement. Do not change "
-                        "empirical results, add unsupported claims, remove "
-                        "required disclosure content, manipulate the IEEE "
-                        "template, shrink fonts or margins, or invent new "
-                        "evidence."
                     ),
                 },
                 expected_type=ManuscriptPackage,
