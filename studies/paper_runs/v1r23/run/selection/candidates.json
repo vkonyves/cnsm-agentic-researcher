@@ -1,0 +1,105 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1_generate_validate_repair_adversarial",
+      "title": "Effectiveness of Generate–Validate–Repair with Batfish against Adversarial Prompt Injection",
+      "research_question": "Does a generate–validate–repair (GVR) pipeline using an automated network verifier (Batfish) reduce unsafe or non-executable LLM-generated network configuration changes under adversarial prompt injection compared to an unvalidated LLM pipeline?",
+      "hypotheses": [
+        "Under adversarial prompt injection, an LLM + GVR pipeline that invokes Batfish will produce a lower rate of unsafe or non-executable configuration proposals than the same LLM operating without validation."
+      ],
+      "proposed_design": "Controlled, paired experiment using a corpus of intent-to-configuration tasks derived from public NetOps scenarios and synthetic multi-vendor topologies. For each intent, generate a malicious/adversarial prompt variant (prompt-injection) and a benign prompt. Run two interventions per task: (A) LLM-only configuration generation; (B) LLM + GVR where outputs are checked by Batfish and repaired by an automated repair routine that re-invokes the LLM with validator feedback. Record per-run artifacts (raw prompts, model outputs, validator findings, repaired outputs). Use hosted-model API(s) available; Batfish runs in sandboxed simulator. Pre-register seeds, retry policy, and max model-call budget. Exclude runs failing infrastructure checks per preregistration.",
+      "expected_data": "Per-task records including: raw prompt, generated config(s), Batfish verdicts (reachability, policy violations, syntactic errors), number of repair iterations, final verdict, task label (adversarial/benign). Aggregated metrics: unsafe-change rate (final config that violates safety/policy or fails syntactic checks), initial unsafe proposal rate, repair success rate, average repair iterations, latency and model-call counts.",
+      "primary_outcome": "Absolute and relative reduction in unsafe-change rate (final accepted config unsafe) for LLM+GVR versus LLM-only under adversarial prompts.",
+      "analysis_outline": "Paired comparison across tasks (each task yields paired outcomes for interventions A and B). Compute difference in unsafe-change rate and 95% bootstrap confidence intervals. Use McNemar's test for paired binary outcomes and report effect size (risk difference). Secondary analyses: repair success logistic regression controlling for topology complexity and vendor configuration features; sensitivity analysis by prompt severity. Report exact p-values, CIs, and per-task failure modes.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4391158659"
+      ],
+      "risks": [
+        "Validator false negatives may understate unsafe proposals; Batfish/simulator coverage may not match production vendors; adversarial prompt set may not cover all real-world attack vectors; model/provider API outages could force preregistered retries."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "c2_canary_rollback_time_safety",
+      "title": "Automated Canary Testing and Rollback Orchestration by LLM Agents: Time-to-Remediation vs Safety Trade-off",
+      "research_question": "Can an LLM-orchestrated automated canary deployment plus automated rollback mechanism reduce median time-to-remediation compared to a human-approval workflow while maintaining equal or better rollback success and safety metrics in a sandboxed NetOps environment?",
+      "hypotheses": [
+        "An LLM agent that plans and orchestrates automated canary trials with automated rollback will achieve a lower median time-to-remediation than a human-approval workflow without decreasing rollback success rate or increasing post-change safety violations."
+      ],
+      "proposed_design": "Simulated change-execution experiments using public/synthetic topologies with scheduled maintenance-change intents. Two arms per change: (A) human-approval baseline where LLM proposes change but waits for simulated human approval (modeled latency distribution) before execution; (B) LLM-agent-driven canary: LLM instructs simulator to apply changes to canary subset, assesses telemetry via scripted checks, and triggers automated rollback on failures. Use identical change intents across arms and record timing, telemetry checks, rollback success, and safety violations. Predefine canary size, health checks, and rollback policy. Limit model calls per run per preregistration.",
+      "expected_data": "Per-change records: decision timestamps (proposal, approval/launch, canary results, rollback decision), telemetry check outcomes, final service state, rollback success/failure, number of model calls, and any safety violations. Aggregates: median time-to-remediation, distribution of rollback success, rates of post-change safety policy violations, and resource-utilization metrics.",
+      "primary_outcome": "Difference in median time-to-remediation between LLM-agent canary workflow and human-approval baseline, with non-inferiority constraint on rollback success rate (pre-registered margin).",
+      "analysis_outline": "Compute median times and 95% CIs for each arm; use Mann–Whitney U test for time distributions. For rollback success (binary), perform non-inferiority test using paired tasks with pre-registered non-inferiority margin (e.g., −2%). Report proportions, exact binomial CIs, and logistic regression of rollback success on arm controlling for change complexity. Perform subgroup analysis by topology size.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4391158659"
+      ],
+      "risks": [
+        "Simulated human-approval latency model may not capture real operator behavior; canary size/practice decisions might not generalize; automated rollback logic could interact with simulator edge cases producing misleading success rates; ethical concerns if naively extrapolated to production."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "c3_rag_vs_baseline_prompt_injection",
+      "title": "Does Retrieval-Augmented Grounding Reduce Hallucination-Driven Misconfigurations under Prompt-Injection?",
+      "research_question": "Does retrieval-augmented generation (RAG) grounding reduce the incidence of hallucination-driven or fabrication-induced misconfigurations produced by LLMs when subjected to prompt-injection attacks, compared to the same LLM without grounding?",
+      "hypotheses": [
+        "Under prompt-injection attacks, an LLM configured with RAG grounding against authoritative network policy and topology documents will produce fewer hallucination-driven misconfigurations than the same LLM without RAG grounding."
+      ],
+      "proposed_design": "Create a dataset of intents with associated authoritative grounding documents (policy snippets, topology inventories). For each intent craft prompt-injection variants designed to induce fabrication. Run two conditions: (A) LLM baseline (no RAG) and (B) LLM+RAG where the model retrieves grounding and is explicitly constrained to cite grounding. Use an automated validator (Batfish) to label hallucination-driven misconfigs (e.g., use of nonexistent interfaces, fabricated ACLs) and track whether output cites grounding. Pre-register retrieval index, prompt templates, and detection heuristics for hallucination.",
+      "expected_data": "Per-run: generated config, grounding documents retrieved (if any), presence/absence of fabricated entities (per validator heuristics), validator verdicts, model citation behavior, and repair iterations if applicable. Aggregate metrics: hallucination-driven misconfig rate, proportion of outputs citing grounding, validator-detected violations, and precision/recall of hallucination detection heuristics.",
+      "primary_outcome": "Absolute reduction in hallucination-driven misconfiguration rate for LLM+RAG versus LLM baseline under adversarial prompts.",
+      "analysis_outline": "Compare hallucination rates using paired binary comparisons across tasks; compute McNemar's test and bootstrap CIs for rate differences. Analyze citation behavior correlation with hallucination outcomes (chi-squared test). Secondary analysis: effect of grounding quality (document relevance score) on hallucination reduction via logistic regression.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4391158659",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4388886073"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "RAG retrieval index quality biasing results; validator heuristics may misclassify complex legitimate constructs as hallucinations; retrieval latency and API rate limits could constrain experiment scale; prompt templates may overfit to particular attack styles."
+      ],
+      "estimated_model_calls": 1400
+    },
+    {
+      "candidate_id": "c4_workflow_scoring_predicts_operational_safety",
+      "title": "A Workflow-Centered Scoring Suite for NetOps Proposals: Predicting Rollback Success and Policy Compliance",
+      "research_question": "Do workflow-centered scores (trace quality, sandbox replayability, rollback-awareness) computed from LLM-generated NetOps proposals predict operational safety outcomes (rollback success, policy compliance) better than simple syntactic or token-level metrics?",
+      "hypotheses": [
+        "A compact workflow-scoring suite combining trace completeness, sandbox replayability, and rollback-awareness will correlate more strongly with observed rollback success and policy-compliance outcomes than baseline syntactic/perplexity metrics."
+      ],
+      "proposed_design": "Design a scoring suite with defined sub-metrics: trace quality (operation sequence completeness and pre/post-state assertions), sandbox replayability (script-executability score against simulator), and rollback-awareness (presence of explicit rollback instructions and safety checks). Apply suite to a corpus of LLM-generated change proposals produced under varied prompts and models (different prompt strategies). For each proposal, execute in sandbox to observe rollback success and policy violations. Compute correlations and predictive performance (ROC AUC) comparing workflow score vs baseline metrics (syntax error rate, token-perplexity surrogate). Pre-register scoring formulas and thresholds.",
+      "expected_data": "Per-proposal: workflow-submetric scores, composite workflow score, baseline metrics, execution outcome (rollback success/failure), policy-violation binary flag, and execution logs. Aggregates: Pearson/Spearman correlations, ROC AUC for predicting rollback success and policy compliance, and feature importance for sub-metrics.",
+      "primary_outcome": "Predictive performance (AUC) of the workflow score for rollback-success prediction compared to baseline metrics; hypothesis supported if workflow score AUC is significantly higher by pre-registered margin.",
+      "analysis_outline": "Compute AUCs with 95% bootstrap CIs for each predictor. Compare AUCs using DeLong's test for correlated ROC curves. Report correlation coefficients between scores and continuous outcomes (e.g., number of safety violations). Perform ablation analysis removing submetrics to assess contribution. Adjust for multiple comparisons in secondary tests.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4391158659"
+      ],
+      "risks": [
+        "Design choices for sub-metrics may be subjective and require tuning; sandbox executability may not reflect production; correlations may not imply causation; scoring suite may be dataset-dependent and require external validation."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

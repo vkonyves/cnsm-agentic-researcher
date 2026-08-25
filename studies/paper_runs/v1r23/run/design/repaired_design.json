@@ -1,0 +1,157 @@
+{
+  "selected_candidate_id": "c1_generate_validate_repair_adversarial",
+  "title": "Effectiveness of Generate–Validate–Repair with Batfish against Adversarial Prompt Injection",
+  "research_question": "Does a generate–validate–repair (GVR) pipeline that uses an automated network verifier (Batfish) reduce the rate of unsafe or non‑executable LLM‑generated network configuration proposals under adversarial prompt injection compared to an unvalidated LLM pipeline?",
+  "confirmatory_hypotheses": [
+    "Under adversarial prompt injection, the LLM + GVR pipeline (Batfish verifier + automated repair loop) will have a lower final unsafe‑change rate (binary: final accepted config violates safety/policy or fails syntax checks) than the same LLM operating without validation."
+  ],
+  "exploratory_questions": [
+    "How many repair iterations are required on average to reach an accepted config, and how does this vary with topology/vendor complexity?",
+    "What classes of adversarial prompt perturbation (template families) are most likely to defeat a single GVR repair iteration?",
+    "How sensitive are conclusions to Batfish detection coverage (measured via injected synthetic faults)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi‑vendor topologies (synthetic Cisco‑like, Juniper‑like, Arista‑like, and mixed vendor variants) executed in a Batfish sandbox",
+    "Intent‑to‑configuration tasks programmatically generated from deterministic seed list (seeded RNG) and adversarial perturbation templates (see preregistration)"
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) accessible via the platform (provider default LLM endpoint). Exact model identifier returned in each API response will be logged per run (model-id).",
+    "All experiments lock to the provider endpoint used and will record the model-id string for every response; model selection is fixed for each scenario and recorded in execution artifacts."
+  ],
+  "transformation_scope": [
+    "Prompt → initial config generation (LLM)",
+    "Validator verdicts → repair prompts (LLM re‑invocation with deterministic feedback templates)",
+    "Syntactic/semantic edits applied by LLM across repair iterations"
+  ],
+  "primary_estimand": "Per‑task paired difference in final unsafe‑change indicator (LLM+GVR minus LLM‑only) under adversarial prompts; estimand is absolute risk difference (proportion) aggregated over tasks.",
+  "secondary_estimands": [
+    "Initial unsafe‑proposal rate (before repair) per intervention",
+    "Repair success rate (proportion of initially unsafe proposals that become safe within max iterations)",
+    "Average repair iterations until acceptance",
+    "Per‑topology and per‑vendor subgroup risk differences"
+  ],
+  "sampling_plan": "Confirmatory sample: 500 adversarial intent‑to‑configuration tasks (each task yields a paired outcome for interventions A and B). Tasks are distributed across 5 topology clusters (100 tasks per cluster): Cisco‑like, Juniper‑like, Arista‑like, Mixed, and Minimal testbed. Each task is executed twice (A: LLM‑only; B: LLM+GVR). Exploratory sample: 200 benign‑prompt tasks (distributed across same topologies) for additional contrast and prompt‑sensitivity checks. Derivation: 500 adversarial tasks × 2 interventions = 1000 confirmatory model generations (base calls). GVR model‑call overhead estimated below under budget scenarios and matches planned_model_calls.",
+  "analysis_plan": "Primary analysis: paired binary comparison (LLM+GVR vs LLM‑only) across the 500 adversarial tasks. Report absolute risk difference with 95% bootstrap CIs (10k bootstrap iterations) and McNemar's test (two‑sided, α=0.05) for paired binary outcomes. Secondary analyses: logistic regression of repair success controlling for topology cluster and syntactic feature counts; subgroup analyses by topology/vendor; descriptive statistics for repair iterations, repair latency, and model‑call counts. All exploratory analyses are labeled as such. All code, seeds, raw outputs, and model‑id metadata are preserved for reproducibility.",
+  "multiplicity_plan": "Primary confirmatory test is the paired McNemar test on the 500 adversarial tasks. Secondary estimands (repair rate, repair iterations, subgroup analyses) are exploratory and reported with unadjusted CIs; where multiple confirmatory subgroup tests are reported (only pre‑specified topologies), adjust p‑values via Holm–Bonferroni. Report all tested comparisons and adjust only for pre‑specified confirmatory subgroup tests.",
+  "missingness_plan": "Technical failures (API outages, simulator failures) are logged and differentiated from scientific failures. Per preregistration: if a run fails due to infrastructure, it will be retried up to 2 times; if still failing, the task is excluded and a replacement task drawn from the same topology cluster deterministic pool (seeded RNG) to maintain 500 analyzable confirmatory tasks. All exclusions and replacements are logged with timestamps and hashed artifacts; sensitivity analysis will compare results including and excluding replaced tasks.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic-multi-vendor-topology-v1",
+      "intent-seed-bank-v1"
+    ],
+    "risk_factors": [
+      "Validator (Batfish) false negatives leading to undercounted unsafe proposals",
+      "Model API drift or hidden model versioning (different model-id across runs)",
+      "Cross‑task contamination due to reused prompts or repeated model outputs (caching)",
+      "Deterministic adversarial template overfitting (insufficient diversity)"
+    ],
+    "detection_procedures": [
+      "Batfish coverage matrix evaluation via injected synthetic ground‑truth faults (see preregistered procedure) to estimate detector false‑negative rate",
+      "Hashing and deduplication of prompts and outputs per-run; flag identical output strings across distinct seeds",
+      "Log and record provider model‑id per response; analyze runs by model‑id to detect drift",
+      "Monitor repair statistics (e.g., unusually high repair iterations) as anomaly indicator"
+    ],
+    "item_flagging_rules": [
+      "Flag any run where Batfish verdicts are missing or Batfish crash occurred; exclude from analysis unless retried successfully under retry policy",
+      "Flag outputs identical to previous outputs across different seeds (probable caching) and treat in sensitivity analysis",
+      "Flag runs where model‑id differs mid‑execution; include model‑id stratified analysis"
+    ],
+    "analysis_treatment": "Primary analysis uses all non‑flagged runs. Flagged runs are excluded from the primary confirmatory analysis but included in a sensitivity analysis that (a) imputes worst‑case outcome for excluded runs and (b) reports effect estimates with and without flagged runs.",
+    "residual_uncertainty": [
+      "Batfish may miss classes of semantic misconfigurations not covered by synthetic fault injections",
+      "Adversarial prompt diversity may not encompass all real‑world attack styles",
+      "Hosted provider hidden changes between runs could remain partially unobserved despite model‑id logging"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_modest",
+      "description": "Modest budget (recommended minimum per power analysis): 500 adversarial confirmatory tasks + 200 benign exploratory tasks, 5 topology clusters.",
+      "planned_model_calls": 2200,
+      "models": [
+        "hosted‑llm‑api (provider endpoint; model‑id logged per response)"
+      ],
+      "transformations": [
+        "Initial LLM generation (1 call/task)",
+        "GVR repair loop (initial + up to 3 repairs; average 2.4 calls/task estimated)",
+        "Benign exploratory tasks (reduced repair rate; avg 1.5 calls/task)"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 500,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "Planned_model_calls = confirmatory base calls (500×1) + GVR overhead (500×1.4 extra ≈700) + benign tasks total (200×1.5 ≈300) + overhead for Batfish coverage tests and logging ≈500 → total ≈2200. Matches capacity (maximum_planned_model_calls=10000). Batfish runs executed in Docker; CPU execution suffices."
+    },
+    {
+      "scenario_id": "S2_expanded",
+      "description": "Expanded budget for greater precision and subgroup power: 1000 adversarial confirmatory tasks + 400 benign exploratory tasks, 7 topology clusters.",
+      "planned_model_calls": 4800,
+      "models": [
+        "hosted‑llm‑api (provider endpoint; model‑id logged per response)"
+      ],
+      "transformations": [
+        "Initial LLM generation (1 call/task)",
+        "GVR repair loop (initial + up to 4 repairs; avg 2.8 calls/task)",
+        "Benign exploratory tasks (avg 1.6 calls/task)"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 1000,
+      "task_cluster_count": 7,
+      "feasibility_rationale": "Planned_model_calls computed similarly with larger sample: confirmatory base (1000) + GVR overhead (~1800) + benign (~640) + Batfish coverage ≈1360 → ≈4800 total. Still within platform limits and below maximum_planned_model_calls."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Absolute reduction in final unsafe‑change rate (LLM+GVR minus LLM‑only) on adversarial tasks.",
+    "target_effect": "15 percentage‑point absolute reduction (e.g., from 30% unsafe → 15% unsafe)",
+    "clustering_unit": "task / intent (paired within‑task comparison)",
+    "calculation_method": "Simulation‑based McNemar power estimation (Monte Carlo, 10k trials) using paired binary outcome generation under specified baseline and discordant rates.",
+    "assumptions": [
+      "Baseline unsafe final rate under LLM‑only = 30% (conservative estimate from literature and pilot runs)",
+      "Discordant pair fraction (where one pipeline safe and the other unsafe) ≈ 30%",
+      "α = 0.05, target power = 0.80",
+      "Max repair iterations set to 3 (S1) / 4 (S2); repair success per iteration modeled from pilot distribution"
+    ],
+    "recommended_scenario_id": "S1_modest",
+    "minimum_detectable_effect_notes": "With 500 paired adversarial tasks, simulation shows ~80% power to detect a 15 percentage‑point absolute reduction assuming discordant fraction ≈30%. Lower discordant fractions increase required sample; S2_expanded reduces MDE and improves subgroup power.",
+    "sensitivity_analyses": [
+      "Recompute power assuming baseline unsafe rates {0.20,0.30,0.40} and discordant fractions {0.2,0.3,0.4}.",
+      "Power under increased repair‑iteration variance (simulate avg repair iterations ±25%)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Prompt → initial config generation",
+      "Validator feedback → repair prompt generation",
+      "LLM edit sequences (safety/syntax edits) across iterations"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated Batfish verification: explicit syntactic parsing + semantic checks (reachability, policy/ACL violations) determine whether final config satisfies the intent‑spec (expressed as test‑cases derived from the intent).",
+      "Round‑trip check: apply final config in simulator and verify expected test traffic/workflows succeed; failure = non‑equivalent to intended behavior."
+    ],
+    "automatic_rejection_rules": [
+      "Reject final configs that fail Batfish syntactic parsing or that produce failing intent test‑cases after max repair iterations.",
+      "Reject runs where Batfish verdicts cannot be obtained or where Batfish crashes (these are retried per retry policy; persistent failures are excluded and recorded)."
+    ],
+    "audit_sample_policy": "Automated deterministic sampling (seeded RNG) selects 5% of tasks for expanded logging (full request/response history, Batfish internal traces). No human annotation; all audit checks are programmatic.",
+    "mapping_validation": "Mapping from intent to test‑cases is programmatically derived from intent templates and validated via simulation (deterministic scripts). Mapping rules and edge‑cases are committed with code and deterministic tests.",
+    "residual_risks": [
+      "Validator blind spots for vendor‑specific constructs not modeled by Batfish or not covered in synthetic topology definitions",
+      "LLM edits that appear syntactically correct but encode semantics not captured by our intent test‑cases"
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Batfish detection coverage relative to all possible vendor‑specific or production constructs; we estimate coverage via synthetic injected faults but residual gaps may remain.",
+    "Representativeness of adversarial prompt templates vs. adversaries in operational settings; we use diverse deterministic template families but cannot guarantee coverage of all real‑world attacks.",
+    "Sensitivity to hosted LLM provider hidden updates; mitigated by logging model‑id per response but cannot fully prevent provider changes between experiment phases.",
+    "External validity: sandboxed/simulated topology results may not fully generalize to heterogeneous production estates with telemetry and state not modeled here."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4388886073",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4391158659"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "study_id": "c1_gvr_batfish_adversarial_v1",
+  "title": "Effectiveness of Generate–Validate–Repair with Batfish against Adversarial Prompt Injection",
+  "research_question": "Does a generate–validate–repair (GVR) pipeline that uses an automated network verifier (Batfish) reduce the rate of unsafe or non‑executable LLM‑generated network configuration proposals under adversarial prompt injection compared to an unvalidated LLM pipeline?",
+  "confirmatory_hypotheses": [
+    "Under adversarial prompt injection, the LLM + GVR pipeline (Batfish verifier + automated repair loop) will have a lower final unsafe‑change rate (binary: final accepted config violates safety/policy or fails syntax checks) than the same LLM operating without validation."
+  ],
+  "exploratory_questions": [
+    "How many repair iterations are required on average to reach an accepted config, and how does this vary with topology/vendor complexity?",
+    "What classes of adversarial prompt perturbation (template families) are most likely to defeat a single GVR repair iteration?",
+    "How sensitive are conclusions to Batfish detection coverage (measured via injected synthetic faults)?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4388886073",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4391158659"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi‑vendor topologies (synthetic Cisco‑like, Juniper‑like, Arista‑like, and mixed vendor variants) executed in a Batfish sandbox",
+    "Intent‑to‑configuration tasks programmatically generated from a deterministic seed list (seeded RNG) and adversarial perturbation templates (see preregistration)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 500,
+    "planned_episode_count": 1000,
+    "maximum_model_calls": 1000,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Per‑task paired difference in final unsafe‑change indicator (LLM+GVR minus LLM‑only) under adversarial prompts; estimand is absolute risk difference (proportion) aggregated over tasks.",
+  "secondary_estimands": [
+    "Initial unsafe‑proposal rate (before repair) per intervention",
+    "Repair success rate (proportion of initially unsafe proposals that become safe within max iterations)",
+    "Average repair iterations until acceptance",
+    "Per‑topology and per‑vendor subgroup risk differences"
+  ],
+  "sampling_plan": "Confirmatory sample: exactly 500 adversarial intent‑to‑configuration tasks (task_count fixed at 500). Tasks distributed across 5 topology clusters (100 tasks per cluster): Cisco‑like, Juniper‑like, Arista‑like, Mixed, and Minimal testbed. Each task executed as a paired episode: A) baseline LLM‑only (single generation), B) guarded LLM+GVR (initial generation shared, plus at most one repair call if Batfish flags unsafe). Exploratory sample: 200 benign‑prompt tasks (same topology distribution) for additional contrast. Deterministic RNG seeds control task selection and adversarial template instantiation. Replacement rule: failed infrastructure runs retried up to 2 times; persistent infrastructure failures lead to deterministic replacement from the same topology cluster to preserve 500 analyzable confirmatory tasks (all replacements logged and hashed).",
+  "power_and_precision_plan": "Primary estimand: absolute reduction in final unsafe‑change rate (LLM+GVR minus LLM‑only). Target effect: 15 percentage‑point absolute reduction (e.g., 30% → 15%). Calculation: simulation‑based McNemar power estimation (Monte Carlo, 10k trials) assuming baseline unsafe rate ≈30% and discordant pair fraction ≈30%, α=0.05, target power 0.80. Recommended scenario: S1_modest (500 adversarial tasks). Sensitivity: recompute power for baseline unsafe rates {0.20,0.30,0.40} and discordant fractions {0.2,0.3,0.4}; vary repair‑iteration variance ±25%.",
+  "exclusion_rules": [
+    "Technical failures (API outages, Batfish crash) retried up to 2 times; if persistent, the task is excluded and replaced deterministically from the same topology cluster to maintain sample size.",
+    "Runs flagged by contamination rules (missing Batfish verdict, model‑id drift mid‑execution, or identical outputs across distinct seeds suggestive of caching) are excluded from the primary confirmatory analysis and recorded for sensitivity analyses."
+  ],
+  "missingness_plan": "Technical failures are logged and differentiated from scientific failures. Retry policy: up to 2 automatic retries for transient infrastructure/API/simulator failures. Persistent failures: task excluded and replaced deterministically from the same topology cluster using seeded RNG to maintain 500 confirmatory tasks. All exclusions, replacements, retries, and timestamps are logged with hashed artifacts. Sensitivity analyses compare primary results with (a) inclusion of replaced tasks and (b) worst‑case imputation for excluded runs.",
+  "analysis_plan": "Primary analysis: paired binary comparison across the 500 adversarial tasks. Report absolute risk difference with 95% bootstrap confidence intervals (10,000 bootstrap iterations). Perform McNemar's test (two‑sided, α=0.05) on paired binary outcomes. Secondary analyses: logistic regression for repair success controlling for topology cluster and syntactic feature counts; subgroup analyses by topology/vendor with pre‑specified topology strata (Holm–Bonferroni adjustment for any confirmatory subgroup tests); descriptive statistics for repair iterations, repair latency, and model‑call counts. All exploratory analyses labeled as exploratory. All raw outputs, seeds, model‑id metadata, and code are preserved for reproducibility.",
+  "multiplicity_plan": "Primary confirmatory test is the paired McNemar test on the 500 adversarial tasks. Secondary estimands and exploratory subgroup analyses reported with unadjusted CIs. Pre‑specified confirmatory subgroup tests (the five topology clusters) will have p‑values adjusted via Holm–Bonferroni. All tested comparisons are reported; adjustments applied only to pre‑specified confirmatory subgroup tests.",
+  "contamination_plan": "Prespecified contamination risks include: Batfish false negatives, model API drift or hidden model versioning, cross‑task output caching, and insufficient adversarial template diversity. Detection and treatment: (1) Batfish coverage estimated via injected synthetic ground‑truth faults (preplanned coverage matrix); (2) per‑run hashing and deduplication of prompts/outputs; identical outputs across distinct seeds flagged; (3) model‑id logged per response and runs stratified by model‑id to detect drift; (4) flag runs with missing Batfish verdicts or Batfish crashes. Primary analysis excludes flagged runs; sensitivity analyses include flagged runs with (a) worst‑case imputation and (b) stratified reporting. All flags, detection artifacts, and mitigation actions are logged.",
+  "stopping_rule": "Stop when 500 non‑flagged confirmatory tasks have been successfully completed (i.e., paired baseline + guarded episodes with obtainable Batfish verdicts) or when the contractual maximum_model_calls (1000 calls under this contract) is reached. Retries allowed per missingness_plan (up to 2 retries per failed run). If the sample cannot be completed due to persistent infrastructure/provider failures after allowed retries and replacements, stop and report the realized sample with full disclosure.",
+  "planned_outputs": [
+    "IEEE‑style short paper (CNSM 2026 Agentic AI Researcher track) with Disclosure Statement",
+    "Preregistered experiment code, deterministic seeds, prompt templates, adversarial template bank, and execution manifest (hashed)",
+    "Raw model responses, Batfish verdict logs, and paired episode result table",
+    "Statistical results, analysis notebooks, and failure‑mode analysis",
+    "Evidence‑to‑claim table, nearest‑work comparison matrix, and autonomy/revision log"
+  ],
+  "unresolved_critical_issues": []
+}

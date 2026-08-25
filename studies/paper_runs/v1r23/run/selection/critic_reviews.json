@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1_generate_validate_repair_adversarial",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Validator (Batfish) coverage and false negatives may bias safety estimates toward optimistic outcomes.",
+        "Adversarial prompt corpus design may not represent real-world attack diversity; results sensitive to prompt construction.",
+        "Repair-loop behavior depends on LLM prompt engineering and may be sensitive to hidden model updates (hosted API drift).",
+        "Simulator/vendor mismatch: Batfish/sandbox may not reflect multi-vendor production behaviors."
+      ],
+      "required_design_repairs": [
+        "Explicitly preregister and document Batfish coverage matrix and known gaps; include tests to quantify validator false-negative rate (oracle or human spot-checks).",
+        "Broaden and justify adversarial prompt-generation methodology; include red-team diversity metrics and seed list for reproducibility.",
+        "Preregister exact model versions/IDs, prompt templates, and retry policy; log model API responses and provider metadata (timestamps, model identifier).",
+        "Include sensitivity analysis across topology complexity and at least synthetic multi-vendor config variants; report limits of generalization in preregistration."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2_canary_rollback_time_safety",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Human-approval baseline is modeled (simulated latency) — modeling choices can drive apparent time benefits and threaten causal claims.",
+        "Automated rollback success observed in simulator may not transfer to real deployments (external validity).",
+        "Canary sizing, health-check definitions, and rollback triggers are design choices that materially affect outcomes and could be tuned post hoc.",
+        "Ethical/operational extrapolation risk if readers infer production readiness from simulated gains."
+      ],
+      "required_design_repairs": [
+        "Preregister the human-approval latency distribution, justify choices, and run sensitivity analyses across plausible latency families.",
+        "Preregister canary size, health-check definitions, rollback-trigger thresholds, and include rationale; conduct subgroup analyses by these parameters.",
+        "Include a realism validation step: compare simulator rollback behavior against a small set of more realistic scenarios or documented operator traces if available.",
+        "Limit claims to sandboxed evidence and explicitly report inability to claim production generalizability; add concrete threats-to-validity text in preregistration."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3_rag_vs_baseline_prompt_injection",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Retrieval-index composition/quality may drive observed RAG gains (confounder) unless fully specified and varied.",
+        "Automated heuristics for detecting hallucination-driven misconfigurations risk mislabeling complex but legitimate constructs.",
+        "Prompt templates and retrieval-conditioning instructions may overfit to particular attack styles; generality unclear."
+      ],
+      "required_design_repairs": [
+        "Preregister and publish retrieval corpus and indexing parameters; evaluate results under at least two differently constructed indices (e.g., clean authoritative vs noisy).",
+        "Define and validate hallucination-detection heuristics with human adjudication on a stratified sample; report precision/recall of heuristics.",
+        "Preregister prompt templates and retrieval prompts; include robustness checks across prompt variations and retrieval-quality strata.",
+        "Log retrieved documents per run and report retrieval relevance scores in analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4_workflow_scoring_predicts_operational_safety",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Workflow-submetric definitions are subjective and may be dataset-specific; risk of overfitting to the corpus used to derive them.",
+        "Observed correlations do not imply causation; predictive performance may not translate to prescriptive or operational utility.",
+        "Sandbox executability score may poorly reflect production executability; scoring thresholds may be arbitrary without external validation."
+      ],
+      "required_design_repairs": [
+        "Provide precise, formal definitions and computation procedures for each submetric and preregister them (include edge-case rules).",
+        "Include an external holdout or cross-dataset validation set to assess generalization; if possible, hold out a vendor or topology class for validation.",
+        "Distinguish predictive claims from causal claims explicitly; if claiming prescriptive use, add controlled intervention evaluation or simulation of decision-making using the score.",
+        "Report inter-rater reliability if any human labeling is used for trace quality; preregister ablation and threshold-selection procedures."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

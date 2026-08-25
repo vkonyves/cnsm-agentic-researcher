@@ -1,0 +1,149 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models are actively applied to NetOps/AIOps tasks (intent-to-configuration translation, configuration synthesis, fault diagnosis, and limited self-healing) in prototype studies and surveys.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "survey_and_prototype_reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Most work is prototype or experimental rather than large-scale production deployments.",
+        "Evaluations often use limited task sets or synthetic/small-scale environments."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Operational reliability of LLM-driven NetOps depends principally on surrounding architecture (validators, tool scaffolding, assurance contracts, and human-in-the-loop) rather than model outputs alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7161354925",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "architectural_synthesis_and_proposal",
+      "confidence": 0.85,
+      "limitations": [
+        "Argument is supported by architectural analyses and prototypes rather than controlled causal experiments isolating each component.",
+        "Degree to which each surrounding mechanism (e.g., human approval vs. automated verifier) contributes to reliability varies by study and is not standardized."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Tool-augmented agent architectures (external APIs/tools, Toolformer-style self-supervision, API-Bank, and retrieval-augmented generation) demonstrably improve LLM task capabilities and are a prominent research direction for NetOps tooling and verification.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4389984066"
+      ],
+      "evidence_type": "methodological_and_benchmark_reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks and tool suites vary; improvements shown on specific tasks/benchmarks may not transfer automatically to complex, multi-vendor NetOps workflows.",
+        "Tool integration adds operational complexity (latency, error modes) that requires careful evaluation."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Hallucination/fabrication remains a significant failure mode for LLMs and is an active area of detection and mitigation research.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391158659",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4388585881"
+      ],
+      "evidence_type": "theoretical_and_empirical_studies",
+      "confidence": 0.95,
+      "limitations": [
+        "Rates and forms of hallucination depend on model, prompt, domain, and mitigation strategy; studies use varied metrics.",
+        "Detection/mitigation methods reduce but do not eliminate hallucination according to supplied records."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Generate–validate–repair and RAG-style grounding, sometimes using network simulators/validators (e.g., Batfish in prototypes), are proposed and used as mitigation patterns to check or sandbox LLM-generated network changes.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4389984066"
+      ],
+      "evidence_type": "prototype_and_architectural_reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Use of validators like Batfish is reported in prototypes; comprehensive evaluations of end-to-end effectiveness against diverse misconfigurations are limited in the supplied records.",
+        "Integration and oracle accuracy of validators vary by scenario."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what extent current LLM-based NetOps systems generalize reliably across multi-vendor equipment, large production topologies, and adversarial perturbations remains unresolved.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6604918"
+      ],
+      "evidence_type": "survey_and_adversarial_studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied evidence highlights concerns and adversarial methodologies but does not provide comprehensive cross-vendor production-scale evaluations.",
+        "Empirical results addressing this question are sparse in the provided record set."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Whether fully autonomous LLM-agent remediation (closed-loop changes without human approval) can meet operational safety, auditability, and regulatory requirements in production is unresolved.",
+      "evidence_record_ids": [
+        "10.59256/ijrtmr.20260602033",
+        "10.36948/ijfmr.2025.v07i06.72540",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "framework_proposals_and_compliance_discussions",
+      "confidence": 0.6,
+      "limitations": [
+        "Records propose governance and compliance-aware architectures but do not report real-world regulated production deployments proving full compliance.",
+        "Regulatory acceptability depends on external factors (auditors, standards) not addressed empirically in the supplied set."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is no widely-accepted public benchmark in the supplied records that evaluates agentic NetOps systems end-to-end with workflow-centered criteria (trace quality, sandbox replay, canary trials, rollback-aware scoring).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4389518608"
+      ],
+      "evidence_type": "gap_identification_from_surveys_and_benchmarks",
+      "confidence": 0.7,
+      "limitations": [
+        "API-Bank and other tool benchmarks exist but focus on tool use generally rather than a standardized, NetOps-specific workflow-centered evaluation as described.",
+        "Absence claim is limited to the supplied record set."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical studies that combine adversarial prompt‑injection/red‑teaming with NetOps configuration‑generation plus validator/repair loops are limited in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6604918",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "observed_evidence_gap",
+      "confidence": 0.65,
+      "limitations": [
+        "Adversarial and prompt-injection studies are present, and NetOps prototypes are present, but few supplied works combine both in systematic, quantitative experiments.",
+        "This gap statement is bounded to the supplied record list and may not reflect the entire literature beyond these records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-driven NetOps systems in the supplied records are proven production-ready for fully autonomous, vendor-diverse, safety-certified remediation (unsupported by provided evidence).",
+    "Any single supplied record demonstrates elimination of hallucination in LLM outputs for NetOps tasks (no supplied record shows complete elimination).",
+    "There is a widely-adopted, community standard benchmark that fully measures workflow-level safety and rollback-aware performance for agentic NetOps (not present in supplied records)."
+  ]
+}
