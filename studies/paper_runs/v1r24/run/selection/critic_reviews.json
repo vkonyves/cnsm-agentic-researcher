@@ -1,0 +1,93 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Synthetic corpus may under-represent vendor runtime semantics leading to optimistic verifier coverage.",
+        "Automated verifier false negatives could mask residual semantic errors.",
+        "LLM repair iterations may introduce new undetected semantic errors (hallucinations).",
+        "Ground-truth for semantic correctness may be underspecified."
+      ],
+      "required_design_repairs": [
+        "Demonstrate verifier coverage and false-negative rate (via emulator or oracle subset) before claiming reduction magnitudes.",
+        "Include emulated/device-accurate execution (or clearly justify digital-twin fidelity) for a stratified subset.",
+        "Specify power analysis/sample-size targets and concrete thresholds for semantic-error reduction.",
+        "Document vendor templates and parsing pipeline; include tests for vendor-syntax corner cases."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulation fidelity: outage-proxy may not reflect real outage causality.",
+        "High-dimensional policy space risks sparse sampling and overfitting to simulator specifics.",
+        "Reliance on verifier-severity calibration assumes score correlates with real outage risk."
+      ],
+      "required_design_repairs": [
+        "Adopt an efficient experimental-design (e.g., fractional factorial or Bayesian optimization) to budget policy sampling.",
+        "Validate simulator harm proxies against emulator-verified cases for a representative subset.",
+        "Pre-register exact policy-grid, sampling plan, and decision thresholds for Pareto claims.",
+        "Specify robustness/sensitivity checks under varied fault-injection regimes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Accessing accurate vendor semantics and creating fair adapters is challenging and may bias results.",
+        "Manual ground-truth labeling limits scale and introduces annotation error.",
+        "Emulator verification may be partial, reducing confidence in measured recall losses."
+      ],
+      "required_design_repairs": [
+        "Justify and document chosen vendors; publish adapter code and transformation rules for auditability.",
+        "Use dual-annotator labeling with inter-annotator agreement reporting and resolve disagreements transparently.",
+        "Where possible, expand emulator-verified ground truth coverage and report emulator limitations.",
+        "Pre-register sampling and adapter-development procedures to avoid post-hoc tuning."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Predictive link between audit metrics and simulated harm depends on fidelity of harm proxies.",
+        "Perturbation choices (types, magnitudes) may be seen as arbitrary without justification.",
+        "Benchmark/task-bank representativeness to production workloads is uncertain."
+      ],
+      "required_design_repairs": [
+        "Define and justify a standardized perturbation taxonomy with intensity levels and provide reproducible generators.",
+        "Validate harm-proxy mapping against emulator-verified outcomes for a seed subset.",
+        "Pre-register models and thresholds used to map audit metrics to harm predictions and report sensitivity analyses.",
+        "Publish audit tooling and scripts to enable independent reproduction of fragility scores."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

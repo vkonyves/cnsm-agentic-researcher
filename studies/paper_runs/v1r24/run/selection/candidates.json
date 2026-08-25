@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "title": "Effectiveness of Generate–Verify–Repair Pipelines for Multi-vendor NetOps Configuration Synthesis",
+      "research_question": "Can a generate–verify–repair pipeline driven by an LLM + automated verifier materially reduce semantically incorrect network configuration changes across synthesized multi-vendor scenarios compared to an LLM-only generation baseline?",
+      "hypotheses": [
+        "A verifier-informed repair loop will reduce the rate of semantic (intent-violating) configuration errors by >30% relative to LLM-only outputs on the same tasks."
+      ],
+      "proposed_design": "Construct a reproducible synthetic corpus of multi-vendor topologies and intent-to-configuration tasks (router ACLs, BGP policies, VLANs). For each task: (1) prompt an LLM to produce a vendor-specific config; (2) run an automated verifier that checks intent properties and reports counterexamples; (3) feed verifier feedback to the LLM for up to two repair iterations. Compare to LLM-only single-shot generation. Use deterministic seeds and freeze prompts; record all model calls, verifier outputs, and edits. Use public vendors/protocol syntaxes emulated via existing open-source device models or high-fidelity templates. Primary metrics: semantic error rate (verifier-detected violations), syntactic parse/compile rate, number of repair iterations, and rollback-necessity proxy (binary). Pre-register inclusion/exclusion, stopping rules, and maximum model-call budget per task.",
+      "expected_data": "Per-task records with: original LLM output, verifier verdict (pass/fail), counterexample text, repaired outputs, final verifier verdict, syntactic-parse success, number of repair iterations, and a computed semantic-error boolean. Aggregate counts and rates stratified by vendor, task type, and initial semantic-failure mode.",
+      "primary_outcome": "Absolute and relative reduction in verifier-detected semantic-error rate between LLM-only and generate–verify–repair pipeline (paired per task).",
+      "analysis_outline": "Compute paired differences in semantic-error rate per task; report mean reduction with 95% bootstrap CI. Use McNemar's test for paired binary outcomes and Wilcoxon signed-rank for iteration counts. Stratify by vendor and task; report effect heterogeneity and contingency tables for failure modes. Report per-task sample sizes and perform power/uncertainty analysis. Archive raw artifacts and reproduce summary statistics from stored outputs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4407384737"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161090566",
+        "https://openalex.org/W7134943833",
+        "https://openalex.org/W7167748241"
+      ],
+      "risks": [
+        "Synthetic corpus may not capture nuanced vendor-specific runtime semantics causing optimistic verifier coverage.",
+        "Verifier may produce false negatives (miss semantic violations) leading to underestimated residual risk.",
+        "LLM repair hallucinations could introduce new, hard-to-detect semantic errors not caught by verifier due to spec gaps."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "title": "Quantifying Guardrail Trade-offs: Canarying, Tool-Exposure, and Rollback Thresholds in LLM-driven NetOps Pipelines",
+      "research_question": "How do different guardrail policies (canarying fraction, minimal tool exposure, and automated rollback thresholds) trade off between operational safety (outage probability), latency to deploy, and utility (successful change fraction) in LLM-driven NetOps workflows?",
+      "hypotheses": [
+        "Implementing conservative guardrails (small canary fraction + strict tool exposure + low rollback threshold) will reduce simulated outage probability at the cost of increased deployment latency and reduced immediate utility; an intermediate policy will optimize a safety–utility Pareto point.",
+        "Automated rollback thresholds tuned by verifier severity scores will outperform fixed-threshold policies on combined safety+utility objectives."
+      ],
+      "proposed_design": "Simulate a catalog of NetOps change tasks and failure modes using an emulated environment (synthetic topologies and fault-injection scenarios). Define policy axes: canary fraction (0–50%), tool exposure levels (full privileged API vs minimal read/write subset), and rollback thresholds (verifier-severity cutoff). For each combination, run the autonomous LLM-agent pipeline to propose and (simulated) apply changes; inject faults with controlled probabilities to emulate harmful side-effects. Measure outage-proxy events, time-to-stabilize, and fraction of successful changes. Use factorial experimental design with repeated seeds; freeze prompts and simulation RNG. Pre-register utility-loss and outage definitions and stopping rules.",
+      "expected_data": "Per-run logs including guardrail settings, model outputs, verifier severity scores, whether canary triggered, whether rollback executed, outage-proxy boolean, deployment latency, and change-success boolean. Aggregated metrics across policy settings yielding safety–latency–utility trade-off curves and Pareto front estimates.",
+      "primary_outcome": "Policy-level trade-off curves and a quantified Pareto frontier showing how guardrail parameterizations affect simulated outage probability vs utility; identification of policy regions with statistically significant safety improvement without >X% utility loss.",
+      "analysis_outline": "Estimate outage probability and mean latency per policy via bootstrapped proportions and means; compare policies using ANOVA/GLM with policy parameters as predictors. Compute Pareto frontier and use multi-objective ranking (domination counts). Conduct sensitivity analysis under varied fault-injection rates. Report confidence intervals and thresholded decision metrics (e.g., policy achieves >50% outage reduction with <10% utility loss).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7317098",
+        "https://openalex.org/W7165064896",
+        "https://openalex.org/W7164447152"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7167748241",
+        "https://openalex.org/W7162893340"
+      ],
+      "risks": [
+        "Simulation fault models may not reflect real-world outage causality, limiting external validity.",
+        "Complex policy space could induce combinatorial explosion; budgeted model-call limits may force coarser sampling of policy combinations.",
+        "Over-reliance on verifier severity scores assumes those scores correlate with real outage risk; score miscalibration could mislead conclusions."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "title": "Transferability of Formal Verifiers from SDN/simulator Contexts to Vendor-Specific Device Configurations",
+      "research_question": "How well do formal verification rules and intent-specifications developed in SDN/simulator contexts generalize to vendor-specific configuration syntaxes and control-plane behaviors, and what specification gaps predict verifier recall loss?",
+      "hypotheses": [
+        "Verifiers developed against abstract SDN semantics will exhibit a measurable drop (>20% absolute) in recall for intent-violation detection when applied to vendor-specific configurations without adapter augmentation.",
+        "The primary predictors of recall loss will be vendor syntax divergences and control-plane implicit behaviors not captured in abstract intent specifications."
+      ],
+      "proposed_design": "Assemble paired task sets: abstract SDN-formalized intents and corresponding vendor-specific implementations across at least three vendor syntaxes (open-source templates for Cisco, Juniper, and an oxide vendor). Run an existing SDN-oriented verifier on both abstract and vendor-specific artifacts; where necessary implement syntactic adapters. Record verifier true positives/false negatives using a ground-truth labeling process (manual annotation on a stratified subset + oracle checks via high-fidelity emulation where possible). Analyze mismatch cases to categorize specification gaps and propose minimal adapter extensions. Freeze mappings and verifier versions prior to runs.",
+      "expected_data": "Per-case labels: intent, abstract config, vendor config, verifier verdicts (abstract and vendor), ground-truth violation presence, and categorized gap annotations (syntax, control-plane semantic, feature-mapping missing). Aggregate recall/precision per verifier-target and gap-type incidence.",
+      "primary_outcome": "Measured drop in verifier recall (and precision) when moving from abstract SDN inputs to vendor-specific configs, with quantified contribution of different gap categories to recall loss.",
+      "analysis_outline": "Compute recall and precision with 95% CIs for abstract vs vendor-specific sets; use paired comparison tests for recall differences. Fit logistic regression to predict verifier miss probability from gap indicators. Provide qualitative taxonomy of gap types and recommend minimal adapter rules; report inter-annotator agreement for manual ground truthing. Conduct sensitivity checks using emulator-verified ground truth where feasible.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6172020",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7117292294"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7161090566",
+        "https://openalex.org/W4407384737"
+      ],
+      "risks": [
+        "Access to accurate vendor-specific semantics may be limited; adapter design may inadvertently encode privileged knowledge not generalizable.",
+        "Manual ground-truth labeling introduces human error and limits scale; emulator verification coverage may be partial.",
+        "Findings may be contingent on chosen vendors and not fully generalize across niche device families."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "title": "Construct-Validity Audit Protocol for NetOps Benchmarks: Predicting Operational Harm from Perturbation and Pipeline-level Audits",
+      "research_question": "Can a standardized construct-validity audit (perturbation-based difficulty stratification + pipeline-level failure-mode probes) predict downstream operational-harm proxies (simulated outage probability, rollback cost) for NetOps benchmark tasks?",
+      "hypotheses": [
+        "Audit metrics derived from systematic input perturbations and pipeline-level failure probes will correlate strongly (Spearman rho > 0.6) with simulated operational-harm proxies across a benchmark task bank.",
+        "Benchmarks that score well on traditional accuracy metrics but poorly on audit-derived fragility metrics will exhibit higher simulated rollback costs than benchmarks with matched accuracy but lower fragility scores."
+      ],
+      "proposed_design": "Select an existing public NetOps benchmark or construct a representative synthetic task bank. Define an audit protocol: (A) perturbation suite (configuration obfuscation, noise in intents, partial topology changes) and (B) pipeline probes (verifier stress tests, adversarial input variants). For each task and perturbation, record model-generated outputs and pipeline verdicts. Simulate deployment with an established fault-injection policy to produce operational-harm proxies (outage probability, estimated rollback effort). Compute per-task audit metrics (fragility score, perturbation-induced failure rate). Pre-register correlation and predictive models to be tested.",
+      "expected_data": "Per-task audit vectors, traditional benchmark accuracy scores, simulated harm proxies, and per-perturbation failure rates. A dataset suitable for correlation and predictive modelling (audit metrics -> harm proxies) and for ROC-style evaluation of audit thresholds predicting high-harm tasks.",
+      "primary_outcome": "Strength and statistical significance of correlation between audit-derived fragility metrics and simulated operational-harm proxies; demonstration that audit metrics add predictive power beyond baseline accuracy.",
+      "analysis_outline": "Compute Spearman and Pearson correlations with bootstrapped CIs between audit metrics and harm proxies. Fit multivariate regression models to test incremental predictive value of audit metrics over accuracy. Report ROC curves for audit thresholds predicting high-harm tasks and compute AUC. Perform subgroup analyses by task type and report robustness under different perturbation intensities.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7167748241",
+        "https://openalex.org/W7162893340",
+        "https://openalex.org/W4407384737"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7161090566",
+        "https://openalex.org/W4411109869"
+      ],
+      "risks": [
+        "Audit-to-harm mapping depends on the fidelity of simulated harm proxies; poor proxy design can invalidate predictive claims.",
+        "Perturbation suite design choices (magnitude, types) influence fragility scores and may be contested as arbitrary.",
+        "Benchmarks used may not represent production tasks; external validity to operational environments may be limited."
+      ],
+      "estimated_model_calls": 1600
+    }
+  ]
+}

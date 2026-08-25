@@ -1,0 +1,146 @@
+{
+  "selected_candidate_id": "autocand-2026-01",
+  "title": "Effectiveness of Generate–Verify–Repair Pipelines for Multi-vendor NetOps Configuration Synthesis — Repaired Preregistration",
+  "research_question": "Can a generate–verify–repair (GVR) pipeline (LLM + automated verifier + up to two automated repair iterations) reduce verifier-detected semantic (intent-violating) configuration errors by >30% relative to single-shot LLM generation on the same multi-vendor intent-to-configuration tasks?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR pipeline will produce a paired absolute reduction ≥18 percentage points (≈30% relative reduction from a 60% baseline) in verifier-detected semantic-error rate versus single-shot LLM output, measured per task (paired design)."
+  ],
+  "exploratory_questions": [
+    "E1: How does effect size vary by vendor (adapter) and task type (ACL, BGP policy, VLAN, interface settings)?",
+    "E2: What fraction of verifier passes are discordant with emulator execution (verifier false negatives), and how does excluding flagged items affect estimated treatment effect?"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi-vendor corpus of intent-to-configuration tasks covering vendor templates/adapters for publicly documented syntaxes (three vendor families), four task types (ACL, BGP policy, VLAN, interface settings), and 120 confirmatory tasks."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (frozen prompt and temperature=0 for deterministic generation) used for both single-shot and GVR repair generations. No additional models or human annotators required. Verifier is local/emulator-executable (Docker) and not a model."
+  ],
+  "transformation_scope": [
+    "Vendor adapter templates and deterministic mapping scripts (parser/serializer) for 3 vendor families; automated canonicalization and syntax normalization applied before verification."
+  ],
+  "primary_estimand": "Paired mean absolute reduction in verifier-detected semantic-error rate (LLM-only minus GVR) across confirmatory tasks (units = tasks).",
+  "secondary_estimands": [
+    "Per-vendor and per-task-type paired absolute reduction in semantic-error rate.",
+    "Proportion of verifier-passed outputs that fail in emulator execution (empirical verifier false-negative rate) within the emulator-verified subset.",
+    "Distribution of repair iterations required (0–2) in GVR pipeline."
+  ],
+  "sampling_plan": "Confirmatory sample: N=120 paired tasks (both arms applied per task). Stratification: 3 vendors × 4 task-types = 12 strata, 10 tasks per stratum (120 total). Within those 120, a stratified emulator-verified subset of 36 tasks (3 tasks per stratum) will be executed in device-accurate Docker-based emulators to estimate verifier coverage and false-negative rate. Inclusion rules: tasks sampled deterministically from the synthetic task generator with fixed RNG seed; exclude tasks that fail syntactic parsing of the frozen prompt templates (counted and reported). No human annotation is used; all decisions are programmatic. Total confirmatory tasks = 120. No discovery/pilot tasks are included in confirmatory budget.",
+  "analysis_plan": "Primary analysis: paired binary outcome (semantic-error yes/no per task) comparing LLM-only vs GVR. Compute mean paired absolute reduction and 95% bootstrap CI (10,000 resamples). Conduct McNemar's exact test for paired binary outcomes (two-sided) and report p-value. Report per-stratum (vendor × task-type) summaries and Wilcoxon signed-rank test for repair-iteration counts. Sensitivity analyses: (1) exclude tasks flagged by emulator (verifier-pass & emulator-fail); (2) treat flagged items as failures for both arms; (3) report effect under both treatments. All code for statistics is deterministic with fixed RNG seeds and archived.",
+  "multiplicity_plan": "Primary hypothesis H1 is the pre-registered confirmatory test. Secondary estimands and stratum-level analyses are exploratory but reported with Benjamini–Hochberg FDR correction when multiple formal tests are presented; primary result remains unadjusted as pre-registered. All hypothesis tests and corrections are documented in the analysis script.",
+  "missingness_plan": "Syntactic parse failures, model API technical failures, or emulator execution errors are logged and classified. If a model API call fails transiently, it will be automatically retried up to 2 times; persistent API failure for a task leads to task-level exclusion and replacement with the next deterministically sampled task from the same stratum (replacement strategy pre-registered). All exclusions, replacements, and final N are recorded and reported. No manual adjudication.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic multi-vendor NetOps corpus (this study)"
+    ],
+    "risk_factors": [
+      "Verifier false negatives (verifier passes while emulator reveals semantic violation).",
+      "Digital-twin/emulator fidelity gap to vendor runtime semantics.",
+      "LLM repair hallucinations that generate semantically different intents not captured by verifier spec."
+    ],
+    "detection_procedures": [
+      "Stratified emulator-verified subset (36 tasks) executed in Docker-based emulators; compare emulator-observed intent satisfaction to verifier verdicts to estimate false-negative rate.",
+      "Automated cross-check where verifier passes but emulator indicates violation triggers automatic flagging.",
+      "Statistical monitoring: if emulator-verified false-negative rate >10% in the subset, perform sensitivity analysis reporting adjusted effect and treat this as elevated residual uncertainty."
+    ],
+    "item_flagging_rules": [
+      "If verifier==pass AND emulator==fail for a task, flag as 'verifier-false-negative' (automated flag).",
+      "If syntactic parse fails at any stage, mark task as 'parse-failure' and either replace (pre-registered replacement rule) or exclude from primary analysis if replacement quota exhausted.",
+      "If model output is not parseable into a vendor config (deterministic parser failure), mark and exclude (counts reported)."
+    ],
+    "analysis_treatment": "Primary estimates computed on full confirmatory set after deterministic replacements. Sensitivity analyses: (A) exclude flagged verifier-false-negative tasks; (B) count flagged tasks as failures for both arms. Report both. If emulator-verified false-negative rate in subset exceeds 10%, downgrade strength of confirmatory claim and declare increased residual uncertainty in results.",
+    "residual_uncertainty": [
+      "Emulator fidelity beyond the stratified subset (residual FN rate outside tested subset).",
+      "Mapping from verifier-detected semantic violations to real-world outage probability remains indirect."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-recommended",
+      "description": "Conservative, single-hosted-LLM plan with deterministic prompts, one LLM model, no multiple-model ensemble, and Docker-based emulators for verifier-coverage subset. Designed to meet power targets while minimizing model-call cost and using available resources.",
+      "planned_model_calls": 480,
+      "models": [
+        "hosted-LLM-API (single model, temperature=0)"
+      ],
+      "transformations": [
+        "3 vendor adapter templates",
+        "canonicalizer + parser/serializer pipeline"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Per-pair model-call budget: LLM-only = 1 call; GVR pipeline worst-case = 3 calls (initial + up to 2 repairs). For paired evaluation both arms invoked per task: planned worst-case per task = 1 (LLM-only) + 3 (GVR) = 4 calls. 120 tasks × 4 = 480 model calls. Docker-based verifiers/emulators execute locally (CPU) for the 36-task emulator subset; no human labour required. Model-call budget 480 << capability manifest 10,000 calls and wall-clock days limit."
+    },
+    {
+      "scenario_id": "S2-ample-retries",
+      "description": "Larger-budget scenario allowing aggressive repair and systematic prompt-variation retries for robustness checks and additional emulator verification. Useful if API throttling or higher repair rates observed.",
+      "planned_model_calls": 960,
+      "models": [
+        "hosted-LLM-API (single model, temperature=0) with deterministic prompt variants for robustness"
+      ],
+      "transformations": [
+        "3 vendor adapter templates",
+        "canonicalizer + parser/serializer pipeline",
+        "automatic prompt-variation generator (2 variants per task)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Allows up to 6 model calls per paired task (LLM-only + GVR with up to 5 repair/robustness calls or prompt variants): 120 × 6 = 720 base + margin for replacements and retries = 960. Remains within capability manifest model-call cap (10,000) but increases wall-clock/API usage; recommended only if S1 shows high repair frequency or to run pre-registered robustness variants."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired reduction in semantic-error rate (absolute percentage points).",
+    "target_effect": "Relative reduction ≥30% from baseline; operationalized as absolute reduction of ≥18 percentage points (assuming baseline p1=0.60 -> p2=0.42).",
+    "clustering_unit": "Task (paired: LLM-only and GVR applied to same task).",
+    "calculation_method": "Normal-approximation sample-size calculation for paired proportions with McNemar-compatible assumptions. Using alpha=0.05, power=0.8, p1=0.60, p2=0.42 yields n≈120 tasks. This was computed using standard paired-difference approximations and confirmed by bootstrap simulation in the analysis script.",
+    "assumptions": [
+      "Baseline one-shot semantic-error rate p1 ≈ 0.60 (conservative estimate from domain literature and prior syntheses).",
+      "Target absolute reduction Δ = 0.18 (30% relative).",
+      "Independence across tasks within strata after deterministic sampling; stratified design reduces variance heterogeneity.",
+      "Verifier is stable and deterministic given same input; verifier failures are logged and treated per missingness_plan.",
+      "Emulator-verified subset (36 tasks) provides unbiased estimator of verifier false-negative rate for sensitivity analyses."
+    ],
+    "recommended_scenario_id": "S1-recommended",
+    "minimum_detectable_effect_notes": "With N=120 paired tasks, the study has ~80% power to detect an absolute reduction of ~18 percentage points under the stated baseline. Smaller effects (e.g., 10–12 pp) will be underpowered; report CIs accordingly.",
+    "sensitivity_analyses": [
+      "Power recomputation and effect estimate after excluding emulator-flagged tasks.",
+      "Bootstrap-based CI under varying baseline p1 assumptions (0.5–0.7).",
+      "Per-stratum effect-size estimation with hierarchical shrinkage reported descriptively (exploratory)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor adapter mapping (3 adapters), canonicalizer, parser/serializer, intent-to-template instantiation."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: generated config -> parser -> serializer -> verifier-run using canonicalizer; if parse/serialize changes semantics (detected via verifier disagreements on synthesized property checks), transformation fails.",
+      "Unit tests: deterministic test suite of 50 synthetic corner-case templates per adapter executed automatically; failure triggers automated exclusion of that adapter-version from study until fixed (adapter-version archived)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and replace any task where model output fails deterministic parsing into vendor config.",
+      "Reject adapter version if >10% of deterministic unit tests fail; replacement of affected tasks is automatic and logged."
+    ],
+    "audit_sample_policy": "Automated emulator execution for a stratified subset of 36 tasks (3 per stratum). The subset is deterministically sampled with fixed RNG seed and executed in Docker emulators. Any discrepancy between verifier verdicts and emulator observations is automatically flagged and counted.",
+    "mapping_validation": "Adapter mapping rules and parsers are unit-tested and archived. All mapping code and test vectors are published in the study artifact repository and frozen before data collection.",
+    "residual_risks": [
+      "Parser/adapter bugs not covered by unit tests may bias per-vendor results (mitigated via unit tests and deterministic replacements).",
+      "Digital-twin limitations outside the emulator-verified subset."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity to real vendor runtime/control-plane semantics beyond the stratified 36-task subset — affects external generalizability but does not block hypothesis test within the declared synthetic benchmark scope.",
+    "Mapping from verifier-detected semantic violations to real outage probability remains indirect; we report verifier-grounded outcomes and avoid production-generalization claims.",
+    "Hosted LLM API nondeterminism beyond temperature control (API-side changes) — mitigated by deterministic prompt, temperature=0, and archiving of raw outputs but remains a nondeterministic external factor.",
+    "Verifier specification coverage beyond tested subset — residual false negatives may remain but are quantified and addressed via sensitivity analyses."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "doi:10.31224/7995",
+    "https://openalex.org/W4407384737",
+    "https://openalex.org/W7161090566",
+    "https://openalex.org/W7134943833",
+    "https://openalex.org/W7167748241"
+  ]
+}
