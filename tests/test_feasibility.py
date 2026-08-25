@@ -586,3 +586,45 @@ def test_positive_kubernetes_dependency_is_rejected():
         "orchestration dependency" in issue.lower()
         for issue in issues
     )
+
+
+def test_no_additional_models_or_human_annotators_required_is_accepted():
+    design = {
+        "model_scope": (
+            "Single hosted LLM API is used. "
+            "No additional models or human annotators required."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "human" in issue.lower()
+        or "annotation" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_no_human_annotation_is_used_is_accepted():
+    design = {
+        "sampling_plan": (
+            "All decisions are programmatic. "
+            "No human annotation is used."
+        ),
+        "estimated_model_calls": 100,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=CAPABILITIES,
+    )
+
+    assert not any(
+        "human" in issue.lower()
+        or "annotation" in issue.lower()
+        for issue in issues
+    )

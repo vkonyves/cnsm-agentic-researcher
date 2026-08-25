@@ -74,6 +74,14 @@ NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
     r"[\s-]+manual[\s-]+adjudicat"
     r"(?:ion|or|ors|e|ed|ing)?\b",
 
+    r"\bno[\s-]+additional[\s-]+models"
+    r"[\s-]+or[\s-]+human[\s-]+annotators?"
+    r"(?:[\s-]+are)?"
+    r"[\s-]+required\b",
+
+    r"\bno[\s-]+human[\s-]+annotation"
+    r"[\s-]+is[\s-]+used\b",
+
     r"\bno[\s-]+human[\s-]+annotation"
     r"(?:[\s-]+is)?"
     r"(?:[\s-]+required)?\b",
