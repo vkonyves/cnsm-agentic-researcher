@@ -1,0 +1,236 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models are actively used to translate high-level intent or natural-language descriptions into network-configuration templates and code (intent→config), and prototype systems/benchmarks demonstrate this capability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "tool_eval / benchmark / system paper",
+      "confidence": 0.85,
+      "limitations": [
+        "Many demonstrations are prototype-level or evaluated on curated tasks rather than broad production deployments",
+        "Performance varies by task complexity (basic BGP vs advanced multi-intent scenarios)"
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Architectures that augment LLM generation with deterministic validators, tool-augmented verification, or generate–validate–repair loops improve task correctness and reduce unsafe outputs relative to unconstrained LLM-only baselines in evaluated studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7111004025",
+        "https://openalex.org/W7161543731",
+        "https://openalex.org/W7117986201",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "empirical comparative studies / systems",
+      "confidence": 0.8,
+      "limitations": [
+        "Improvements are reported on specific datasets and domains; gains and trade-offs (e.g., higher false refusals, latency) are context-dependent",
+        "Not all studies evaluate full end-to-end deployment risk in live networks"
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "The literature contains multiple, convergent taxonomies documenting recurrent LLM failure modes (hallucination, epistemic/ calibration failures, sycophancy, drift, tool-orchestration failures) relevant to operational tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7136127232",
+        "doi:10.2139/ssrn.7121598",
+        "doi:10.2139/ssrn.6832218"
+      ],
+      "evidence_type": "taxonomy / failure-mode studies",
+      "confidence": 0.88,
+      "limitations": [
+        "Taxonomies synthesize observed behaviors but differ in granularity and experimental coverage",
+        "Some evidence is observational or limited-sample"
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Operational reliability in agentic NetOps/AIOps is driven strongly by the surrounding orchestration, assurance contracts, validators, sandboxing and rollback mechanisms rather than by LLM output quality alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "survey / narrative review / framework",
+      "confidence": 0.86,
+      "limitations": [
+        "Argumentative and survey-style evidence; quantitative comparisons of orchestration designs remain limited",
+        "Operational claims vary by domain and maturity of tooling"
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Agentic/agent-based NetOps evaluations and benchmarks exist but benchmark design and external validity are open concerns—benchmarks often do not fully capture deployment spectra or realistic failure conditions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413801638",
+        "doi:10.2139/ssrn.6835019",
+        "https://openalex.org/W4416435156"
+      ],
+      "evidence_type": "benchmark / critique / dataset paper",
+      "confidence": 0.8,
+      "limitations": [
+        "Benchmarks cited target specific domains/tasks (medical agents, CTI, NetConfEval) and may not generalize across all NetOps scenarios",
+        "Methodological critiques indicate risk of optimistic validity when datasets are not deployment-representative"
+      ]
+    },
+    {
+      "claim_id": "E6",
+      "statement": "Multi-signal or layered mitigation strategies (retrieval grounding, tool verification, constrained schemas, ensemble detection) reduce hallucination or unsupported outputs but introduce trade-offs (e.g., increased refusal rates, latency) documented in empirical studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "doi:10.2139/ssrn.7200222",
+        "https://openalex.org/W4413283185"
+      ],
+      "evidence_type": "empirical mitigation studies / framework papers",
+      "confidence": 0.78,
+      "limitations": [
+        "Reported trade-offs depend on the precise controls and domains evaluated",
+        "Ensemble/mitigation systems require engineering effort and can increase complexity/latency"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "Can tool-augmented, LLM-driven agents safely and reliably execute unmediated configuration changes in production NetOps at scale?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "risk / readiness reviews",
+      "confidence": 0.4,
+      "limitations": [
+        "Reviews highlight a lack of strong production evidence for general-purpose autonomous action",
+        "Existing work emphasizes canary/rollback patterns rather than full autonomous production operation"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Which deterministic validators or verification toolchains (and what integration patterns) provide sufficient coverage for semantic correctness of generated network configs across diverse vendors and protocols?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "benchmark / system papers",
+      "confidence": 0.35,
+      "limitations": [
+        "Papers demonstrate validators or external models in limited settings; cross-vendor, multi-protocol validation comparisons are sparse in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How well do existing NetOps-oriented benchmarks predict real-world deployment risk (e.g., outage likelihood, rollback frequency) when used to evaluate agentic systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413801638",
+        "doi:10.2139/ssrn.6835019"
+      ],
+      "evidence_type": "benchmark critique / dataset paper",
+      "confidence": 0.45,
+      "limitations": [
+        "Direct empirical linking of benchmark scores to deployment incidents is not established in the provided records"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What are robust, standardized simulation/sandbox protocols and metrics for replayable safety evaluation and canary testing of LLM-driven NetOps agents?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4412556405"
+      ],
+      "evidence_type": "survey / framework papers",
+      "confidence": 0.32,
+      "limitations": [
+        "Many works call for workflow-centred evaluation but a consolidated, standard protocol covering replay/canary/rollback is not present among the supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "What is the longitudinal effect of model-generated content reentering training pipelines (epistemic decay) on NetOps-relevant corpora and how to prevent degradation of operational correctness over time?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6794439"
+      ],
+      "evidence_type": "theoretical / modeling study",
+      "confidence": 0.3,
+      "limitations": [
+        "The cited work models epistemic decay broadly; domain-specific empirical validation for NetOps corpora is not provided in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of publicly available, standardized end-to-end NetOps agent benchmarks that include sandboxed execution, rollback/canary trials, and incident-like adversarial perturbations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413801638",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "benchmark critique / survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Multiple papers call for richer workflow-centred evaluation; some domain-specific benchmarks exist but not the comprehensive execution+rollback style benchmark requested"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient multi-vendor, protocol-diverse validation studies that quantify how well LLM-generated configurations satisfy semantic network properties across real equipment or high-fidelity emulators.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "system / prototype papers",
+      "confidence": 0.72,
+      "limitations": [
+        "Existing work demonstrates template/config generation and some validation but often in limited protocol subsets or synthetic scenarios"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Limited empirical evidence on human–agent handoff strategies (when to escalate to operators) with quantified operational utility and reduced outage risk.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "survey / operational-readiness review",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys recommend escalation controls and assurance contracts but do not provide large-scale controlled evaluations of handoff thresholds"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Need for canonical provenance, evidence-scoring, and automated-judge protocols tailored to NetOps outputs to distinguish absence of evidence from evidence of absence when LLMs assert 'no issue' or 'reachability holds'.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7136127232",
+        "https://openalex.org/W4413283185",
+        "https://openalex.org/W7117986201"
+      ],
+      "evidence_type": "theory / mitigation / verification papers",
+      "confidence": 0.68,
+      "limitations": [
+        "Provenance and evidence-scoring frameworks exist in other domains; NetOps-specific operationalization and auditing protocols are not fully developed in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Sparse production-grade case studies showing full autonomous NetOps agents executing live changes with measurable safety outcomes (e.g., demonstrated reduction in outages or verified rollback successes).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7170714602"
+      ],
+      "evidence_type": "operational-readiness review / survey",
+      "confidence": 0.8,
+      "limitations": [
+        "Reviews explicitly note that production evidence is substantial for detection/diagnosis but weak for general-purpose autonomous action"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven ready to autonomously perform live NetOps configuration changes in production without human oversight.",
+    "There is conclusive evidence in the supplied records that any single validator/tool eliminates all semantic or safety failures of LLM-generated configs across vendors/protocols.",
+    "Existing NetOps benchmarks reliably predict deployment safety metrics (e.g., outage rate) for autonomous agents without additional sandbox/canary evaluation.",
+    "Autonomous LLM agents introduce no trade-offs (latency, false refusals, added complexity) when layered with verification components."
+  ]
+}

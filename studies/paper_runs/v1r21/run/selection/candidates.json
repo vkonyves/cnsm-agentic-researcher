@@ -1,0 +1,152 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-001-gnr",
+      "title": "Effectiveness of Generate–Validate–Repair Loops for Multi‑Vendor Network Configuration Correctness",
+      "research_question": "Does a generate–validate–repair (GVR) architecture materially reduce semantic configuration errors of LLM-produced network configs across Cisco, Juniper, and Arista compared with an unconstrained LLM baseline in a high‑fidelity emulator?",
+      "hypotheses": [
+        "A GVR pipeline (LLM generation + deterministic validator + automated repair) yields a lower rate of semantic errors (reachability, ACL semantics, BGP policy mismatches) than unconstrained LLM generation.",
+        "GVR reduces unsafe/invalid configs at the cost of increased refusal/repair iterations and latency compared to unconstrained generation."
+      ],
+      "proposed_design": "Paired, within-task experimental design. Construct a corpus of 240 natural-language network-intent tasks spanning BGP policies, ACLs, and multi-hop reachability across three vendor templates (Cisco IOS, JunOS, Arista EOS). For each task: (1) call an LLM to produce vendor-specific config (baseline); (2) run the same prompt inside a GVR pipeline where a deterministic validator checks semantic properties and triggers automated repair passes up to N=3 iterations. Execute both outputs in a high‑fidelity network emulator (containerized router images / routing daemon sandbox). Record semantic errors, repair iterations, latency, and refusal rates. Use fixed seeds and frozen prompts; preregister selection, validators, and repair heuristics.",
+      "expected_data": "Per-task records: generated configs, validator pass/fail flags, error types (reachability, routing-policy, ACL misordering), number of repair iterations, final validator status, execution traces from emulator (reachability matrices), latency metrics, and refusal/abstain events.",
+      "primary_outcome": "Difference in per-task semantic-error rate (proportion of tasks with one or more semantic failures when executed in the emulator) between baseline LLM outputs and GVR-final outputs.",
+      "analysis_outline": "Compute paired difference in error rates across the 240 tasks; use McNemar's test or paired proportions test for binary pass/fail, report 95% CI. Secondary analyses: compare mean repair iterations (Wilcoxon signed-rank), latency (paired t-test if normal else Wilcoxon), and breakdown by vendor and task complexity strata. Report failure-mode taxonomy and example traces for qualitative analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7111004025",
+        "https://openalex.org/W7161543731",
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W7111004025"
+      ],
+      "risks": [
+        "Emulator mismatch: emulator edge-cases may not exactly match vendor hardware, affecting external validity.",
+        "Validator incompleteness: deterministic validators may miss semantic errors leading to false safety claims.",
+        "Resource/latency trade-offs: repair loops could be impractically slow for some operational contexts."
+      ],
+      "estimated_model_calls": 3200
+    },
+    {
+      "candidate_id": "cand-2026-002-canary",
+      "title": "Designing and Evaluating a Canary+Rollback Sandbox Protocol for Replayable Safety Testing of LLM‑Driven NetOps Agents",
+      "research_question": "Can a standardized canary+rollback sandbox protocol provide reproducible safety signals (outage probability, rollback success rate) for autonomous LLM-driven NetOps agents compared to non-canary execution in a replayable testbed?",
+      "hypotheses": [
+        "A canary+rollback protocol reduces observed outage probability and severity when agents execute configuration changes in the sandbox compared with blind application of the same changes.",
+        "Canary trials yield reproducible safety metrics that correlate with emulator-observed incident severity and enable reliable decision thresholds for production escalation."
+      ],
+      "proposed_design": "Define a canonical canary protocol (small-scope change, instrumentation, monitoring window, automatic rollback criteria). Build a replayable testbed with 200 scenario runs derived from real-world-inspired faults and multi-intent changes; implement two execution modes per scenario: (A) direct apply (no canary), (B) canary + rollback. Use the same LLM agent to generate changes. Measure outage occurrence, affected-prefix count, time-to-detect, rollback success, and false-positive rollbacks. Freeze protocol, detection thresholds, and monitoring metrics before runs.",
+      "expected_data": "Per-scenario logs: applied changes, canary metrics, monitored KPIs (reachability loss, prefix count), rollback events and outcomes, time-series telemetry, and LLM outputs. Aggregated safety metrics: outage probability, mean outage duration, rollback precision/recall.",
+      "primary_outcome": "Reduction in outage probability (proportion of scenarios with an observable outage) under the canary+rollback protocol vs direct apply, measured across the 200 scenarios.",
+      "analysis_outline": "Estimate difference in outage probabilities with 95% CI (two-proportion z-test or bootstrap). Compute rollback precision/recall and time-to-rollback distributions. Correlate canary KPIs with downstream outage severity (Spearman). Conduct subgroup analyses by scenario type (policy vs topology) and perform sensitivity analysis over detection thresholds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4413801638",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W4412556405"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7203776655"
+      ],
+      "risks": [
+        "Protocol tuning risk: poorly chosen detection thresholds could produce excessive false rollbacks or missed outages.",
+        "Replay fidelity: synthetic scenarios may not capture production heterogeneity, limiting external validity.",
+        "Operational complexity: canary instrumentation assumptions might not generalize to constrained devices."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-2026-003-provenance",
+      "title": "Automated Provenance and Evidence‑Scoring Judge for LLM Assertions in NetOps (Detecting 'No Issue' Hallucinations)",
+      "research_question": "Can an automated provenance-scoring judge reliably distinguish supported 'no issue' or 'reachability holds' assertions from hallucinated assertions in LLM-generated NetOps diagnoses?",
+      "hypotheses": [
+        "A provenance+evidence-scoring judge that combines retrieval grounding, symbolic checks, and corroborating telemetry reduces false 'no issue' assertions compared to LLM outputs alone.",
+        "The judge's binary decision (supported vs unsupported) achieves usable precision/recall trade-offs for operational triage when tuned on a labeled validation set."
+      ],
+      "proposed_design": "Construct a labeled dataset of 600 LLM diagnosis outputs for reachability and health-check prompts (mix of true 'no issue', true issue, and hallucinated assertions). For each output, compute provenance signals: retrieval evidence scores, validator confirmations (syntactic/semantic), and telemetry cross-checks. Train/define a rule-based and a small classifier-based judge to output supported/unsupported. Evaluate judge vs human expert labels (gold). Predefine thresholds and freeze the judge before evaluation.",
+      "expected_data": "Per-output: LLM text, retrieval snippets with similarity scores, validator flags, telemetry checks, judge decision, human label, and reasoning traces. Aggregated metrics: precision, recall, F1 for detecting unsupported/no-issue hallucinations, and calibration curves.",
+      "primary_outcome": "Judge F1 score for detecting unsupported/no-issue assertions against gold labels, compared to baseline (LLM self-certainty or simple retrieval threshold).",
+      "analysis_outline": "Report precision, recall, F1 with 95% bootstrap CIs. Compare judge to baseline using McNemar's test for paired classification. Perform calibration analysis and decision-curve analysis to demonstrate operational thresholds. Provide failure-mode examples and ablation studies removing individual provenance signals.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7136127232",
+        "https://openalex.org/W4413283185",
+        "https://openalex.org/W7117986201"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7136127232",
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "Labeling difficulty: expert labeling of subtle 'no issue' cases may be noisy, affecting judge evaluation.",
+        "Overfitting: the judge may exploit dataset artifacts and not generalize to novel diagnostics.",
+        "Coverage gaps: provenance sources may be unavailable in some operational contexts, reducing judge efficacy."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-2026-004-handoff",
+      "title": "Quantifying Human–Agent Handoff Thresholds for Operational Safety in LLM‑Assisted NetOps",
+      "research_question": "What escalation thresholds (confidence, validator-failure counts, repair iterations) minimize operator load while keeping outage risk below an operationally defined bound in simulated NetOps workflows?",
+      "hypotheses": [
+        "Handoff policies that escalate when validator disagreements exceed a threshold or when repair iterations surpass a limit achieve lower outage risk than policies that only escalate on explicit failure, with acceptable operator intervention rates.",
+        "There exists a Pareto frontier of escalation thresholds balancing outage probability and operator load that can be empirically characterized in a replayable testbed."
+      ],
+      "proposed_design": "Simulate 400 NetOps task runs in an emulator with an agent that produces configs and a validator stack. Implement multiple handoff policies parameterized by confidence threshold, validator-disagreement threshold, and max repair iterations. For each policy, record outage occurrences, operator escalations, time-to-resolution, and operator workload (simulated handling time). Predefine operator-service model and cost functions. Freeze policy grid before runs.",
+      "expected_data": "Per-run: policy parameters, agent outputs, validator signals, escalation events, simulated operator actions/durations, outage occurrence and severity, and overall cost metrics (operator time + outage penalty).",
+      "primary_outcome": "Empirical Pareto frontier mapping operator load (average operator-minutes per task) versus outage probability for the tested policy grid; identification of threshold regions meeting an operational outage bound (e.g., <1%).",
+      "analysis_outline": "Estimate outage probability and operator load per policy with 95% CIs (bootstrap). Construct Pareto frontier and identify knee points. Use ANOVA or regression to quantify parameter effects and interaction terms. Perform robustness checks across scenario subtypes and sensitivity analysis to operator-service time assumptions.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7170714602"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7111004025",
+        "https://openalex.org/W7117986201"
+      ],
+      "risks": [
+        "Simulated operator model may not reflect real human response patterns, limiting external validity.",
+        "Policy grid explosion: too many parameter combinations may exhaust compute budget; must limit grid size.",
+        "Assumed outage penalty values may bias preferred thresholds; sensitivity analyses required."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cand-2026-005-epistemic",
+      "title": "Simulating Epistemic Decay: Longitudinal Effects of Reincorporating Model‑Generated NetOps Content into Training Pipelines",
+      "research_question": "Does iterative reincorporation of model-generated NetOps artifacts into a training corpus (closed-loop retraining) cause measurable degradation (epistemic decay) in operational correctness of subsequent LLM-generated configurations?",
+      "hypotheses": [
+        "Repeatedly retraining on corpora that include model-generated configurations reduces the accuracy of critical semantic properties (e.g., routing-policy correctness, ACL intent preservation) over successive generations compared to retraining on human-curated-only corpora.",
+        "Mitigation strategies (explicit provenance labeling, down-weighting machine-generated examples) attenuate epistemic decay effects."
+      ],
+      "proposed_design": "Create a synthetic base corpus of 10k human-authored intent→config pairs. Instantiate a small LLM proxy (permitted by compute) or use hosted-model calls as the generation oracle. Run iterative cycles: generate new corpus examples using current model, append to training set under two regimes (A) naive append, (B) append with provenance labeling/down-weighting. Retrain or finetune model for T=5 cycles. At each cycle evaluate on a held-out human-curated benchmark of 1000 tasks measuring semantic correctness via validators and emulator execution.",
+      "expected_data": "Per-cycle model artifacts, training-set composition stats, evaluation metrics on held-out benchmark (semantic-error rate, hallucination rate), and comparison between regimes A and B.",
+      "primary_outcome": "Difference in semantic-error rate on the held-out benchmark after five retraining cycles between naive append regime and provenance/weighting mitigation regime.",
+      "analysis_outline": "Plot semantic-error trajectories across cycles. Use repeated-measures ANOVA or linear mixed-effects model to test for trend differences between regimes, report effect sizes and 95% CIs. Conduct ablation to test the impact of proportion of machine-generated examples and degree of down-weighting.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6794439",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W7117986201"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7117986201"
+      ],
+      "risks": [
+        "Proxy-model limitations: using smaller models to simulate retraining may not perfectly generalize to production-scale LLM dynamics.",
+        "Compute cost: iterative retraining cycles may be resource intensive and must remain within allowed budget.",
+        "Synthetic corpus bias: synthetic base corpora may not capture full diversity of operational language, affecting generalizability."
+      ],
+      "estimated_model_calls": 4000
+    }
+  ]
+}

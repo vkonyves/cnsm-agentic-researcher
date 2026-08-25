@@ -1,0 +1,31 @@
+{
+  "summary": "Careful, well‑engineered preregistered experiment addressing an important NetOps failure mode (unsupported “no‑issue” assertions). Execution and artifact provenance are thorough and reproducible in principle. However, the manuscript omits or fails to reconcile several key preregistration→execution deviations and statistical/analysis mismatches that affect confirmatory inference and reproducibility; these must be corrected before finalisation.",
+  "novelty_score": 3,
+  "technical_depth_score": 4,
+  "soundness_score": 3,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Apparent deviation from the preregistered primary estimand: the preregistration specified F1 on a held‑out test split, but the reported confirmatory analysis uses a paired success‑rate difference/McNemar framework without documenting or justifying the change in the manuscript or preregistration record.",
+    "Incomplete paired sample vs planned tasks: preregistration planned 90 paired tasks (180 episodes) but analysis used 83 complete pairs (166 completed episodes, 14 failed). The manuscript does not adequately disclose this deviation, its cause, or the exact deterministic replacement/exclusion actions taken.",
+    "Missing explicit deviations_from_preregistration record: the published preregistration and analysis artifacts show no recorded post‑preregistration deviations, yet the execution manifest indicates fewer completed episodes and fewer model calls than planned; this inconsistency must be reconciled in the paper and preregistration log.",
+    "Primary confirmatory analysis and preregistration mismatch in analysis details: preregistration specified bootstrap resamples=1000 (and primary estimand F1), but the paper reports paired‑bootstrap CI computed with 10,000 resamples and a different estimand. All analytic choices and any departures must be declared and justified.",
+    "Insufficient reporting of prespecified secondary estimands and calibration metrics: preregistration listed precision/recall with 95% CIs, McNemar comparison on misclassification counts, and calibration (Brier) as secondary targets, but the manuscript omits these results or leaves secondary_results empty.",
+    "Reproducibility access gap: although many artifact hashes are provided, the manuscript lacks a single, accessible URL/DOI to a public repository containing the exact code, data‑processing scripts, retrieval index snapshot, and clear reproduction instructions; hashes alone are insufficient for reviewer reproduction.",
+    "Model‑call and budget discrepancies unexplained: planned maximum_model_calls=180 but model_calls_used=92 (hosted_model_call_event_count 92, completed 85). The paper does not explain why so few model calls occurred (cache reuse, early stopping, or other behavior) and how that affects paired comparisons and validity."
+  ],
+  "required_revisions": [
+    "Amend the manuscript to explicitly list and describe all deviations from the preregistration (including episode failures, replacements, and why complete pairs=83 instead of 90), and update the preregistration record or provide a dated deviation log artifact with hashes.",
+    "Reconcile and justify the primary estimand and analysis choice: either (a) compute and report the preregistered primary metric (F1 with prespecified train/val/test splits and CI procedure) exactly as registered, or (b) if the paired success‑rate difference/McNemar approach is the intended primary confirmatory analysis, update the preregistration/deviation record and justify the change analytically and procedurally.",
+    "Provide full prespecified secondary analyses as registered (precision, recall with 95% CIs, McNemar paired test details, Brier score and calibration curve), and include confusion matrices and the raw paired contingency table CSV within the manuscript or clearly referenced supplement/repository.",
+    "Publish a single, public, permanent repository (URL/DOI) containing: (i) the exact code used for prompt templates, parsing/scoring, judge implementation, index snapshot, emulator scripts; (ii) the raw execution JSONL, scoring JSONs, and provider_call logs; (iii) clear instructions to reproduce the analysis including required seeds; ensure the repository contents match the provided artifact hashes and reference that mapping in the manuscript.",
+    "Explain and document the model‑call discrepancy and provider_call audit details: why model_calls_used << planned_model_calls, why many planned episodes were not invoked/completed, whether cache or deterministic short‑circuits were used, and how these operational factors affected paired comparability and inferential assumptions.",
+    "Report and discuss statistical power / minimum detectable effect (MDE) given the realized paired sample (n=83), and explicitly state that the study is underpowered (if so) for small absolute improvements; update the threats‑to‑validity section accordingly."
+  ],
+  "optional_revisions": [
+    "Include concrete examples (anonymised) of the two discordant cases (baseline unsupported → guarded supported) and one or two representative baseline failures to illustrate failure modes and how the judge intervened.",
+    "If feasible, run and report at least one prespecified ablation (e.g., remove telemetry or validators) on the recorded episodes or on a deterministically reproducible subset, and summarise effect sizes to support claims about signal contributions.",
+    "Clarify in the manuscript the exact bootstrap procedure (paired percentile vs other), reproducible seeds for resampling, and provide the bootstrap resample distributions as downloadable artifacts.",
+    "Add a short subsection explaining model nondeterminism mitigation (paired design limitations) and quantify variability observed across provider_call metadata where relevant."
+  ],
+  "accept_for_finalisation": false
+}

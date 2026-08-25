@@ -1,0 +1,35 @@
+{
+  "study_id": "cand-2026-003-provenance-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Compute the paired success-rate difference (guarded minus baseline) on the completed paired episodes (completed_episode_count/2 = 166/2 = 83 paired tasks) using the preregistered held-out test indices where both condition episodes exist. For each paired task produce binary outcomes (success=judge labels assertion as 'supported', failure='unsupported') from execution/responses and execution/scoring JSONs; compute the proportion-success per condition, the absolute difference (guarded − baseline), and a 95% bootstrap CI (1000 stratified resamples by class) for the difference. Assess paired significance with McNemar's test (alpha=0.05) on the paired binary outcomes. Report confusion matrices and exact paired counts (both/discordant) computed from execution/scoring/*.json.",
+  "secondary_analyses": [
+    "Precision and recall for each condition (supported and unsupported classes) with 95% bootstrap CIs (1000 stratified resamples) computed from executed scoring artifacts.",
+    "Paired discordant-count comparison (guarded vs baseline) reported with McNemar's test p-value and exact counts.",
+    "Calibration assessment: Brier score and calibration curve for judge confidence scores derived from execution/scoring JSONs (plot and calibration table).",
+    "Ablation series removing each deterministic signal (retrieval evidence disabled, telemetry features removed, validator outputs removed) re-trained and evaluated on identical splits/seeds; report effect sizes and 95% CIs for the paired success-rate difference for each ablation (FDR-controlled for exploratory tests)."
+  ],
+  "sensitivity_analyses": [
+    "Primary-analysis population restricted to uncontaminated samples if any index-hash mismatch flags are present (per preregistered contamination_plan) and report differences vs main analysis.",
+    "Impute missing retrieval evidence as zero for affected samples and re-run primary analysis.",
+    "Alternative failed-call handling: treat incomplete or failed episodes per sensitivity contract complete_pair_primary_with_failure_as_zero_sensitivity (i.e., complete pairs by counting failed episode as failure/zero) and re-run primary analysis; report effect and CI.",
+    "Simulate reduced unsupported-class prevalence (per preregistration) to assess robustness of success-rate difference estimates."
+  ],
+  "uncertainty_quantification": "95% bootstrap confidence intervals with 1000 resamples stratified by class for proportions and differences; paired McNemar's exact test (alpha=0.05) for the confirmatory paired comparison; Brier score and calibration-curve uncertainty bands via bootstrap; for exploratory ablation/subgroup tests control FDR with Benjamini–Hochberg q=0.05.",
+  "multiplicity_implementation": "Primary confirmatory inference is the paired success-rate difference (no multiplicity correction). All exploratory/ablation/group comparisons are adjusted controlling FDR with Benjamini–Hochberg at q=0.05 as preregistered.",
+  "contamination_analysis": "Follow preregistered contamination_plan: compare and hash retrieval/index snapshots (recorded in execution/artifact_hashes) and provider_call manifests; flag any samples where index-hash diverges from preregistered snapshot. Primary analysis excludes flagged contaminated samples; sensitivity analyses include them and report differences. Log count of flagged samples and include flagged-sample cohort results. Residual uncertainty note: hosted LLM nondeterminism documented in provider_call metadata; paired design mitigates but is reported.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Execution-summary (planned vs completed episodes, completed pairs=83, failed episodes=14, model_calls_used=92) using execution/execution_log.jsonl and execution_manifest.",
+    "Table 2: Primary paired 2×2 contingency table (guarded vs baseline: both success, both fail, discordant counts) and paired success-rate difference with 95% bootstrap CI.",
+    "Table 3: Precision/Recall (supported/unsupported) per condition with 95% bootstrap CIs.",
+    "Table 4: Ablation results — paired success-rate differences and 95% CIs for each ablation variant (retrieval/telemetry/validator signals removed), with BH-adjusted q-values for exploratory tests.",
+    "Table 5 (Appendix rows within pages 1–5 if needed): Sensitivity analyses summary (contamination-included, imputed retrieval=0, failed-call-as-zero)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar plot of paired success rates by condition (guarded vs baseline) with 95% bootstrap CIs (produced from execution/scoring/*.json).",
+    "Figure 2: Calibration curve (reliability plot) with Brier score annotation and bootstrap uncertainty band computed from judge confidence scores in execution/scoring files.",
+    "Figure 3: Precision–Recall curves for the classifier/judge (guarded and baseline) and PR-AUC annotations (derived from scoring artifacts).",
+    "Figure 4: Ablation effect-size forest plot (paired success-rate difference with 95% CIs) for each removed signal; BH q-values indicated for exploratory comparisons."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "study_id": "cand-2026-003-provenance-prereg-v1",
+  "title": "Automated Provenance and Evidence‑Scoring Judge for LLM Assertions in NetOps (Detecting 'No Issue' Hallucinations)",
+  "research_question": "Can an automated provenance-scoring judge reliably distinguish supported 'no issue' / 'reachability holds' assertions from hallucinated assertions in LLM-generated NetOps diagnoses using purely programmatic (non-human) ground truth and deterministic provenance signals?",
+  "confirmatory_hypotheses": [
+    "A provenance+evidence-scoring judge that combines deterministic retrieval grounding, syntactic/semantic validators, and telemetry cross-checks reduces unsupported 'no-issue' assertions compared to the LLM-alone baseline (measured by F1 on the unsupported/no-issue class).",
+    "The judge's binary decision (supported vs unsupported) achieves operationally usable precision/recall trade-offs (predefined thresholds) when tuned on a deterministic, programmatically labeled validation set."
+  ],
+  "exploratory_questions": [
+    "Which provenance signal (retrieval evidence score, validator pass/fail, telemetry feature) contributes most to judge performance (ablation)?",
+    "How sensitive is judge performance to partial absence of retrieval or telemetry signals (deterministic sensitivity analysis)?",
+    "How do different deterministic prompt templates affect LLM propensity to produce unsupported 'no-issue' assertions?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7136127232",
+    "https://openalex.org/W4413283185",
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W4403635865"
+  ],
+  "benchmark_scope": [
+    "Synthetic/high-fidelity emulator scenarios (publicly scripted topologies and deterministic traffic/telemetry generators) only; claims are explicitly bounded to these synthetic/emulated scenarios.",
+    "Reachability and simple health-check diagnostics (ICMP/forwarding, interface admin/down) as operational properties."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 90,
+    "planned_episode_count": 180,
+    "maximum_model_calls": 180,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "F1 score for the judge on the binary task of labeling an LLM assertion as 'supported' vs 'unsupported' for 'no-issue'/'reachability-holds' claims, evaluated on the held-out test split.",
+  "secondary_estimands": [
+    "Precision and recall (supported/unsupported class) with 95% bootstrap CIs.",
+    "Difference in misclassification counts (discordant pairs) between judge and baseline assessed with McNemar's test.",
+    "Calibration (Brier score and calibration curve) of judge confidence scores."
+  ],
+  "sampling_plan": "Construct 90 deterministic, scripted simulated network scenarios (public emulator scripts). For each scenario run the paired confirmatory episodes per the registered adapter: one baseline episode and one guarded/validated episode (2 episodes per task), producing 180 LLM outputs. Deterministically split the 180 episodes into train/validation/test with proportions 70%/15%/15% = 126/27/27 (random seed 42). Labels are programmatically derived from emulator ground truth: an extracted assertion is 'supported' if emulator state implies no issue for the asserted property, 'unsupported' otherwise. If a single LLM response contains multiple distinct assertions, the deterministic parser extracts each assertion as a separate sample; to preserve the registered contract task_count, when extraction increases episode-level samples the deterministic replacement policy is applied so confirmatory task_count remains exactly 90 paired tasks (episodes are treated as per-contract paired episodes; extracted assertions beyond one-per-episode are appended to audit logs and included in exploratory analyses only).",
+  "power_and_precision_plan": "Primary estimand evaluated on test split n=27 (per preregistered split). Target effect: detect an improvement in F1 of ~0.08 over baseline where feasible given reduced test-n; exact minimum detectable effect (MDE) derived from validation-split variance and reported in final results. Primary uncertainty quantification: 95% bootstrap CIs with 1000 resamples stratified by class. Because test n is smaller than exploratory designs, report CI widths and note constrained power in threats-to-validity. Paired McNemar's test (alpha=0.05) used for confirmatory comparison on paired binary decisions.",
+  "exclusion_rules": [
+    "If parser extraction deterministically fails for a sample after two automatic re-executions, reject the sample and replace the scenario via the deterministic scenario seed list to maintain task_count=90.",
+    "If an emulator run fails after two deterministic retries, reject and replace via the seeded scenario list to preserve total confirmatory tasks.",
+    "If retrieval index-hash mismatch versus preregistered snapshot is detected prior to evaluation, flag affected samples and exclude them from primary analysis (see contamination_plan)."
+  ],
+  "missingness_plan": "Deterministic handling of missing evidence: (1) retrieval/index build failure for a sample sets retrieval evidence scores to zero and flags the sample for sensitivity analysis; (2) telemetry missing due to emulator run failure triggers up to 2 deterministic retries; if still failing, scenario is excluded and replaced by the next seeded scenario to keep 90 confirmatory tasks; (3) parser extraction failures trigger two automatic re-executions and then exclusion with replacement if unresolved. All exclusions, imputation (retrieval score = 0), replacements, and final counts are recorded and published.",
+  "analysis_plan": "Primary analysis: compute precision, recall, and F1 for judge and baseline on held-out test set (n=27). Produce confusion matrices. 95% CIs via bootstrap (1000 resamples) stratified by class. Compare judge vs baseline with McNemar's test on paired binary decisions (alpha=0.05). Ablations: train/evaluate judge variants removing each signal (remove retrieval evidence, remove telemetry features, remove validator outputs) using identical splits/seeds; report effect sizes and CIs. Calibration: compute Brier score and plot calibration curve. Sensitivity analyses: (1) exclude flagged samples (missing retrieval/telemetry or contaminated indices) and re-run analysis; (2) impute missing retrieval as zero and re-run; (3) simulate reduced unsupported-class prevalence and report robustness. All code, seeds, and data-processing scripts are published to permit reproduction with CPU-only scikit-learn pipelines. For multiple exploratory comparisons (ablation/subgroups) control FDR with Benjamini-Hochberg at q=0.05; the primary outcome decision is unadjusted for these exploratory tests.",
+  "multiplicity_plan": "Primary confirmatory metric is judge F1 on the test split. Secondary analyses (precision, recall, calibration, ablations) reported with 95% CIs. For multiple exploratory tests across ablations/subgroups apply Benjamini-Hochberg FDR control at q=0.05. Primary outcome inference is not corrected for these exploratory comparisons.",
+  "contamination_plan": "{\"benchmark_names\": [\"Synthetic NetOps Reachability/Health Emulator Suite (scripted for this study)\"], \"risk_factors\": [\"Index/retrieval corpus drift between index-build and evaluation runs\", \"Hosted LLM internal nondeterminism affecting paired comparisons\", \"External memorization of similar public scenarios\"], \"detection_procedures\": [\"Record and hash retrieval index and snapshot manifests; compare hashes before evaluation\", \"Log full LLM API response metadata for each call; monitor unexpected variance across paired reruns\", \"Compare retrieval top-k snippet IDs against snapshot; flag missing snippets\"], \"item_flagging_rules\": [\"If index-hash differs from preregistered snapshot, flag affected samples and exclude from primary analysis (include in sensitivity cohort)\", \"If emulator run was replaced per deterministic replacement policy, flag replacement and report replacement count\"], \"analysis_treatment\": \"Primary analysis excludes flagged contaminated samples; sensitivity analyses include them and report differences.\", \"residual_uncertainty\": [\"Hosted LLM nondeterminism can vary absolute baseline outputs across time; paired design mitigates but does not eliminate.\", \"Synthetic telemetry may not fully capture production telemetry diversity.\"]}",
+  "stopping_rule": "Stop when all registered adapter-confirmatory tasks complete (90 tasks × 2 episodes = 180 model episodes) or when maximum_model_calls in execution_contract (180) is exhausted. Additionally, if >10% of planned confirmatory tasks are flagged contaminated (index-hash mismatch) prior to primary analysis, pause and record contamination cohort; decision rule: abort primary confirmatory analysis and report results on uncontaminated cohort plus sensitivity analyses. Technical retries limited to deterministic retry policies (up to 2 retries for emulator runs or parser extraction per sample) as described above.",
+  "planned_outputs": [
+    "IEEE-format LaTeX short paper (≤5 pages) containing Disclosure Statement",
+    "Executable code repository (index build, emulator scripts, prompt templates, parser, feature extraction, classifier training, analysis notebooks)",
+    "Dataset and retrieval-index snapshot hashes",
+    "Raw LLM API call logs and execution manifest",
+    "Statistical results, confusion matrices, calibration plots, ablation results",
+    "Autonomous revision and execution logs, final-output hash manifest",
+    "NotebookLM presentation brief (concise)"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,29 @@
+{
+  "summary": "Well‑motivated, preregistered emulator study that implements a deterministic provenance+validator “judge” for LLM NetOps \"no‑issue\" assertions and publishes a rich execution manifest. The autonomous pipeline, artifact hashing, and paired execution are valuable contributions for reproducible agentic evaluation. However, several unaddressed preregistration/analysis deviations, missing public artifact access, incomplete preregistered secondary/ablation analyses, and limited paired sample size reduce confidence in the confirmatory claim and must be remedied before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistration → analysis divergence: the preregistered primary estimand (F1 on held‑out split) was not used; authors applied a paired contingency/McNemar analysis post‑hoc without a timestamped, pre‑analysis amendment to the preregistration.",
+    "Reproducibility gap: execution manifest lists extensive per‑file hashes but no public repository URL or accessible archive of the raw artifacts; reviewers cannot reproduce or audit artifacts from the manuscript alone.",
+    "Incomplete preregistered analyses: preregistered secondary metrics (precision/recall, Brier/calibration) and signal ablations were not executed or reported; the manuscript treats them as unresolved rather than providing results or a clear plan/timeline.",
+    "Missing accounting for failed/flagged episodes: 14 failed episodes and various flagged contaminated samples materially affected complete pairs (83/90); the manuscript lacks a thorough bias assessment showing that replacements and exclusions did not systematically alter comparability between baseline and guarded conditions.",
+    "Model‑call and episode budget discrepancy: planned model calls/episodes (180 calls) vs actual model_calls_used=92 and 166 completed episodes—authors must justify how short‑circuits, failed calls, and caching dynamics were predeclared and why these do not bias paired inference."
+  ],
+  "required_revisions": [
+    "Provide a publicly accessible, permanent archival repository (e.g., Zenodo/GitHub archive + DOI) containing all execution artifacts referenced by the manifest (raw responses, provider_call logs, scoring JSONs, code, and the exact prompt files). Ensure repository contents match the published SHA256 hashes and report the repository URL and checksum-verification instructions in the manuscript.",
+    "Amend the preregistration record with a timestamped, machine‑readable note explaining the analytic change from F1-on-split to paired contingency/McNemar (including justification why this change was made before inspecting confirmatory outcomes). If the amendment was made post‑hoc, declare this explicitly and reclassify paired inference as exploratory; otherwise provide provenance showing the amendment preceded analysis.",
+    "Execute and report the preregistered secondary analyses and ablations (precision/recall with 95% CIs via the preregistered bootstrap, Brier score/calibration curve, and the retrieval/telemetry/validator ablations) on the realized dataset or on a clearly defined supplemental run; if computation is infeasible, state precise reasons and provide an updated reproducibility plan and timeline.",
+    "Provide a detailed missingness and bias sensitivity analysis: (a) per‑task table for all 90 seeded scenarios showing which episodes succeeded/failed/replaced/flagged and why; (b) re-run primary paired analysis under (i) exclusion of flagged contaminated samples, (ii) imputation rules per preregistration, and (iii) worst‑case bias assumptions, and report results and how they affect inference; include exact counts that produced the reported n_11/n_10/n_01/n_00.",
+    "Provide a clear explanation (with logs) of the provider_call and model_call accounting that led to model_calls_used=92 vs planned=180 (document that short‑circuiting/guarded early exits were preregistered behavior). Demonstrate that paired comparability between baseline and guarded conditions is preserved for affected tasks (e.g., show that both conditions were attempted per task and that any unilateral failures were handled per preregistered replacement rules)."
+  ],
+  "optional_revisions": [
+    "Include representative example LLM baseline and guarded responses for several concordant and discordant pairs (anonymised if necessary) to illustrate typical failure modes and judge behavior.",
+    "Add numeric power / minimum detectable effect (MDE) calculation for the realised paired n=83 (and post hoc CI width interpretation) so readers can gauge sensitivity to small absolute effects.",
+    "Provide the preregistered F1/Held‑out split calculation executed on the available artifacts (even if only on a held subset) to help readers compare the originally planned estimand to the realised paired framing.",
+    "Expand the nearest‑work comparison with direct citations to primary sources (not just OpenAlex IDs) and briefly state how this run materially differs from the closest prior studies (architecture, preregistration, artifact publication).",
+    "Attach calibration plot(s), confusion matrix CSV, and the per‑pair scoring JSONs (or clear pointers to them in the public archive) as supplemental material to aid independent auditing."
+  ],
+  "accept_for_finalisation": false
+}

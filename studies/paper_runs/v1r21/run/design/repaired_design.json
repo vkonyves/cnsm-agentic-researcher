@@ -1,0 +1,169 @@
+{
+  "selected_candidate_id": "cand-2026-003-provenance",
+  "title": "Automated Provenance and Evidence‑Scoring Judge for LLM Assertions in NetOps (Detecting 'No Issue' Hallucinations)",
+  "research_question": "Can an automated provenance-scoring judge reliably distinguish supported 'no issue' / 'reachability holds' assertions from hallucinated assertions in LLM-generated NetOps diagnoses using purely programmatic (non-human) ground truth and deterministic provenance signals?",
+  "confirmatory_hypotheses": [
+    "A provenance+evidence-scoring judge that combines deterministic retrieval grounding, syntactic/semantic validators, and telemetry cross-checks reduces unsupported 'no-issue' assertions compared to the LLM-alone baseline (measured by F1 on the unsupported/no-issue class).",
+    "The judge's binary decision (supported vs unsupported) achieves operationally usable precision/recall trade-offs (predefined thresholds) when tuned on a deterministic, programmatically labeled validation set."
+  ],
+  "exploratory_questions": [
+    "Which provenance signal (retrieval evidence score, validator pass/fail, telemetry feature) contributes most to judge performance (ablation)?",
+    "How sensitive is judge performance to partial absence of retrieval or telemetry signals (deterministic sensitivity analysis)?",
+    "How do different deterministic prompt templates affect LLM propensity to produce unsupported 'no-issue' assertions?"
+  ],
+  "benchmark_scope": [
+    "Synthetic/high-fidelity emulator scenarios (publicly scripted topologies and deterministic traffic/telemetry generators) only; claims are explicitly bounded to these synthetic/emulated scenarios.",
+    "Reachability and simple health-check diagnostics (ICMP/forwarding, interface admin/down) as operational properties."
+  ],
+  "model_scope": [
+    "Single hosted LLM API instance (hosted_model_api_available per capability manifest). Exact model identifier will be recorded and published in execution logs and artifacts; preregistration fixes use of one hosted LLM instance for all experiment runs to preserve paired comparisons."
+  ],
+  "transformation_scope": [
+    "Prompt templates (two fixed templates), retrieval embedding/indexing pipeline, deterministic index-build scripts, feature extraction transformations from telemetry and validator outputs, and the judge's feature vector construction."
+  ],
+  "primary_estimand": "F1 score for the judge on the binary task of labeling an LLM assertion as 'supported' vs 'unsupported' for 'no-issue'/'reachability-holds' claims, evaluated on a held-out test split.",
+  "secondary_estimands": [
+    "Precision and recall (supported/unsupported class) with 95% bootstrap CIs.",
+    "Difference in misclassification counts (discordant pairs) between judge and baseline (LLM-self-certainty or simple retrieval-threshold) assessed with McNemar's test.",
+    "Calibration (reliability) of judge confidence scores (Brier score / calibration curve)."
+  ],
+  "sampling_plan": "Construct 300 deterministic, scripted simulated network scenarios using public emulator images and deterministic traffic/telemetry generators (scripts published). For each scenario generate two LLM prompts (reachability-check and health-check) using two fixed prompt templates to produce 600 LLM outputs. Split outputs deterministically (random seed 42) into train/validation/test with proportions 70%/15%/15% = 420/90/90. Labels are programmatically derived from emulator ground truth: 'supported' if emulator-state implies no issue for the asserted property, 'unsupported' otherwise. No human annotation is used. If a scenario produces multiple distinct assertions in one LLM response, extract assertions deterministically (rule-based parser) and treat each extracted assertion as a separate sample; overall planned sample count remains 600 samples (300 scenarios × 2 prompts) after parser checks and deterministic re-run exclusion rules described in preregistration.",
+  "analysis_plan": "Primary analysis: compute precision, recall, F1 for judge and baseline on the held-out test set (n=90). 95% CIs via bootstrap with 1000 resamples stratified by class. Compare judge vs baseline with McNemar's test on paired binary decisions (alpha=0.05). Report confusion matrices and per-signal ablations (remove retrieval evidence, remove telemetry, remove validator) trained and evaluated with identical splits and seeds. Provide calibration plots and Brier scores. Perform deterministic sensitivity analyses: (1) exclude samples with missing retrieval/telemetry, (2) impute missing evidence scores as zero. All code and seeds are published; analysis is reproducible with CPU-only scikit-learn pipelines.",
+  "multiplicity_plan": "Primary confirmatory metric is judge F1 on test split. Secondary analyses (precision, recall, calibration, ablations) are exploratory but reported with two-sided 95% CIs. For multiple hypothesis testing across ablations and subgroups, control false discovery rate with Benjamini-Hochberg at q=0.05. Declare the primary outcome result irrespective of secondary correction.",
+  "missingness_plan": "Sources of missingness: failed retrieval (index unavailable), telemetry gaps from emulator runs, or parser extraction failures. Deterministic handling: (1) if retrieval/index build fails for a sample, set retrieval evidence scores to zero and flag sample for sensitivity analysis; (2) if telemetry is missing for a sample (emulator run failure), exclude the scenario and re-run deterministic emulator retry policy up to 2 times; if still failing, record as excluded and replace by the next scenario in the scripted scenario seed list to maintain n=300 scenarios. Exclusion rules, imputation, and final counts are documented and deterministic; sensitivity analyses report performance with and without imputed/missing samples.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic NetOps Reachability/Health Emulator Suite (scripted for this study)"
+    ],
+    "risk_factors": [
+      "Index/retrieval corpus drift between index-build and evaluation runs",
+      "Non-deterministic LLM API nondeterminism affecting paired comparisons",
+      "Leakage from training-time or public knowledge causing LLM to memorize scenario specifics (external to simulation)"
+    ],
+    "detection_procedures": [
+      "Record and hash retrieval index and snapshot manifests (file-hash); detect changes by comparing hashes before evaluation.",
+      "For each LLM call, log full API response metadata, including nondeterminism seeds where provided; detect unusually high variance across paired reruns (diagnostic only).",
+      "Compare retrieval top-k snippet IDs against snapshot manifest; flag any snippet missing from snapshot as contaminated."
+    ],
+    "item_flagging_rules": [
+      "If index-hash differs from preregistered snapshot, automatically flag all affected samples and exclude from primary analysis; instead include them in a predefined sensitivity cohort.",
+      "If emulator run failed and was replaced via deterministic replacement policy, flag resulting sample and report replacement count."
+    ],
+    "analysis_treatment": "Primary analysis excludes flagged contaminated samples; report sensitivity analysis results including flagged items. All exclusions and flags are deterministic and recorded in execution logs.",
+    "residual_uncertainty": [
+      "Residual risk that hosted LLM internal nondeterminism changes absolute outputs across time (paired design mitigates but does not eliminate).",
+      "Residual gap between synthetic/emulator telemetry and production telemetry realism."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal",
+      "description": "CPU-only conservative scenario to conserve hosted-model calls: single hosted LLM instance, minimal retrieval top-k (k=5), single classifier (logistic regression), no ensemble ablations during primary run.",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted_LLM_API_instance"
+      ],
+      "transformations": [
+        "prompt_template_v1",
+        "prompt_template_v2",
+        "embedding_index_build (deterministic, top-k=5)",
+        "feature_extraction_v1"
+      ],
+      "discovery_items": 510,
+      "confirmatory_items": 90,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Estimated 1000 model calls covers 600 primary prompts + 300 validation/ablation calls (retrieval-guided prompts) within hosted_model_api limits; classifier training and analysis are CPU-only. This scenario reduces exploratory ablations to fit a tight model-call budget."
+    },
+    {
+      "scenario_id": "recommended",
+      "description": "Balanced scenario preserving planned verification and designed ablations: single hosted LLM, retrieval top-k=10, perform ablation runs for each major signal (3 ablations), and full bootstrap CIs.",
+      "planned_model_calls": 1500,
+      "models": [
+        "hosted_LLM_API_instance"
+      ],
+      "transformations": [
+        "prompt_template_v1",
+        "prompt_template_v2",
+        "embedding_index_build (deterministic, top-k=10)",
+        "feature_extraction_v2 (includes telemetry-derived features)"
+      ],
+      "discovery_items": 510,
+      "confirmatory_items": 90,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Matches the selected candidate's estimated_model_calls (1500). Calculation: 600 primary LLM prompts (600 calls) + ~300 retrieval-augmented re-prompts/top-k lookups counted as distinct API calls (~300) + 3 ablation runs over validation/test slices (~300) + 300 diagnostic/paired-check calls (logs/paired reruns) = 1500 planned calls. CPU-only training and analysis fit capability_manifest constraints."
+    },
+    {
+      "scenario_id": "robust",
+      "description": "Higher-cost scenario for exhaustive ablations and extra paired reruns: retrieval top-k=20, ensemble judge variants, and expanded bootstrap (2000 resamples).",
+      "planned_model_calls": 3000,
+      "models": [
+        "hosted_LLM_API_instance"
+      ],
+      "transformations": [
+        "prompt_template_v1",
+        "prompt_template_v2",
+        "embedding_index_build (deterministic, top-k=20)",
+        "feature_extraction_v3"
+      ],
+      "discovery_items": 510,
+      "confirmatory_items": 90,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Larger number of model calls to enable repeated paired reruns and higher top-k retrieval; within maximum_planned_model_calls (10000) but longer wall-clock. Recommended only if wall-clock/time budgets permit."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Judge F1 on binary supported vs unsupported labels (test set n=90).",
+    "target_effect": "Detect an improvement in F1 of 0.08 over baseline (e.g., baseline F1=0.68 → target F1=0.76) on test split.",
+    "clustering_unit": "Assertion sample (extracted assertion from an LLM response); samples are assumed independent across scripted scenarios.",
+    "calculation_method": "Precision of F1 estimated with bootstrap (1000 resamples). Power evaluated informally: with test n=90 and expected class prevalence ~40% unsupported, bootstrap CI width for F1 is expected ≲0.08 under conservative variance estimates. Paired McNemar's test used for confirmatory difference in binary decisions; given discordant-pair rates typical in similar mitigation studies, n=90 for test provides reasonable sensitivity to moderate effect sizes. Formal power curves produced via simulation using recorded variance from validation split (preregistered).",
+    "assumptions": [
+      "Unsupported class prevalence ~40% in the generated dataset (derived from scripted scenario distribution).",
+      "Independence between sampled assertions after deterministic extraction.",
+      "Bootstrap (1000 resamples) approximates sampling distribution for CIs."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With n=90 and assumed variance, detectable F1 difference (two-sided) is approximately 0.07–0.10 at 80% power depending on class prevalence; exact MDE will be reported after validation-split variance estimation.",
+    "sensitivity_analyses": [
+      "Recompute CIs and McNemar test using combined validation+test (n=180) if discordant-pair counts are low.",
+      "Report results after excluding samples flagged for missing retrieval/telemetry.",
+      "Simulate reduced unsupported-class prevalence (down to 25%) to show robustness of primary outcome."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Prompt-template variations (two canonical templates and minor deterministic paraphrases)",
+      "Retrieval embedding and top-k scoring (deterministic index build and cosine-similarity scoring)",
+      "Parser-based assertion extraction (rule-based deterministic parser)",
+      "Feature extraction from telemetry (windowed statistics) and validator outputs (binary+explanatory flags)"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic re-run of prompt-template paraphrases on 10% audit sample; require identical ground-truth labeling after parser extraction for equivalence.",
+      "Recompute retrieval top-k ranks with seed-fixed index build; require same top-1 snippet ID on audit sample."
+    ],
+    "automatic_rejection_rules": [
+      "Reject a sample (exclude from primary analysis) automatically if parser extraction fails deterministically after two automatic re-executions.",
+      "Reject samples if index-hash mismatch is detected against preregistered snapshot.",
+      "Reject scenario if emulator run fails after two deterministic retries and replace with next seeded scenario to preserve total counts."
+    ],
+    "audit_sample_policy": "10% of all samples (random seed 2026) are re-executed deterministically end-to-end (indexing, retrieval, LLM prompt, parser) and hashes compared; any discrepancy triggers automated exclusion and is recorded. Audit logs and re-execution manifests are published.",
+    "mapping_validation": "Feature mapping code (published) includes assertive unit tests ensuring consistent column order, types, and null-handling. Feature extraction is deterministic and runs with fixed seeds.",
+    "residual_risks": [
+      "Differences between synthetic telemetry and production telemetry remain; transformation validation cannot eliminate this external-validity gap.",
+      "Hosted LLM internal nondeterminism may vary outputs even with identical prompts; paired comparisons mitigate but do not fully remove this risk."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Generalisability of results from synthetic/emulator telemetry to real production telemetry and vendor diversity.",
+    "Potential overfitting of the classifier-based judge to artifacts of the scripted scenario corpus despite deterministic sampling and ablation.",
+    "Latencies and operational costs of retrieval+validation pipeline in live deployments (not evaluated here; out of scope).",
+    "Hosted LLM internal nondeterminism could increase variance of absolute LLM baseline performance; paired design reduces but does not eliminate this issue."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7136127232",
+    "https://openalex.org/W4413283185",
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W4403635865"
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-001-gnr",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator fidelity vs real hardware not specified — threatens external validity.",
+        "Deterministic validators not fully specified; risk of false-safety claims if validators incomplete.",
+        "Prompts, exact model identifiers, and repair heuristics are underspecified (hurts reproducibility).",
+        "Estimated compute neglects emulation CPU/time and end-to-end latency costs."
+      ],
+      "required_design_repairs": [
+        "Specify exact LLM(s) with model IDs, prompt templates, and fixed random seeds.",
+        "Provide full validator specifications (formal properties checked, code/SMT/specs) and failure coverage analysis.",
+        "Publish emulator images/configs (router images, topology scripts), and justify emulator choice against hardware.",
+        "Preregister repair algorithm details (max iterations, repair rules), latency measurement method, and a power analysis/sample-size justification."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-002-canary",
+      "novelty": 0.65,
+      "falsifiability": 0.8,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Canary detection thresholds and rollback criteria are underspecified — results sensitive to tuning.",
+        "Replay/testbed scenario realism and provenance of scenario corpus unclear.",
+        "Definition of 'outage' and severity metrics needs formalization.",
+        "Potential for overfitting thresholds to synthetic scenarios."
+      ],
+      "required_design_repairs": [
+        "Freeze and document canonical canary protocol: precise change scope, instrumentation, detection algorithms, thresholds, and rollback implementation.",
+        "Provide origin and construction method for the 200 scenarios; include representative distribution and seed list.",
+        "Define explicit outage/severity metrics and monitoring window parameters; preregister sensitivity analyses over thresholds.",
+        "Deliver testbed configs, telemetry collectors, and reproducible scripts to run canary+rollback experiments."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-003-provenance",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Gold-labeling of subtle 'no-issue' hallucinations is difficult and may be noisy without strict rubric.",
+        "Retrieval/index corpus and telemetry availability not specified — judge effectiveness depends on sources.",
+        "Risk of classifier overfitting to dataset artifacts; generalization unclear."
+      ],
+      "required_design_repairs": [
+        "Provide annotation protocol, annotator qualifications, inter-annotator agreement targets, and adjudication rules for the 600-item dataset.",
+        "Specify retrieval corpus (sources, snapshot dates), embedding/retrieval models, similarity metrics, and deterministic indexing parameters.",
+        "Detail validator checks (syntactic + semantic) and telemetry cross-check procedures; preregister ablation plan and evaluation splits.",
+        "Supply rule-based baseline, classifier architecture, hyperparameters, and seeds; publish dataset and code for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-004-handoff",
+      "novelty": 0.7,
+      "falsifiability": 0.7,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulated operator workload model and cost function are underdefined and drive results.",
+        "Policy-grid combinatorics may exceed budget; unclear pruning strategy.",
+        "Representativeness of 400 simulated runs for real operator behavior is uncertain."
+      ],
+      "required_design_repairs": [
+        "Define operator-service model precisely (response-time distribution, handling-time per escalation) and justify parameters with citations or expert elicitation.",
+        "Preregister policy-grid parameters and rationale; limit combinations with justified sampling strategy (e.g., factorial with constraints).",
+        "Specify emulator/test scenarios, seeds, and how operator actions are simulated; include sensitivity analyses for operator-model assumptions.",
+        "Provide formal cost function and outage-penalty choices and publish code to reproduce Pareto frontier computations."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-005-epistemic",
+      "novelty": 0.8,
+      "falsifiability": 0.6,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.3,
+      "venue_relevance": 0.75,
+      "major_concerns": [
+        "Compute and infrastructure requirements (iterative finetuning/retraining) likely exceed stated resources (no GPUs locally).",
+        "Proxy-model dynamics may not reflect large-model retraining — threatens external validity and causal claims.",
+        "Synthetic corpus and generation regimes may introduce artifacts; mitigation strategies need rigorous specification."
+      ],
+      "required_design_repairs": [
+        "Re-scope to feasible experiments given compute limits (e.g., fewer cycles, smaller models) and explicitly state limitations on generalizability.",
+        "Specify exact training procedure, hyperparameters, model architecture, dataset creation scripts, and hardware/time cost estimates; ensure within budget or request additional resources.",
+        "Formalize provenance/weighting mitigation details (how labels/weights applied) and preregister evaluation benchmarks and statistical tests.",
+        "Include simulation-only analytic baselines or theoretical bounds if full retraining is infeasible; clearly frame claims as proxy/simulation results."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

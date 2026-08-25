@@ -1,0 +1,32 @@
+{
+  "summary": "Careful, well‑documented preregistered emulator study showing a numerically small (2/83 paired cases) change from a deterministic provenance+validator judge versus an LLM baseline for “no‑issue” NetOps assertions. The manuscript documents execution artifacts and hashes thoroughly, but several preregistration deviations, underpowered confirmatory sample, missing planned secondary/ablation analyses, and artifact‑access gaps require revision before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Post‑preregistration change of the primary estimand (planned F1 on held‑out split → paired contingency/McNemar analysis) was applied after execution; the manuscript must formally justify this analytic change and demonstrate its effect on inferential validity.",
+    "Realised confirmatory sample (83 complete pairs) is smaller than planned (90) with 14 failed episodes; the paper does not report the concrete minimum detectable effect (MDE) or recalculated power bounds given the realised sample—this undermines the strength of confirmatory claims.",
+    "Pre‑registered secondary analyses and signal ablations (retrieval vs validator vs telemetry) were not executed / reported; without these, the attribution of the (small) improvement to the judge components is unsupported.",
+    "Model‑call/execution budget discrepancy (planned 180 model‑calls vs model_calls_used=92/completed_hosted_model_call_event_count=85) is not fully explained in terms of how short‑circuiting, failed calls, or replacement policies could bias paired comparisons.",
+    "No consolidated public access to the full artifact bundle (repository URL) is provided despite hashed artifacts being enumerated; this prevents independent reproduction/verification by reviewers.",
+    "Statistical reporting risks overstating an effect: with n_10=2, n_01=0, McNemar p=0.50 and bootstrap CI including zero, claims of improvement must be tightened and contextualised explicitly as inconclusive.",
+    "Construct validity risk remains: emulator‑derived supported/unsupported labels may not reflect production telemetry or evidence modalities; the limits of emulator labeling must be amplified and sensitivity analyses shown."
+  ],
+  "required_revisions": [
+    "Add a dedicated, explicit preregistration‑deviation appendix: state exactly when and why the primary estimand/analysis changed, justify the paired McNemar approach given the realized missingness, and discuss implications for Type‑I error and confirmatory status.",
+    "Report power/MDE given realized n=83 (paired) and provide numeric MDE and CI width interpretation; if planned MDE exists in preregistration, show recalculation and explain impact on conclusions.",
+    "Execute and report at least the core preregistered secondary analyses or a deterministic justification for why they could not be run (e.g., exhausted model‑call budget). If execution is impossible, provide simulated/analytic ablations to estimate component contributions.",
+    "Provide a clear, itemised explanation of the model‑call budget discrepancy: show how short‑circuiting, validator short‑circuits, failed provider calls, and replacements affected call counts and verify that paired comparability (baseline vs guarded) was preserved and not systematically biased.",
+    "Make the full execution artifact bundle accessible to reviewers/readers via a resolved mechanism (public repository or controlled‑access archive) or provide an explicit retrieval procedure; include checksums and the path mapping claimed in the manifest. If legal/operational constraints prevent release, state that and provide maximal alternative access (e.g., a hosted archive request procedure).",
+    "Rephrase abstract, results, and conclusion to remove any implication of statistically confirmed improvement; emphasise small numerical change and statistical inconclusiveness, and label exploratory vs confirmatory claims clearly.",
+    "Add sensitivity analyses excluding flagged/replaced episodes and excluding samples with missing retrieval/telemetry, and report how conclusions change; if these cannot be run, explicitly document why and quantify residual uncertainty."
+  ],
+  "optional_revisions": [
+    "If possible, increase the task bank and rerun to reach the preregistered paired count (or larger) to improve power and perform full ablations.",
+    "Include calibration plots, confusion matrices, and selected per‑episode illustrative examples (baseline vs guarded) in supplementary material to aid interpretability.",
+    "Run a small cross‑model check (one or two additional models) to assess generality, or at minimum discuss how model architecture/temperature choices might affect results.",
+    "Expand the discussion of operational deployment implications (costs of short‑circuiting, latency, human‑in‑loop thresholds) to help practitioners assess tradeoffs."
+  ],
+  "accept_for_finalisation": false
+}
