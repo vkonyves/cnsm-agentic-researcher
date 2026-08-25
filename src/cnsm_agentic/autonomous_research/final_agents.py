@@ -251,6 +251,39 @@ PEER_REVIEWER = Agent(
         If substantive required revisions remain, set
         accept_for_finalisation=false even if the underlying scientific work
         is sound.
+
+        Required revisions must be limited to changes that can be resolved
+        from the supplied frozen artifacts, verified evidence, completed
+        execution, completed analysis, and capabilities already available
+        within the autonomous run.
+
+        Do not require new post-lock experiments, new model calls, new
+        ablations, new external repositories, new DOI creation, new human
+        actions, retrospective modification of the sealed preregistration,
+        or evidence that does not already exist in the supplied artifacts.
+
+        When a scientifically reasonable reviewer concern cannot be resolved
+        from existing frozen artifacts, convert the actionable requirement
+        into an explicit manuscript clarification, limitation, deviation
+        disclosure, uncertainty statement, or future-work item rather than
+        demanding unavailable new work.
+
+        Do not require the manuscript to fabricate repository URLs, public
+        archive locations, provenance records, preregistration amendments,
+        analyses, statistics, or experiments. Existing artifact hashes and
+        archived run paths should be treated as the available reproducibility
+        evidence unless a public repository URL is actually supplied.
+
+        A missing preregistered analysis that cannot be reconstructed from
+        existing results should be reported transparently as unexecuted or
+        unavailable, with its consequence for interpretation stated clearly.
+        That disclosure may resolve the reviewer concern if no valid
+        artifact-grounded analysis can be performed.
+
+        Set accept_for_finalisation=false only for substantive deficiencies
+        that remain resolvable in the manuscript from existing evidence or
+        for unresolved scientific validity problems that cannot be made
+        acceptable through accurate limitation or deviation disclosure.
         """
     ),
 )
@@ -334,6 +367,14 @@ FINAL_JUDGE = Agent(
         "references, Disclosure Statement inclusion, and placement of the "
         "Disclosure Statement at the end of the manuscript body immediately "
         "before the references. Never infer PDF compliance from manuscript "
-        "prose alone. "
+        "prose alone. A paper satisfies the page requirement only when "
+        "publication_validation.uses_full_page_budget=true and "
+        "publication_validation.page_count equals "
+        "publication_validation.maximum_pages. A paper with fewer pages "
+        "than the frozen maximum must be treated as failing the exact-page "
+        "publication gate even when within_page_limit=true. Mark the work "
+        "ready only if every required gate is supported by real artifacts, "
+        "publication_validation.passed=true, and no critical issue or "
+        "required peer-review revision remains."
     ),
 )
