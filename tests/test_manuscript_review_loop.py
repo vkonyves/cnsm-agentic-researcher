@@ -168,3 +168,69 @@ def test_peer_reviewer_does_not_require_unavailable_post_lock_work():
         "unavailable, with its consequence for interpretation stated clearly"
         in source
     )
+
+
+def test_manuscript_payload_compacts_verified_records():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert (
+        "def compact_verified_records_for_manuscript("
+        in source
+    )
+    assert (
+        "compact_verified_records_for_manuscript("
+        in source
+    )
+    assert (
+        '"abstract"'
+        in source
+    )
+    assert (
+        "value[:1200]"
+        in source
+    )
+
+
+def test_context_window_failure_is_not_retried():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert "context_length_exceeded" in source
+    assert "exceeds the context window" in source
+    assert (
+        "identical retries "
+        in source
+    )
+
+
+def test_manuscript_payload_compacts_execution_manifest():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert (
+        "def compact_execution_manifest_for_manuscript("
+        in source
+    )
+    assert (
+        '"artifact_hashes"'
+        in source
+    )
+    assert (
+        '"artifact_hash_summary"'
+        in source
+    )
+    assert (
+        '"artifact_count"'
+        in source
+    )
+    assert (
+        "compact_execution_manifest_for_manuscript("
+        in source
+    )

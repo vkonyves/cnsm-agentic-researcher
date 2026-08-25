@@ -146,6 +146,94 @@ def write_state(
         value,
     )
 
+def compact_verified_records_for_manuscript(
+    records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Deterministically compact verified literature records for
+    manuscript generation.
+
+    Preserve bibliographic identity and concise evidence needed for
+    citation/related-work writing while excluding verbose provider
+    metadata that is not required by the manuscript author.
+    """
+    retained_fields = (
+        "id",
+        "title",
+        "authors",
+        "author",
+        "year",
+        "publication_year",
+        "venue",
+        "journal",
+        "publisher",
+        "doi",
+        "url",
+        "abstract",
+        "source",
+        "verified",
+        "verification_status",
+    )
+
+    compact_records: list[dict[str, Any]] = []
+
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+
+        compact: dict[str, Any] = {}
+
+        for field in retained_fields:
+            if field not in record:
+                continue
+
+            value = record[field]
+
+            # Abstracts are useful scientifically but can dominate the
+            # manuscript-author context. Retain a deterministic prefix.
+            if (
+                field == "abstract"
+                and isinstance(value, str)
+            ):
+                value = value[:1200]
+
+            compact[field] = value
+
+        compact_records.append(compact)
+
+    return compact_records
+
+def compact_execution_manifest_for_manuscript(
+    execution_manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Deterministically compact the execution manifest for manuscript
+    generation while preserving execution semantics and provenance summary.
+    """
+
+    compact = dict(execution_manifest)
+
+    artifact_hashes = compact.pop(
+        "artifact_hashes",
+        {},
+    )
+
+    compact["artifact_hash_summary"] = {
+        "artifact_count": (
+            len(artifact_hashes)
+            if isinstance(
+                artifact_hashes,
+                dict,
+            )
+            else 0
+        ),
+        "full_hash_manifest_available": True,
+        "full_hash_manifest_path": (
+            "execution/execution_manifest.json"
+        ),
+    }
+
+    return compact
 
 async def run_agent(
     agent: Agent,
@@ -197,6 +285,20 @@ async def run_agent(
 
         except Exception as exc:
             last_error = exc
+
+            error_text = str(exc).lower()
+
+            if (
+                "context_length_exceeded"
+                in error_text
+                or "exceeds the context window"
+                in error_text
+            ):
+                raise RuntimeError(
+                    f"{stage_name} exceeded the model "
+                    "context window; identical retries "
+                    "are prohibited."
+                ) from exc
 
             if attempt >= attempts:
                 break
@@ -2792,7 +2894,11 @@ class FinalAutonomousResearchPipeline:
                 "capability_manifest": (
                     capability_manifest
                 ),
-                "verified_records": records,
+                "verified_records": (
+                    compact_verified_records_for_manuscript(
+                        records
+                    )
+                ),
                 "evidence_verification": (
                     evidence_report
                 ),
@@ -2800,7 +2906,9 @@ class FinalAutonomousResearchPipeline:
                     preregistration.model_dump()
                 ),
                 "execution_manifest": (
-                    execution_manifest
+                    compact_execution_manifest_for_manuscript(
+                        execution_manifest
+                    )
                 ),
                 "analysis_plan": (
                     analysis_plan.model_dump()
