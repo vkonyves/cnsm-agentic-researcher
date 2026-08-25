@@ -1,0 +1,36 @@
+{
+  "study_id": "GVR-ProtocolEval-2026-PR1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis: compute per-task binary operational-failure indicator (1 if reachability loss or policy violation) for baseline (LLM-only) and guarded (GVR). For each of the 200 preregistered confirmatory tasks, compute paired difference (baseline - guarded). Report mean paired difference (absolute and relative reduction) with 95% bootstrap confidence intervals using 10,000 resamples and the fixed RNG seed specified in the preregistration; report two-sided Wilcoxon signed-rank test exact p-value. All calculations executed deterministically by the registered paired_binary_analysis_v1 executor against execution/raw_results.jsonl and execution/scoring/*.json artifacts.",
+  "secondary_analyses": [
+    "Per-protocol subgroup paired mean differences (five protocol groups) with 95% bootstrap CIs (10,000 resamples) and BH-adjusted q-values (Benjamini–Hochberg, q=0.05).",
+    "Per-modality (CLI vs API) paired mean differences with 95% bootstrap CIs.",
+    "Summary statistics for repair iterations: median, IQR, full histogram from verifier-accept iteration counts recorded in execution/scoring/*.json.",
+    "Automated failure-classification counts: syntactic-translation vs verifier-coverage blind-spot counts and proportions using the preregistered deterministic classification rules applied to execution/scoring/*.json."
+  ],
+  "sensitivity_analyses": [
+    "Repeat primary bootstrap CIs and Wilcoxon test including items flagged by the contamination detector (i.e., do not exclude >=80% token-overlap items) to assess contamination sensitivity.",
+    "Alternate failed-call treatment: re-run primary analysis treating any failed episodes per adapter as paired with guarded failure-as-zero per contract identifier complete_pair_primary_with_failure_as_zero_sensitivity (deterministic sensitivity run using execution logs; note: execution manifest reports no failed episodes).",
+    "Bootstrap-resample stability: recompute 95% intervals with 1,000 and 50,000 resamples as robustness checks using the same fixed RNG stream (deterministic executor run).",
+    "Recompute primary result under assumed pairing correlations (ρ∈{0.3,0.7}) for the power/precision sensitivity table per preregistration arithmetic (deterministic calculation)."
+  ],
+  "uncertainty_quantification": "Primary and secondary CIs computed via nonparametric bootstrap (10,000 resamples) with the fixed RNG seed specified in the preregistration; report bootstrap percentile 95% CIs, bootstrap distribution summaries, and exact two-sided Wilcoxon signed-rank p-values for the primary test. All resampling and interval computations are deterministic within the executor and reproducible from execution artifacts and analysis code.",
+  "multiplicity_implementation": "One pre-specified primary confirmatory test (paired LLM-only vs GVR across full confirmatory bank). Secondary subgroup comparisons (per-protocol and per-modality) adjusted using Benjamini–Hochberg FDR control at q=0.05. All other reported analyses (repair-iteration distribution, failure-class counts, contamination sensitivity) are labeled exploratory and reported unadjusted.",
+  "contamination_analysis": "Apply preregistered deterministic contamination checks using the published task_manifest and curated public corpus: (1) token-overlap >=80% exact exclusion from primary confirmatory analysis; (2) record BLEU/longest-common-subsequence similarity scores and provenance hashes for all flagged items. Excluded/flagged items are listed and published with execution/task_manifest.jsonl and artifact hashes; primary analysis excludes flagged items per preregistration; sensitivity analysis includes them. Implementation draws from execution/task_manifest.jsonl, execution/responses/* and execution/provider_calls/* artifacts and publishes flagged-item manifest and hashes.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory summary: N tasks included, baseline failure rate, guarded failure rate, absolute paired mean difference, relative reduction, 95% bootstrap CI (10,000 resamples), Wilcoxon signed-rank p-value; provenance: execution/scoring/task-*.json and execution/raw_results.jsonl.",
+    "Table 2 — Execution manifest summary: completed_episode_count, failed_episode_count, model_calls_used, maximum_model_calls, excluded-for-infrastructure counts and reasons (from execution/execution_log.jsonl).",
+    "Table 3 — Per-protocol and per-modality subgroup results: subgroup sizes, baseline and guarded rates, paired mean differences, 95% bootstrap CIs, BH-adjusted q-values; provenance: execution/scoring/*.json.",
+    "Table 4 — Repair-iteration statistics: median, IQR, counts by iteration number, histogram bins; provenance: verifier fields in execution/scoring/*.json.",
+    "Table 5 — Automated failure-classification: counts and proportions for syntactic-translation vs verifier-coverage blind spots and exemplar hashes; provenance: execution/scoring/*.json and execution/responses/*.txt.",
+    "Table 6 — Contamination log: list of flagged tasks, token-overlap scores, similarity metrics, provenance hashes, and whether excluded from primary analysis; provenance: execution/task_manifest.jsonl, execution/responses/*."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Overall failure-rate bar chart: baseline vs guarded with 95% bootstrap CIs (from Table 1).",
+    "Figure 2 — Forest plot of per-protocol paired differences with 95% CIs and BH q-values (from Table 3).",
+    "Figure 3 — Histogram of repair-iteration counts until verifier acceptance (from Table 4).",
+    "Figure 4 — Example trace of a persistent GVR failure: sequence of model outputs, verifier rejects, translator outputs, and deployment trace (select exemplar from execution/responses/task-0000xx-*.txt and execution/scoring/task-0000xx.json; provide provenance hashes)."
+  ]
+}

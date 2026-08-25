@@ -1,0 +1,84 @@
+{
+  "study_id": "GVR-ProtocolEval-2026-PR1",
+  "title": "GVR-ProtocolEval (repaired): Preregistered generate–validate–repair evaluation for NetOps safety across protocols and modalities",
+  "research_question": "How much does a generate–validate–repair (GVR) pipeline reduce operational-failure rates (reachability loss or policy violation) relative to LLM-only generation, across protocol families and interaction modalities (CLI vs API), under controlled fault-injection?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR pipeline yields a lower operational-failure rate than LLM-only generation across the confirmatory task bank (paired comparison).",
+    "H2: Residual GVR failures will be concentrated in vendor-syntax translation and verifier-coverage blind spots rather than core logical errors.",
+    "H3: GVR gains vary by interaction modality: API-mode runs will show smaller residual failure rates than CLI-mode runs given identical verifier capabilities."
+  ],
+  "exploratory_questions": [
+    "EQ1: How many repair iterations are typically required before verifier acceptance, and what is the distribution of iteration counts?",
+    "EQ2: Which specific syntactic translation patterns correlate with persistent GVR failures?",
+    "EQ3: How sensitive are primary results to verifier-rule coverage and to model nondeterminism controls?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4402742293",
+    "https://openalex.org/W7141772527",
+    "https://openalex.org/W4411109869",
+    "https://openalex.org/W4406170828"
+  ],
+  "benchmark_scope": [
+    "Confirmatory custom task bank (200) of intent-to-configuration tasks executed in a Dockerized Mininet emulated testbed using public-domain vendor-syntax templates sampled from vendor documentation and RFCs.",
+    "Fault-injection scenarios limited to link flaps, device restart, and config drift emulated within Mininet containers.",
+    "Exploratory task set (50) for additional discovery analyses. Evaluations are bounded to emulated device behaviors and public vendor examples; no private production devices are used."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired mean difference in the operational-failure indicator (1 if reachability loss or policy violation observed during deployment tests; 0 otherwise) between LLM-only and GVR pipelines, reported as absolute and relative reduction with 95% bootstrap confidence intervals (10,000 resamples, fixed RNG seed).",
+  "secondary_estimands": [
+    "Per-protocol and per-modality paired mean differences (same metric as primary) with subgroup 95% bootstrap CIs.",
+    "Distribution and median of repair-iteration counts until verifier acceptance.",
+    "Proportion of failures attributable to syntactic-translation vs verifier-coverage blind spots (automated classification rules)."
+  ],
+  "sampling_plan": "Confirmatory task bank: exactly 200 tasks covering five protocol/focus categories (ACLs, static/dynamic routing, NAT, VLANs, service-ACL interactions) stratified across vendors and two interaction modalities (CLI, API). Allocation: 5 protocol groups × 2 modalities = 10 clusters; ~20 confirmatory tasks per cluster. Each confirmatory task is executed in a paired design across the two conditions (baseline LLM-only and guarded GVR) per the registered adapter contract. Exploratory: 50 additional tasks run for discovery. Task order randomized with fixed seed. Dockerized Mininet testbed seeded for deterministic fault-injection schedules. Inclusion/exclusion: tasks that trigger infrastructure errors (container crashes) are excluded from primary analysis but logged and reported separately; infrastructure failures treated as distinct from operational-failure outcomes.",
+  "power_and_precision_plan": "Primary estimand power target: detect an absolute paired reduction of 10 percentage points (e.g., 30% → 20%) with 80% power at α=0.05. Power calculation uses a conservative paired-to-independent approximation with assumed within-task pairing correlation ρ≈0.5; resulting recommended confirmatory n=200 provides margin above the approximate required n≈145. Bootstrap CI method: 10,000 resamples with fixed RNG seed. Sensitivity analyses: recompute MDE with ρ∈{0.3,0.5,0.7} and baseline p1∈{0.25,0.30,0.35}. Per-cluster (n≈20) results are treated as secondary/exploratory due to limited subgroup power.",
+  "exclusion_rules": [
+    "Exclude from primary confirmatory analysis any task run that experiences an infrastructure failure (container crash, Mininet fatal error); such runs are logged with reason and counted as 'infrastructure failures'.",
+    "Exclude and flag any generated configuration with >=80% token-level overlap to a single public-corpus document (treated in sensitivity analysis; excluded from primary analysis per contamination plan)."
+  ],
+  "missingness_plan": "If a deployed run fails due to infrastructure error (container crash, Mininet failure), log the run as 'infrastructure failure' and exclude it from the primary confirmatory binary outcome; report exclusion counts and reasons. Missing verifier logs trigger automated re-execution up to the preregistered retry limit (per adapter contract, retries limited to recover true infrastructure failures but not to obtain favorable scientific outcomes). All retained task outputs, including flagged/sensitivity items and exploratory runs, will be published with provenance hashes.",
+  "analysis_plan": "Primary analysis: compute paired per-task differences in binary operational-failure outcome (LLM-only minus GVR). Estimate the mean paired difference with 95% bootstrap CIs (10,000 resamples, fixed RNG seed). Conduct Wilcoxon signed-rank test (two-sided) and report exact p-value for the primary hypothesis. Secondary analyses: compute subgroup paired differences with bootstrap CIs, describe repair-iteration statistics (median, IQR, histogram), and report automated failure-classification counts (syntactic-translation vs verifier-coverage). Apply Benjamini–Hochberg FDR control for secondary per-protocol subgroup tests (q=0.05). All analyses executed deterministically in Dockerized analysis code; raw artifacts and analysis code published to permit independent reanalysis. Label exploratory findings explicitly.",
+  "multiplicity_plan": "One primary confirmatory test: paired LLM-only vs GVR on the full confirmatory bank (200 tasks). Secondary subgroup tests (per-protocol, per-modality) are multiplicity-adjusted using Benjamini–Hochberg FDR at q=0.05. Exploratory analyses reported unadjusted but clearly labeled as exploratory.",
+  "contamination_plan": "Automated contamination detection: (1) exact-match and high-similarity checks versus a curated public corpus (vendor docs, RFCs) using deterministic string-hash and token-overlap thresholds; items with >=80% token overlap flagged and excluded from primary analysis; (2) automated similarity scoring (BLEU, longest-common-subsequence) between generated configs and corpus recorded and flagged when above thresholds; (3) publish all flagged items with provenance hashes. Residual uncertainty: unknown model pretraining overlap with public vendor examples cannot be fully ruled out; flagged exclusions and sensitivity analyses mitigate but do not eliminate this external-validity limitation.",
+  "stopping_rule": "Execute each confirmatory task once per condition under the registered adapter contract. Stop when all tasks have been executed (200 tasks × up to 2 model calls = 400 maximum model calls under this contract) or upon exhaustion of the contract-specified maximum_model_calls (400). Log and report any early termination with reasons. No additional model calls or post-hoc extensions beyond the registered contract are permitted.",
+  "planned_outputs": [
+    "Machine-readable preregistration JSON (this document).",
+    "Dockerized experiment code and CI unit tests (transformations, translator, verifier, Mininet harness).",
+    "Confirmatory and exploratory task bank (prompts, templates) with deterministic mapping manifest and hashes.",
+    "Raw model outputs, verifier logs, deployment traces, and Mininet testbed traces with provenance hashes.",
+    "Analysis scripts and deterministic outputs (bootstrap resamples, test statistics) in Docker.",
+    "Execution manifest and automated retry logs.",
+    "Evidence-to-claim table, nearest-work comparison matrix, and failure-analysis record.",
+    "IEEE-formatted five-page LaTeX manuscript draft and BibTeX bibliography (for CNSM special track), including mandatory Disclosure Statement.",
+    "NotebookLM presentation brief (machine-readable) summarizing question, method, main results, failure modes, and limitations."
+  ],
+  "unresolved_critical_issues": []
+}

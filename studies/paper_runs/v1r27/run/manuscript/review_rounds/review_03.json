@@ -1,0 +1,20 @@
+{
+  "summary": "Careful, well-documented preregistered paired evaluation that executed as planned and produced a null paired difference. The null outcome is plausibly and transparently attributable to a preregistered design choice (shared_initial_candidate semantics) and constrained emulation/model/validator scope. Artifacts and hashes appear comprehensive and reproducible. The manuscript should make several targeted clarifications (methods/statistics/result reporting) to avoid reader confusion and to accurately frame the null finding.",
+  "novelty_score": 4,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Methods — Explicitly and succinctly state (in Methods and reiterated at end of Introduction) that generation_semantics = \"shared_initial_candidate\" was preregistered and implemented, that this produced a single LLM candidate per task evaluated under both arms, and that this design mechanically prevents repairs from producing differing guarded outcomes unless repairs are invoked. Cite the exact preregistration and execution_manifest entries (paths and SHA-256) when making this claim so readers can verify the design choice from the supplied artifacts.",
+    "Statistics/Inference — Update the Methods (Analysis) paragraph to (a) record the preregistered planned test (Wilcoxon signed-rank) and why it was chosen, (b) report that the observed data are a degenerate 2×2 contingency with no discordant pairs (n11=200,n10=0,n01=0,n00=0), (c) justify why an exact paired contingency assessment (McNemar or exact test) was applied post hoc for the observed binary outcome pattern, and (d) state explicitly that the bootstrap CI = [0.00,0.00] is a mathematical consequence of identical outcomes across pairs. Reference the archived analysis artifacts (analysis/paired_contingency_table.csv, analysis/analysis_log.jsonl) and include the exact contingency counts in the main text or Table 1.",
+    "Evidence for repairs and provider traces — In Results include an explicit, compact pointer to representative scoring/provider artifacts that demonstrate zero repair activity (for example execution/scoring/task-000001-guarded.json and a representative execution/provider_calls/* entry), and either (a) include a one-line quoted JSON field (repair_applied: false) or (b) a one-row table summarizing repair_attempts = 0 across confirmatory tasks. This must use the archived artifacts and hashes already cited in the execution_manifest so readers can validate the claim without extra experiments.",
+    "Table/Figure completeness — Ensure Table 1 (or the main results block) contains the numeric contingency counts, the paired difference point estimate, the bootstrap CI and the exact-test p-value (n11,n10,n01,n00; difference = 0.00; CI = [0.00,0.00]; p = 1.0). If the current draft omits any of these numbers from the main five pages, compress background text as needed to include them (do not change IEEE template parameters)."
+  ],
+  "optional_revisions": [
+    "Add one or two short anonymized example task prompts and the identical LLM candidate (or a short excerpt) in the paper body or a compressed figure caption to illustrate the kind of inputs that produced verifier-acceptable outputs; point readers to the full per-episode response hashes in execution_manifest.json for full inspection.",
+    "Add a brief paragraph in Discussion enumerating concrete alternative preregistered generation_semantics (independent-condition-generation) and noting how those would change model-call accounting and the interpretability of paired comparisons — this helps readers design follow-ups without changing study artifacts.",
+    "Label clearly in the Abstract and Conclusion that the study evaluated a single model (gpt-5-mini) under deterministic validator/emulator conditions and that the null result therefore maps only to those boundary conditions (this is already present but could be made even briefer/more prominent)."
+  ],
+  "accept_for_finalisation": false
+}

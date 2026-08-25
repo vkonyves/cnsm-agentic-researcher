@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-gnr-001",
+      "novelty": 0.75,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.75,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulated vendor syntaxes may underrepresent vendor-specific failure modes.",
+        "Verifier rule coverage could bias perceived GVR effectiveness.",
+        "Task-bank size and subgroup power not justified statistically.",
+        "Model nondeterminism and retry policy need stronger controls."
+      ],
+      "required_design_repairs": [
+        "Increase fidelity of vendor-syntax emulation (sample real device snippets or vendor templates) and document limits.",
+        "Preregister verifier rule set and quantitative coverage/limitations; include unit tests for verifier behaviors.",
+        "Provide power/sample-size calculation for protocol/modality subgroups and adjust task bank accordingly.",
+        "Specify seed/control for model nondeterminism, retry policy, and logging for all reruns."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-gnr-002",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Retrieval-corpus curation can strongly bias RAG results and is underspecified.",
+        "Deterministic verifiers may cause false positives that alter measured utility without cost accounting.",
+        "Mininet may not expose hardware/vendor-specific retrieval implications.",
+        "Evaluation conflates retrieval quality with verifier thresholds unless disentangled."
+      ],
+      "required_design_repairs": [
+        "Define and publish corpus-curation policy (sources, licenses, inclusion criteria) and run sensitivity ablations to corpus content.",
+        "Calibrate and preregister verifier thresholds; report false-positive/false-negative rates and decision costs.",
+        "Include ablation separating retrieval vs verifier contributions (LLM+RAG without verifier, verifier-only checks).",
+        "Add retrieval-relevance metrics (e.g., MRR) and correlate with deployment outcomes; preregister analysis plan."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-gnr-003",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Operator-behavior models are synthetic and may not reflect real reviewer decision distributions.",
+        "Policy Pareto-front conclusions are sensitive to chosen operator-parameter grids.",
+        "Mininet/automation simplifications may distort latency–safety trade-offs.",
+        "Risk of overgeneralizing simulation outcomes to organizational contexts."
+      ],
+      "required_design_repairs": [
+        "Justify operator-model priors (literature or operational logs) or expand sensitivity sweeps to extreme realistic ranges.",
+        "Preregister the operator-parameter grid and include robustness checks showing where conclusions change.",
+        "Augment simulation with case studies or expert-validated scenarios to anchor realism (no human-subject data needed).",
+        "Report decision-cost accounting (operator time) alongside failure metrics and clarify organizational applicability limits."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-gnr-004",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.75,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Benchmark scoring weights and composite Safety Score choices may unduly influence rankings.",
+        "Resource cost and maintenance burden for community reproducibility not fully addressed.",
+        "Task and vendor representativeness risks gaming or overfitting to the benchmark.",
+        "Licensing of corpora and verifier tools may limit reuse."
+      ],
+      "required_design_repairs": [
+        "Specify and justify scoring weight choices and provide alternative-weight sensitivity analyses.",
+        "Include a maintenance/governance plan and a lightweight pilot benchmark to validate costs and running-time estimates.",
+        "Ensure task selection stratification across vendors/protocols and document representativeness criteria; publish clear anti-overfitting guidance.",
+        "Resolve licensing and dependency issues up-front and publish artifacts under permissive/licenses-compatible terms with hashes."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

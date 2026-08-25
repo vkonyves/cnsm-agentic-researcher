@@ -1,0 +1,128 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-gnr-001",
+      "title": "GVR-ProtocolEval: Evaluate Generate–Validate–Repair across protocols and modalities",
+      "research_question": "How effective are generate–validate–repair (GVR) pipelines at preventing operational failures (reachability loss, policy violation, service degradation) across diverse network protocols, vendor syntaxes, and interaction modalities (CLI vs API) under controlled fault injection?",
+      "hypotheses": [
+        "GVR pipelines will produce significantly lower operational-failure rates than LLM-only pipelines across routing, ACL, and VLAN tasks under identical fault-injection scenarios.",
+        "Residual failure modes of GVR pipelines will concentrate in syntactic-vendor-translation and verifier-coverage blind spots rather than in core logic errors.",
+        "GVR performance gains will vary by interaction modality, with API-mode deployments exhibiting smaller residual failure rates than CLI-mode deployments given identical verifier capabilities."
+      ],
+      "proposed_design": "Construct a task bank of 200 intent-to-configuration tasks spanning ACLs, static/dynamic routing, NAT, VLANs, and service ACL interactions. Implement deploy-and-test harness using Mininet to emulate heterogeneous device behaviors and two interaction modalities (CLI-cmd wrappers, simulated vendor API). Implement three pipeline variants: (1) LLM-only generation; (2) LLM + deterministic verifier (syntactic + policy checks) with single-pass rejection; (3) full GVR loop with iterative repair guided by verifier feedback. Inject controlled faults per scenario (link flaps, device restart, config drift) according to preregistered schedules. For each run, deploy generated configs, execute connectivity/policy tests, and record logs. Preregister prompts, verifier rules, repair loop limits, random seeds, retry policy, and stopping criteria.",
+      "expected_data": "Per-task per-run artifacts: generated configuration text, verifier reports, repair iterations, Mininet execution logs, reachability matrices, policy-compliance booleans, time-to-deploy, and failure traces. Aggregate tables: per-pipeline operational-failure rates, per-protocol subgroup summaries, and repair-iteration distributions. Reproducibility artifacts: container images, seed manifests, prompt files, and verifier rule sets with hashes.",
+      "primary_outcome": "Reduction in operational-failure rate (proportion of tasks causing reachability or policy violation) of the GVR pipeline compared to LLM-only; reported as absolute and relative reductions with 95% bootstrap confidence intervals.",
+      "analysis_outline": "Compute per-task paired differences in operational-failure outcome between pipelines; estimate mean paired differences with 95% bootstrap CIs. Use Wilcoxon signed-rank tests for paired comparisons and adjust for multiple protocol-level subgroup tests (Benjamini-Hochberg). Report subgroup analyses by protocol and modality with CIs. Analyze repair-iteration effectiveness and characterize residual failure cases qualitatively. Publish all per-run artifacts for independent reanalysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W7141772527"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4402742293"
+      ],
+      "risks": [
+        "Emulated vendor syntaxes may not capture full production vendor idiosyncrasies, limiting external validity.",
+        "Verifier rule-coverage choices may bias perceived GVR effectiveness.",
+        "Fault-injection scenarios may not represent all real-world failure modes.",
+        "Resource limits may restrict task-bank diversity and reduce statistical power for small subgroups."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "cand-gnr-002",
+      "title": "RAG+Verifier Ensemble vs LLM-Only: Impact on Configuration Correctness and Operational Safety",
+      "research_question": "Does retrieval-augmentation (RAG) combined with a deterministic verifier ensemble reduce misconfigurations and operational failures relative to LLM-only pipelines for intent-to-configuration NetOps tasks?",
+      "hypotheses": [
+        "RAG+verifier ensembles will yield lower operational-failure probabilities than LLM-only generation by improving factual grounding and enabling early rejection of unsafe edits.",
+        "Syntactic and semantic verifier components will have complementary error-detection profiles such that their ensemble detects more dangerous changes than any single verifier alone.",
+        "Improvements from RAG+verifier will be larger for policy-heavy tasks (ACLs, multitenancy isolation) than for simple connectivity-only tasks."
+      ],
+      "proposed_design": "Create a curated knowledge corpus (device command references, policy templates, prior vetted configs) for retrieval augmentation. Implement two pipeline families: (A) LLM-only generation with standard prompts; (B) RAG-enabled LLM retrieving top-k documents plus deterministic verifier ensemble (syntactic parser, policy-checker, reachability estimator). Use a balanced task set of 180 intents across policy and connectivity tasks and deploy-to-test in Mininet with preregistered fault injections. Record whether proposed configs pass verifier ensemble and whether deployment tests show failures. Baselines: LLM-only and LLM+verifier without retrieval. Preregister retrieval settings, verifier thresholds, and model-call budget.",
+      "expected_data": "Per-run results: retrieval documents, generated configs, verifier outputs, deployment test outcomes (reachability, policy compliance), counts of verifier rejections, and time/resource usage. Aggregate comparatives: operational-failure rates per pipeline, precision/recall of verifier ensemble for harmful changes, and per-task retrieval relevance metrics.",
+      "primary_outcome": "Absolute reduction in operational-failure probability (deploy-test failures) of RAG+verifier ensemble versus LLM-only, with bootstrap 95% CIs and effect-size estimates.",
+      "analysis_outline": "Compute paired per-task failure indicators across pipelines; estimate differences and 95% bootstrap CIs. Test significance with McNemar's test for paired binary outcomes and report per-task-category stratified effects. Evaluate verifier ensemble ROC characteristics (where applicable) and compute precision/recall for harmful-change detection. Correlate retrieval relevance metrics with deployment success using Spearman rho.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.7200222",
+        "https://openalex.org/W4391221150",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4391221150",
+        "https://openalex.org/W4409716856",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Quality of the retrieval corpus critically affects RAG performance and may bias results if not carefully curated.",
+        "Deterministic verifiers may produce false positives that block safe changes, affecting measured utility.",
+        "Mininet-based deployment tests may not capture hardware-specific vendor behaviors.",
+        "Model API rate limits or nondeterminism could increase variance; preregistered seeds may not fully control nondeterminism."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-gnr-003",
+      "title": "OversightTrade: Simulated Human-Operator Oversight Policies and the Latency–Safety Tradeoff",
+      "research_question": "How do different human-operator oversight policies (immediate manual review, thresholded review, batching, and automated gating) affect operational-failure rates and review latencies when supervising LLM-generated NetOps changes, and what Pareto-optimal trade-offs exist between safety and latency?",
+      "hypotheses": [
+        "Simulated oversight policies with shorter median review latency will reduce operational-failure rates less than higher-latency, high-sensitivity review policies, producing a measurable safety–latency Pareto frontier.",
+        "Certain oversight policies (e.g., batching) will create interaction effects where throughput-driven batching increases failure risk for high-severity changes despite lower operator load.",
+        "Oversight policy robustness will be sensitive to realistic operator-behavior distributions; results will vary meaningfully when operator error or bias is introduced in simulations."
+      ],
+      "proposed_design": "Preregister a task bank of 150 varied NetOps intents and implement a simulation framework that pairs pipeline outputs with stochastic operator models parameterized by review latency distributions, false-accept/false-reject rates, and attention drift. Define oversight policies: (1) immediate single-operator review with threshold, (2) batched review, (3) high-threshold automated accept-with-audit, (4) automated gating plus mandatory review for flagged items. For each policy, run deployments in Mininet with the same underlying LLM+verifier pipeline and record operational-failure outcomes and per-change review latency. Perform sensitivity sweeps across operator model parameters and preregister the parameter grid and evaluation metrics.",
+      "expected_data": "Per-policy datasets: per-change outcome (deploy success/failure), review decision timelines, operator-model draws, false-accept/reject events, and composite metrics (failure rate, median review latency, failure-reduction-per-second-of-latency). Pareto fronts and sensitivity heatmaps across operator parameter sweeps.",
+      "primary_outcome": "A quantified Pareto frontier (safety vs median review latency) for the tested oversight policies and a scalar metric of failure-reduction-per-second-of-latency that enables direct policy comparison.",
+      "analysis_outline": "Estimate operational-failure probabilities and median and percentile latencies per policy with bootstrap 95% CIs. Compare policies with paired nonparametric tests (Wilcoxon signed-rank) on failure rates and latencies. Construct and visualize Pareto fronts; perform sensitivity analysis across operator-model parameters and report regions where policy ordering reverses. Qualitatively analyze failure cases where oversight permits dangerous changes or blocks safe ones.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.6685078",
+        "https://openalex.org/W7125699492",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4402742293",
+        "10.2139/ssrn.6685078"
+      ],
+      "risks": [
+        "Simulated operator models may not capture real human behaviors, limiting external validity.",
+        "Choice of review-time and error-distribution parameters can alter policy rankings; preregistered grids may not cover all realistic regimes.",
+        "Outcomes depend on fidelity of the underlying deployment simulator; Mininet simplifications may bias latency–safety trade-offs.",
+        "Interpreting Pareto fronts without organizational context may mislead policy recommendations."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-gnr-004",
+      "title": "NetOps-OpBench: A reproducibility-driven operational benchmark mapping LLM outputs to reachability and policy compliance with fault injection",
+      "research_question": "Can a publicly reproducible benchmark that maps LLM-produced configuration outputs to concrete operational metrics (reachability, ACL/policy compliance) with standardized fault-injection scenarios enable consistent, actionable comparison of LLM and pipeline reliability for NetOps tasks?",
+      "hypotheses": [
+        "A benchmark that couples intent-to-config tasks with executable Mininet scenarios and scored operational tests will reveal larger variance in practical reliability across pipelines than text-only proxy metrics suggest.",
+        "Pipelines that score similarly on syntactic or semantic proxy metrics will diverge substantially on operational outcomes (reachability/policy compliance) under fault injection.",
+        "A compact benchmark (≈250 stratified tasks) can be executed within the declared resource and model-call budgets and produce reproducible pipeline rankings when all artifacts (images, seeds, verifier rules) are published."
+      ],
+      "proposed_design": "Design and release a benchmark suite of ~250 intents covering ACLs, routing, VLAN, NAT, and service-level changes with paired Mininet topologies and scripted fault-injection scenarios (link flaps, device restarts, config drift). Define standard input prompts, expected output formats, and an automated harness to run pipelines (LLM-only, LLM+verifier, RAG+verifier) and to execute deploy-and-test sequences. Specify scoring: reachability pass-rate, policy-compliance score, mean-time-to-detect failure, and a composite Safety Score. Provide baseline runs for two pipeline variants, preregister the benchmark, and publish reproducibility artifacts (container images, corpora, verifier rule sets, and hashes) under permissive licenses.",
+      "expected_data": "Released benchmark artifacts: task definitions, topology files, fault-injection schedules, sample prompts, baseline pipeline outputs, per-run logs, and resulting scores (reachability rates, policy compliance, composite Safety Score). Reproducibility records: seed manifests, container images, and artifact hashes. Comparative tables showing pipeline rankings, variance across runs, and correlation analyses between proxy metrics and operational Safety Score.",
+      "primary_outcome": "A demonstrable, reproducible Safety Score ranking of evaluated pipelines that meaningfully diverges from proxy-metric rankings, enabling community comparison and subsequent reproducible research.",
+      "analysis_outline": "Report benchmark-level summary statistics and pipeline rankings with bootstrap 95% CIs. Compute Spearman correlations between proxy text metrics and operational Safety Score; identify tasks where proxy metrics mispredict operational outcomes and present case studies. Validate reproducibility by re-running baseline pipelines under preregistered conditions and publishing any deviations and their causes. Provide runtime and resource footprints for transparency.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "10.2139/ssrn.6531679",
+        "https://openalex.org/W4411109869"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Benchmark scenarios may not cover all production modalities and vendor-specific behaviors, limiting external generalizability.",
+        "Running the full benchmark requires nontrivial compute and could be costly for some community actors.",
+        "Task selection and scoring-weight choices influence rankings; misuse could lead to overfitting to the benchmark.",
+        "Maintaining public corpus licensing and verifier tool dependencies imposes ongoing reproducibility maintenance costs."
+      ],
+      "estimated_model_calls": 5000
+    }
+  ]
+}

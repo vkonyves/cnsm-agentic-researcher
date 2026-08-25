@@ -1,0 +1,154 @@
+{
+  "selected_candidate_id": "cand-gnr-001",
+  "title": "GVR-ProtocolEval (repaired): Preregistered generate–validate–repair evaluation for NetOps safety across protocols and modalities",
+  "research_question": "How much does a generate–validate–repair (GVR) pipeline reduce operational-failure rates (reachability loss or policy violation) relative to LLM-only generation, across protocol families and interaction modalities (CLI vs API), under controlled fault-injection?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR pipeline yields a lower operational-failure rate than LLM-only generation across the confirmatory task bank (paired comparison).",
+    "H2: Residual GVR failures will be concentrated in vendor-syntax translation and verifier-coverage blind spots rather than core logical errors.",
+    "H3: GVR gains vary by interaction modality: API-mode runs will show smaller residual failure rates than CLI-mode runs given identical verifier capabilities."
+  ],
+  "exploratory_questions": [
+    "EQ1: How many repair iterations are typically required before verifier acceptance, and what is the distribution of iteration counts?",
+    "EQ2: Which specific syntactic translation patterns correlate with persistent GVR failures?",
+    "EQ3: How sensitive are primary results to verifier-rule coverage and to model nondeterminism controls?"
+  ],
+  "benchmark_scope": [
+    "Custom task bank (confirmatory) of intent-to-configuration tasks executed in a Mininet-based emulated testbed with scripted vendor-syntax templates (public-domain vendor examples sampled from vendor documentation and RFCs).",
+    "Fault-injection scenarios limited to link flaps, device restart, and config drift emulated within Mininet containers.",
+    "Evaluations bounded to the emulated device behaviors and public vendor examples; no private production devices are used."
+  ],
+  "model_scope": [
+    "Hosted LLM API (single vendor endpoint) with temperature and seed controls as permitted by capability_manifest.",
+    "Deterministic local tooling for verifier and syntax translators executed on CPU (Docker containers)."
+  ],
+  "transformation_scope": [
+    "Text normalization, vendor-syntax templating, vendor-specific command rendering (template expansion), and verifier-rule extraction for deterministic checks."
+  ],
+  "primary_estimand": "Paired mean difference in operational-failure indicator (1 if reachability loss or policy violation observed during deployment tests; 0 otherwise) between LLM-only and GVR pipelines, expressed as absolute and relative reduction with 95% bootstrap confidence intervals.",
+  "secondary_estimands": [
+    "Per-protocol and per-modality paired mean differences (same metric as primary) with subgroup CIs.",
+    "Distribution of repair-iteration counts and median iterations to verifier acceptance.",
+    "Proportion of failures attributable to syntactic-translation vs verifier-coverage (automated classification rules)."
+  ],
+  "sampling_plan": "Confirmatory task bank: 200 tasks covering five protocol/focus categories (ACLs, static/dynamic routing, NAT, VLANs, service-ACL interactions) stratified across vendors and two interaction modalities (CLI, API). Each confirmatory task is executed once per pipeline variant in a paired design (LLM-only, LLM+single-pass verifier, GVR loop). Additionally, 50 exploratory tasks will be run for discovery analyses. Task-cluster mapping: 5 protocol groups × 2 modalities = 10 clusters; confirmatory tasks allocated approximately uniformly across clusters (20 tasks per cluster) producing per-cluster confirmatory n=20. Randomization: task order randomized with fixed seed; Dockerized Mininet testbed seeded for deterministic fault-injection schedules. Inclusion/exclusion: tasks that trigger infrastructure errors (container crashes) are excluded from primary analysis but logged and reported; infrastructure failures are treated separately from operational-failure outcomes.",
+  "analysis_plan": "Primary analysis: paired per-task differences in binary operational-failure outcome between LLM-only and GVR; estimate mean paired differences with 95% bootstrap CIs (10,000 bootstrap resamples, fixed RNG seed). Use Wilcoxon signed-rank test as a nonparametric confirmatory test; report exact p-values. Adjust for multiple subgroup tests (per-protocol) using Benjamini–Hochberg FDR control at q=0.05. Secondary analyses: subgroup CIs, repair-iteration descriptive stats, automated failure-classification counts. All per-run raw artifacts and code for automated analyses (Dockerized) will be published to permit independent reanalysis. Exploratory findings labeled and distinguished from confirmatory claims.",
+  "multiplicity_plan": "Primary confirmatory test is the paired LLM-only vs GVR comparison on the full confirmatory bank (one primary hypothesis). Secondary subgroup tests and exploratory analyses are multiplicity-adjusted as specified (Benjamini–Hochberg for subgroup tests). Report unadjusted exploratory statistics but label them exploratory.",
+  "missingness_plan": "If a deployed run fails due to infrastructure error (container crash, Mininet failure), the run is logged as 'infrastructure failure' and excluded from the confirmatory binary outcome; the exclusion count and reasons are reported. All other task outputs are retained; missing verifier logs trigger automated re-execution up to the preregistered retry limit (see nondeterminism controls).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "GVR-ProtocolEval confirmatory task bank (200)",
+      "GVR-ProtocolEval exploratory task set (50)",
+      "Mininet emulation harness (Docker images, public vendor snippets)"
+    ],
+    "risk_factors": [
+      "Model memorization of public vendor configuration snippets leading to non-generalizable generation.",
+      "Overlap between task prompts and model training data (unknown to researchers) causing leakage.",
+      "Public example-based vendor templates may underrepresent private production idiosyncrasies."
+    ],
+    "detection_procedures": [
+      "Exact-match and high-similarity checks against curated public corpus (vendor docs, RFCs) using deterministic string-hash and token-overlap thresholds; matches >80% token overlap flagged.",
+      "Automated similarity scoring (BLEU and longest-common-subsequence) between generated config and corpus; results recorded and flagged if above thresholds.",
+      "Record and publish all flagged items with hashes for independent verification."
+    ],
+    "item_flagging_rules": [
+      "If generated configuration has >=80% token-level overlap with any single public-corpus document, flag the item and exclude it from the primary confirmatory analysis (treated in a sensitivity analysis).",
+      "If a task's prompt is detected to be present verbatim in the public corpus, flag the task and report separately."
+    ],
+    "analysis_treatment": "Flagged items are excluded from the primary confirmatory analysis; results reported both with and without flagged exclusions as sensitivity analyses. All exclusions and their rationales are logged with reproducible hashes.",
+    "residual_uncertainty": [
+      "Even with automated detection, undocumented model pretraining data overlap cannot be fully ruled out; this remains a noncritical external-validity limitation.",
+      "Emulated vendor snippets are sampled from public sources and may not represent private vendor idiosyncrasies."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-reco-01",
+      "description": "Recommended (balanced) scenario: confirmatory 200 tasks + exploratory 50 tasks; conservative average GVR repair iterations = 4 (so 5 model calls for GVR including initial generation); LLM-only and single-pass verifier each require 1 model call per task. Includes pilot warm-up calls and preregistration tuning budget.",
+      "planned_model_calls": 2500,
+      "models": [
+        "Hosted LLM API (production endpoint; temperature and seed controls) — model calls counted",
+        "Local deterministic verifier (no model calls)"
+      ],
+      "transformations": [
+        "Prompt templating and normalization (no model calls)",
+        "Vendor-syntax templating and deterministic translator (no model calls)"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 200,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Per-task model-call arithmetic: per-task calls = LLM-only (1) + LLM+verifier (1) + GVR average (5) = 7 calls. Total tasks = 250 → 250×7 = 1750. Add 250 pilot/warm-up calls + 500 sensitivity/ablation calls = 2500 total planned model calls. This fits the capability_manifest limit (<=10000) and exceeds the power requirement (see power_plan)."
+    },
+    {
+      "scenario_id": "scenario-highpower-02",
+      "description": "High-powered scenario: enlarge confirmatory bank to 400 tasks (to increase subgroup power) with same per-task call assumptions; increased pilot and sensitivity budgets.",
+      "planned_model_calls": 4000,
+      "models": [
+        "Hosted LLM API (production endpoint; temperature and seed controls)",
+        "Local deterministic verifier (no model calls)"
+      ],
+      "transformations": [
+        "Prompt templating and normalization",
+        "Vendor-syntax templating and deterministic translator"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 400,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Per-task calls = 7. Total tasks = 500 (400 confirmatory +100 exploratory) → 500×7 = 3500. Add 500 pilot/sensitivity = 4000 planned calls. Within capability_manifest maximum (<=10000). Offers greater subgroup power at higher model-call budget."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute reduction in operational-failure rate (LLM-only minus GVR) across confirmatory tasks.",
+    "target_effect": "Absolute reduction of 10 percentage points (e.g., from 30% baseline to 20%).",
+    "clustering_unit": "Task (each intent-to-configuration instance is a paired observation across pipelines).",
+    "calculation_method": "Conservative paired-to-independent approximation: two-sample independent-proportions formula used for an upper-bound sample estimate, then adjusted for expected within-task pairing correlation (ρ≈0.5). Independent-proportions estimate: n_per_group = ((Z_{1-α/2}+Z_{1-β})^2 * (p1(1-p1)+p2(1-p2))) / d^2. Using α=0.05 (two-sided), power 0.80 → Z=1.96+0.84=2.80; p1=0.30, p2=0.20, d=0.10 → n_per_group_independent ≈ 290. Paired-design effective n ≈ n_per_group_independent * (1-ρ) ≈ 290*(1-0.5)=145 tasks. We preregister 200 confirmatory tasks to provide margin for exclusions and cluster-level subgroup analyses.",
+    "assumptions": [
+      "Baseline operational-failure rate (LLM-only) ≈ 30% (conservative estimate from prototype literature and pilot runs).",
+      "Target absolute reduction d=10 percentage points is operationally meaningful and detectable.",
+      "Within-task paired correlation between pipeline outcomes ≈ 0.5 (moderate); sensitivity checks will evaluate ρ∈{0.3,0.5,0.7}.",
+      "Alpha=0.05 (two-sided); power target 0.80; bootstrap CI method for primary estimate with 10,000 resamples."
+    ],
+    "recommended_scenario_id": "scenario-reco-01",
+    "minimum_detectable_effect_notes": "With 200 confirmatory tasks and assumed ρ=0.5, the minimum detectable absolute difference (two-sided, 80% power) is approximately 0.08–0.11 depending on exact baseline; sensitivity analyses will report MDE across ρ∈{0.3,0.5,0.7} and baseline p1∈{0.25,0.30,0.35}.",
+    "sensitivity_analyses": [
+      "Recompute power/MDE with ρ=0.3 and ρ=0.7.",
+      "Recompute with baseline p1 ∈ {0.25, 0.35}.",
+      "Report subgroup MDE for per-cluster n=20 (per-cluster confirmatory tasks) acknowledging lower power and labeling cluster results as exploratory unless powered."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Text normalization (whitespace, indentation, comment removal).",
+      "Vendor-syntax templating (template expansion from canonical public snippets).",
+      "Intent-to-template mapping (deterministic template selection logic).",
+      "Verifier output parsing (deterministic parse to structured checks)."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip parser: generated config → deterministic parser → canonical internal representation → renderer → regenerated config; accept only if renderer output semantically matches the original under token-similarity ≥95%.",
+      "Automated unit tests for each template and translator using a public sample of vendor commands; unit-test suite executed in CI (Docker) with fixed seeds."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated configs failing deterministic parser or failing basic syntactic checks (missing required keywords) — these are auto-excluded from deployment and counted as verifier rejections.",
+      "Reject configs that exceed token-similarity thresholds to a public-corpus example (contamination rule) — flagged and excluded from primary analysis."
+    ],
+    "audit_sample_policy": "Automated deeper checks on a reproducible random 10% audit sample of generated configs (seeded RNG); audits run via deterministic linting and semantic-diff tools. Audit results published.",
+    "mapping_validation": "Publish mapping rules and unit-test outputs; maintain a deterministic mapping manifest (intent → template id) with hashes for each mapping entry.",
+    "residual_risks": [
+      "Semantic equivalence heuristics may miss subtle vendor idiosyncrasies; residual syntax/semantics mismatches possible.",
+      "Verification unit tests rely on public examples and may not capture private production edge cases."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulated vendor-syntax fidelity: despite sampling public vendor examples and adding template unit tests, emulation may not capture all production device idiosyncrasies (external-validity limitation).",
+    "Unknown overlap between model pretraining data and public vendor examples cannot be fully excluded; automated contamination detection mitigates but cannot prove absence.",
+    "Per-cluster subgroup power is limited (per-cluster confirmatory n=20); subgroup estimates will have wide CIs and are treated as secondary/exploratory unless pooled."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4402742293",
+    "https://openalex.org/W7141772527",
+    "https://openalex.org/W4411109869",
+    "https://openalex.org/W4406170828"
+  ]
+}

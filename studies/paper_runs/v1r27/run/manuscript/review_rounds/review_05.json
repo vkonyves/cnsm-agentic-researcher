@@ -1,0 +1,24 @@
+{
+  "summary": "Well-executed, well-documented preregistered artifact bundle and deterministic run demonstrating strong reproducibility practices. The confirmatory paired test produced a null outcome because the preregistered generation_semantics (\"shared_initial_candidate\") produced one shared LLM candidate per task and thus no repair activity—this is a valid boundary-condition result but it undermines the paper's ability to answer the preregistered primary hypothesis as a comparative test of GVR vs LLM-only. The manuscript largely acknowledges this, archives comprehensive artifacts, and provides deterministic reconciliation; several manuscript clarifications are required before finalisation to ensure claims, limitations, and evidence are explicitly and precisely stated for readers and reviewers.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The preregistered confirmatory test as executed did not actually evaluate repair-driven improvement: generation_semantics=\"shared_initial_candidate\" produced the same LLM output for both arms so repair_attempts=0 and the paired comparison is mechanically uninformative for H1. The manuscript must not imply the preregistered comparative hypothesis was experimentally resolved.",
+    "The preregistered power calculation assumed nonzero baseline failure rates; observed baseline success=100% violates that assumption and prevents claiming the run achieved the planned MDE or powered inference. This must be clearly disclosed and interpreted.",
+    "Baseline 100% success suggests either (a) the validator/emulator was insufficiently challenging, (b) task templates were trivial or contaminated with model training data, or (c) the shared-generation semantics produced a favourable single draw. The manuscript does not yet provide a concise, artifact-grounded explanation for which factors are responsible; reviewers/readers need explicit evidence-backed discussion (using contamination_summary and validator-coverage artifacts)."
+  ],
+  "required_revisions": [
+    "Explicitly and prominently state (abstract + introduction + methods + conclusions) that the executed confirmatory test did not test repair-value because generation_semantics=\"shared_initial_candidate\" produced one shared candidate per task (repair_attempts=0). Revise contribution claims to emphasize that the result documents a preregistered boundary condition, not a resolved negative on GVR utility. (Resolve by quoting execution/model_configuration.json and execution/scoring files already archived.)",
+    "Add a compact, evidence-backed subsection (or paragraph) that analyzes causes of baseline=100%: (a) attach or cite the contamination_summary.csv and its SHA-256 and state its findings (no flagged items), (b) report validator rule coverage metrics or representative validator traces (cite execution/scoring/*.json and validator trace hashes) showing which checks were exercised, and (c) include one representative task example (task manifest, generated config, validator trace, scoring JSON) as a short boxed example so readers can judge challenge level. All cited files must reference archived paths and hashes already in the bundle.",
+    "Explicitly report that the preregistered power/MDE assumptions were not met and explain consequences: delete or reword any claim that the run achieved the planned MDE; state that the observed lack of baseline failures makes the confirmatory inference void for the originally targeted effect size. Cite the preregistration power plan and the observed contingency counts from analysis/paired_contingency_table.csv (SHA-256).",
+    "In the Disclosure Statement confirm that provenance/master_prompt.txt contains the full initial master prompt text (not only a hash) and, if not already present in the archived bundle, add the full immutable initial master prompt text as an archived artifact and cite its path and SHA-256. (This must be resolvable from the supplied artifacts.)"
+  ],
+  "optional_revisions": [
+    "Consider softening the paper title to reflect that the study documents a preregistered boundary condition (e.g., add 'boundary-conditional' or 'preregistered boundary study' as a subtitle) to avoid misleading readers about an answered comparative hypothesis.",
+    "Add a short table summarizing validator rule types and counts (e.g., parsing/syntax checks, reachability probes, policy checks) drawn from validator traces to help readers assess validator strength, using the archived validator logs.",
+    "In the Discussion, more explicitly enumerate the three nonexclusive hypotheses for 100% baseline success (validator permissiveness, template/model memorization, single-sample favorable draws) and cross-reference which archived artifacts support or weaken each hypothesis."
+  ],
+  "accept_for_finalisation": false
+}
