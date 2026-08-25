@@ -296,8 +296,10 @@ def build_manuscript_evidence_bundle(
     analysis_dir = run_dir / "analysis"
 
     for name in (
+        "condition_summary.csv",
         "paired_contingency_table.csv",
         "contamination_summary.csv",
+        "missingness_summary.csv",
         "analysis_log.jsonl",
         "deterministic_reconciliation.json",
     ):
@@ -318,6 +320,180 @@ def build_manuscript_evidence_bundle(
             "sha256": sha256_file(p),
             "content": text[:12000],
         }
+
+    model_configuration_path = (
+        run_dir
+        / "execution"
+        / "model_configuration.json"
+    )
+
+    if model_configuration_path.is_file():
+        bundle["model_configuration"] = {
+            "path": str(
+                model_configuration_path.relative_to(
+                    run_dir
+                )
+            ),
+            "sha256": sha256_file(
+                model_configuration_path
+            ),
+            "content": read_json(
+                model_configuration_path
+            ),
+        }
+
+    master_prompt_path = (
+        run_dir
+        / "provenance"
+        / "master_prompt.txt"
+    )
+
+    master_prompt_hash_path = (
+        run_dir
+        / "provenance"
+        / "master_prompt.sha256"
+    )
+
+    if (
+        master_prompt_path.is_file()
+        and master_prompt_hash_path.is_file()
+    ):
+        bundle["initial_master_prompt_reference"] = {
+            "path": str(
+                master_prompt_path.relative_to(
+                    run_dir
+                )
+            ),
+            "sha256": (
+                master_prompt_hash_path
+                .read_text(
+                    encoding="utf-8"
+                )
+                .strip()
+            ),
+        }
+
+    task_manifest_path = (
+        run_dir
+        / "execution"
+        / "task_manifest.jsonl"
+    )
+
+    bundle["representative_tasks"] = []
+
+    if task_manifest_path.is_file():
+        task_rows: list[dict[str, Any]] = []
+
+        with task_manifest_path.open(
+            "r",
+            encoding="utf-8",
+        ) as handle:
+            for line in handle:
+                line = line.strip()
+
+                if not line:
+                    continue
+
+                row = json.loads(line)
+
+                if isinstance(row, dict):
+                    task_rows.append(row)
+
+        # Deterministic diversity sample based on the task's
+        # archived difficulty pattern. No outcome-based selection.
+        seen_patterns: set[str] = set()
+
+        for row in task_rows:
+            task_payload = row.get(
+                "task_payload",
+                {},
+            )
+
+            difficulty = (
+                task_payload.get(
+                    "difficulty",
+                    {},
+                )
+                if isinstance(
+                    task_payload,
+                    dict,
+                )
+                else {}
+            )
+
+            pattern = difficulty.get(
+                "pattern",
+                "unknown",
+            )
+
+            if pattern in seen_patterns:
+                continue
+
+            seen_patterns.add(pattern)
+
+            task_id = row.get("task_id")
+
+            representative = {
+                "task_id": task_id,
+                "task_manifest_entry": row,
+            }
+
+            if isinstance(task_id, str):
+                response_entries = {}
+
+                for condition in (
+                    "shared-initial",
+                    "baseline",
+                    "guarded",
+                ):
+                    response_path = (
+                        run_dir
+                        / "execution"
+                        / "responses"
+                        / f"{task_id}-{condition}.txt"
+                    )
+
+                    if not response_path.is_file():
+                        continue
+
+                    response_entries[
+                        condition
+                    ] = {
+                        "path": str(
+                            response_path.relative_to(
+                                run_dir
+                            )
+                        ),
+                        "sha256": sha256_file(
+                            response_path
+                        ),
+                        "content": (
+                            response_path.read_text(
+                                encoding="utf-8",
+                                errors="replace",
+                            )[:2000]
+                        ),
+                    }
+
+                representative[
+                    "responses"
+                ] = response_entries
+
+            bundle[
+                "representative_tasks"
+            ].append(
+                representative
+            )
+
+            if (
+                len(
+                    bundle[
+                        "representative_tasks"
+                    ]
+                )
+                >= 6
+            ):
+                break
 
     return bundle
 
@@ -3356,7 +3532,18 @@ class FinalAutonomousResearchPipeline:
                     f"{maximum_format_revision_rounds}. "
                     "Substantively expand the manuscript using only information "
                     "supported by the archived autonomous-run artifacts and "
-                    "verified evidence. Do not merely rephrase existing text or "
+                    "verified evidence."
+                    "Preserve all already artifact-supported reviewer-resolved "
+                    "content from the current manuscript. While the manuscript "
+                    "remains below the required page count, do not shorten, "
+                    "remove, or replace substantive supported material merely "
+                    "to improve concision. Each underfill revision must be "
+                    "cumulative: retain existing Methods, Results, tables, "
+                    "evidence mappings, reproducibility details, limitations, "
+                    "Disclosure content, and resolved reviewer clarifications, "
+                    "then add further missing artifact-grounded scientific "
+                    "material."
+                    "Do not merely rephrase existing text or "
                     "make small stylistic edits; add materially useful scientific "
                     "content that is currently absent, compressed, or insufficiently "
                     "explained. Prioritize, where supported by the available "

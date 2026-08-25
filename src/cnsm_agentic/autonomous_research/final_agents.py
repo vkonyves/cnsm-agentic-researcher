@@ -228,6 +228,13 @@ MANUSCRIPT_AUTHOR = Agent(
         Place the mandatory Disclosure Statement at the end of the manuscript
         body, immediately before the references. The Disclosure Statement and
         references must both fit within those same five compiled pages.
+
+        The Disclosure Statement must identify the exact initial master
+        prompt. When the supplied manuscript_evidence_bundle contains an
+        initial_master_prompt_reference with an archived path and SHA-256,
+        include that immutable path and SHA-256 in the Disclosure Statement.
+        Do not invent an external URL and do not reproduce the full master
+        prompt when the immutable archived reference is sufficient.
         """
     ),
 )
@@ -342,6 +349,13 @@ MANUSCRIPT_REVISER = Agent(
         Place the mandatory Disclosure Statement at the end of the manuscript
         body, immediately before the references. The Disclosure Statement and
         references must both fit within those same five compiled pages.
+
+        The Disclosure Statement must identify the exact initial master
+        prompt. When the supplied manuscript_evidence_bundle contains an
+        initial_master_prompt_reference with an archived path and SHA-256,
+        include that immutable path and SHA-256 in the Disclosure Statement.
+        Do not invent an external URL and do not reproduce the full master
+        prompt when the immutable archived reference is sufficient.
 
         Address every substantive required revision from peer review that can
         be supported by the archived artifacts. Do not merely refer reviewers

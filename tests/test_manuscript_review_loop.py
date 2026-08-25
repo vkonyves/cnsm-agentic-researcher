@@ -288,6 +288,26 @@ def test_manuscript_revision_receives_compact_evidence_bundle():
         '"manuscript_evidence_bundle"'
         in source
     )
+    assert (
+        '"model_configuration"'
+        in source
+    )
+    assert (
+        '"initial_master_prompt_reference"'
+        in source
+    )
+    assert (
+        '"representative_tasks"'
+        in source
+    )
+    assert (
+        '"shared-initial"'
+        in source
+    )
+    assert (
+        '"condition_summary.csv"'
+        in source
+    )
 
 
 def test_manuscript_evidence_bundle_is_archived():
@@ -298,5 +318,25 @@ def test_manuscript_evidence_bundle_is_archived():
 
     assert (
         '"manuscript_evidence_bundle.json"'
+        in source
+    )
+
+
+def test_underfill_revisions_are_cumulative():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_pipeline.py"
+    ).read_text()
+
+    assert (
+        "Each underfill revision must be "
+        in source
+    )
+    assert (
+        "cumulative: retain existing Methods, Results, tables"
+        in source
+    )
+    assert (
+        "do not shorten, "
         in source
     )
