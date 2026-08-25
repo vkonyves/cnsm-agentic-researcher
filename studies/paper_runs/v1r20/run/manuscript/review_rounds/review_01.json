@@ -1,0 +1,30 @@
+{
+  "summary": "Well-executed, transparent preregistered paired evaluation of a generate→verify→repair (GVR) pipeline for intent-to-configuration safety using a single hosted LLM (gpt-5-mini), a deterministic verifier, and Mininet emulation. The study provides rich archived artifacts and honest negative/near-null confirmatory results (baseline 97/99 non-violating → guarded 99/99; paired absolute improvement 2.02 pp; McNemar two-sided p reported = 0.5; 95% bootstrap CI [0.0,0.0505]). The manuscript is reproducible and clearly written, but several methodological reporting gaps and sensitivity analyses must be addressed before finalisation.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Incomplete reporting of exact statistical test implementation: the manuscript reports an exact McNemar two-sided p = 0.5 for n_10=2,n_01=0 but does not document the exact exact-test algorithm (conditional/binomial, two-sided definition, or mid-p correction). With very small discordant counts this choice materially affects interpretation and must be explicit.",
+    "Insufficient summary of contamination handling and exclusions in the manuscript: the preregistration and artifacts claim contamination checks and exclusions, but the paper lacks an explicit table (or clear pointer) listing flagged items, which items were excluded from the primary confirmatory analysis, and how their inclusion would affect estimates.",
+    "Insufficient presentation of per-intent paired outcomes in the manuscript: reviewers/readers must be able to inspect the full per-intent contingency (baseline vs guarded) or be given a single easy-to-access supplementary table (with provided hashes) rather than rely only on archived bundles.",
+    "Bootstrap CI procedure under-specified: although a bootstrap seed is reported in analysis artifacts, the manuscript should explicitly state the paired-resampling scheme (resample pairs or episodes), treatment of contaminated/missing pairs during resampling, number of resamples, and whether the percentile CI is bias-corrected; these choices affect the reported CI in a near-null result.",
+    "Missing sensitivity checks requested by the preregistration are not fully shown: the preregistration enumerated worst-case imputations and contamination-included secondary analyses; the manuscript omits their summaries (how results change under those sensitivity assumptions)."
+  ],
+  "required_revisions": [
+    "Provide an explicit statistical-reporting paragraph/table that documents the exact McNemar test implementation used (conditional exact/binomial formulation or mid-p correction), the software/package and version, and report the exact two-sided p-value under that definition; if multiple exact variants were considered, report them and justify the reported choice.",
+    "Include in the paper (or clearly referenced main supplement) a machine-readable per-intent outcome table (N=99 paired rows) listing intent ID, vendor stratum, baseline outcome (emulator-confirmed violation Y/N), guarded outcome, verifier flags, contamination flag, and artifact hashes; ensure the table is citeable and accessible alongside the manuscript.",
+    "Provide a clear contamination-summary table in the manuscript or supplement indicating which intents were flagged, the contamination rule match, and show the primary confirmatory result recomputed with contaminated items included (labelled exploratory) to demonstrate sensitivity.",
+    "Explicitly document the bootstrap procedure used to obtain the 95% CI (pair-level resampling approach, resample count, seed, handling of missing/contaminated pairs), reproduce the CI in the manuscript text, and include the analysis script invocation and container tag to reproduce bootstrap outputs.",
+    "Report preregistered sensitivity analyses for missingness/imputation (the preregistration enumerated two worst-case imputations) and demonstrate that the primary inference is robust or describe how it changes; if these analyses were performed, include their results concisely in main or supplement; if not, perform and report them.",
+    "Clarify availability and accessibility of the deterministic verifier rule-set: include a concise description of the rules encoded (reachability/ACL/order/loop/policy) and a stable link/hash to the verifier ruleset used so independent auditors can reproduce verifier flags."
+  ],
+  "optional_revisions": [
+    "Add a short illustrative example (one or two intents) showing the baseline LLM output, verifier flag, repair prompt injected, and final guarded output to improve interpretability for readers unfamiliar with NetOps artifacts.",
+    "Provide a compact per-violation-type reduction summary (reachability vs ACL vs loop vs policy) in the main text or supplement; the artifacts appear present and this would strengthen the failure-mode analysis.",
+    "Briefly discuss alternative exact-test choices (e.g., mid-p) and show how those choices would change p-value/CIs for small-discordant counts to help readers interpret borderline significance in small-sample paired designs.",
+    "Explicitly link the artifact bundle URIs/hashes in the manuscript body for critical artifacts (task manifest, contingency table, verifier reports) to ease reviewer audit.",
+    "Expand the discussion of external validity by quantifying how the observed baseline error rate departs from preregistered power assumptions and how that alters practical conclusions and design recommendations for future GVR studies."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,35 @@
+{
+  "study_id": "study-gvr-2026-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis on complete intent pairs (exclude incomplete pairs per preregistered missingness plan). Use per-intent binary violation flags (verifier+emulator) from execution/scoring/task-XXXXX-*.json files (result schema paired_binary_episode_v1). Compute discordant-pair counts and perform exact McNemar test (two-sided, alpha=0.05) for H1; report absolute and relative reduction (guarded minus baseline) and 95% bootstrap percentile CI (10,000 resamples) of the paired difference. Use only non-contaminated items for the primary confirmatory test (contamination flags from scoring JSON). Denominator = number of complete pairs available in execution artifacts (completed episodes 198 → exclude 2 single-episode failures → paired N=98). Publish raw per-intent counts and discordant table.",
+  "secondary_analyses": [
+    "Paired analysis for H2: compute per-intent latency_proxies from paired JSONs and test paired median difference with Wilcoxon signed-rank (two-sided); report median ratio and 95% bootstrap percentile CI (10,000 resamples).",
+    "Per-violation-type (reachability, ACL, loop/policy) absolute reduction in violation proportion (paired within-intent); report counts, nominal p-values, and bootstrap CIs (exploratory except descriptive reporting).",
+    "Per-vendor subgroup summaries (Cisco, Juniper, Arista): paired success-rate differences with Bonferroni-adjusted inference (alpha_adj=0.05/3) as pre-registered subgroup checks (report raw counts and adjusted p-values).",
+    "Distributional summaries for repair iterations (mean, median, IQR) and repair-success rate by violation class (exploratory)."
+  ],
+  "sensitivity_analyses": [
+    "Complete-case sensitivity: restrict to intents with both episodes present (matches primary).",
+    "Worst-case imputations per preregistration: sensitivity run treating any missing guarded outcome as failure and conversely as success (two pre-registered worst-case assignments) and re-run McNemar/bootstrap CI.",
+    "Alternate failed-call treatment: treat missing episodes per contract alternative identifier 'complete_pair_primary_with_failure_as_zero_sensitivity' (assign missing guarded as zero-success) and re-run primary estimand as sensitivity (report as sensitivity result).",
+    "Contamination-inclusion sensitivity: include items flagged as contaminated and re-run primary and secondary analyses (report differences)."
+  ],
+  "uncertainty_quantification": "Bootstrap percentile confidence intervals with 10,000 resamples for paired proportion differences and median/median-ratio estimates; exact McNemar p-value for binary paired test (primary); Wilcoxon signed-rank p-value for latency (H2). Report bootstrap distributions, percentile CIs, and nominal p-values; provide effect-size estimates (absolute and relative reductions) and number-attributable counts with 95% CIs.",
+  "multiplicity_implementation": "Primary familywise alpha reserved for H1 only (alpha=0.05). Per-vendor subgroup tests (3) adjusted by Bonferroni (alpha_adj=0.05/3). All other secondary and exploratory analyses reported with nominal p-values and explicitly labeled exploratory; no further familywise correction for exploratory outcomes.",
+  "contamination_analysis": "Primary confirmatory analysis excludes intents with execution scoring contamination_flags==true (per execution/scoring/task-XXXXX-*.json). Publish list of contaminated intent URIs and all redacted artifacts per preregistration. Secondary analyses will include contaminated items as labeled sensitivity runs. Contamination detection uses the automated substring matching outputs recorded in verifier/emulator/provider artifacts (execution/provider_calls and execution/scoring JSONs).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired discordant-count table (baseline yes/guarded no; baseline no/guarded yes; both yes; both no) with absolute and relative reductions, exact McNemar p-value, bootstrap 95% CI; source: execution/scoring/task-0000XX-*.json (all complete pairs).",
+    "Table 2: Per-vendor (Cisco/Juniper/Arista) paired counts and effect estimates with Bonferroni-adjusted p-values; source: execution/task_manifest.jsonl + execution/scoring/task-0000XX-*.json.",
+    "Table 3: Latency summary (per-intent baseline vs guarded median latency_proxies), paired median difference, Wilcoxon p-value, bootstrap CI; source: execution/scoring/task-0000XX-*.json.",
+    "Table 4: Missingness and failure table: list of failed episodes (2), deterministic failure codes, and number of excluded intents; source: execution/execution_log.jsonl and execution/raw_results.jsonl.",
+    "Table 5 (supplementary within 5 pages if space permits): Repair-iteration summary (count, mean, median, IQR) and per-violation-type repair success rates; source: execution/scoring/task-0000XX-guarded.json."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of violation rates (baseline vs guarded) overall and by vendor (grouped bars); data from aggregate of execution/scoring JSONs.",
+    "Figure 2: Paired scatter / connected-dot plot of per-intent binary outcome (0/1) showing discordant pairs (visualization of paired change); source: per-intent flags in execution/scoring JSONs.",
+    "Figure 3: Violin/boxplot of repair-iteration counts (distribution) and overlay of repair success by violation class; source: execution/scoring/task-0000XX-guarded.json.",
+    "Figure 4: Paired scatter plot of per-intent latency_proxies (baseline vs guarded) with line segments (one line per intent) to visualize H2 effect; source: execution/scoring/task-0000XX-*.json."
+  ]
+}

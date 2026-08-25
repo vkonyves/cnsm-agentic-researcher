@@ -1,0 +1,145 @@
+{
+  "selected_candidate_id": "cand-7f3a2",
+  "title": "End-to-end Generate→Verify→Repair (GVR) for Intent-to-Configuration Safety — Repaired Preregistration",
+  "research_question": "Does an end-to-end generate→verify→repair pipeline that integrates an LLM, a deterministic network verifier, and a network emulator materially reduce operational-safety violations in LLM-generated network configurations compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1: A GVR pipeline reduces the proportion of intents producing at least one safety-policy violation (verifier flag + emulator-confirmed) by ≥30 percentage points relative to LLM-only generation (paired within-intent comparison).",
+    "H2: Repairs produced by the GVR pipeline do not increase median emulator-observed configuration latency by more than 10% relative to the original LLM outputs (paired within-intent comparison)."
+  ],
+  "exploratory_questions": [
+    "E1: How many repair iterations are typically required per violated intent (distribution of repair iterations)?",
+    "E2: Which verifier-flag classes (reachability, ACL, loop/policy) are most amenable to automatic repair?",
+    "E3: Vendor-conditional effects: does GVR effectiveness vary by vendor CLI family (Cisco, Juniper, Arista)?"
+  ],
+  "benchmark_scope": [
+    "Publicly collectible NetOps natural-language intents (see Sampling Plan).",
+    "Emulator-only execution (Mininet-based topologies in docker containers).",
+    "Deterministic, rule-based verifier coverage limited to syntactic/semantic network properties expressible as reachability, ACL/ACL-order, loop/detected-forwarding-loop, and explicit policy contradictions as encoded in the verifier ruleset below."
+  ],
+  "model_scope": [
+    "Single hosted LLM API selected and fixed for the confirmatory experiment (model identifier and exact API call settings pre-registered below).",
+    "All prompt templates and random-seed variants are pre-registered; no manual selection/annotation is permitted post-lock — automated scoring/picking rules are pre-registered."
+  ],
+  "transformation_scope": [
+    "Text-to-configuration extraction (LLM output → normalized vendor CLI config) transformations are deterministic parsing scripts (regex + AST) run in CPU Docker containers.",
+    "Verifier reports converted to structured JSON error reports by deterministic parsers; repair prompts are constructed by deterministic templates that interpolate the JSON error report and the prior config."
+  ],
+  "primary_estimand": "Paired absolute difference in proportions of intents that produce at least one safety-policy violation (verifier flag that is confirmed as emulator-failure) between LLM-only and GVR-final configurations.",
+  "secondary_estimands": [
+    "Paired median difference in emulator-observed TCP/ICMP latency proxy between LLM-only and GVR-final configs per intent.",
+    "Distribution of repair iterations per intent (mean, median, IQR).",
+    "Per-violation-type (reachability, ACL, loop/policy) absolute reduction in violation proportion."
+  ],
+  "sampling_plan": "Confirmatory sample: N = 100 unique natural-language NetOps intents. Stratified sampling by vendor-family: Cisco = 34, Juniper = 33, Arista = 33. Intent sourcing procedure (automated): crawl and collect public instructional task pages, open-source labs, vendor examples, and community-run NetOps problem lists (publicly accessible URLs) using deterministic scraping scripts; filter to remove duplicates and non-actionable intents with automated heuristics (intent must specify a concrete connectivity or policy objective). The final sampled set will be snapshot (URI list + hash) and published as the experiment intent corpus. Inclusion: English-language actionable intent with a reachable topology mapping; Exclusion: intents requiring proprietary devices or private data. Confirmatory_items = 100. Discovery_items = 0 (no unregistered exploratory sampling for confirmatory claims).",
+  "analysis_plan": "Primary analysis: paired comparison of per-intent binary outcome (safety violation: yes/no) between LLM-only and GVR-final configs. Use McNemar exact test (two-sided, alpha=0.05) to test H1; report absolute and relative reduction with 95% bootstrap percentile CIs (10k bootstrap iterations). For latency (H2) compute paired differences in median latency proxies across intents and use Wilcoxon signed-rank test (two-sided, alpha=0.05); report median ratio and 95% CI via bootstrap. Pre-register subgroup (vendor) analyses; apply Bonferroni correction across the 3 vendor subgroup tests for primary estimand. Report all raw counts, discordant-pair tables, effect sizes, and per-intent artifacts. All code for analysis is deterministic and will be published (Docker + seed).",
+  "multiplicity_plan": "Primary familywise alpha reserved for H1 only. Secondary estimands and subgroup tests are exploratory or multiplicity-corrected as follows: per-vendor tests (3) use Bonferroni correction (alpha_adj = 0.05/3). All other secondary analyses are reported with nominal p-values and flagged as exploratory.",
+  "missingness_plan": "If any intent execution (LLM call or emulator run) fails due to infrastructure error, the failure is logged and an automated retry policy applies: up to 2 automated re-executions (same seed/config) for infrastructure faults only. If after retries the artifact is still unavailable, the intent is excluded from confirmatory paired analysis and counted in a missingness table; a sensitivity analysis (complete-case vs. worst-case imputation where missing baseline = violation, missing GVR = non-violation and vice versa) will be reported. All exclusions and their deterministic automated failure reasons will be published.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NetOps Intent Corpus (snapshot URIs published at time of run)"
+    ],
+    "risk_factors": [
+      "Intent corpus overlap with LLM training data (model vendor nondeterminism).",
+      "Repeated prompting that could lead to implicit memorization or leakage between runs.",
+      "External web-retrieval used in prompts (none used in confirmatory protocol)."
+    ],
+    "detection_procedures": [
+      "Record and publish all prompt text and LLM responses; perform automated substring checks to detect verbatim matches with any sampled intent text (flag possible leakage).",
+      "Log per-call deterministic hashes and compare duplicates across seeds/templates to detect cross-run contamination."
+    ],
+    "item_flagging_rules": [
+      "Flag an intent as 'potentially contaminated' if any LLM response includes a >80-character verbatim span that matches any source URI content in the intent corpus snapshot.",
+      "Flag repeated identical outputs across different seeds/templates as 'duplicate-output' for downstream sensitivity checks."
+    ],
+    "analysis_treatment": "Primary analyses exclude flagged contaminated items from confirmatory inference (pre-registered conservative approach). Secondary analyses include contaminated items with explicit labeling. All flagged items are published with redaction as required by the artifact sharing policy.",
+    "residual_uncertainty": [
+      "Residual uncertainty remains about model pretraining overlaps with public examples outside the captured snapshot; classified as noncritical external-validity limitation."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_A_recommended",
+      "description": "Balanced feasible run (recommended). N=100 intents, 3 prompt templates × 2 random seeds = 6 initial LLM calls per intent; deterministic automated selection uses the verifier pass-rate and a simple lexical score to pick the baseline config. GVR repair: verifier-triggered repairs allowed up to 3 iterations; expected average repair iterations per intent = 1.5 among violating intents. Emulation and verification run in Docker containers on CPU. Total confirmatory_items = 100, task_cluster_count = 3 (Cisco/Juniper/Arista).",
+      "planned_model_calls": 750,
+      "models": [
+        "single hosted LLM API (model-identifier to be fixed at freeze; API calls counted as planned_model_calls)"
+      ],
+      "transformations": [
+        "3 prompt templates × 2 seeds per intent (initial generation), deterministic parsing to vendor CLI AST, repair-prompt templates (one LLM call per repair iteration)."
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned_model_calls 750 derived as: 100 intents × 6 initial calls = 600 initial calls; expected average repairs = 0.6 calls/intent (100 × 0.6 = 60); overhead for retries/logging ≈ 90 calls; total ≈ 750. This fits the capability manifest (maximum_planned_model_calls 10000) and can run within the 7‑day wall clock using CPU Docker containers and hosted model API quotas."
+    },
+    {
+      "scenario_id": "scenario_B_thorough",
+      "description": "Higher-power, higher-cost run. N=150 intents, 5 prompt templates × 3 seeds = 15 initial LLM calls per intent; repairs up to 3 iterations; deeper logging and larger bootstrap (10k) retained. task_cluster_count = 3.",
+      "planned_model_calls": 2400,
+      "models": [
+        "single hosted LLM API (model-identifier to be fixed at freeze)"
+      ],
+      "transformations": [
+        "5 prompt templates × 3 seeds per intent initial generation; deterministic parsing and repair prompting up to 3 iterations"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 150,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned_model_calls 2400 derived as: 150 intents × 15 initial = 2250 initial calls; expected repairs ~150 × 0.45 baseline-violation-rate × 1.0 avg repairs ≈ 68 repairs; overhead ≈ 82 calls; total ≈ 2400. This remains within the model-call budget in the capability manifest but requires larger run-time and is not the recommended primary scenario due to cost/time."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute difference in per-intent violation proportion (LLM-only vs GVR-final).",
+    "target_effect": "Absolute reduction of 30 percentage points (e.g., from 40% baseline to 10% after GVR).",
+    "clustering_unit": "Intent (paired within-intent design).",
+    "calculation_method": "Approximate paired McNemar power calculation using assumed baseline violation rate p1=0.40 and post-GVR p2=0.10. Discordant-pair proportion estimated as p1*(1-p2)+p2*(1-p1)=0.42. Using N=100, expected discordant count ≈ 42; approximate power (asymptotic normal approximation + continuity correction) ≈ 0.85. We will report exact McNemar p-values and bootstrap CIs in final analysis.",
+    "assumptions": [
+      "Baseline violation rate (LLM-only) ≈ 40% (conservative estimate from domain extrapolation).",
+      "Post-GVR violation rate target = 10% (≥30pp absolute reduction).",
+      "Discordant-pair proportion ≈ 0.42 under these rates.",
+      "Alpha = 0.05 two-sided.",
+      "No more than 10% of intents will be lost to unrecoverable infrastructure failures (handled in missingness_plan)."
+    ],
+    "recommended_scenario_id": "scenario_A_recommended",
+    "minimum_detectable_effect_notes": "With N=100 and the above baseline assumption, the analysis has ~85% power to detect a 30pp absolute reduction; if baseline violation rate is lower (<30%), detectable absolute reductions will be smaller (power falls). Sensitivity analyses will report power across baseline rates 25%–50%.",
+    "sensitivity_analyses": [
+      "Power recalculated for baseline p1 in {0.25,0.35,0.45}.",
+      "Bootstrap-based 95% CIs for paired proportion difference (10k resamples)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Text → vendor CLI normalization (regex-based parser → AST).",
+      "Verifier JSON report → repair-prompt template interpolation.",
+      "Emulator test-suite scripts (topology template → deterministic tests for reachability/ACL/loop)."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: parsed AST → canonicalized CLI → re-parse and compare AST equality; mismatches rejected automatically.",
+      "Verifier-consistency check: if verifier flags no violations but emulator test fails, mark item as 'verifier-emulator discordant' and include in sensitivity analyses."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and re-run any LLM output that fails deterministic CLI parsing (parser error) up to retry policy (2 retries) — failure after retries becomes recorded infrastructure or generation failure and is handled per missingness_plan.",
+      "Reject any parsed config that contains syntactically disallowed commands as defined in the pre-registered forbidden-commands list (to avoid emulator breakage)."
+    ],
+    "audit_sample_policy": "Automated deterministic audit sample: publish full parsed ASTs and verifier logs for 20% randomly selected intents (seeded RNG) for external reproducibility; all artifacts are hashed and published. No manual annotation or adjudication will be used.",
+    "mapping_validation": "Mapping from verifier-flag types to emulator test suite is pre-registered: (1) reachability flag → ICMP/TCP connectivity checks between specified endpoints in the Mininet topology; (2) ACL violation → packet-drop expectation tests; (3) loop/policy → traceroute/forwarding-path checks for persistent forwarding loops. Mappings are deterministic and implemented as test scripts.",
+    "residual_risks": [
+      "Verifier rule blind spots for high-level intent misinterpretation (semantic policy divergence) remain; emulator confirmation reduces but does not eliminate this risk.",
+      "Emulator-simulator mismatch to real vendor hardware behavior is a noncritical external-validity limitation."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity: Mininet-based emulation may not reproduce vendor-specific hardware idiosyncrasies; this limits external generalizability but does not prevent testing the paired hypotheses within the declared emulator scope.",
+    "Verifier coverage: deterministic verifier ruleset cannot capture all semantic/policy interpretation errors; residual unsafe constructs may remain undetected but emulator confirmation mitigates many such cases.",
+    "Potential overlap between public intent corpus samples and LLM pretraining data (contamination flagging and exclusion mitigate this risk; residual uncertainty remains).",
+    "Single-model scope: inferences apply only to the tested hosted-model API; generalization to other LLMs is noncritical and explicitly out of scope for confirmatory claims."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.1002/nem.2313",
+    "doi:10.20535/2411-2976.12021.24-32",
+    "doi:10.21203/rs.3.rs-8123173/v1"
+  ]
+}

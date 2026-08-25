@@ -1,0 +1,80 @@
+{
+  "study_id": "study-gvr-2026-001",
+  "title": "End-to-end Generate→Verify→Repair (GVR) for Intent-to-Configuration Safety — Repaired Preregistration",
+  "research_question": "Does an end-to-end generate→verify→repair pipeline that integrates an LLM, a deterministic network verifier, and a network emulator materially reduce operational-safety violations in LLM-generated network configurations compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1: A GVR pipeline reduces the proportion of intents producing at least one safety-policy violation (verifier flag + emulator-confirmed) by ≥30 percentage points relative to LLM-only generation (paired within-intent comparison).",
+    "H2: Repairs produced by the GVR pipeline do not increase median emulator-observed configuration latency by more than 10% relative to the original LLM outputs (paired within-intent comparison)."
+  ],
+  "exploratory_questions": [
+    "E1: How many repair iterations are typically required per violated intent (distribution of repair iterations)?",
+    "E2: Which verifier-flag classes (reachability, ACL, loop/policy) are most amenable to automatic repair?",
+    "E3: Vendor-conditional effects: does GVR effectiveness vary by vendor CLI family (Cisco, Juniper, Arista)?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.1002/nem.2313",
+    "doi:10.20535/2411-2976.12021.24-32",
+    "doi:10.21203/rs.3.rs-8123173/v1"
+  ],
+  "benchmark_scope": [
+    "Publicly collectible NetOps natural-language intents (snapshot URIs published at time of run).",
+    "Emulator-only execution (Mininet-based topologies in Docker containers).",
+    "Deterministic, rule-based verifier coverage limited to reachability, ACL/ACL-order, loop/forwarding-loop, and explicit policy contradictions as encoded in the verifier ruleset."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 100,
+    "planned_episode_count": 200,
+    "maximum_model_calls": 200,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired absolute difference in proportions of intents that produce at least one safety-policy violation (verifier flag that is confirmed as emulator-failure) between LLM-only and GVR-final configurations.",
+  "secondary_estimands": [
+    "Paired median difference in emulator-observed TCP/ICMP latency proxy between LLM-only and GVR-final configs per intent.",
+    "Distribution of repair iterations per intent (mean, median, IQR).",
+    "Per-violation-type (reachability, ACL, loop/policy) absolute reduction in violation proportion."
+  ],
+  "sampling_plan": "Confirmatory sample N=100 unique natural-language NetOps intents. Stratified by vendor-family: Cisco=34, Juniper=33, Arista=33. Intent sourcing automated via deterministic crawlers of public instructional pages, open-source labs, vendor examples, and community problem lists; filter heuristics require concrete connectivity or policy objective. Final sampled set is snapshot (URI list + hash) and published. Inclusion: English actionable intent with reachable topology mapping. Exclusion: intents requiring proprietary devices or private data.",
+  "power_and_precision_plan": "Primary estimand target: absolute reduction ≥30 percentage points (e.g., from 40% to 10%). Paired McNemar test (two-sided, alpha=0.05) for H1; 10k bootstrap percentile CIs for paired proportion differences. Power approximation: with N=100 and assumed baseline p1=0.40, p2=0.10, estimated power ≈0.85. Sensitivity analyses for baseline rates {0.25,0.35,0.45}. For latency (H2) use paired Wilcoxon signed-rank (two-sided, alpha=0.05) and bootstrap CIs for median ratio.",
+  "exclusion_rules": [
+    "Intents requiring proprietary hardware, private data, or nondeterministic external dependencies.",
+    "Items for which all execution artifacts remain unavailable after automated retries (treated per missingness_plan)."
+  ],
+  "missingness_plan": "Automated retry policy for infrastructure faults: up to 2 automated re-executions (same seed/config). If still unavailable, the intent is excluded from confirmatory paired analysis and recorded in a missingness table. Sensitivity analyses: complete-case and worst-case imputations (two pre-registered worst-case assignments). All exclusions and deterministic failure reasons published.",
+  "analysis_plan": "Primary analysis: paired comparison of per-intent binary outcome (safety violation yes/no) between LLM-only and GVR-final configs. Use exact McNemar test (two-sided, alpha=0.05); report discordant-pair table, absolute and relative reductions, and 95% bootstrap percentile CIs (10k resamples). For latency (H2), compute paired differences in per-intent median latency proxies and test with Wilcoxon signed-rank (two-sided); report median ratio and bootstrap 95% CI. Pre-registered subgroup (vendor) analyses with Bonferroni correction. Publish all raw counts and per-intent artifacts. Analysis code deterministic and published (Docker + seed).",
+  "multiplicity_plan": "Primary familywise alpha reserved for H1 only. Per-vendor subgroup tests (3) use Bonferroni correction (alpha_adj=0.05/3). All other secondary analyses reported with nominal p-values and labeled exploratory.",
+  "contamination_plan": "Publish all prompt texts and LLM responses. Automated substring checks will flag potential leakage: an intent is 'potentially contaminated' if any LLM response contains a >80-character verbatim span matching any source URI content in the intent corpus snapshot. Flag repeated identical outputs across seeds/templates as 'duplicate-output'. Primary analyses exclude flagged contaminated items; secondary analyses include them with labels. All flagged items published with redaction as required.",
+  "stopping_rule": "Stop when all N=100 intents have completed baseline and guarded episodes (including allowed retries) or when deterministic infrastructure cutoff is reached. If more than 10% of intents are unrecoverably missing after retries, stop and report outcomes with missingness sensitivity analyses; do not continue adaptive sampling beyond the pre-registered N.",
+  "planned_outputs": [
+    "Snapshot of 100-intent corpus (URIs + hash).",
+    "All prompt templates, seeds, and raw LLM responses.",
+    "Parsed vendor-CLI ASTs, verifier JSON reports, emulator logs, and per-intent test results.",
+    "Analysis code and Docker image for replication.",
+    "Statistical results: McNemar tables, effect sizes, bootstrap CIs, latency tests.",
+    "Evidence-to-claim table and nearest-work comparison.",
+    "Five-page IEEE-format manuscript with Disclosure Statement."
+  ],
+  "unresolved_critical_issues": []
+}

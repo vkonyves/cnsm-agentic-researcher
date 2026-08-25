@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-7f3a2",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Unclear formalization and provenance of the \"safety-policy\" verifier ruleset (coverage vs. real-world policies).",
+        "Emulator fidelity (Mininet vs vendor devices) may not detect semantic policy violations; risk of false negatives/positives.",
+        "Repair loop may introduce secondary unsafe constructs not covered by verifier.",
+        "Dataset sourcing and intent selection criteria are underspecified (possible selection bias).",
+        "Power/sample-size justification absent; multiple-comparison plan needs detail."
+      ],
+      "required_design_repairs": [
+        "Specify deterministic verifier (e.g., Batfish) version, exact rule set, and how policies are encoded/validated.",
+        "Provide explicit emulator configuration, test-suite scripts, and mapping from verifier flags to emulator tests.",
+        "Define dataset sourcing, inclusion/exclusion rules, and a reproducible intent-sampling procedure; publish intent corpus or provide stable identifiers.",
+        "Pre-register exact prompt templates, repair prompting strategy, allowed model call budget, seeds, and retry policy.",
+        "Add power analysis/sample-size justification and pre-register subgroup analyses; include artifact-sharing plan for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-1b9d4",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Curated retrieval corpus construction (sources, licensing, coverage) is underspecified and may bias results.",
+        "Operational definition and automated detection of \"factual contradiction\" vs. acceptable alternative commands is underdeveloped.",
+        "Static CLI parser/emulator fidelity to real vendor CLIs must be justified.",
+        "Retrieval+RAG hyperparameters (k, reranker, embedding model) not fixed; results sensitive to these choices."
+      ],
+      "required_design_repairs": [
+        "Document retrieval corpus sources, selection criteria, license status, and provide a reproducible build script or snapshot.",
+        "Define the factual-error annotation procedure (automated vs human adjudication) and inter-rater procedures if manual checks are used.",
+        "Specify CLI parser/emulator (version, vendor coverage) and validate it against a small ground-truth set of vendor commands.",
+        "Pre-register retriever and RAG hyperparameters (k, embedding model, scoring), prompt templates, and evaluation thresholds; include retrieval-rank logging for attribution analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-5c8e1",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Single-model design limits external validity and makes it hard to generalize prompt-sensitivity findings.",
+        "Few-shot example selection and prompt-template corpus are underspecified and can strongly affect outcomes.",
+        "Potential carryover/context-window and ordering effects not fully mitigated by described randomization.",
+        "Multiple comparisons and interaction tests risk false discoveries without clear correction plan."
+      ],
+      "required_design_repairs": [
+        "Pre-register all prompt templates, examples, and exact tokenization (including vendor-context tokens) and include selection rationale.",
+        "Either include at least one additional model family or clearly restrict claims to the tested model and state generalization limits.",
+        "Specify randomization/blocking scheme to avoid carryover and include context-window constraints; fix seeds and prompt-order logging.",
+        "Pre-register statistical correction plan for multiple comparisons (e.g., familywise alpha) and include power analysis for main effects and interactions."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-4a2b0",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Ethical risk of documenting poisoning/attack artifacts and potential dual-use; responsible-disclosure plan missing.",
+        "Poisoned-document construction and attribution method (linking safety violations to poisoned docs) are underspecified and may be non-reproducible.",
+        "Mitigation design (retriever-filter thresholds) is heuristic and needs principled calibration.",
+        "Sanitization of released artifacts to avoid enabling misuse is not described."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethics and responsible-disclosure section; obtain an approvals/oversight statement and define redaction policy for public artifacts.",
+        "Pre-register automated poisoned-document generation rules, attack constraints, and a reproducible script for corpus poisoning.",
+        "Specify retrieval-filtering mitigation algorithm, thresholds, and how they were chosen (validation set) and log ranks/provenance for attribution.",
+        "Provide an artifact-release plan describing what will be published, what will be redacted, and how to reproduce experiments safely in emulator-only environments."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-7f3a2",
+      "title": "End-to-end Generate→Verify→Repair (GVR) for Intent-to-Configuration Safety",
+      "research_question": "Does an end-to-end generate→verify→repair pipeline that integrates an LLM, a deterministic network verifier, and a network emulator materially reduce operational-safety violations in LLM-generated network configurations compared to LLM-only generation?",
+      "hypotheses": [
+        "H1: A GVR pipeline reduces the proportion of configurations that violate declared network-safety policies by ≥30% relative to LLM-only generation.",
+        "H2: Repairs produced by the GVR pipeline do not increase median configuration execution latency in the emulator by more than 10% compared to the original LLM outputs."
+      ],
+      "proposed_design": "Paired controlled experiment on N=100 natural-language NetOps intents drawn from public operational task collections. For each intent: (1) Generate a vendor-specific configuration with a hosted LLM API (LLM-only baseline). (2) Run the same initial LLM generation through a GVR pipeline: feed LLM-generated config to a deterministic network verifier (e.g., Batfish or equivalent) to detect reachability, ACL, and loop/policy violations; on detected violations, produce machine-readable verifier error reports and prompt the LLM to repair; allow up to 3 repair iterations; finalize repaired config. (3) Deploy both baseline and GVR-final configs in a Mininet emulator (or vendor-equivalent emulator) to execute reachability and service-level tests and collect runtime traces. Predefine seeds, prompt templates, retry policy (max 3), and stopping rules; record all model calls and verifier outputs. Primary comparison is within-intent (paired) between baseline and GVR pipeline.",
+      "expected_data": "Per-intent artifacts: initial LLM config, verifier flags (violation types), number of repair iterations, repaired configs, emulator pass/fail for reachability tests, service-level metrics (latency/throughput proxies), timestamps, and full model/verifier logs.",
+      "primary_outcome": "Absolute difference (percentage points) in the proportion of intents producing at least one safety-policy violation (as flagged by the verifier and confirmed by emulator) between LLM-only and GVR-final configurations.",
+      "analysis_outline": "Compute paired proportions of safety-violating configs (LLM-only vs GVR); apply paired McNemar test or bootstrap-based paired proportion CI to test H1 (alpha=0.05). Report absolute and relative reduction with 95% CIs. For latency (H2) compute paired differences in median emulator latency; test with Wilcoxon signed-rank test. Report distribution of repair iterations, failure-mode taxonomy, and per-violation-type effectiveness. Pre-register subgroup analyses (vendor, intent complexity) and correct for multiple comparisons (Bonferroni) where applicable.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.1002/nem.2313",
+        "doi:10.20535/2411-2976.12021.24-32"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.1002/nem.2313",
+        "doi:10.21203/rs.3.rs-8123173/v1"
+      ],
+      "risks": [
+        "Deterministic verifier may not detect high-level semantic or policy-interpretation errors leading to false sense of safety; use emulator confirmation to mitigate.",
+        "LLM repairs could introduce inadvertent unsafe constructs not covered by verifier ruleset.",
+        "If experiments are accidentally run on production devices the configurations could cause outages — enforce emulator-only execution and access controls.",
+        "Prompting the LLM with verifier errors may reveal brittle failure modes or overfitting to error-message style."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "cand-1b9d4",
+      "title": "Retrieval-Augmented Generation (RAG) with Curated Vendor-CLI Corpus to Reduce Hallucinations",
+      "research_question": "Does retrieval-augmentation using a curated vendor-CLI and network-policy corpus reduce hallucination and factual errors in LLM-generated vendor-specific command sequences compared to non‑RAG generation?",
+      "hypotheses": [
+        "H1: RAG reduces the per-command factual-error rate by ≥40% compared to non-RAG LLM generation.",
+        "H2: RAG-generated command sequences produce ≥30% fewer vendor-CLI syntax errors as detected by a static CLI parser/emulator than non-RAG generation."
+      ],
+      "proposed_design": "Controlled between-subjects experiment on N=200 vendor-specific intents covering multiple vendors (e.g., Cisco IOS, Juniper). Build a retrieval corpus from public vendor manuals, RFCs, and authoritative policy docs. Implement two pipeline variants: (A) baseline LLM generation without retrieval; (B) RAG pipeline that supplies top-k retrieved passages to the LLM prompt. For each intent, collect generated command sequences, run a static CLI syntax checker/emulator to flag syntax errors, and cross-check commands against authoritative corpus to mark factual contradictions (hallucinations). Randomize intent assignment across pipeline variants; fix retriever configuration and seeds. Record retrieval evidence and ranks for analysis.",
+      "expected_data": "Per-generated-command records: retrieved passages and ranks (for RAG), CLI-syntax error flags, factual-contradiction flags (compared to authoritative corpus), execution/emulator outcomes where applicable, and model-call logs.",
+      "primary_outcome": "Per-command factual-error rate: fraction of generated commands that are contradicted by the authoritative vendor/policy corpus (lower is better) comparing RAG vs non-RAG.",
+      "analysis_outline": "Compute per-command and per-intent factual-error rates for RAG and baseline; test difference in proportions via two-proportion z-test or bootstrap CI (alpha=0.05). Analyze syntax-error rates with chi-squared tests; stratify by vendor and by intent complexity; report effect sizes and 95% CIs. Perform retrieval-quality analysis correlating top-k relevance to factual-error reduction. Apply Bonferroni correction for planned vendor subgroups.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4391221150",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4391221150",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Curated retrieval corpus may be incomplete or biased causing false-positive hallucination flags; validate corpus coverage before experiments.",
+        "Vendor CLI heterogeneity may produce vendor-specific failure modes that limit cross-vendor generalization.",
+        "Emulator/CLI parser may not perfectly mirror real device behavior — results limited to emulator fidelity.",
+        "Large retrieval corpora increase model-call costs and latency; monitor budget and runtime constraints."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-5c8e1",
+      "title": "Prompt-Template Sensitivity Analysis for Intent-to-Configuration Pipelines",
+      "research_question": "How sensitive are LLM-based intent-to-configuration pipelines to prompt-template variations, few-shot example inclusion, and explicit vendor-context tokens, and which prompt features most strongly affect correctness and safety?",
+      "hypotheses": [
+        "H1: Prompt-template choice causes at least a 20 percentage-point change in configuration correctness rate across tested templates.",
+        "H2: Including concise vendor-specific instruction tokens (e.g., explicit 'Cisco IOS:' tag) significantly increases syntax-correct outputs (p<0.05) compared to vendor-agnostic prompts."
+      ],
+      "proposed_design": "Factorial within-subjects design varying three prompt factors: template format (minimal instruction vs structured key-value vs chain-of-thought reasoning), vendor-context token (present vs absent), and few-shot examples (0 vs 3). Use N=120 intents balanced across vendors. For each intent and prompt-condition, generate a configuration, run deterministic verifier and CLI parser to obtain correctness/safety flags. Randomize prompt ordering to mitigate carryover. Predefine all prompt templates, example sets, random seeds, and stopping rules; limit to a single hosted LLM model family to control model variance.",
+      "expected_data": "Per-condition outputs: generated configurations, prompt template metadata, verifier/cLI-parser correctness and safety flags, response lengths, and model-call traces.",
+      "primary_outcome": "Effect size (percentage-point difference) in configuration correctness rate attributable to prompt-template factor (main effect), measured across intents.",
+      "analysis_outline": "Perform two- and three-way ANOVA on correctness rates to estimate main effects and interactions (template × vendor × few-shot). Follow up with post-hoc pairwise comparisons (Tukey HSD) and report eta-squared effect sizes and 95% CIs. For binary safety outcomes use generalized linear mixed models (logistic) with random intercepts per intent. Pre-register templates and analytic thresholds; correct for multiple post-hoc tests.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-8759042/v1",
+        "doi:10.2139/ssrn.6262638",
+        "doi:10.1002/nem.2313"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.21203/rs.3.rs-8759042/v1",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Chain-of-thought style prompts may increase hallucinations in domain-specialized models as observed in prior work; include safety checks.",
+        "Results may be highly model-dependent and not generalize to other LLM families; limit claims accordingly.",
+        "Prompt ordering and context-window effects could bias results — mitigate via randomization and fixed seeds."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand-4a2b0",
+      "title": "Adversarial-POI: Retrieval-Poisoning and Prompt-Injection Robustness for RAG NetOps Pipelines",
+      "research_question": "How vulnerable are RAG-augmented NetOps pipelines to adversarially poisoned retrieval corpora and prompt-injection style adversarial intents, and does simple retriever-based filtering materially reduce successful attack rate?",
+      "hypotheses": [
+        "H1: Introducing a small fraction (≤5%) of adversarially poisoned documents into the retrieval corpus increases the hallucination-induced safety-violation rate in RAG pipelines by ≥25%.",
+        "H2: Applying a retriever-document-similarity filtering mitigation reduces the attack success rate by ≥50% relative to unfiltered retrieval."
+      ],
+      "proposed_design": "Adversarial evaluation on N=150 intents including a designated adversarial subset. Create a baseline authoritative retrieval corpus; craft poisoned documents that subtly recommend unsafe CLI constructs or policy-violating sequences. Implement RAG pipeline in three conditions: (A) clean corpus, (B) poisoned corpus (5% poisoned docs), (C) poisoned corpus plus simple mitigation (document-similarity / provenance filtering). For each intent, record retrieved documents, generation outputs, verifier/emulator-detected safety violations, and whether violations trace to poisoned-document content (via retrieval rank analysis). Predefine attack construction rules, mitigation threshold, and seeds.",
+      "expected_data": "Per-intent records: retrieved-doc ranks, poisoned-doc retrieval hits, generated configs, verifier/emulator safety flags, attribution traces linking outputs to poisoned docs, and mitigation filter decisions.",
+      "primary_outcome": "Attack success rate: fraction of intents for which RAG output causes at least one safety violation attributable to poisoned-document influence (compare A vs B and B vs C).",
+      "analysis_outline": "Compare attack success rates across conditions using Fisher's exact test or chi-squared test; compute absolute and relative increases and reductions with 95% CIs. Estimate attacker influence by the proportion of outputs whose top-k retrieved passages contain poisoned docs. Report mitigation true-positive/false-positive rates and analyze retrieval-rank distributions. Conduct sensitivity analyses across poisoning percentages (1%, 5%, 10%).",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-9602180/v1",
+        "https://openalex.org/W4387500346",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4391221150",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Crafting poisoned documents will intentionally create unsafe command recommendations — restrict all execution to isolated emulators and artifact containment procedures.",
+        "Mitigation may produce false positives that remove legitimate retrieval evidence and degrade RAG utility.",
+        "Ethical concerns about publishing attack details — sanitize attack content in public artifacts and provide responsible-disclosure context."
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

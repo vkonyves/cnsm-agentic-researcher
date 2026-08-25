@@ -1,0 +1,179 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models can be used to translate high-level natural-language network intents into low-level network configurations with measurable task-level accuracy in controlled studies.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "empirical",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence is from controlled/limited case studies (two use cases reported) rather than broad production deployments.",
+        "Results depend on model fine-tuning, in‑context examples, and experimental setup; vendor-specific CLI variability may limit generality."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Retrieval-augmented generation (RAG) and retrieval grounding reduce hallucinations and improve factuality for domain-specific LLM tasks (demonstrated in clinical/medical domains and supported by multiple surveys).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391221150",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4389984066",
+        "doi:10.2139/ssrn.6608518"
+      ],
+      "evidence_type": "empirical_and_survey",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence comes mainly from medical and general RAG surveys; direct demonstrations in NetOps-specific corpora are not supplied in the record set.",
+        "RAG effectiveness depends on quality/coverage of the retrieval corpus and retriever strategy."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Generate–verify–repair (GVR) or generate–verify architectures that interpose deterministic verifiers/oracles reliably detect many mechanical defects in LLM-generated artifacts (shown in code/regulatory contexts), enabling closed-loop repairs that improve verifiable correctness.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6143746",
+        "doi:10.21203/rs.3.rs-8123173/v1"
+      ],
+      "evidence_type": "methodological_and_empirical",
+      "confidence": 0.85,
+      "limitations": [
+        "Primary demonstrations are in code-generation and regulated-software contexts rather than NetOps configuration generation.",
+        "Coverage is limited to defect classes detectable by the inserted verifiers (e.g., compilation, static-checkable rules); semantic/network-policy errors may be harder to detect."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "LLM outputs are sensitive to prompt format and prompting strategies; some prompting techniques (e.g., chain-of-thought) can degrade performance in domain-specialized models.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-8759042/v1",
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4321649710"
+      ],
+      "evidence_type": "empirical_and_conceptual",
+      "confidence": 0.9,
+      "limitations": [
+        "Reported prompt-sensitivity results are domain- and model-dependent; NetOps-specific prompt sensitivity was not directly measured in the supplied records.",
+        "Prompt-coupling analyses are largely conceptual/empirical on other application codebases; transfer to operational NetOps prompts requires validation."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "There is a recognized lack of standardized, domain-specific evaluation and adversarial benchmarking frameworks for assessing safety/robustness of LLM-augmented operational systems; calls for standardized evaluation appear in multiple recent surveys and adversarial studies.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-9602180/v1",
+        "https://openalex.org/W4387500346",
+        "https://openalex.org/W4389984066",
+        "doi:10.1007/s10009-017-0469-y"
+      ],
+      "evidence_type": "survey_and_methodological",
+      "confidence": 0.8,
+      "limitations": [
+        "Surveys and proposals document the gap but do not themselves provide a single agreed-upon NetOps benchmark.",
+        "Some domain-specific benchmarking work exists in neighboring fields; extrapolation to NetOps requires targeted dataset and metric design."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Do generate–verify–repair (GVR) architectures that succeed in code/regulatory domains produce comparable reductions in operational risk when applied to LLM-generated network configurations (i.e., detect and enable repair of network-policy, reachability, and safety violations) in realistic NetOps pipelines?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W2218937857"
+      ],
+      "evidence_type": "extrapolation_question",
+      "confidence": 0.4,
+      "limitations": [
+        "Direct empirical evaluation of GVR on network-config artifacts with network verifiers or emulators is not present in the supplied records.",
+        "Network-specific correctness properties (reachability, loops, ACL semantics) may require different verifier capabilities than those used for code."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Does retrieval augmentation (RAG) applied with curated network-policy and vendor-CLI corpora yield the same magnitude of hallucination reduction and factuality improvements observed in medical/clinical studies?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391221150",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4389984066"
+      ],
+      "evidence_type": "extrapolation_question",
+      "confidence": 0.45,
+      "limitations": [
+        "Supplied evidence shows strong RAG benefits in other domains; NetOps-specific retrieval corpora and retrieval strategies remain unevaluated in the provided record set.",
+        "Network commands/config semantics and vendor heterogeneity may present unique grounding challenges."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "What are the operationally meaningful, standardized metrics and testbeds (simulator vs. real device) that should be used to quantify correctness, safety, and robustness of LLM-generated NetOps artifacts?",
+      "evidence_record_ids": [
+        "doi:10.1007/s10009-017-0469-y",
+        "https://openalex.org/W2218937857",
+        "https://openalex.org/W3177813494"
+      ],
+      "evidence_type": "methodological_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Benchmarks and reliable-benchmarking guidance exist generally, and simulators/emulators (Mininet, ns-3 references) exist, but a NetOps-specific consensus metric/task suite is not established in the supplied records.",
+        "Choice of metrics must balance verifiability (deterministic properties) and operational relevance (SLAs, performance impact)."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Public, evaluated pipelines that integrate LLM-based intent/config generation with deterministic network verifiers and network emulators/testbeds (generate→verify→repair→emulate) are not present in the supplied record set (i.e., a gap in published NetOps-specific end‑to‑end GVR evaluations).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W2218937857",
+        "doi:10.20535/2411-2976.12021.24-32"
+      ],
+      "evidence_type": "evidence_gap",
+      "confidence": 0.5,
+      "limitations": [
+        "Absence here does not prove no such work exists elsewhere; it reflects the supplied-record set only.",
+        "Some components (LLM intent translation, verification tools, emulators) exist independently but not shown combined in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "There is a lack of standardized adversarial/evasion benchmarks specifically targeting LLM-augmented NetOps workflows (e.g., prompt injection, adversarial intent phrasing, corpus poisoning for retrieval in network domains).",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-9602180/v1",
+        "https://openalex.org/W4387500346",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "evidence_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Adversarial frameworks are proposed for security/AIOps broadly, but concrete NetOps-targeted adversarial suites and published results are not present in the supplied records.",
+        "Domain-specific adversarial scenarios require curated network corpora and threat models."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Empirical studies quantifying prompt-coupling/prompt-sensitivity effects specifically for NetOps intent-to-configuration pipelines are scarce or absent in the supplied record set.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-8759042/v1",
+        "doi:10.2139/ssrn.6262638",
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "evidence_gap",
+      "confidence": 0.55,
+      "limitations": [
+        "Prompt-sensitivity literature is substantial in other domains; the supplied NetOps intent-translation study does not deeply explore prompt robustness across vendors/variants.",
+        "This identifies a gap in targeted prompt-robustness experiments for NetOps rather than proving nonexistence."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous NetOps change execution without operator oversight (unsupported by supplied records).",
+    "There is published evidence that formal network-verification tools are already integrated with LLM pipelines in operational networks and proven to guarantee safety at scale (no such integrated NetOps+LLM+verifier demonstrations are present in the supplied records).",
+    "Existing RAG studies prove RAG eliminates all hallucination/factuality errors in every domain including vendor-specific NetOps (overbroad claim not supported by domain-limited evidence)."
+  ]
+}
