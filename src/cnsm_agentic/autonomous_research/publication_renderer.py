@@ -21,23 +21,111 @@ def _sha256_file(path: Path) -> str:
 
 
 def _latex_escape(value: str) -> str:
-    unicode_replacements = {
+    # Unicode punctuation/spacing that can be safely normalized
+    # to plain-text equivalents before LaTeX escaping.
+    unicode_text_replacements = {
         "\u2013": "--",     # en dash
         "\u2014": "---",    # em dash
         "\u2212": "-",      # mathematical minus sign
         "\u00a0": " ",      # non-breaking space
-        "\u2018": "'",
-        "\u2019": "'",
-        "\u201c": '"',
-        "\u201d": '"',
-        "\u2265": ">=",
-        "\u2264": "<=",
+        "\u202f": " ",      # narrow no-break space
+        "\u2009": " ",      # thin space
+        "\u200b": "",       # zero-width space
+        "\u2060": "",       # word joiner
+        "\u2018": "'",      # left single quote
+        "\u2019": "'",      # right single quote
+        "\u201c": '"',      # left double quote
+        "\u201d": '"',      # right double quote
+        "\u2026": "...",    # ellipsis
+        "\u2032": "'",      # prime
+        "\u2033": "''",     # double prime
+        "\u2265": ">=",     # greater than or equal
+        "\u2264": "<=",     # less than or equal
+    }
+
+    # Scientific symbols that should retain their mathematical
+    # meaning in the generated IEEE LaTeX.
+    unicode_latex_replacements = {
+        "\u2248": r"\ensuremath{\approx}",       # ≈
+        "\u2260": r"\ensuremath{\neq}",          # ≠
+        "\u00b1": r"\ensuremath{\pm}",           # ±
+        "\u2213": r"\ensuremath{\mp}",           # ∓
+        "\u00d7": r"\ensuremath{\times}",        # ×
+        "\u00f7": r"\ensuremath{\div}",          # ÷
+        "\u221e": r"\ensuremath{\infty}",        # ∞
+        "\u221d": r"\ensuremath{\propto}",       # ∝
+        "\u2202": r"\ensuremath{\partial}",      # ∂
+        "\u2207": r"\ensuremath{\nabla}",        # ∇
+        "\u2211": r"\ensuremath{\sum}",          # ∑
+        "\u220f": r"\ensuremath{\prod}",         # ∏
+        "\u222b": r"\ensuremath{\int}",          # ∫
+        "\u2208": r"\ensuremath{\in}",           # ∈
+        "\u2209": r"\ensuremath{\notin}",        # ∉
+        "\u2282": r"\ensuremath{\subset}",       # ⊂
+        "\u2286": r"\ensuremath{\subseteq}",     # ⊆
+        "\u2283": r"\ensuremath{\supset}",       # ⊃
+        "\u2287": r"\ensuremath{\supseteq}",     # ⊇
+        "\u222a": r"\ensuremath{\cup}",          # ∪
+        "\u2229": r"\ensuremath{\cap}",          # ∩
+        "\u2192": r"\ensuremath{\rightarrow}",   # →
+        "\u2190": r"\ensuremath{\leftarrow}",    # ←
+        "\u2194": r"\ensuremath{\leftrightarrow}",  # ↔
+        "\u21d2": r"\ensuremath{\Rightarrow}",   # ⇒
+        "\u21d0": r"\ensuremath{\Leftarrow}",    # ⇐
+        "\u21d4": r"\ensuremath{\Leftrightarrow}",  # ⇔
+        "\u00b0": r"\ensuremath{^\circ}",        # °
+        "\u00b7": r"\ensuremath{\cdot}",         # ·
+        "\u2022": r"\textbullet{}",              # •
+        "\u03b1": r"\ensuremath{\alpha}",        # α
+        "\u03b2": r"\ensuremath{\beta}",         # β
+        "\u03b3": r"\ensuremath{\gamma}",        # γ
+        "\u03b4": r"\ensuremath{\delta}",        # δ
+        "\u03b5": r"\ensuremath{\epsilon}",      # ε
+        "\u03b8": r"\ensuremath{\theta}",        # θ
+        "\u03bb": r"\ensuremath{\lambda}",       # λ
+        "\u03bc": r"\ensuremath{\mu}",           # μ
+        "\u00b5": r"\ensuremath{\mu}",           # µ
+        "\u03c0": r"\ensuremath{\pi}",            # π
+        "\u03c1": r"\ensuremath{\rho}",           # ρ
+        "\u03c3": r"\ensuremath{\sigma}",         # σ
+        "\u03c4": r"\ensuremath{\tau}",           # τ
+        "\u03c6": r"\ensuremath{\phi}",           # φ
+        "\u03c9": r"\ensuremath{\omega}",         # ω
+        "\u0394": r"\ensuremath{\Delta}",         # Δ
+        "\u03a3": r"\ensuremath{\Sigma}",         # Σ
+        "\u03a9": r"\ensuremath{\Omega}",         # Ω
+        "\u00b2": r"\textsuperscript{2}",         # ²
+        "\u00b3": r"\textsuperscript{3}",         # ³
+        "\u2080": r"\textsubscript{0}",           # ₀
+        "\u2081": r"\textsubscript{1}",           # ₁
+        "\u2082": r"\textsubscript{2}",           # ₂
+        "\u2083": r"\textsubscript{3}",           # ₃
+        "\u2084": r"\textsubscript{4}",           # ₄
+        "\u2085": r"\textsubscript{5}",           # ₅
+        "\u2086": r"\textsubscript{6}",           # ₆
+        "\u2087": r"\textsubscript{7}",           # ₇
+        "\u2088": r"\textsubscript{8}",           # ₈
+        "\u2089": r"\textsubscript{9}",           # ₉
     }
 
     value = "".join(
-        unicode_replacements.get(char, char)
+        unicode_text_replacements.get(char, char)
         for char in value
     )
+
+    # Protect LaTeX replacements while ordinary LaTeX-special
+    # characters in manuscript text are escaped.
+    protected_tokens: dict[str, str] = {}
+
+    for index, (char, latex) in enumerate(
+        unicode_latex_replacements.items()
+    ):
+        if char not in value:
+            continue
+
+        token = f"@@CNSMUNICODE{index}@@"
+        value = value.replace(char, token)
+        protected_tokens[token] = latex
 
     replacements = {
         "\\": r"\textbackslash{}",
@@ -52,10 +140,15 @@ def _latex_escape(value: str) -> str:
         "^": r"\textasciicircum{}",
     }
 
-    return "".join(
+    value = "".join(
         replacements.get(char, char)
         for char in value
     )
+
+    for token, latex in protected_tokens.items():
+        value = value.replace(token, latex)
+
+    return value
 
 
 def _render_paragraphs(value: str) -> str:
@@ -377,6 +470,17 @@ def build_publication_artifacts(
         in latex_source
     )
 
+    disclosure_before_references = (
+        "\\section*{Disclosure Statement}" in latex_source
+        and "\\begin{thebibliography}" in latex_source
+        and latex_source.index(
+            "\\section*{Disclosure Statement}"
+        )
+        < latex_source.index(
+            "\\begin{thebibliography}"
+        )
+    )
+
     within_page_limit = (
         page_count is not None
         and page_count <= maximum_pages
@@ -419,6 +523,7 @@ def build_publication_artifacts(
                 "disclosure_statement_included_in_limit"
             ]
         ),
+        "disclosure_before_references": disclosure_before_references,
         "sixth_page_disclosure_prohibited": bool(
             format_constraints[
                 "sixth_page_disclosure_prohibited"
@@ -466,6 +571,7 @@ def build_publication_artifacts(
         and validation[
             "disclosure_included"
         ]
+        and validation["disclosure_before_references"]
     )
 
     return validation

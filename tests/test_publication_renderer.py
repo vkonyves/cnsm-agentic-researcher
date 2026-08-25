@@ -182,6 +182,16 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
         "range 1–2; test—case; "
         "target ≥ 30%; "
         "value ≤ 5; "
+        "baseline ≈ 40%; "
+        "difference ≠ 0; "
+        "uncertainty ± 2%; "
+        "A → B; "
+        "rate ∝ load; "
+        "limit → ∞; "
+        "temperature 25°C; "
+        "parameter μ = 0.5; "
+        "set x ∈ S; "
+        "CO₂ measurement; "
         "Kovačić."
     )
 
@@ -202,12 +212,33 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     assert "—" not in source
     assert "≥" not in source
     assert "≤" not in source
+    assert "≈" not in source
+    assert "≠" not in source
+    assert "±" not in source
+    assert "→" not in source
+    assert "∝" not in source
+    assert "∞" not in source
+    assert "°" not in source
+    assert "μ" not in source
+    assert "∈" not in source
+    assert "₂" not in source
 
     assert "Guarded - baseline" in source
     assert "range 1--2" in source
     assert "test---case" in source
     assert r"target >= 30\%" in source
     assert "value <= 5" in source
+
+    assert r"\ensuremath{\approx}" in source
+    assert r"\ensuremath{\neq}" in source
+    assert r"\ensuremath{\pm}" in source
+    assert r"\ensuremath{\rightarrow}" in source
+    assert r"\ensuremath{\propto}" in source
+    assert r"\ensuremath{\infty}" in source
+    assert r"\ensuremath{^\circ}" in source
+    assert r"\ensuremath{\mu}" in source
+    assert r"\ensuremath{\in}" in source
+    assert r"\textsubscript{2}" in source
 
     assert "Kovačić" in source
     assert r"\usepackage[utf8]{inputenc}" in source
