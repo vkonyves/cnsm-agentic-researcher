@@ -224,8 +224,10 @@ MANUSCRIPT_AUTHOR = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
-        The final compiled IEEE manuscript should occupy exactly five pages,
-        including references and disclosure.
+        The final compiled IEEE manuscript should occupy exactly five pages.
+        Place the mandatory Disclosure Statement at the end of the manuscript
+        body, immediately before the references. The Disclosure Statement and
+        references must both fit within those same five compiled pages.
         """
     ),
 )
@@ -303,8 +305,10 @@ MANUSCRIPT_REVISER = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
-        The final compiled IEEE manuscript should occupy exactly five pages,
-        including references and disclosure.
+        The final compiled IEEE manuscript should occupy exactly five pages.
+        Place the mandatory Disclosure Statement at the end of the manuscript
+        body, immediately before the references. The Disclosure Statement and
+        references must both fit within those same five compiled pages.
 
         Address every substantive required revision from peer review that can
         be supported by the archived artifacts. Do not merely refer reviewers
@@ -327,9 +331,9 @@ FINAL_JUDGE = Agent(
         "checks, and PDF checks. Use the supplied deterministic "
         "publication_validation artifact as the authority for compilation "
         "status, PDF existence, page count, exact full-page-budget compliance, "
-        "references, and Disclosure Statement inclusion. Never infer PDF "
-        "compliance from manuscript prose alone. Mark the work ready only "
-        "if every required gate is supported by real artifacts and no "
-        "critical issue remains."
+        "references, Disclosure Statement inclusion, and placement of the "
+        "Disclosure Statement at the end of the manuscript body immediately "
+        "before the references. Never infer PDF compliance from manuscript "
+        "prose alone. "
     ),
 )
