@@ -1,0 +1,99 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1_execution_benchmark_2026",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Public corpora representativeness and legal/privacy constraints may limit external validity",
+        "Simulator fidelity may under- or over-estimate real-world failure severity",
+        "Risk of overfitting benchmark design to chosen validators/simulator",
+        "Single-model evaluation limits generality claims",
+        "Rollback realism and enactment policy must be carefully specified"
+      ],
+      "required_design_repairs": [
+        "Specify exact public corpora and provide sanitized snapshot or synthetic-equivalent for reproducibility",
+        "Define and validate simulator fidelity against representative real-world behaviors; document simulator limitations",
+        "Justify single-model choice or add at least one additional model for sensitivity analysis",
+        "Provide a clear, graded severity/rollback scoring rubric and decision thresholds",
+        "Preregister random seeds, retry policy, and inclusion/exclusion rules explicitly"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c2_provenance_defense_robustness_2026",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Threat model (poisoning generation) may be synthetic and not representative of realistic attackers",
+        "Defenses risk being over-tuned to the synthetic poisoning regime",
+        "Responsible-disclosure/ethical concerns around publishing poisoning methodology",
+        "Effectiveness depends strongly on retrieval/indexing specifics that must be fully specified"
+      ],
+      "required_design_repairs": [
+        "Precisely define poisoning document construction and justify realism; include stealthier variants",
+        "Include multiple retrieval/index settings (e.g., vector store, retrieval depth) or justify fixed choice",
+        "Document responsible-disclosure plan and redact exploit details if needed",
+        "Release retrieval corpus snapshot and defense-code/config to enable replication",
+        "Preregister defense thresholds and calibration procedure; include sensitivity analysis"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3_self_correction_limits_2026",
+      "novelty": 0.7,
+      "falsifiability": 0.85,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Prompt-sensitivity of standalone self-correction is a major internal-validity threat",
+        "Validator engineering effort is task-specific and may bias comparisons if unequal",
+        "Sample size (150 tasks) may be small for some subgroup inferences",
+        "Risk that self-correction prompts introduce new faults not adequately categorized"
+      ],
+      "required_design_repairs": [
+        "Include a prompt-sensitivity analysis (multiple self-correction prompt variants) and report variance",
+        "Standardize and publish validator specifications and error taxonomies",
+        "Increase or justify task sample size for subgroup analyses, or report power calculations",
+        "Predefine and disclose criteria for classifying regressions (repairs that introduce new faults)"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4_dataset_augmentation_assessment_2026",
+      "novelty": 0.6,
+      "falsifiability": 0.85,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Synthetic augmentation risks introducing distributional artifacts that inflate apparent gains",
+        "Held-out test realism must be high to claim improved real-world performance",
+        "Automated validators may mis-evaluate synthetic constructs leading to measurement error",
+        "Choice to alter only prompt templates (not model weights) should be justified"
+      ],
+      "required_design_repairs": [
+        "Provide rigorous construction and release of augmentation scripts and seed-controlled datasets",
+        "Justify and document held-out test provenance to ensure it represents real operator tasks",
+        "Include checks for synthetic artifact leakage and evaluate robustness on a small realistic external test set if available",
+        "Explain rationale for restricting intervention to prompt/template changes vs fine-tuning; consider a small fine-tune control"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

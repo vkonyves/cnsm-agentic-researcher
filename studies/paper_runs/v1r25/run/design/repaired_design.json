@@ -1,0 +1,178 @@
+{
+  "selected_candidate_id": "c1_execution_benchmark_2026",
+  "title": "An execution-oriented NetOps benchmark: generate→validate→simulate→rollback pipeline evaluation (repaired preregistration)",
+  "research_question": "Does an execution-oriented benchmark that integrates LLM generation, deterministic validators, simulator enactment, and automatic rollback scoring (pipeline C) reduce the actionable misconfiguration rate by at least 30% relative to a generation-only baseline (pipeline A) on a representative public/synthetic NetOps task set?",
+  "confirmatory_hypotheses": [
+    "H1: Pipeline C (generate→validate→simulate→rollback) yields a lower actionable misconfiguration rate than pipeline A (generation-only); target = ≥30% relative reduction.",
+    "H2: A constraint-based validator (pipeline B) and a formal-verifier+simulator pipeline (pipeline C) produce statistically distinguishable reductions in actionable misconfigurations when paired within tasks."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do reductions vary by task cluster (routing, ACL, NAT)?",
+    "EQ2: How sensitive are primary results to model choice (primary model vs sensitivity model)?",
+    "EQ3: What are validator false-positive rates and their operational tradeoffs (prevented enactments vs unnecessary blocks)?"
+  ],
+  "benchmark_scope": [
+    "Public network-configuration corpora and curated synthetic variants derived from: Open-source network-configuration corpus (reference: https://openalex.org/W4392875514), NetOps public examples (https://openalex.org/W4405935382), and dataset notes / provenance collections (https://openalex.org/W7125775240).",
+    "Synthetic topology/intent perturbations generated deterministically from seed-controlled augmentation scripts (released with experiment artifacts)."
+  ],
+  "model_scope": [
+    "Primary hosted LLM: GPT-4o via provider-hosted API (frozen prompt templates).",
+    "Sensitivity model: GPT-3.5-turbo via provider-hosted API (same prompts) for a two-model sensitivity analysis (pre-registered)."
+  ],
+  "transformation_scope": [
+    "Intent → canonicalized prompt templates (deterministic template filling).",
+    "LLM text → normalized device-configuration AST via deterministic parser and canonicalizer.",
+    "Configuration canonicalization (ordering, whitespace removal, canonical ACL numbering) prior to comparison and simulator enactment."
+  ],
+  "primary_estimand": "The paired difference in actionable misconfiguration proportion per task between pipeline C and pipeline A (P_actionable_A - P_actionable_C), measured across N=200 tasks.",
+  "secondary_estimands": [
+    "Paired difference between pipeline B and A.",
+    "Per-cluster actionable-misconfiguration rates (routing, ACL, NAT).",
+    "Validator false-positive rate (fraction of tasks where validator blocks a configuration that simulator would not flag as actionable)."
+  ],
+  "sampling_plan": "Total tasks = 200. Construction: 160 confirmatory tasks sampled deterministically from public corpora and seeded synthetic variants; 40 discovery (exploratory) tasks synthesized to increase diversity and probe edge cases. Task clusters: routing (≈80 tasks), ACL (≈80 tasks), NAT/other (≈40 tasks). Selection procedure: (1) ingest public records listed under benchmark_scope; (2) filter to vendor-neutral, non-proprietary examples; (3) deterministically augment selected tasks with topology variants using augmentation seeds [42, 123, 999]; (4) exclude tasks requiring proprietary vendor-OS commands or unavailable device models. Inclusion/exclusion rules and the exact snapshot script (with hashes) will be published with artifacts.",
+  "analysis_plan": "Primary metric: actionable misconfiguration rate per pipeline (simulator-detected safety violation if enacted). Analysis: paired bootstrap (N=10,000 bootstrap replicates) on per-task binary outcome to estimate 95% CI for difference and compute two-sided p-value for H1. Report absolute and relative reductions, Cohen's d for paired binary-to-continuous transformation (where applicable), numbers-needed-to-protect. Subgroup (cluster) analyses reported descriptively with same paired bootstrap; adjust multiple comparisons with Benjamini–Hochberg FDR (α=0.05). Report validator false-positive rates and severity distributions. All code and seeds published. Pre-registered stopping rule: run full N=200; no early stopping for outcome.",
+  "multiplicity_plan": "Primary confirmatory test: C vs A only (one primary contrast). Secondary contrasts (C vs B, B vs A, subgroup tests) are declared secondary/exploratory and corrected via Benjamini–Hochberg within those families. All tests and multiplicity corrections will be reported.",
+  "missingness_plan": "If a model API call fails (provider error, network timeout), automatic retry up to 2 times; persistent API failure for a task-seed-method combination is logged as technical failure and the task is marked for re-scheduling within the same frozen run budget if overall model-call budget allows (pre-registered). Missing model outputs due to persistent provider failure count as unavailable and will be excluded from the paired comparison for that model/pipeline only; exclusions and counts reported. No manual imputation.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Open network-configuration corpus (https://openalex.org/W4392875514)",
+      "NetOps public examples collection (https://openalex.org/W4405935382)",
+      "Dataset provenance notes (https://openalex.org/W7125775240)"
+    ],
+    "risk_factors": [
+      "Data leakage between training/held-out samples in public corpora causing optimistic estimates.",
+      "Duplicate or near-duplicate tasks across confirmatory and discovery sets.",
+      "Hosted-model API nondeterminism producing output variance.",
+      "Simulator/validator bugs misclassifying actions as safe/unsafe."
+    ],
+    "detection_procedures": [
+      "Deterministic content hashing (SHA-256) of all prompt inputs and canonicalized configurations; duplicate detection threshold and automatic exclusion of exact duplicates from confirmatory set.",
+      "Pairwise fuzzy-similarity screening (Levenshtein/token Jaccard) with pre-registered thresholds to flag near-duplicates; flagged items are reported and optionally moved to discovery set (automatic rule).",
+      "Model-output variance logging per seed; compute intra-model output disagreement rates.",
+      "Unit and regression test suite for simulator/validator (deterministic test vectors) executed before experiment; any failing test aborts execution with logged error."
+    ],
+    "item_flagging_rules": [
+      "Exact duplicate prompt/config hash -> automatic exclusion from confirmatory pool; replaced by next eligible seeded variant.",
+      "Fuzzy-similarity >0.9 -> automatic reassign to discovery set (not used in primary confirmatory analysis).",
+      "Simulator regression-test failure -> automatic halt; all affected simulator results treated as invalid until regression tests pass and are re-run automatically.",
+      "If validator blocks >50% of tasks in a cluster, report as structural mismatch and treat cluster results as exploratory (flagged)."
+    ],
+    "analysis_treatment": "Primary analysis excludes automatically excluded duplicates; sensitivity analyses re-run including discovery items and/or relaxed flagging thresholds. Report both primary (cleaned) and sensitivity results. All detection logs and decisions are published.",
+    "residual_uncertainty": [
+      "Incomplete guarantee that public corpora represent production distributions.",
+      "Residual uncertainty about simulator realism vs production devices despite regression tests and sanity checks.",
+      "Hosted-model nondeterminism remains a source of variance; quantified but not eliminable."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_conservative",
+      "description": "Single-model conservative run using primary model only, deterministic pipeline behavior (no repair re-generation). Two pipelines used for confirmatory comparison (A and C); B executed for secondary analysis. Seeds: 3. No iterative repair calls. Minimal artifact-generation overhead.",
+      "planned_model_calls": 1800,
+      "models": [
+        "gpt-4o (primary)"
+      ],
+      "transformations": [
+        "intent→prompt (deterministic)",
+        "LLM text→canonical config parser"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 160,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned calls derivation: 1 model × 3 pipelines × 200 tasks × 3 seeds = 1,800 calls. Uses hosted-model API and local docker-based simulator; fits capability manifest (hosted_model_api_available, docker_available, cpu_execution_available). Wall-clock: model-call latency dominant but within 7-day limit."
+    },
+    {
+      "scenario_id": "S2_balanced_recommended",
+      "description": "Two-model balanced run: primary model + sensitivity model. Deterministic pipelines; no iterative repair. Seeds: 3. Includes full confirmatory and exploratory tasks. Recommended for the paper: provides primary result with a pre-registered sensitivity check.",
+      "planned_model_calls": 3600,
+      "models": [
+        "gpt-4o (primary)",
+        "gpt-3.5-turbo (sensitivity)"
+      ],
+      "transformations": [
+        "intent→prompt (deterministic)",
+        "LLM text→canonical config parser"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 160,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned calls derivation: 2 models × 3 pipelines × 200 tasks × 3 seeds = 3,600 calls. Within capability manifest maximum_planned_model_calls=10000. Simulation workload: pipeline C simulation runs = 1 pipeline × 200 tasks × 3 seeds = 600 runs; simulation time estimated <24 hours on CPU via docker; overall wall-clock within 7 days."
+    },
+    {
+      "scenario_id": "S3_aggressive_iterative",
+      "description": "Two-model run with bounded iterative repair enabled for pipeline C: up to one additional repair-generation call per task per seed (primary model only). Use only if extra budget available; intended to study repair effectiveness but declared exploratory.",
+      "planned_model_calls": 4200,
+      "models": [
+        "gpt-4o (primary, including repair attempts)",
+        "gpt-3.5-turbo (sensitivity, no repair)"
+      ],
+      "transformations": [
+        "intent→prompt (deterministic)",
+        "LLM text→canonical config parser",
+        "repair-prompt generation (bounded)"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 160,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned calls derivation: base balanced = 3,600 calls + iterative repairs for pipeline C: 1 extra call × 200 tasks × 3 seeds = 600 extra calls (primary model only) => 4,200 total. This remains below 10,000-call budget. Iterative repairs are pre-registered and bounded; repair calls are logged and analyzed separately (exploratory)."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in actionable misconfiguration proportion (C minus A) across tasks.",
+    "target_effect": "Relative reduction of ≥30% in actionable misconfiguration rate (example: from 30% to 21% → absolute reduction 9%).",
+    "clustering_unit": "Task (paired across pipelines), with clusters for routing/ACL/NAT for subgroup analyses.",
+    "calculation_method": "Approximate detectable absolute difference via paired proportion standard error: SE_diff ≈ sqrt(2 * p * (1-p) / N). With conservative baseline p=0.30 and N=200: SE_diff = sqrt(2*0.3*0.7/200) ≈ 0.0458. 95% CI ≈ 1.96*SE ≈ 0.0897 → detectable absolute difference ≈ 9% at α=0.05 (two-sided). Bootstrapped CI (10,000 replicates) will be used for final inference.",
+    "assumptions": [
+      "Baseline actionable misconfiguration rate p ≈ 0.30 (conservative prior based on surveyed studies).",
+      "Paired comparisons across identical tasks reduce between-task variance.",
+      "N=200 confirmatory tasks with 3 seeds provides stable estimates; model-call stochasticity captured by seed replication.",
+      "Bootstrap with 10,000 replicates approximates sampling distribution."
+    ],
+    "recommended_scenario_id": "S2_balanced_recommended",
+    "minimum_detectable_effect_notes": "With N=200 and baseline p=0.30, the absolute MDE ≈ 9% (i.e., 30% relative reduction corresponds to ~9 percentage points). If baseline p differs substantially, interpret MDE accordingly; sensitivity analyses will report detectable differences for alternate baseline p values.",
+    "sensitivity_analyses": [
+      "Recompute MDE assuming baseline p in {0.2, 0.4}.",
+      "Repeat primary analysis using only primary-model calls (scenario S1) and compare with two-model results (S2).",
+      "Bootstrap-based robustness checks over seeds and over discovery vs confirmatory splits."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent→prompt template instantiation (deterministic templating).",
+      "LLM text→configuration AST parsing and canonicalization.",
+      "Configuration normalization (ordering, canonical ACL indices)."
+    ],
+    "semantic_equivalence_checks": [
+      "Execute canonicalized configuration in the simulator to verify intended packet-forwarding and neighbor/state effects; compare pre- and post-normalization simulator behavior for equivalence.",
+      "Unit tests: for a pre-registered set of 50 canonical examples, parser→canonicalizer→simulator must reproduce known traces (deterministic test vectors).",
+      "Round-trip check: canonicalized config → text rendering → parse again → AST equality check; failures flagged automatically."
+    ],
+    "automatic_rejection_rules": [
+      "If parser fails or canonicalizer changes AST semantics as measured by simulator traces, automatic rejection of that sample from confirmatory analysis and reassignment to discovery set.",
+      "If canonicalized config cannot be simulated due to unsupported vendor construct, automatic exclusion (documented counts)."
+    ],
+    "audit_sample_policy": "Programmatic audit: random deterministic sample of 20 confirmatory-run configs per pipeline (seed-controlled) will be re-simulated and trace-compared for semantic equivalence; any discrepancy triggers automated re-run of affected tasks and is reported.",
+    "mapping_validation": "Publish canonicalizer code, deterministic seeds, and sample mappings. Mapping validation includes regression suite with fixed hashes for inputs/outputs.",
+    "residual_risks": [
+      "Parser/canonicalizer may not cover all vendor-specific dialects; such tasks are excluded and reported.",
+      "Simulator semantic fidelity vs production devices is limited (see remaining_noncritical_uncertainties)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Public corpora may not fully represent production vendor/topology diversity; this limits external generalizability (expected and documented).",
+    "Simulator fidelity: despite regression and deterministic tests, simulator cannot perfectly replicate every production device behavior, potentially under- or overestimating real-world severity.",
+    "Hosted-model nondeterminism and provider-side updates remain a source of variance; documented via seeds but cannot be fully eliminated.",
+    "Chosen primary/sensitivity models are representative but do not establish generalization to all LLM families or future model versions."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W7170714602",
+    "https://openalex.org/W7203776655",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4392875514"
+  ]
+}

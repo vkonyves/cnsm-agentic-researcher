@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed, fully preregistered paired execution comparing a generation‑only vs generate→validate→simulate→rollback pipeline using a single hosted model (gpt‑5‑mini). The run completed as registered, analysis artifacts and hashes are provided, and the manuscript transparently reports a ceiling effect (baseline = 0 actionable/160) that precludes evaluation of the preregistered ≥30% reduction target. Reproducibility evidence is strong; the main scientific limitation is task calibration (degenerate baseline) rather than analysis errors.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary estimand/preregistered target (≥30% relative reduction) is not evaluable because the baseline actionable rate is zero; the manuscript must avoid language that could be read as claiming affirmative evidence of equivalence or pipeline benefit despite this degeneracy.",
+    "Terminology ambiguity between analysis artifact fields (e.g., 'baseline_success_count' / 'success_rate') and the paper’s primary metric (actionable misconfiguration). The current wording risks reader confusion about whether 'success' means 'safe (non‑actionable)' or the opposite.",
+    "Manuscript references to released artifacts lack an explicit, reader‑accessible artifact access statement (exact archive/repository or instructions to retrieve the execution_manifest and raw artifacts). The execution_manifest contains paths and hashes but the paper must clearly state how reviewers/readers can obtain or verify those artifacts under the provided constraints."
+  ],
+  "required_revisions": [
+    "Clarify metric terminology throughout manuscript and analysis tables: unambiguously define the primary binary outcome (e.g., 'actionable misconfiguration = 1; non‑actionable/safe = 0') and rename/annotate artifact fields (e.g., change or footnote 'baseline_success_count' to 'baseline_non_actionable_count' or equivalent) so readers cannot misinterpret 'success'. This is a manuscript edit only and can be implemented from supplied artifacts.",
+    "Add a concise, explicit artifact‑access paragraph in the manuscript (Disclosure or Reproducibility subsection) that states exactly where the execution_manifest, raw_results.jsonl, scoring JSONs, analysis scripts, and hash manifest are stored and how to access them (include the manifest SHA256 already recorded). If public hosting is not provided, state the access policy and provide the exact internal paths and SHA256 values already present in the execution_manifest so verification steps are unambiguous.",
+    "Strengthen the inference/interpretation text (abstract, results, conclusion): explicitly state that the preregistered confirmatory hypothesis is untestable given baseline=0, that statistical tests are degenerate here (bootstrap and McNemar yield degenerate intervals/p=1), and therefore no claims of equivalence or effectiveness should be made. Replace any wording that might imply the guarded pipeline was 'as safe as' or 'equivalent to' baseline with careful language about inability to measure benefit under the chosen task set and predicate."
+  ],
+  "optional_revisions": [
+    "Report one or two representative per‑task examples (input intent, generated config, simulator label, and artifact filenames/hashes) inline or as a short table to aid reader comprehension; use existing artifacts—no new runs required.",
+    "Briefly summarize the simulator safety predicate in one concrete paragraph (or appendix note within the 5 pages) so readers can judge construct validity from archived scoring JSONs.",
+    "Explicitly note in Threats to Validity that ran‑time nondeterminism of hosted models was controlled by the preregistered call budget and caching policy, and point readers to the provider_calls logs in the manifest for auditing."
+  ],
+  "accept_for_finalisation": false
+}

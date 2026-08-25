@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed, fully preregistered paired confirmatory run comparing a generation‑only vs. generate→validate→simulate→rollback (guarded) pipeline on N=160 NetOps tasks using gpt‑5‑mini. Execution and analysis are artifacted and reproducible; outcome degenerate (baseline actionable=0, guarded actionable=0), so the preregistered ≥30% relative‑reduction target is not evaluable (ceiling effect). Major strengths: faithful preregistration, exhaustive artifact hashing, transparent execution manifest, appropriate paired statistical tests. Required manuscript amendments remain to improve construct traceability and clarity.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary confirmatory estimand (≥30% relative reduction) is not evaluable because the baseline actionable rate was zero; the manuscript reports this factual outcome, but it remains critical to make transparent how this outcome interacts with the preregistered power assumptions and why task calibration failed relative to preregistered expectations.",
+    "The deterministic simulator’s safety predicate (the exact checks/rules used to label a configuration ‘actionable’) is not described in sufficient detail in the manuscript. Construct validity depends on that predicate; readers must be able to judge whether the simulator’s checks match the claimed notion of ‘actionable misconfiguration.’ Although the simulator artifacts appear archived, the manuscript must explicitly summarize the predicate and point to the artifact path and SHA‑256 for verification.",
+    "The manuscript must explicitly report the validator/repair stage operational counts and how the shared‑initial generation semantics affect interpretation. The preregistered design used a single shared initial generation per task (so baseline and guarded start from identical generated candidates); the implications (that the guarded pipeline could only block/repair the same candidate rather than rely on different independent generations per condition) should be stated clearly in Methods and discussed in Threats to Validity. While the preregistration contains this, the manuscript needs an explicit, concise account so readers do not misinterpret the null result as a general failure of guarded pipelines."
+  ],
+  "required_revisions": [
+    "Add a concise description (≤1–2 paragraphs) of the deterministic simulator safety predicate used to label ‘actionable misconfiguration’ (enumerate the checks, e.g., reachability/invariant violations, ACL/mgmt isolation rules, prefix overlap rules, etc.) and include the exact artifact path(s) and SHA‑256 hash(es) for the simulator code and the canonical scoring JSONs so reviewers can verify the predicate from archived artifacts.",
+    "Explicitly report validator/repair activity counts and the operational consequences of the preregistered shared‑initial generation (independent_condition_generation=false). Concretely: add a small table or single paragraph stating per‑task counts for (a) blocked by validator, (b) repairs attempted, (c) repairs accepted and re‑scored, and (d) confirm that no independent alternative generations were produced per condition (and give the artifact path/hash for provider call logs that show the shared initial generation behavior).",
+    "Add (or point to and cite within the manuscript) an evidence‑to‑claim table and a nearest‑work comparison matrix as required artifacts. If the evidence‑to‑claim table and nearest‑work matrix already exist in the artifact bundle, include their canonical paths and SHA‑256 hashes in the manuscript (Methods or Disclosure) and briefly summarize key rows (which claim is supported by which artifact/file)."
+  ],
+  "optional_revisions": [
+    "Add one short paragraph in Methods quantifying the preregistered calibration expectation vs observed baseline (e.g., reiterate the preregistered conservative baseline p=0.30 and show why the confirmatory set produced p=0 empirically), pointing readers to contamination and task‑difficulty logs in the artifacts.",
+    "Provide a short per‑cluster (routing/ACL/NAT) descriptive table in supplementary artifacts (or in the artifact bundle) showing per‑cluster outcome counts; reference its path/hash in the manuscript. This addresses exploratory EQ1 and aids future replications.",
+    "Clarify in Discussion a concise operational recommendation for how to construct adversarial/harder confirmatory sets (explicit stimulus recipes or augmentation heuristics) and point to the augmentation scripts and their hashes in the artifact bundle."
+  ],
+  "accept_for_finalisation": false
+}

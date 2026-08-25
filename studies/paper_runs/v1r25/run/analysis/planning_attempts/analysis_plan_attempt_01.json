@@ -1,0 +1,30 @@
+{
+  "study_id": "c1_exec_benchmark_2026_prereg_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Load paired_binary_episode_v1 scoring artifacts (execution/scoring/task-000XXX-*.json). For each task i extract binary actionable labels: baseline_i and guarded_i (simulator safety label) and validator_block flag. Compute per-task paired indicator d_i = guarded_i - baseline_i. Primary estimator: mean(d_i) = paired_success_rate_difference_guarded_minus_baseline (exact contract identifier). Report mean, 95% bootstrap percentile CI (10,000 replicates, resampling tasks with replacement preserving pairs), two-sided bootstrap p-value against null=0, absolute and relative change (also report preregistered signed contrast baseline_minus_guarded = -mean(d_i) to match preregistered phrasing), and numbers-needed-to-protect = 1/(baseline_rate - guarded_rate) when baseline_rate>guarded_rate. All inputs/hashes used: execution/task_manifest.jsonl, execution/scoring/*.json, execution/provider_calls/*.json; analysis code deterministic and uses only these artifacts.",
+  "secondary_analyses": [
+    "Per-cluster paired differences (routing, ACL, NAT) computed by grouping tasks using cluster labels in execution/task_manifest.jsonl; report cluster-specific rates, bootstrap 95% CIs (10,000 replicates) and unadjusted p-values.",
+    "Validator operational metrics: validator block rate per condition, validator false-positive rate = fraction where validator_block=true and simulator labels show non-actionable; report counts and severity distribution from execution/scoring/*.json.",
+    "Descriptive totals: overall baseline actionable proportion, guarded actionable proportion, counts of validator-blocked episodes, counts excluded by preregistration exclusions (duplicate/hash/fuzzy flags) using execution/execution_log.jsonl and task_manifest.jsonl."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call handling: rerun primary analysis treating persistent missing model outputs per pair as exclusions (primary) and as failed guarded episodes coded as actionable/non-actionable per contract alternative (complete_pair_primary_with_failure_as_zero_sensitivity) — produce both results and compare.",
+    "Include discovery-flagged items: re-run primary analysis including tasks flagged by fuzzy-similarity screening (if any) using execution/execution_log.jsonl to enumerate flagged items.",
+    "Simulator/validator regression sensitivity: if any pre-run regression-test flags present in execution/execution_log.jsonl, report results excluding tasks executed during regression-fix windows; otherwise report none required."
+  ],
+  "uncertainty_quantification": "Bootstrap (10,000 replicates) over task-level paired observations preserving pairing to produce 95% percentile CIs for mean(d_i) and cluster rates. Report exact two-sided bootstrap p-values and bootstrap distributions (histograms). Provide bootstrap seed and hash of bootstrap-run artifact.",
+  "multiplicity_implementation": "Primary confirmatory test: single contrast = guarded vs baseline (contract estimand). All secondary families (cluster contrasts, validator metrics) are labeled secondary/exploratory and adjusted within-family using Benjamini–Hochberg FDR (α=0.05) where multiple tests occur; unadjusted p-values also reported. Multiplicity decisions and adjusted p-values recorded in analysis outputs.",
+  "contamination_analysis": "Apply preregistered contamination procedures using provided artifacts: (1) deterministic SHA-256 hashing of all prompt inputs and canonicalized configs (use execution/task_manifest.jsonl and execution/responses/*.txt). (2) pairwise fuzzy-similarity screening using token Jaccard/Levenshtein on canonicalized prompts with preregistered thresholds; items with exact-duplicate hashes auto-excluded (referenced in execution/execution_log.jsonl), near-duplicates moved to discovery log. (3) report model-output variance and intra-model disagreement metrics using execution/provider_calls/*.json. All detection logs and decisions are taken from execution/execution_log.jsonl and published with analysis.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Primary confirmatory results — N paired tasks analyzed, baseline actionable proportion, guarded actionable proportion, paired difference (guarded_minus_baseline), 95% bootstrap CI, two-sided p-value, absolute and relative reduction, NNT; include preregistered and contract-signed conventions (both guarded_minus_baseline and baseline_minus_guarded). Source: execution/scoring/*.json and execution/task_manifest.jsonl.",
+    "Table 2: Cluster-specific results — for each cluster (routing, ACL, NAT): N, baseline rate, guarded rate, paired difference, 95% CI, p-value, BH-adjusted p-value across clusters. Source: execution/scoring/*.json and execution/task_manifest.jsonl.",
+    "Table 3: Validator metrics — counts of validator blocks by condition, validator false-positive rate (validator_block && simulator_non_actionable), distribution of blocked-severity labels, and count of excluded/flagged tasks with reasons from execution/execution_log.jsonl."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of baseline vs guarded actionable proportions with 95% bootstrap CIs overall and per-cluster (grouped bars). Data from execution/scoring/*.json and task_manifest.jsonl.",
+    "Figure 2: Bootstrap distribution density plot of paired differences d_i (guarded_minus_baseline) with vertical lines at mean and 95% CI; annotate observed p-value. Data from bootstrap outputs.",
+    "Figure 3: Task-level waterfall or heatmap: ordered tasks (by baseline actionability probability or cluster) showing baseline and guarded labels and validator_block flags; reproducible from execution/scoring/*.json and execution/task_manifest.jsonl."
+  ]
+}

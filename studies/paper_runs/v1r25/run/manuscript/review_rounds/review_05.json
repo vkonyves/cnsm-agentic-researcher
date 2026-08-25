@@ -1,0 +1,27 @@
+{
+  "summary": "Careful, well‑documented preregistered execution; run completed and fully artifacted. Main confirmatory outcome is degenerate (baseline=0/160; guarded=0/160), producing an unevaluable primary hypothesis. Experimental design choices (single shared initial generation per task; single model) and simulator scoring semantics explain the null result; authors transparently disclose these limits. Manuscript is reproducible from archived artifacts but requires targeted clarifications and concise evidentiary excerpts to support key claims and to make the limitations and implications unambiguous.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Primary confirmatory hypothesis is unevaluable because baseline actionable rate = 0; this ceiling effect was foreseeable given the shared‑candidate design and requires stronger statement of consequences for inference.",
+    "Use of a single shared initial generation per task for both conditions precludes the guarded pipeline from demonstrating benefit on any task whose shared candidate is already non‑actionable; this design choice materially limits the interpretability of the A vs C contrast for operational benefit.",
+    "Single‑model scope (gpt‑5‑mini) and the single shared‑candidate policy constrain external validity; manuscript should avoid any wording that could be read as generalizing beyond the exact run.",
+    "The deterministic simulator predicate (actionable vs non‑actionable) is central to conclusions but manuscript lacks a compact evidentiary excerpt showing why it classified all candidates non‑actionable; readers must be able to verify that the predicate was not trivially permissive.",
+    "Artifact-access wording is incomplete: authors reference many archived files and SHA‑256 hashes in the manifest, but the manuscript should include an unambiguous, minimal instruction for reproducing the analysis from those artifacts (without requiring creation of new external URLs)."
+  ],
+  "required_revisions": [
+    "Add a concise explicit statement in the Abstract and the final paragraph of the Introduction that the shared_initial_generation design (one candidate per task used for both baseline and guarded) was used and explain—succinctly—how this choice creates a ceiling effect when the shared candidate is non‑actionable; state that as the primary reason H1 is unevaluable given baseline=0.",
+    "Include a one‑paragraph compact evidentiary summary (resolvable from archived artifacts) that demonstrates the simulator scoring semantics and supports the claim that all 160 shared candidates were adjudicated non‑actionable: e.g., a small table (or 3–4 inline examples) showing task id, prompt hash, excerpt of generated candidate, and the corresponding execution/scoring/*.json key fields (actionable flag, rule triggers). Use content copied verbatim from execution/scoring/task-0000XX-*.json files and ensure these fit the five‑page limit.",
+    "Add a short paragraph (Methods or Results) summarizing the preregistered contamination/duplicate screening results and any fuzzy‑similarity flags using the existing analysis/contamination_summary.csv (cite its hash); explicitly report counts of exact duplicates and high‑similarity items excluded or moved to discovery logs.",
+    "Soften any language in Abstract, Contributions, and Conclusion that could be read as claiming evidence for guarded pipelines reducing actionable misconfigurations; replace with wording that the run produced a degenerate/null outcome due to task calibration and shared‑candidate design, and that the execution primarily reveals a calibration/failure‑mode of confirmatory evaluation rather than evidence about pipeline efficacy.",
+    "Add a short, concrete reproducibility instruction in the Disclosure or Reproducibility subsection that tells a reader how to use the included manifest and listed SHA‑256 hashes to locate and validate the canonical artifacts provided with this submission (no new external links required)—e.g., state the manifest file path and the exact file names/hashes required to reproduce the analysis, and cite the analysis/paired_contingency_table.csv and analysis/analysis_log.jsonl entries and their hashes."
+  ],
+  "optional_revisions": [
+    "If space permits, add a one‑paragraph worked example contrasting the preregistered paired design (shared candidate) with an independent per‑condition generation design, and discuss how each affects detectability of guarded‑pipeline benefits (resolvable from preregistration text).",
+    "Provide a brief, concrete plan (one paragraph) for a follow‑on confirmatory run that is directly implementable from the archived scripts: e.g., calibrated discovery to collect adversarial tasks, switch to independent per‑condition generations, or broaden simulator predicate; reference the exact scripts/seeds already archived that would be reused.",
+    "Consider including a tiny appendix‑style boxed item (if page budget allows) that reproduces the exact initial master prompt or a canonical excerpt (if permitted by the track) to help reviewers verify prompt sensitivity from the archived provider_call files."
+  ],
+  "accept_for_finalisation": false
+}

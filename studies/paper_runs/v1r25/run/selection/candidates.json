@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1_execution_benchmark_2026",
+      "title": "An execution-oriented NetOps benchmark: generate→validate→simulate→rollback pipeline evaluation",
+      "research_question": "Does an execution-oriented benchmark that integrates LLM generation, formal/verifier checks, simulated enactment, and rollback-aware scoring produce significantly lower actionable misconfiguration rates than generation-only pipelines for representative NetOps tasks?",
+      "hypotheses": [
+        "A generate→validate→simulate→rollback pipeline will reduce the actionable misconfiguration rate by at least 30% compared to a generation-only baseline on the chosen task set.",
+        "Different validator strategies (constraint-based static checks vs. semantic formal verifier) will show statistically distinguishable reductions in actionable misconfigurations under the same generation model."
+      ],
+      "proposed_design": "Construct a benchmark suite of 200 NetOps change tasks (intent→configuration) drawn from public corpora and synthesized topology variants. Implement three pipelines: (A) LLM generation only; (B) LLM generation + constraint-based validator; (C) LLM generation + formal verifier + simulator enactment + automatic rollback scoring. Use a fixed commercially-available LLM via API (single model) with frozen prompt templates. Validators/verifiers are deterministic programmatic checks. Simulated enactment uses a network simulator to detect runtime violations and rollback triggers. For each task, record initial output, validator verdicts, simulator-detected faults, and whether automatic rollback would have prevented enactment. Repeat with three random seeds for stochastic calls. Pre-register inclusion/exclusion, metrics, and stopping rules prior to execution.",
+      "expected_data": "Per-task records containing: prompt, LLM outputs, validator/verifier verdicts, simulator enactment trace, detected faults (binary and categorical), rollback-trigger flag, execution time, and metadata. Aggregate counts of actionable misconfigurations, prevented enactments (rollback true), false-positive validator rejections, and per-task severity scores.",
+      "primary_outcome": "Actionable misconfiguration rate (fraction of tasks where the pipeline would produce a configuration causing a simulated safety violation if enacted) for each pipeline; primary comparison is reduction (%) of this rate between pipeline C and pipeline A.",
+      "analysis_outline": "Compute per-pipeline actionable misconfiguration rates with 95% bootstrapped CIs. Use paired bootstrap test across tasks to assess differences between pipelines (C vs A, C vs B). Report absolute and relative reductions, effect sizes (Cohen's d), and numbers-needed-to-protect. Conduct subgroup analyses by task type (routing, ACL, NAT). Report validator false-positive rates and simulator-detected severity distributions. Correct for multiple comparisons via Benjamini–Hochberg where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7203776655"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4392875514"
+      ],
+      "risks": [
+        "Public corpora may not represent production diversity, limiting external validity",
+        "Simulator fidelity may not capture all real-world failure modes, causing optimistic safety estimates",
+        "Overfitting benchmark design to selected validators or simulator behaviors",
+        "Potentially high model-call budget if tasks require many iterative validator–repair loops"
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "c2_provenance_defense_robustness_2026",
+      "title": "Robustness of provenance and uncertainty-attestation defenses in NetOps RAG pipelines under targeted retrieval poisoning",
+      "research_question": "To what extent do provenance attestation and retrieval-uncertainty scoring reduce adversarially induced actionable misconfigurations in retrieval-augmented NetOps pipelines under a defined retrieval-poisoning threat model?",
+      "hypotheses": [
+        "Provenance attestation combined with retrieval-uncertainty scoring will reduce attacker success (measured as increase in actionable misconfiguration rate caused by poisoned context) by at least 50% compared to an unprotected RAG baseline under the same poisoning attack.",
+        "Simple provenance markers (source counts, timestamp consistency) will be less effective than combined provenance+uncertainty scoring when the attacker controls a minority of retrieved items (<30%)."
+      ],
+      "proposed_design": "Implement a RAG pipeline using a public retrieval corpus built from available NetOps documentation and synthesized configs. Define a threat model where an adversary injects poisoned documents into the corpus at controlled proportions (0%, 10%, 30%, 50%). Implement defenses: (1) provenance attestation (source origin metadata and provenance score), (2) retrieval-uncertainty scoring (embedding retrieval similarity variance), and (3) combined defense. For each poisoning level and defense, run 300 adversarial test prompts and measure actionable misconfiguration rate. Use the same LLM prompts and seeds across defense conditions. Pre-register attack injection method, defense thresholds, and success/failure criteria.",
+      "expected_data": "Per-experiment records: poisoning fraction, poisoned documents used, retrieval lists with provenance/uncertainty scores, LLM outputs, detected misconfigurations by simulator/validator, and attacker-success binary. Aggregated attacker success rates by defense and poisoning level, defense false-positive rates, and latency/overhead metrics.",
+      "primary_outcome": "Reduction in attacker success rate (fraction of prompts producing attacker-induced actionable misconfigurations) for each defense compared to baseline at each poisoning level.",
+      "analysis_outline": "Estimate attacker success rates with 95% Wilson score CIs. Use logistic regression to model attacker success as a function of defense condition and poisoning fraction, reporting odds ratios and 95% CIs. Test hypothesis of ≥50% reduction via bootstrapped ratio comparisons. Evaluate defense detection trade-offs (ROC curves) and compute area under ROC for provenance/uncertainty signals. Report computational overhead per defense.",
+      "novelty_evidence_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4393142222",
+        "https://openalex.org/W4403371192"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4410636386",
+        "https://openalex.org/W4405935382",
+        "https://openalex.org/W4415071524"
+      ],
+      "risks": [
+        "Poisoning model may not represent all realistic attacker capabilities, limiting generalization",
+        "Retrieval corpus construction from public sources may bias defense effectiveness",
+        "Defenses tuned to synthetic poisoning may be less effective on stealthier data-poisoning strategies",
+        "Potential ethical considerations of publishing poisoning techniques — will follow responsible disclosure practises"
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "c3_self_correction_limits_2026",
+      "title": "Empirical limits of standalone LLM self-correction versus validator-assisted repair for safety-critical NetOps tasks",
+      "research_question": "How effective is standalone prompted LLM self-correction at reducing actionable misconfigurations relative to validator-assisted repair workflows on safety-critical NetOps tasks?",
+      "hypotheses": [
+        "Standalone prompted LLM self-correction will not produce a statistically significant reduction in actionable misconfiguration rate compared to initial LLM generation alone.",
+        "Validator-assisted repair (using deterministic constraint checks and repair suggestions) will yield a statistically significant reduction in actionable misconfiguration rate compared to both generation-only and standalone self-correction."
+      ],
+      "proposed_design": "Select a set of 150 safety-critical NetOps tasks (ACLs, firewall rules, route filters) from public corpora and synthesized variants. For each task, obtain: (A) initial LLM-generated configuration; (B) LLM self-correction: present initial output and a self-correction prompt asking for fixes; (C) validator-assisted repair: run deterministic validators on initial output, produce structured error reports, and supply those reports to LLM to generate repaired output. Evaluate each output via the same simulator/verifier to determine actionable misconfigurations. Control for prompt templates and random seeds. Pre-register metrics and analysis plan.",
+      "expected_data": "Per-task triplet of outputs (A,B,C), validator reports, simulator verdicts (safety violation flags and severity), counts of successful repairs, times to repair, and instances where self-correction introduced new faults.",
+      "primary_outcome": "Per-condition actionable misconfiguration rate; primary contrasts: B vs A (self-correction vs generation) and C vs A (validator-assisted vs generation).",
+      "analysis_outline": "Use McNemar's test for paired binary outcomes across tasks to compare conditions (A vs B, A vs C). Compute risk differences with 95% CIs and perform bootstrapped sensitivity analyses. Quantify the rate of regressions (repairs that introduce new faults) and compare across B and C. Provide descriptive examples of failure modes and categorize error types.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399400998",
+        "https://openalex.org/W4403555534",
+        "https://openalex.org/W4403885103"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Standalone self-correction performance may be prompt-sensitive — threat to internal validity",
+        "Limited task set may bias conclusions about generality across NetOps domains",
+        "Validator-assisted pipelines require carefully engineered validators, which may be labor-intensive to build for every task type"
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c4_dataset_augmentation_assessment_2026",
+      "title": "Bridging dataset scarcity: can synthetic augmentation of public NetOps corpora improve LLM-driven configuration correctness?",
+      "research_question": "Can programmatic synthetic augmentation of limited public multi-vendor NetOps corpora measurably improve LLM performance on intent-to-configuration tasks, and to what extent does augmentation close the gap attributable to scarce real-world data?",
+      "hypotheses": [
+        "Synthetic augmentation (topology and template variation) of public corpora will improve LLM intent-to-configuration correctness by at least 20% on a held-out test set derived from realistic task templates.",
+        "There will be diminishing returns: beyond a moderate augmentation factor (e.g., 5×), additional synthetic examples will yield <5% incremental improvement.",
+        "Performance gains from augmentation will vary by vendor/template complexity, with larger gains for simpler standardized templates."
+      ],
+      "proposed_design": "Assemble available public NetOps corpora and a held-out test set. Create synthetic augmentation methods: (1) template parameterization (variable IPs, prefixes, interface names), (2) topology-driven variant generation, and (3) contrived edge-case generation. Produce augmentation factors of 1× (baseline), 3×, 5×, and 10×. Fine-tune prompt templates (not model weights) and evaluate a fixed LLM via few-shot prompting on the held-out test set for each augmentation level. Measure correctness, syntactic validity, and actionable misconfiguration rates. Pre-register augmentation procedures, random seeds, and evaluation pipeline.",
+      "expected_data": "Per-augmentation-level records: number of training examples, example distributions, LLM outputs on held-out tests, correctness scores (automated validators), misconfiguration counts, and per-vendor breakdowns.",
+      "primary_outcome": "Relative increase in intent-to-configuration correctness on the held-out test set comparing augmented conditions to baseline (1×).",
+      "analysis_outline": "Estimate correctness rates with 95% bootstrapped CIs. Fit a nonlinear regression of correctness vs augmentation factor to detect diminishing returns and estimate elbow point. Perform subgroup analyses by vendor/template complexity and compute effect sizes. Use permutation tests to validate significance of observed gains. Report synthetic-to-real transfer metrics.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4405935382"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4393142222"
+      ],
+      "risks": [
+        "Synthetic augmentation may introduce distributional bias that helps on synthetic-like tasks but harms real-world generalization",
+        "Public corpora scale and diversity may still be insufficient to demonstrate robust external validity",
+        "Automated validators may misclassify novel synthetic constructs leading to measurement error"
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}
