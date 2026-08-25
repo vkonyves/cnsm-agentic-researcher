@@ -1,0 +1,190 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "Large language models (LLMs) exhibit frequent hallucinations, prompt-injection vulnerabilities, and other behavioral failure modes that can produce incorrect or unsafe outputs in operational contexts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386501849",
+        "https://openalex.org/W4388585881",
+        "https://openalex.org/W4409716856",
+        "https://openalex.org/W7118532765",
+        "doi:10.2139/ssrn.7121598"
+      ],
+      "evidence_type": "survey_and_empirical_reviews",
+      "confidence": 0.95,
+      "limitations": [
+        "Evidence comes from cross-domain LLM studies and surveys rather than single large-scale, NetOps-only field trials.",
+        "Severity and frequency estimates vary by model, prompt, and deployment context."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Retrieval-augmented generation (RAG) and similar grounding techniques substantially reduce hallucination and improve factual accuracy in domain-specific question-answering and generation tasks.",
+      "evidence_record_ids": [
+        "doi:10.1101/2024.09.11.24313513",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W7164234485"
+      ],
+      "evidence_type": "empirical_case_study_and_surveys",
+      "confidence": 0.87,
+      "limitations": [
+        "Demonstrations are task- and dataset-specific; gains may not directly transfer to all NetOps generation tasks without domain-aligned retrieval corpora.",
+        "RAG reduces but does not eliminate hallucination in locked-down production systems."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Generate–verify–repair (GVR) or generate–verify–repair–style pipelines that interpose deterministic verifiers between generation and acceptance increase detectable correctness for mechanistically verifiable defect classes and provide a structured remediation loop.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6608518",
+        "https://openalex.org/W4387838992",
+        "https://openalex.org/W4385965642"
+      ],
+      "evidence_type": "architecture_case_studies_and_single-case_evaluations",
+      "confidence": 0.82,
+      "limitations": [
+        "Evidence is largely from code-generation, regulated-enterprise, and AutoML case studies rather than directly from network-configuration pipelines.",
+        "Effectiveness depends on verifier coverage; classes of semantic or policy violations not captured by the verifier may persist."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Agentic/multi-agent LLM pipelines introduce inter-agent failure-propagation modes; coordination, schema/version drift, and interface-contract mismatches are primary sources of cascade failures in multi-agent operational pipelines.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7234438",
+        "doi:10.2139/ssrn.6955442",
+        "https://openalex.org/W4401306886"
+      ],
+      "evidence_type": "empirical_analysis_and_conceptual_frameworks",
+      "confidence": 0.9,
+      "limitations": [
+        "Studies analyze execution traces and incidents across domains; the exact modes and frequencies may differ in NetOps deployments.",
+        "Mitigations are proposed but large-scale controlled evaluations of mitigation effectiveness in NetOps are limited in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Operational readiness for granting LLM-based systems authority to change live network/cloud infrastructure remains weak; detection/diagnosis evidence does not by itself justify autonomous action without additional assurance, canarying, and rollback-aware verification.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7164234485"
+      ],
+      "evidence_type": "narrative_review_and_frameworks",
+      "confidence": 0.85,
+      "limitations": [
+        "Conclusions are drawn from literature syntheses and reviews rather than randomized field trials of fully autonomous action in production NetOps.",
+        "Some prototype or narrowly-bounded mitigation systems exist, but general-purpose autonomous change remains under-evidenced."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "In NetOps and AIOps, operational reliability depends substantially on the surrounding orchestration, tooling, validators, and assurance contracts rather than solely on base model capability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4388644518"
+      ],
+      "evidence_type": "surveys_and_architectural_papers",
+      "confidence": 0.9,
+      "limitations": [
+        "High-level architectural consensus is strong, but empirical quantification of how much each surrounding component improves safety/correctness in NetOps is not provided in these records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what extent do generate–verify–repair pipelines, when paired with deterministic network-specific validators (e.g., Batfish/NetKAT-style reachability analyzers), prevent unsafe or misconfigured network changes in realistic NetOps sandboxes?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4387838992"
+      ],
+      "evidence_type": "architectural_proposals_and_surveys_identifying_gap",
+      "confidence": 0.45,
+      "limitations": [
+        "Supplied records describe GVR principles and the existence/value of deterministic verification generally but do not include direct empirical evaluations combining LLM-generation with established NetOps verifiers."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What standardized, workflow-centered evaluation metrics and benchmark suites reliably measure safety, trace quality, and rollback-aware risk for agentic NetOps systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W7161354925",
+        "doi:10.2139/ssrn.6578241"
+      ],
+      "evidence_type": "surveys_and_position_papers_pointing_to_metric_gaps",
+      "confidence": 0.4,
+      "limitations": [
+        "Multiple papers call for workflow-centered evaluation but the supplied records do not present a single agreed-upon benchmark or validated metric suite for agentic NetOps."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "How effective are human-in-the-loop controls (escalation thresholds, operator acceptance workflows) at preventing incorrect or unsafe network changes proposed by LLM/agentic systems in operational teams?",
+      "evidence_record_ids": [
+        "doi:10.3390/su18115313",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4411109869"
+      ],
+      "evidence_type": "systematic_review_and_frameworks_identifying_need_for_empirical_studies",
+      "confidence": 0.42,
+      "limitations": [
+        "Reviews identify human-factor challenges and transfer principles from other domains but lack controlled NetOps field experiments in the supplied set."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a gap in publicly available empirical studies that directly evaluate LLM-generated network configuration changes accepted only after passing deterministic, network-specific verifiers and executed in realistic sandbox/testbeds.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4388644518"
+      ],
+      "evidence_type": "literature_gap_identification",
+      "confidence": 0.7,
+      "limitations": [
+        "Gap claim based on absence within supplied records; other public work may exist but is not in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Existing evaluations and benchmarks for LLMs under perturbation or behavioral drift (e.g., BFI) are not yet tailored to measure rollback-aware, canary-stage safety properties required by agentic NetOps workflows.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6578241",
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "benchmark_gap_observation",
+      "confidence": 0.72,
+      "limitations": [
+        "BFI and related proposals measure behavioral reliability broadly; adapting them to NetOps would require additional task-specific instrumentation and validation."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "There is limited published evidence on the real-world effectiveness of inter-agent contracts, typed boundaries, and schema-versioning patterns specifically applied to NetOps agent pipelines to prevent failure propagation.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7234438",
+        "doi:10.2139/ssrn.6955442"
+      ],
+      "evidence_type": "proposal_and_empirical_trace_analysis_gap",
+      "confidence": 0.68,
+      "limitations": [
+        "Patterns are proposed and validated on execution traces across frameworks, but targeted NetOps deployments and operational outcome measurements are scarce in the supplied set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform arbitrary live NetOps configuration changes without substantial surrounding verifier/orchestration controls.",
+    "RAG or grounding alone eliminates hallucination in all operational NetOps scenarios.",
+    "Generate–verify–repair architectures guarantee safety for semantic or policy violations not captured by the verifier (evidence of absence is not supplied).",
+    "Agentic/multi-agent pipelines will not experience failure propagation once basic interface schemas are defined (overly strong universal safety claims are unsupported)."
+  ]
+}

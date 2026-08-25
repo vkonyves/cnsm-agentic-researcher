@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-001-GVR-BATFISH",
+      "title": "Effectiveness of Generate–Verify–Repair with Deterministic Net-Specific Verifiers to Prevent Unsafe Configuration Changes",
+      "research_question": "Does a generate–verify–repair (GVR) pipeline that uses an LLM to propose network configuration changes and a deterministic network-specific verifier (e.g., Batfish-style reachability analyzer) significantly reduce the rate of unsafe or policy-violating changes accepted for execution in a realistic NetOps sandbox compared with LLM-only proposals?",
+      "hypotheses": [
+        "LLM-only generated configuration changes will propose a higher proportion of unsafe or policy-violating changes than proposals passing a deterministic verifier.",
+        "Interposing a deterministic network-specific verifier between generation and acceptance will reduce the proportion of proposals that would cause unsafe states by at least 50% relative to LLM-only.",
+        "A repair loop that re-invokes the LLM conditioned on verifier counterexamples will further increase the verifier-pass rate relative to single-shot verification. "
+      ],
+      "proposed_design": "Create a packet of 300 diverse NetOps intent-to-change tasks (routing, ACLs, VLANs, BGP policies) seeded from public NetOps task templates and synthetic faults. For each task: (1) prompt an LLM to produce a concrete device-level config change; (2) run a deterministic verifier/simulator (Batfish or equivalent reachability/policy analyzer) on the produced config to classify as safe/unsafe; (3) if unsafe, return the verifier counterexample to the LLM and allow up to two repair iterations; (4) record final acceptance by verifier. Compare three arms paired on each task: LLM-only (single-shot, no verifier gating), LLM+verifier-gate (generate then verify, reject if fail), and LLM+verify+repair (GVR with up to two repairs). All runs use fixed seeds, identical prompts, and the same verifier configuration in a controlled sandbox environment.",
+      "expected_data": "Per-task records including generated config text, verifier pass/fail, verifier counterexamples, number of repair iterations, final verifier result, and a ground-truth simulation of applying the change in the sandbox (safety label). Aggregate counts: verifier pass rates, unsafe-accepted counts (would cause unsafe state if applied), repair success rate, and distribution of failure modes (reachability, policy violation, syntax).",
+      "primary_outcome": "Absolute and relative reduction in unsafe-accepted configuration proposals (proportion) for GVR (LLM+verify+repair) versus LLM-only, measured across the 300 paired tasks.",
+      "analysis_outline": "Use paired proportion tests (McNemar's test) comparing unsafe-accepted labels between LLM-only and LLM+verifier, and between LLM-only and GVR, with exact binomial confidence intervals. Report absolute risk reduction and relative risk reduction with 95% CIs. Analyze repair iteration marginal benefit via logistic regression predicting verifier pass as a function of iteration count and task type. Perform failure-mode stratified analyses (routing vs ACL vs BGP). Correct for multiple comparisons using Benjamini–Hochberg for secondary subgroup tests.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4388644518",
+        "https://openalex.org/W4387838992"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W4411109869"
+      ],
+      "risks": [
+        "Deterministic verifier may be incomplete for semantic or vendor-specific failure modes, underestimating residual unsafe proposals.",
+        "Sandbox simulator mismatch: verifier-passed changes may still interact unsafely in richer production environments.",
+        "LLM repair may overfit to verifier counterexamples producing superficial fixes that pass the verifier but violate unstated policies (false sense of safety)."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "CAND-002-RAG-HALLUCINATION",
+      "title": "Quantifying the Impact of Retrieval-Augmented Generation on Hallucination and Verifier Pass-Rate for NetOps Configuration Generation",
+      "research_question": "To what extent does retrieval-augmented generation (RAG) using a domain-aligned NetOps corpus reduce hallucination and increase deterministic-verifier pass rates for LLM-generated network configurations compared with standard LLM generation without retrieval?",
+      "hypotheses": [
+        "RAG-conditioned LLM outputs will exhibit a lower hallucination rate (factual contradictions to vendor/protocol specs) than non-RAG LLM outputs on NetOps configuration tasks.",
+        "RAG-conditioned outputs will have a higher deterministic verifier pass rate (reachability/policy checks) than non-RAG outputs.",
+        "The reduction in hallucination will correlate positively with retrieval precision (relevance of top-k retrieved documents)."
+      ],
+      "proposed_design": "Assemble a domain-aligned retrieval corpus composed of vendor configuration guides, RFCs, device templates, and public NetOps runbooks. Index corpus with a standard dense/sparse retriever. Use a paired dataset of 250 NetOps intents. For each intent, run two conditions with fixed prompts and seeds: (A) LLM generation without retrieval; (B) RAG: retrieve top-5 documents and condition generation on those. For each generated config, (1) run deterministic verifier for pass/fail; (2) apply an automated hallucination detector comparing generated tokens to authoritative corpus content and a small human-verified checklist for factual claims (automated rules where possible); (3) record retrieval relevance metrics (precision@k).",
+      "expected_data": "Per-example: generated text (A/B), verifier pass/fail, hallucination detector flags (binary and category), retrieval precision@k for RAG instances, and paired labels of whether the change would be unsafe when applied in sandbox. Aggregates: hallucination rate, verifier pass rate, correlation between retrieval precision and pass rate.",
+      "primary_outcome": "Difference in deterministic verifier pass rate (proportion) between RAG and non-RAG conditions across paired tasks.",
+      "analysis_outline": "Paired proportion testing (McNemar) for verifier pass-rate difference; paired Wilcoxon or paired t-test for continuous hallucination-score differences depending on distribution. Compute Pearson/Spearman correlations between retrieval precision@k and verifier pass rate. Estimate effect sizes with 95% CIs. Conduct mediation analysis to assess whether retrieval precision mediates the effect of RAG on verifier pass rate.",
+      "novelty_evidence_ids": [
+        "doi:10.1101/2024.09.11.24313513",
+        "https://openalex.org/W4389984066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7164234485",
+        "https://openalex.org/W4388644518"
+      ],
+      "risks": [
+        "Automated hallucination detectors may misclassify novel but correct configurations as hallucinations, biasing results.",
+        "Quality and coverage of the retrieval corpus will limit external validity; assembling a sufficiently comprehensive corpus is time-consuming.",
+        "RAG dependence on retrieval precision may produce variable results across vendor-specific tasks, reducing generality."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "CAND-003-AGENT-CONTRACTS",
+      "title": "Measuring Failure-Propagation Reduction from Typed Inter-Agent Contracts in Agentic NetOps Pipelines",
+      "research_question": "Do explicit typed interface contracts and schema/version checks between agentic pipeline components (planner, config-generator, verifier, executor) reduce downstream failure propagation and cascade incidents compared with an uncontracted baseline in simulated multi-agent NetOps workflows?",
+      "hypotheses": [
+        "Agentic pipelines without explicit typed contracts will exhibit a higher rate of downstream failure propagation (an initial agent error causing at least one downstream agent failure) than pipelines with enforced contracts.",
+        "Enforcing runtime schema and version checks at agent boundaries will reduce median time-to-detection and the number of agents implicated per incident.",
+        "Contract enforcement will produce fewer hard-to-repair semantic failure modes (e.g., silent format drift) compared to the baseline. "
+      ],
+      "proposed_design": "Construct a simulated multi-agent NetOps pipeline with four agents: Intent Planner, Change Synthesizer (LLM), Deterministic Verifier, and Orchestrator/Executor. Implement two configurations over 200 scripted incident scenarios including injected perturbations (schema drift, corrupted intermediate artifacts, subtle hallucinated fields): (1) baseline: agents communicate via free-text JSON blobs without strict typing; (2) contracted: messages validated by explicit JSON schemas, version tags, and runtime checks; in contracted runs, failures at boundaries are rejected with structured error messages. For each scenario run 10 randomized seeds for stochastic LLM outputs. Measure whether an initial agent fault leads to downstream agent failures, detection latency, number of agents affected, and repair complexity (number of repair iterations).",
+      "expected_data": "Per-scenario logs including agent inputs/outputs, validation results, timestamps of failures/detections, number of downstream failures, and final resolution status. Aggregate metrics: failure-propagation probability, median detection latency, median agents affected, and repair iteration counts.",
+      "primary_outcome": "Reduction in the probability of downstream failure propagation (binary per scenario) in the contracted pipeline versus baseline.",
+      "analysis_outline": "Estimate propagation probability difference with clustered logistic regression accounting for scenario-level clustering and seed randomization. Compare detection latency distributions using survival analysis (Kaplan–Meier) and log-rank tests. Report counts of agents implicated per incident with nonparametric tests (Mann–Whitney). Perform qualitative coding of repair-complexity logs to classify semantic vs syntactic failures and report frequencies.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7234438",
+        "doi:10.2139/ssrn.6955442",
+        "https://openalex.org/W4401306886"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4385965642",
+        "https://openalex.org/W4411109869"
+      ],
+      "risks": [
+        "Simulated agents and injected perturbations may not capture the full complexity of real operational drift, limiting external validity.",
+        "Enforced contracts may increase false rejections of benign outputs, increasing operator workload when translated to production.",
+        "Creating realistic schema and versioning policies requires careful domain expertise; poor schemas could produce misleadingly good or bad results."
+      ],
+      "estimated_model_calls": 3200
+    },
+    {
+      "candidate_id": "CAND-004-SIM-HITL-ESCALATION",
+      "title": "Evaluating Simulated Human-in-the-Loop Escalation Thresholds for Preventing Unsafe LLM-Proposed Network Changes",
+      "research_question": "How effective are automated escalation-threshold policies that simulate human-in-the-loop (HITL) review in preventing unsafe LLM-proposed network changes compared with automated accept/reject rules, and what are the trade-offs in latency and false-rejection rates when operator decisions are simulated?",
+      "hypotheses": [
+        "Simulated HITL escalation with conservative thresholds will reduce the rate of unsafe-accepted proposals relative to fully automated acceptance, at the cost of increased median decision latency.",
+        "Conservative HITL thresholds will increase false-rejection rates (benign proposals escalated unnecessarily) relative to automated acceptance thresholds.",
+        "The benefit of HITL escalation will be largest for high-impact tasks (BGP policy, inter-domain changes) versus low-impact tasks (local VLAN changes)."
+      ],
+      "proposed_design": "Define an escalation-policy simulator based on thresholds over verifier-confidence scores and impact heuristics. Use 250 NetOps intents labeled for impact (high/medium/low) and a deterministic verifier that emits a numeric confidence proxy (e.g., margin to violation). For each intent generate LLM proposals, then evaluate three arms paired per intent: (A) automated accept if verifier confidence > c_auto; (B) automated strict reject if confidence < c_reject (no HITL); (C) simulated HITL: if confidence in (c_reject,c_auto) escalate to simulated operator decision modeled by a calibrated decision-policy derived from a small public expert dataset or rule-based proxy. Measure unsafe-accepted rates, simulated decision latency per escalation, and false-rejection (benign proposals escalated and rejected). Explore thresholds c_auto and c_reject in a grid.",
+      "expected_data": "Per-proposal: verifier confidence, impact label, arm assignment, final acceptance/rejection, whether proposal is actually unsafe in sandbox, whether escalated and simulated operator decision, simulated latency. Aggregates: unsafe-accepted proportions per arm, median latency per arm, false-rejection rates by impact stratum.",
+      "primary_outcome": "Difference in unsafe-accepted proposal rate between simulated HITL escalation policy and fully automated acceptance (paired across intents).",
+      "analysis_outline": "Use paired proportion tests for unsafe-accepted rate comparisons (McNemar). Compare latency distributions across arms using paired Wilcoxon tests. Estimate trade-off curves (unsafe-accepted rate vs median latency) across threshold grid and compute area-under-curve summaries. Stratify results by impact label and report interaction effects using logistic regression with interaction terms.",
+      "novelty_evidence_ids": [
+        "doi:10.3390/su18115313",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4411109869"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7164234485"
+      ],
+      "risks": [
+        "Simulated operator decisions may not reflect real human behavior, limiting external validity of HITL conclusions.",
+        "Calibrating the simulated decision-policy using limited public expert data risks overfitting to that proxy and misestimating true operational trade-offs.",
+        "Escalation latency modeling may not capture organizational delays, leading to optimistic latency estimates."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "study_id": "CNSM2026-GVR-BATFISH-CAND-001",
+  "title": "Effectiveness of Generate–Verify–Repair with Deterministic Net-Specific Verifiers to Prevent Unsafe Configuration Changes",
+  "research_question": "Does a generate–verify–repair (GVR) pipeline that uses an LLM to propose device-level network configuration changes and deterministic network-specific verifiers significantly reduce the rate of unsafe or policy-violating changes accepted for execution in a realistic NetOps sandbox compared with LLM-only proposals?",
+  "confirmatory_hypotheses": [
+    "H1: LLM-only generated configuration proposals will accept a higher proportion of unsafe or policy-violating changes (when hypothetically applied) than proposals that pass a deterministic verifier.",
+    "H2: Interposing a deterministic verifier between generation and acceptance will reduce the proportion of proposals that would cause unsafe states by at least 50% relative to LLM-only (paired over tasks).",
+    "H3: A repair loop that re-invokes the LLM conditioned on deterministic verifier counterexamples (up to two repair iterations) will increase final verifier-pass rate relative to single-shot verification."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does repair iteration count (0/1/2) marginally affect verifier pass probability across task types (routing, ACL, BGP)?",
+    "EQ2: What failure modes remain after GVR (reachability vs policy vs syntax), and do automated plausibility heuristics detect verifier-gaming cases?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4388644518",
+    "https://openalex.org/W4387838992",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W7164234485",
+    "https://openalex.org/W4411109869"
+  ],
+  "benchmark_scope": [
+    "Publicly seeded synthetic NetOps sandbox topologies (seeded topologies and traffic matrices described in preregistration artifacts).",
+    "Task types: device-level routing policy changes, ACL modifications, VLAN assignments, and BGP policy changes.",
+    "Scope explicitly bounded to deterministic-sandbox evaluation; no claims about production vendor-specific behavior beyond the modeled sandbox."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Absolute and relative reduction (paired proportion) in 'unsafe-accepted' configuration proposals (would cause unsafe state if applied) for the GVR arm versus LLM-only across the 300 paired tasks.",
+  "secondary_estimands": [
+    "Verifier-pass rate difference between LLM+verifier-gate and LLM-only.",
+    "Proportion of verifier-passed but sandbox-failure cases (verifier false-accept rate) estimated via deterministic sandbox simulation.",
+    "Effect of up-to-two repair iterations on final verifier pass probability (marginal benefit per iteration)."
+  ],
+  "sampling_plan": "Deterministic stratified sampling, total N=300 tasks, seed=2026-08-25. Task taxonomy: routing (150 tasks), ACL (100 tasks), BGP (50 tasks). Tasks drawn from public templates (published templates list included in preregistration artifact) with seeded random-number generator and deterministic fault-injection rules (link failures, route-preference changes, missing ACL entries). Inclusion: tasks that map to device-level config patches. Exclusion: tasks requiring closed-source vendor features not representable in canonical form (deterministically filtered). All selection steps logged and hashed.",
+  "power_and_precision_plan": "Primary estimand: paired absolute reduction in proportion of unsafe-accepted proposals (GVR vs LLM-only) across N=300 paired tasks. Target effect: 50% relative reduction (example: p0=0.30 to p1=0.15). Calculation method: McNemar/paired-proportion power calculation (details and code in preregistration artifact). With N=300, alpha=0.05 two-sided, conservative assumptions yield power >0.8 to detect the preregistered effect under baseline assumptions. Sensitivity analyses: recompute power for baseline p0 in {0.2,0.3,0.4} and for exclusions flagged by contamination procedures.",
+  "exclusion_rules": [
+    "Exclude tasks requiring closed-source or vendor-proprietary features that cannot be expressed in the canonical representation.",
+    "Exclude tasks whose templates match pre-lock development artifact hashes (contamination flag) from confirmatory set.",
+    "Per-arm automatic exclusion: generation failures (no parseable config) recorded as model-failure and excluded from paired hypothesis tests for that arm only; paired comparisons use only nonmissing paired outcomes."
+  ],
+  "missingness_plan": "Automatic exclusion rules: tasks with generation failures (no parseable config) are recorded as model-failure and excluded from paired hypothesis tests for that arm only; paired comparisons use only tasks with nonmissing paired outcomes. Missingness cause codes are logged; sensitivity analyses will impute worst-case and best-case outcomes for excluded items. No human adjudication: all exclusions and imputations are deterministically performed and logged.",
+  "analysis_plan": "Primary analysis: paired-proportion comparisons using McNemar's exact test comparing 'unsafe-accepted' labels between LLM-only and (a) LLM+verifier-gate and (b) full GVR (LLM+verify+repair). Report absolute risk reduction, relative risk reduction, odds ratio where useful, and 95% exact binomial confidence intervals. Exploratory analyses: logistic regression (robust SE) modeling verifier-pass and unsafe-accept outcomes as functions of repair iteration count and task type. All tests two-sided; report unadjusted p-values and adjust secondary families using Benjamini–Hochberg FDR(0.05). Paired design: each task receives outputs in all three arms under identical prompt-seed streams to enable within-task contrasts. All raw outputs, parsed artifacts, and scoring results are preserved and hashed.",
+  "multiplicity_plan": "Primary confirmatory comparisons are two paired contrasts vs LLM-only (verifier-gate and GVR). Secondary subgroup and iteration-count tests are treated as secondary families and controlled with Benjamini–Hochberg FDR at 0.05. All hypothesis-test families are declared in this preregistration; p-values are reported both unadjusted and adjusted where applicable.",
+  "contamination_plan": "Benchmark: SyntheticNetOps-Seeded-2026. Risk factors: reuse of pre-lock development artifacts, cross-run prompt leakage or dataset overlap between discovery and evaluation, model-call nondeterminism and vendor-API variability. Detection: hash-based provenance for prompts, templates, and seed lists; deterministic seeding for task selection and prompt variables; output-duplicate detection. Item flagging: any task template/config artifact hash matching pre-lock artifact hash is flagged and excluded from confirmatory set. If LLM outputs identical across arms for >10% tasks, trigger sensitivity analysis excluding duplicated items. Analysis treatment: primary analysis excludes flagged/contaminated tasks; sensitivity analyses report results including flagged tasks and report differences. All flagging and exclusions are deterministic and automated; no human adjudication.",
+  "stopping_rule": "Stop early if cumulative model calls reach the contract maximum_model_calls (600), or if wall-clock execution exceeds the capability manifest limit (7 days). Additionally, suspend and report if technical infrastructure failure prevents continuation or if >50% of tasks are automatically excluded due to generation failures, in which case the run is halted and reported as inconclusive.",
+  "planned_outputs": [
+    "Machine-readable preregistration (this document) and hash.",
+    "Full code and execution configuration for adapter 'hosted_netops_gvr_v1' constrained to model 'gpt-5-mini'.",
+    "Seeded task template list and deterministic sampler code + hashes.",
+    "All raw LLM outputs, parsed canonical configs, verifier counterexamples, repair prompts, and simulator traces (hashed).",
+    "Execution manifest and run logs with timestamps and hashes.",
+    "Statistical-results files and analysis code (notebook + scripts).",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript and BibTeX, compiled PDF (<=5 pages) including mandatory Disclosure Statement.",
+    "Autonomy and human-involvement disclosure record and revision log.",
+    "NotebookLM presentation brief (concise)."
+  ],
+  "unresolved_critical_issues": []
+}

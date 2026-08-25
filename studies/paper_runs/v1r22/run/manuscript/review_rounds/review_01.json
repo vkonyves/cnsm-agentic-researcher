@@ -1,0 +1,24 @@
+{
+  "summary": "Thorough, well‑documented preregistered GVR experiment with strong reproducibility artifacts; main weakness is sparse failures (1/300) making the preregistered effect target unattainable and a few clarity/statistical‐reporting ambiguities that must be fixed before finalisation.",
+  "novelty_score": 3,
+  "technical_depth_score": 4,
+  "soundness_score": 4,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Inconsistent/ambiguous labeling of the 2×2 paired contingency cells (n11,n10,n01,n00) vs the narrative. The manuscript reports both \"baseline = 1/300, guarded = 0/300\" and a cell ordering where n10=1 and n01=0, but the mapping of n10/n01 to baseline/guarded discordants is unclear and inconsistent in different places. This ambiguity undermines straightforward reading of the McNemar input and conclusion.",
+    "The preregistered confirmatory target (≥50% relative reduction) and power calculation assume much higher baseline unsafe rates than observed (observed baseline = 1/300 ≈ 0.33%). The manuscript does not report a post‑hoc power/sensitivity calculation showing how the observed baseline rate affects detectable effect sizes or required N to test the preregistered target; without this, readers cannot assess whether the null confirmatory result is due to intervention failure or lack of power given the realized base rate.",
+    "Statistical reporting for the sparse discordant counts is incomplete: the manuscript gives McNemar exact two‑sided p = 1.00 but does not (a) show the raw discordant counts with unambiguous labeling, (b) report the exact conditional/binomial test (and one‑sided value) that is standard when discordants are small, nor (c) justify the choice of McNemar variant used. These omissions reduce transparency for a near‑zero failure experiment."
+  ],
+  "required_revisions": [
+    "Resolve the contingency‑cell labeling ambiguity: explicitly define n11,n10,n01,n00 in the manuscript (e.g., n11 = safe in both arms, n10 = safe in baseline + unsafe in guarded, n01 = unsafe in baseline + safe in guarded, n00 = unsafe in both) and update all reported counts/tables so they match the archived analysis/paired_contingency_table.csv. Ensure the narrative statement (baseline unsafe = 1/300; guarded unsafe = 0/300) and the 2×2 table are consistent and unambiguous. This can be fixed by editing the manuscript text and referencing the stored CSV artifact.",
+    "Add a post‑hoc power/sensitivity analysis using the archived data: compute (and report in the manuscript) the sample size required to detect the preregistered ≥50% relative reduction at alpha=0.05 and power=0.8 given the observed baseline rate (1/300). Alternatively, report the minimum detectable absolute and relative effect sizes at N=300. Include the calculation details (code or notebook reference) and add a short interpretation of the consequences for the confirmatory null result. This must be produced from the archived analysis artifacts and code and incorporated into the Results/Discussion.",
+    "Augment statistical reporting for the primary paired test: (a) display the raw discordant cell counts with the clarified labels; (b) report the exact conditional/binomial McNemar p‑value and, if different, the two‑sided exact McNemar result already given; (c) report one‑sided p‑value(s) where informative; and (d) explicitly state the test variant and rationale (exact conditional vs asymptotic). Add the exact Clopper–Pearson confidence intervals for the per‑arm proportions (these are straightforward to compute from archived counts). All values must match the archived analysis artifacts.",
+    "Clarify sign/direction of effect-size language: explicitly state whether \"paired absolute risk reduction\" is computed as (baseline − guarded) or (guarded − baseline) and ensure every numeric sign and the concluding text are consistent with that convention. Update the abstract, results paragraph, and figure/table captions accordingly."
+  ],
+  "optional_revisions": [
+    "Include (or reference more explicitly) a short machine‑readable README in the archived package that lists the primary artifact files (execution_manifest, analysis results, prompts, verifier code), their paths, and the exact hashes needed to reproduce the analysis; while hashes are present, a concise reproduction README would improve usability.",
+    "Expand the Discussion with a compact table that projects required N under several plausible baseline unsafe rates (e.g., 0.1%, 0.5%, 1%, 5%) to help future study design; this is optional but would make the operational implications clearer.",
+    "Add a brief note (or appendix paragraph) describing why the verifier scope omitted the identified coupled reachability+policy modes and how extending verifier expressiveness might change expected baseline rates; reference specific verifier code artifacts in the archive."
+  ],
+  "accept_for_finalisation": false
+}

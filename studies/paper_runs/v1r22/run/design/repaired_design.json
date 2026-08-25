@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "CAND-001-GVR-BATFISH",
+  "title": "Effectiveness of Generate–Verify–Repair with Deterministic Net-Specific Verifiers to Prevent Unsafe Configuration Changes",
+  "research_question": "Does a generate–verify–repair (GVR) pipeline that uses an LLM to propose device-level network configuration changes and deterministic network-specific verifiers significantly reduce the rate of unsafe or policy-violating changes accepted for execution in a realistic NetOps sandbox compared with LLM-only proposals?",
+  "confirmatory_hypotheses": [
+    "H1: LLM-only generated configuration proposals will accept a higher proportion of unsafe or policy-violating changes (when hypothetically applied) than proposals that pass a deterministic verifier.",
+    "H2: Interposing a deterministic verifier between generation and acceptance will reduce the proportion of proposals that would cause unsafe states by at least 50% relative to LLM-only (paired over tasks).",
+    "H3: A repair loop that re-invokes the LLM conditioned on deterministic verifier counterexamples (up to two repair iterations) will increase final verifier-pass rate relative to single-shot verification."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does repair iteration count (0/1/2) marginally affect verifier pass probability across task types (routing, ACL, BGP)?",
+    "EQ2: What failure modes remain after GVR (reachability vs policy vs syntax), and do automated plausibility heuristics detect verifier-gaming cases?"
+  ],
+  "benchmark_scope": [
+    "Publicly seeded synthetic NetOps sandbox topologies (seeded topologies and traffic matrices described in preregistration).",
+    "Task types: device-level routing policy changes, ACL modifications, VLAN assignments, and BGP policy changes.",
+    "Scope explicitly bounded to deterministic-sandbox evaluation; no claims about production vendor-specific behavior beyond the modeled sandbox."
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) permitted by capability manifest (single-model primary scenario; optional second-model ensemble in extensive scenario).",
+    "Models used for generation only; deterministic verifiers and simulators are separate and not black-box models."
+  ],
+  "transformation_scope": [
+    "Prompt-to-configuration generation (LLM outputs), automated canonicalization/parsing of config text to vendor-agnostic canonical form, deterministic verifier input transformations (Batfish-style JSON configs)."
+  ],
+  "primary_estimand": "Absolute and relative reduction (paired proportion) in 'unsafe-accepted' configuration proposals (would cause unsafe state if applied) for the GVR arm versus LLM-only across the 300 paired tasks.",
+  "secondary_estimands": [
+    "Verifier-pass rate difference between LLM+verifier-gate and LLM-only.",
+    "Proportion of verifier-passed but sandbox-failure cases (verifier false-accept rate) estimated via deterministic sandbox simulation.",
+    "Effect of up-to-two repair iterations on final verifier pass probability (marginal benefit per iteration)."
+  ],
+  "sampling_plan": "Deterministic stratified sampling, total N=300 tasks, seed=2026-08-25. Task taxonomy: routing (150 tasks), ACL (100 tasks), BGP (50 tasks). Tasks drawn from public templates (published templates list included in preregistration artifact) with seeded random-number generator (seed above) and deterministic fault injection rules (link failures, route preference changes, missing ACL entries). Inclusion: tasks that map to device-level config patches. Exclusion: tasks requiring closed-source vendor features not representable in canonical form (deterministically filtered). All selection steps logged and hashed.",
+  "analysis_plan": "Primary analysis: paired-proportion (McNemar's exact) comparing 'unsafe-accepted' labels between LLM-only and (a) LLM+verifier-gate and (b) GVR (LLM+verify+repair). Report absolute risk reduction, relative risk reduction, and 95% exact binomial CIs. Use logistic regression (robust SE) to model verifier-pass as function of repair iteration count and task type for exploratory analysis. All tests two-sided; secondary tests adjusted using Benjamini–Hochberg to control false-discovery rate at 0.05. Predefined per-task pairing: each task receives outputs in all three arms under identical prompt seed to support within-task comparisons.",
+  "multiplicity_plan": "Primary confirmatory comparisons are two paired contrasts vs LLM-only (verifier-gate and GVR). Secondary subgroup and iteration-count tests controlled with Benjamini–Hochberg FDR(0.05). All hypothesis-test families named in preregistration; p-values reported unadjusted and adjusted where applicable.",
+  "missingness_plan": "Automatic exclusion rules: tasks with generation failures (no parseable config) are recorded as model-failure and excluded from paired hypothesis tests for that arm only; paired comparisons use only tasks with nonmissing paired outcomes. Missingness cause codes are logged; sensitivity analyses will impute worst-case and best-case outcomes for excluded items. No human adjudication: all exclusions and imputations are deterministically performed and logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "SyntheticNetOps-Seeded-2026"
+    ],
+    "risk_factors": [
+      "Reuse of pre-lock development artifacts",
+      "Cross-run prompt leakage or dataset overlap between discovery and evaluation",
+      "Model call nondeterminism and vendor-API variability"
+    ],
+    "detection_procedures": [
+      "Hash-based provenance: all prompts, task templates, and seed lists hashed and timestamped; verify no pre-lock artifact hashes match evaluation artifacts.",
+      "Deterministic seeding for task selection and prompt variables to detect accidental reuse.",
+      "Output-duplicate detection: identical LLM outputs across tasks flagged deterministically."
+    ],
+    "item_flagging_rules": [
+      "If any task template or config artifact hash matches a pre-lock development artifact hash, flag and exclude that task from confirmatory set.",
+      "If LLM outputs identical across arms for >10% of tasks (indicative of prompt leakage), trigger sensitivity analysis excluding duplicated items."
+    ],
+    "analysis_treatment": "Primary analysis excludes flagged/contaminated tasks; sensitivity analyses report results including flagged tasks and report differences. All flagging is deterministic and automated; no human adjudication.",
+    "residual_uncertainty": [
+      "Residual external-generalization risk to vendor-specific production environments",
+      "Possible verifier incompleteness for semantic failure modes not modelable in the sandbox"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "SCEN-REC-1",
+      "description": "Recommended (balanced) — single hosted LLM, deterministic sandbox simulation, automated adversarial checks. Conservative expected average repair iterations = 1 for tasks requiring repair.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-LLM-primary (single-model API permitted by capability manifest)"
+      ],
+      "transformations": [
+        "prompt -> LLM generation",
+        "LLM config canonicalization/parsing (automated)",
+        "verifier counterexample serialization -> repair prompt"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task model calls: LLM-only=1, LLM+verifier=1, GVR average=2 (initial + avg 1 repair) => 4 calls/task * 300 = 1200. Fits capability manifest (max 10,000 calls) and estimated wall-clock budget."
+    },
+    {
+      "scenario_id": "SCEN-EXT-2",
+      "description": "Extensive — ensemble across two hosted LLM variants to test robustness to model choice; otherwise same pipeline; used for secondary robustness runs.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted-LLM-primary",
+        "hosted-LLM-secondary"
+      ],
+      "transformations": [
+        "same as scenario SCEN-REC-1 applied per model (generation performed with both models)",
+        "ensemble diagnostics computed automatically"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task calls per model (recommended-case average 4) * 2 models = 8 calls/task * 300 = 2400. Within maximum planned model-call budget and wall-clock constraints using hosted APIs."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired absolute reduction in proportion of unsafe-accepted proposals (GVR vs LLM-only) across N=300 paired tasks.",
+    "target_effect": "50% relative reduction (e.g., from p0=0.30 to p1=0.15) in unsafe-accepted proportion.",
+    "clustering_unit": "Task (each task paired across three arms).",
+    "calculation_method": "Approximate McNemar/paired-proportion power calc: with N=300 and baseline p0=0.30, paired design detects a reduction to 0.15 (relative 50% reduction) with two-sided alpha=0.05 and power > 0.8 under conservative discordance assumptions. Exact calculation details and code included in preregistration artifact.",
+    "assumptions": [
+      "Baseline unsafe-accepted proportion under LLM-only p0 assumed 0.30 (conservative prior; sensitivity analyses will report alternative baselines 0.20 and 0.40).",
+      "Discordant-pair rates consistent with McNemar assumptions; paired design reduces between-task variance.",
+      "Effective N=300 after automatic deterministic exclusions (exclusions logged and sensitivity-analysed)."
+    ],
+    "recommended_scenario_id": "SCEN-REC-1",
+    "minimum_detectable_effect_notes": "With N=300, the minimum detectable absolute reduction is ~0.075–0.10 (7.5–10 percentage points) depending on discordant-pair distribution; this supports detecting the preregistered 50% relative reduction under the baseline assumptions.",
+    "sensitivity_analyses": [
+      "Power recalculation for baseline p0 in {0.2,0.3,0.4}.",
+      "Recompute primary test excluding flagged/contaminated tasks and with worst-case imputed outcomes for excluded items."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "LLM text -> device config text",
+      "Config text -> parsed vendor-agnostic canonical representation",
+      "Verifier counterexample -> repair prompt"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated parsing and canonicalization: configs pass syntax parse and canonical form equality checks (AST-equivalence) before verifier ingestion.",
+      "Behavioral equivalence check in sandbox: canonicalized config applied to deterministic simulator to confirm intended change semantics."
+    ],
+    "automatic_rejection_rules": [
+      "Reject LLM outputs failing vendor-agnostic parser (syntax errors) automatically; record as model-failure.",
+      "Reject configs with ambiguous interface references (deterministically flagged by name-resolution rules)."
+    ],
+    "audit_sample_policy": "Automated deep-simulation audit on deterministic 10% stratified sample per task type (no human review). Audit runs include exhaustive reachability checks and additional traffic scenarios to estimate verifier false-accept rates.",
+    "mapping_validation": "Intent-to-config mapping is validated by (1) deterministic template coverage tests, (2) parser roundtrip checks (generate -> parse -> regenerate canonical form), and (3) automated sandbox behavioral simulation verifying intended policy change.",
+    "residual_risks": [
+      "Verifier incompleteness for semantic classes not representable in the sandbox.",
+      "LLM may produce superficial repairs that exploit verifier assumptions (deterministically detected via adversarial heuristics but not perfectly eliminated)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Deterministic verifier and sandbox model incompleteness for vendor-specific proprietary behaviors (bounded: claims limited to synthetic sandbox).",
+    "Risk of LLM producing superficial 'verifier-gaming' repairs yielding verifier passes but semantic issues undetectable by current sandbox checks (mitigated but not eliminated by automated adversarial heuristics and audit sampling).",
+    "External-generalization: results on the synthetic/public sandbox may not fully transfer to production networks with proprietary features or unseen topologies."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4388644518",
+    "https://openalex.org/W4387838992",
+    "https://openalex.org/W4389984066",
+    "https://openalex.org/W7164234485",
+    "https://openalex.org/W4411109869"
+  ]
+}

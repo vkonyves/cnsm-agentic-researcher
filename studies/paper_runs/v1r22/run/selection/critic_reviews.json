@@ -1,0 +1,90 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-001-GVR-BATFISH",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Deterministic verifier coverage may miss semantic/vendor-specific failures (false sense of safety).",
+        "Sandbox/verifier mismatch: verifier-passed configs may behave differently in richer environments.",
+        "Repair loop risk: LLM may learn to game verifier (superficial fixes).",
+        "Task corpus construction and diversity not fully specified (risk of selection bias)."
+      ],
+      "required_design_repairs": [
+        "Use multiple verifiers and vendor-model variants (e.g., Batfish + vendor simulator) to broaden coverage.",
+        "Define and publish a representative task taxonomy and sampling procedure; include public templates and seeds.",
+        "Include human-curated ground-truth safety labels for a stratified sample to validate verifier decisions.",
+        "Add checks for verifier-gaming (e.g., adversarial counterexamples) and report repair-quality metrics beyond verifier pass (semantic checks)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-002-RAG-HALLUCINATION",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Retrieval corpus coverage and alignment critically determine result validity; corpus curation is underspecified.",
+        "Automated hallucination detector risks false positives/negatives and may bias outcome measures.",
+        "Correlation/mediation claims between retrieval precision and verifier pass need careful causal framing. "
+      ],
+      "required_design_repairs": [
+        "Specify corpus assembly, provenance, and coverage metrics; release corpus or indexing snapshots for reproducibility.",
+        "Validate hallucination detector on a human-annotated verification set; report detector performance (precision/recall).",
+        "Predefine retrieval methods (dense/sparse), hyperparameters, and perform sensitivity analysis across retrievers; preregister mediation analysis plan."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-003-AGENT-CONTRACTS",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulated agents and injected perturbations may not reflect operational complexity and may bias results toward contracts' effectiveness.",
+        "Schema/contract design choices can themselves induce performance artifacts (good schemas → good results).",
+        "Measurement of repair complexity and 'semantic' vs 'syntactic' failures is partly subjective without clear coding rules."
+      ],
+      "required_design_repairs": [
+        "Provide a rationale and process for schema design; evaluate multiple realistic schema alternatives to avoid single-design bias.",
+        "Include runs seeded from real-world agent traces or publicly available logs if possible, or clearly characterize simulation limitations.",
+        "Define objective coding rules for repair-complexity classification and validate inter-annotator agreement on a sample."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-004-SIM-HITL-ESCALATION",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulated operator behavior and calibrated decision-policy may not represent real human decisions and will drive key outcomes.",
+        "Latency model and organizational delays are underspecified and likely optimistic.",
+        "Threshold grid and calibration source (small public expert dataset) risk overfitting to proxy behavior."
+      ],
+      "required_design_repairs": [
+        "Augment simulation with a small human-subjects pilot or use multiple published operator-behavior proxies; report provenance and limitations.",
+        "Model escalation latency with conservative ranges and sensitivity analysis; report trade-offs across realistic latency profiles.",
+        "Predefine and disclose the calibration dataset and include robustness checks across multiple simulated operator profiles."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

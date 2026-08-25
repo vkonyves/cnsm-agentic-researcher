@@ -1,0 +1,30 @@
+{
+  "study_id": "CNSM2026-GVR-BATFISH-CAND-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis: compute per-task binary outcome 'unsafe_accepted' from execution/scoring/*.json; form 2x2 paired contingency (baseline vs guarded). Apply McNemar's exact test on nonmissing complete pairs (per preregistration exclusion rules). Report absolute risk reduction, relative risk reduction, odds ratio, two-sided exact p-value, and 95% exact binomial CIs for paired proportions. Use deterministic provenance/hashes from execution manifest for all included pairs.",
+  "secondary_analyses": [
+    "Compute verifier-pass rate difference between guarded (verifier gate only) and baseline using paired proportions; report counts, two-sided exact p-values and 95% CIs.",
+    "Estimate verifier false-accept rate: among verifier-passed proposals, compute proportion that sandbox simulation labels unsafe (use execution/scoring/*-guarded.json and sandbox traces); report proportion and exact CI.",
+    "Exploratory logistic regression (robust SE) predicting verifier-pass and unsafe_accepted from task_type (routing/ACL/BGP) and repair_iteration_count using scoring artifacts; report coefficients, SEs, and unadjusted p-values (secondary family)."
+  ],
+  "sensitivity_analyses": [
+    "Alternate failed-call treatment: complete_pair_primary_with_failure_as_zero_sensitivity (treat any model-call generation failure as paired outcome 'unsafe_accepted'=0 for guarded arm) and recompute primary paired test and effect estimates.",
+    "Worst-case / best-case imputation for excluded pairs (deterministic per preregistration): impute all excluded guarded outcomes as unsafe (worst) and as safe (best); report effect bounds.",
+    "Include any tasks flagged by contamination-detection (hash matches to pre-lock artifacts) and report primary-analysis differences versus primary confirmatory exclusion set."
+  ],
+  "uncertainty_quantification": "95% exact (Clopper–Pearson) binomial confidence intervals for proportions; exact McNemar two-sided p-values for primary paired contrasts; report unadjusted p-values and BH-adjusted q-values for declared secondary families (Benjamini–Hochberg FDR 0.05). All CIs and p-values computed deterministically from execution/scoring JSON artifacts.",
+  "multiplicity_implementation": "Declared families: primary confirmatory family = two paired contrasts vs LLM-only (verifier-gate and full GVR). Secondary families = subgroup and iteration-count tests and regression coefficients. Control secondary-family false discovery via Benjamini–Hochberg FDR at 0.05; primary-family tests reported without multiplicity adjustment per preregistration.",
+  "contamination_analysis": "Apply preregistered hash-based contamination checks (compare task-template and pre-lock artifact hashes). Record and exclude flagged tasks from the confirmatory analysis set; produce sensitivity analyses including flagged items. All flagging decisions and hashes logged in execution manifest and scoring artifacts; exclusions are deterministic and reproducible from provided artifacts.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 (Confirmatory): Paired 2x2 contingency table counts (baseline unsafe_accepted vs guarded unsafe_accepted), absolute and relative risk reduction, odds ratio, McNemar exact p-value, 95% CIs. Source: execution/scoring/task-*.json aggregated per task_id.",
+    "Table 2 (Secondary): Verifier-pass rates and sandbox-failure rates by task_type (routing/ACL/BGP): counts, proportions, 95% CIs. Source: execution/scoring/*-guarded.json and sandbox traces referenced in execution/raw_results.jsonl.",
+    "Table 3 (Exploratory): Repair-iteration outcomes (iteration 0/1/2): verifier-pass probability, final unsafe_accepted rate, delta per iteration with CIs. Source: transformation_manifest and execution/scoring artifacts."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of unsafe_accepted rate (baseline vs guarded vs GVR final) with 95% CIs (aggregated over nonmissing paired tasks). Data from execution/scoring/*.json.",
+    "Figure 2: Paired risk-difference forest plot by task_type (routing/ACL/BGP) showing point estimates and 95% CIs for guarded vs baseline. Data from execution/scoring per-task aggregation.",
+    "Figure 3: Sankey/flow counts showing generation → verifier result → sandbox outcome (counts of pass/fail pathways) rendered from execution/result_schema and scoring JSONs."
+  ]
+}
