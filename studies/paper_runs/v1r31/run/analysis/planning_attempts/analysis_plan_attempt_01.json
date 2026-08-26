@@ -1,0 +1,32 @@
+{
+  "study_id": "cns-m2026-01",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "paired_binary_analysis_v1 will read episode-level deterministic success flags from execution/scoring/task-000001-baseline.json .. execution/scoring/task-000300-guarded.json (result schema paired_binary_episode_v1 v1.0) and compute the preregistered estimand paired_success_rate_difference_guarded_minus_baseline. Unit = intent (paired baseline vs guarded). Primary test = two-sided paired-proportion (McNemar-style normal-approximation), alpha=0.05. Report paired difference, 95% CI, and p-value. Implementation will apply the registered contract fields exactly: result_schema_id=paired_binary_episode_v1, compatible_execution_adapter_families=[\"synthetic_paired_llm_benchmark_v1\",\"hosted_netops_gvr_v1\"], result_schema_versions=[\"1.0\"]. Primary failed-call treatment (contract) = \"complete_pair_primary\"; prespecified sensitivity = \"complete_pair_primary_with_failure_as_zero_sensitivity\".",
+  "secondary_analyses": [
+    "baseline_success_rate (proportion of intents with execution-validated correct configs for baseline)",
+    "guarded_success_rate (proportion for GVR post-repair configs)",
+    "distribution of repair-iterations-to-success",
+    "validator–execution discrepancy rate (proportion where validator passed but execution shows unintended reachability change)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat pairs excluded for technical failure as failures)",
+    "power/discordant-fraction sensitivity recomputation (discordant fractions 0.25 and 0.45)"
+  ],
+  "uncertainty_quantification": "Paired difference 95% CI via normal-approximation for paired proportions (as preregistered). Report exact McNemar-style p-value (normal-approximation). For exploratory summaries apply Benjamini–Hochberg FDR-adjusted p-values where p-values are reported. No human adjudication; all uncertainty computed from automated scoring artifacts.",
+  "multiplicity_implementation": "One pre-registered primary paired test. All subgroup, secondary and exploratory comparisons reported as exploratory and adjusted with Benjamini–Hochberg FDR; exploratory findings are explicitly labeled and not promoted to confirmatory claims.",
+  "contamination_analysis": "Use preregistered deterministic contamination filters recorded in execution/task_manifest.jsonl (exact-string match threshold >=95% and k=8-token shingle Jaccard >=0.6 and token-overlap heuristics). Task-manifest artifact path: execution/task_manifest.jsonl (hash: 91564bb69ac692e2fbd6321708863d13938309b5433ef1b211541ba5426df990). All included/excluded decisions logged in that manifest and execution/execution_log.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Primary paired-outcome contingency (n11/n10/n01/n00), paired difference, 95% CI, and McNemar-style p-value — produced from execution/scoring/task-000***-baseline.json and execution/scoring/task-000***-guarded.json aggregated across tasks (paths listed in execution_manifest execution/scoring/*).",
+    "Table 2: Baseline and guarded success rates with counts and exact binomial CIs; per-stratum (simple/medium/complex) breakdown using task metadata from execution/task_manifest.jsonl.",
+    "Table 3: Failure-mode contingency table (validator fail, syntax, emulation-only failure, specification ambiguity, other) aggregated from execution/scoring/task-000***.json failure-mode codes.",
+    "Table 4 (exploratory): Validator–execution discrepancy table (validator pass & execution fail vs validator fail & execution pass) with counts and proportions."
+  ],
+  "figure_specifications": [
+    "Figure 1: Histogram of repair-iterations-to-success (0/1 repairs) from execution/scoring/task-000***-guarded.json aggregated across tasks.",
+    "Figure 2: Bar chart of failure-mode category frequencies (from execution/scoring/* JSON failure-mode codes).",
+    "Figure 3: Scatter/strip plot of per-task baseline outcome (0/1) vs guarded outcome (0/1) showing paired changes (produced from aggregated execution/scoring JSONs).",
+    "Figure 4 (exploratory): Stratified success-rate bar chart (simple/medium/complex) for baseline and guarded conditions using task manifest strata labels (execution/task_manifest.jsonl)."
+  ]
+}

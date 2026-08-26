@@ -1,0 +1,271 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs can be used to translate high-level network intents into low-level network configurations or code, but achieved correctness varies across tasks and settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4401042444"
+      ],
+      "evidence_type": "empirical_and_survey",
+      "confidence": 0.85,
+      "limitations": [
+        "Reported results derive from research prototypes, benchmarks, or surveys rather than broad production deployments.",
+        "Performance depends on model, prompt, fine-tuning, and dataset specifics not uniformly controlled across studies."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Hallucination, factual errors, and prompt sensitivity are common failure modes for LLMs and materially affect reliability for operational tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4414677042",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404782660",
+        "https://openalex.org/W4401042444"
+      ],
+      "evidence_type": "survey_and_empirical",
+      "confidence": 0.9,
+      "limitations": [
+        "Most analyses quantify hallucination and prompt-sensitivity in general LLM tasks; transfer to specific NetOps failure rates requires domain-specific measurement."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Architectures that combine generation, automated validation (deterministic or formal validators), and iterative repair improve reliability of model-produced artifacts in safety-critical domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4415707175",
+        "https://openalex.org/W7131417432",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4402929446"
+      ],
+      "evidence_type": "architectural_and_empirical",
+      "confidence": 0.8,
+      "limitations": [
+        "Demonstrations are domain-specific (e.g., PLC, cybersecurity RAG) and vary in verifier strength; direct transfer to NetOps requires integration with network-specific validators (reachability, ACL equivalence)."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Tool-using and multi-agent LLM frameworks enable more complex NetOps-like workflows but introduce multi-turn safety and governance risks that require explicit mitigation (confidence gating, human-in-the-loop, contracts/auditable loops).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W7129369048",
+        "https://openalex.org/W4404782660",
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4403578102"
+      ],
+      "evidence_type": "survey_and_design_studies",
+      "confidence": 0.86,
+      "limitations": [
+        "Risk assessments are mostly conceptual or benchmark-based; operational effectiveness of specific governance measures in deployed NetOps remains under-evaluated."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Evaluation and benchmark practices for LLMs face validity threats (dataset contamination, benchmark fragility), which can inflate perceived capabilities if not controlled.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405096475",
+        "https://openalex.org/W4411120124",
+        "https://openalex.org/W4406170795",
+        "https://openalex.org/W4391836235"
+      ],
+      "evidence_type": "meta-evaluation_and_survey",
+      "confidence": 0.9,
+      "limitations": [
+        "While general benchmark vulnerabilities are well-documented, the degree of contamination or inflation for specific NetOps benchmarks needs per-dataset analysis."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Confidence estimation and calibration methods exist but no single method is uniformly reliable across tasks; calibrated uncertainty can help gating but remains imperfect.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404781852",
+        "doi:10.21203/rs.3.rs-7038601/v1",
+        "https://openalex.org/W4399803256"
+      ],
+      "evidence_type": "empirical",
+      "confidence": 0.8,
+      "limitations": [
+        "Calibration experiments are often on NLP or QA benchmarks; applying them to structured NetOps outputs (configs, ACLs) may require different scoring/verification approaches."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM-generated network configurations, validated by automated network-specific validators, succeed when executed on real network devices under realistic topologies and failure conditions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4406170828"
+      ],
+      "evidence_type": "empirical_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing papers demonstrate intent→config translation and generator–validator concepts but few published experiments execute validated outputs on real device testbeds with systematic failure injection."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How much evaluation inflation in NetOps-oriented benchmarks stems from training-data contamination for contemporary LLMs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411120124",
+        "https://openalex.org/W4405096475",
+        "https://openalex.org/W4406170795"
+      ],
+      "evidence_type": "methodological_uncertainty",
+      "confidence": 0.65,
+      "limitations": [
+        "Surveys document contamination risks generally; quantifying contamination requires dataset-level membership tests or mechanistic methods (not present in the supplied NetOps records)."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Which concrete verifier types (formal reachability, ACL equivalence, simulation/emulation) and verification strengths are necessary to reduce catastrophic NetOps actions to acceptable operational risk?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4402929446",
+        "https://openalex.org/W4406170828"
+      ],
+      "evidence_type": "practical_design_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Papers propose verification components but do not converge on a validated minimal verifier set for production NetOps safety."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How robust are prompt-hardening, few-shot exemplars, or structured prompting strategies specifically for NetOps tasks across model families and prompt-coupling effects?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404782660",
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4414677042"
+      ],
+      "evidence_type": "prompt_robustness_question",
+      "confidence": 0.6,
+      "limitations": [
+        "General prompt-sensitivity analyses exist but domain-specific systematic studies for NetOps prompts across multiple models are lacking in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "What human-in-the-loop gating policies (confidence thresholds, review workflows) provide best trade-offs between automation benefit and operational safety in NetOps agentic workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W7129369048",
+        "https://openalex.org/W4403578102"
+      ],
+      "evidence_type": "operational_policy_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Papers recommend HITL and gating concepts; empirical comparisons of specific gating thresholds/workflows for NetOps are not provided in these records."
+      ]
+    },
+    {
+      "claim_id": "Q6",
+      "statement": "Can calibrated model-confidence signals reliably predict semantic correctness of structured network artifacts (e.g., ACL semantics, routing policies) before execution?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404781852",
+        "doi:10.21203/rs.3.rs-7038601/v1",
+        "https://openalex.org/W4399803256"
+      ],
+      "evidence_type": "uncertainty_quantification_question",
+      "confidence": 0.58,
+      "limitations": [
+        "Calibration work mainly covers QA; mapping token-level confidence to semantic correctness of configurations remains an open empirical question."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Absence of publicly verified NetOps evaluation suites that combine intent→configuration tasks with executable device-level testbed runs, deterministic formal validators, and contamination controls.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406170795",
+        "https://openalex.org/W4411120124"
+      ],
+      "evidence_type": "benchmark_gap",
+      "confidence": 0.82,
+      "limitations": [
+        "NetConfEval and related task suites exist but supplied records do not document a combined, contamination-controlled, device-execution benchmark covering validators and testbeds."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Limited demonstrated integration of network-domain formal-method validators (reachability/ACL equivalence) into LLM generation–verify–repair loops in published NetOps work.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4402929446",
+        "https://openalex.org/W4406170828"
+      ],
+      "evidence_type": "integration_gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Some papers propose verification components conceptually; concrete integrations with network formal validators and empirical results are sparse in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Insufficient empirical studies measuring multi-turn agent safety degradation and mitigation effectiveness specifically for NetOps multi-step workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7129369048",
+        "https://openalex.org/W4403578102",
+        "https://openalex.org/W4402929446"
+      ],
+      "evidence_type": "safety_evaluation_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Multi-turn safety benchmarks exist in other domains; the supplied records do not present extensive NetOps-specific multi-turn safety evaluations."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Lack of domain-specific methods mapping model confidence/calibration to deterministic semantic checks for network configuration correctness.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404781852",
+        "https://openalex.org/W4406170795"
+      ],
+      "evidence_type": "methodological_gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Calibration literature is general; conversion into reliable semantic gating metrics for structured NetOps outputs is not demonstrated in supplied records."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Few publicly available, contamination-audited NetOps datasets with provenance to support honest evaluation of LLM capabilities in the domain.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411120124",
+        "https://openalex.org/W4405096475",
+        "https://openalex.org/W4391836235"
+      ],
+      "evidence_type": "data_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Some datasets and benchmarks exist, but supplied records highlight contamination risks and call for provenance controls; explicit audited NetOps datasets are not evident in the provided set."
+      ]
+    },
+    {
+      "claim_id": "G6",
+      "statement": "Limited published work on end-to-end cost/reliability trade-offs for closed-loop NetOps agent architectures (verification latency, loop cost, catastrophic-action rate) tailored to networks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406170828",
+        "https://doi.org/10.36227/techrxiv.177205043.39321579/v1"
+      ],
+      "evidence_type": "systems_evaluation_gap",
+      "confidence": 0.72,
+      "limitations": [
+        "Architectural proposals and metrics (e.g., WoI) exist, but network-specialized experimental evaluations quantifying trade-offs are not present in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Claims that LLM-based NetOps systems are production-ready and safe for unsupervised deployment — not supported by the supplied empirical/survey records.",
+    "Any assertion of comprehensive superiority of a specific LLM or agent framework across NetOps tasks without multi-model, contamination-controlled comparisons — unsupported by provided records.",
+    "Fabricated performance numbers (e.g., device-level success rates on live networks) not present in the supplied record set."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "summary": "This is a well-documented, preregistered paired study (N=300 pairs) evaluating a generate–validate–repair (GVR) loop around gpt-5-mini for intent→configuration NetOps tasks using a deterministic reachability validator. Execution and analysis artifacts are archived with comprehensive hashes; the confirmatory analysis is consistent with the preregistration and shows baseline=299/300, guarded=300/300 (paired difference = 0.00333, 95% bootstrap CI [0.00,0.01], exact McNemar two-sided p = 1.0). Authors correctly conclude the preregistered 10% improvement hypothesis is not supported and discuss ceiling effects and external-validity limits.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly state in Methods (and reiterate in Discussion) that a single shared initial generation was produced per task and used as the baseline output (shared_initial semantics), and that the guarded condition applied the deterministic validator and (only if needed) a single automated repair to that same candidate. Cite the exact execution artifact(s) and manifest hashes that demonstrate this shared-generation workflow.",
+    "Add an explicit, quantitative statement in Results/Discussion about realized sensitivity/power given the observed discordant-pair count (n10+n01 = 1). Using the archived contingency counts and preregistered power assumptions, state numerically why the study could not detect the originally targeted 10% absolute improvement under the realized ceiling (this can be computed from existing artifacts and the preregistration).",
+    "In Methods or Disclosure, add one short paragraph clarifying implications of the shared-initial design for interpretation (i.e., that guarded only changes outcomes when validator+repair intervenes, and that comparisons here test the validator/repair gate on otherwise-identical generator outputs). Link to the specific artifact paths/hashes showing the single repair call (execution/provider_calls/task-000117-guarded-repair.json or equivalent) to support the claim."
+  ],
+  "optional_revisions": [
+    "Include a small table (1/2 page) in the manuscript body or caption summarizing per-stratum (simple/medium/hard) success rates and the single discordant task id so readers can inspect the case (artifacts are archived).",
+    "Briefly expand Related Work to mention any very recent verifier-assisted NetOps evaluation work (if available) and state how this study’s shared-initial, single-repair design complements or differs from independent-generation comparisons.",
+    "Add a one-paragraph operational-cost note (model calls, repair calls) summarizing that only one repair call was used and the modest additional call-cost observed, using the provider_call_audit numbers already archived."
+  ],
+  "accept_for_finalisation": false
+}

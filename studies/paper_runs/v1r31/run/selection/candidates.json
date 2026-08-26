@@ -1,0 +1,116 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cns-m2026-01",
+      "title": "Generator–Validator–Repair (GVR) loop effectiveness using network reachability validators for intent→configuration",
+      "research_question": "Does an LLM-driven generate–validate–repair (GVR) loop that uses a network reachability validator materially increase the rate of safe, executable configurations (no unintended reachability changes) compared with plain LLM generation on intent-to-config NetOps tasks?",
+      "hypotheses": [
+        "An LLM with a deterministic reachability validator and iterative repair will produce a higher fraction of configs that (a) satisfy the intent and (b) pass device-level execution checks than the same LLM without the validator–repair loop.",
+        "Most residual failures after the GVR loop will be attributable to specification ambiguity in the natural-language intent rather than validator defects."
+      ],
+      "proposed_design": "Construct a paired experimental benchmark of N intent-to-configuration tasks derived from public NetOps datasets and synthetic intents (N ≥ 200). For each intent: (1) prompt a hosted LLM API to generate a configuration (baseline); (2) run a deterministic reachability validator (e.g., route/ACL reachability model or Batfish-like engine) to detect semantic violations; (3) if validator fails, invoke an automated repair prompt loop up to K=3 iterations to produce a revised config; (4) execute both baseline and post-repair configs in an emulated testbed (Mininet/Container-based router images) to observe actual reachability and side-effects. Record per-task binary outcomes: intent-satisfied, unintended-reachability-violation, and execution errors. Use fixed random seeds for generation sampling where applicable and freeze all prompts (preregistration).",
+      "expected_data": "Per-task records including: intent text, baseline LLM config, validator verdicts, repaired configs per iteration, execution traces from emulation (reachability matrix before/after), timestamps, and failure-mode labels (validator-detected, execution-only discrepancy, syntax error). Aggregate counts: baseline success rate, post-repair success rate, iteration counts, and categories of residual failures.",
+      "primary_outcome": "Increase in proportion (absolute percentage points) of intents with correct, safe executable configs after GVR repair vs baseline generation, tested with paired statistical test.",
+      "analysis_outline": "Compute paired differences (post-repair success − baseline success) and test with a two-sided paired proportion test (McNemar or bootstrap CI for paired proportions). Report 95% CIs and p-value. Secondary analyses: breakdown of failure modes, distribution of iterations-to-success, time/compute cost per success, and sensitivity analysis by intent complexity strata. Report raw contingency tables and adjust for multiple comparisons when examining subgroups.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4402929446",
+        "https://openalex.org/W4401042444"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406170828"
+      ],
+      "risks": [
+        "Executing generated network configs could produce harmful states; mitigate by using isolated emulated testbeds (Mininet, containerized router images) and never run on production devices.",
+        "Validator might give false assurances (false negatives); include execution validation to detect validator failures and log discrepancies.",
+        "Prompt or API errors and rate limits could bias results; preregister retry policy and record all technical failures separately from scientific failures."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cns-m2026-02",
+      "title": "Can calibrated model confidence predict semantic correctness of LLM-generated ACLs before execution?",
+      "research_question": "Do LLM-provided confidence signals (token/logit-level or sequence-level calibration) reliably predict semantic correctness of generated access-control lists (ACLs) so that confidence gating can reduce execution risk?",
+      "hypotheses": [
+        "Calibrated sequence-level confidence scores from LLMs will have predictive value (AUC significantly > 0.5) for semantic correctness of ACLs as determined by formal equivalence or reachability checks.",
+        "Calibration methods (temperature scaling, Platt scaling on a validation split) will improve predictive discrimination over raw model scores."
+      ],
+      "proposed_design": "Create a labeled dataset of ACL intents and ground-truth ACL configs (public sources + synthetically generated variations) of size M ≥ 500 with provenance controls. For each intent: generate K candidate ACLs from the hosted LLM with deterministic temperature settings; capture sequence-level confidence (e.g., average log-probability, normalized sequence score) and token-level uncertainty metrics. Use a formal ACL equivalence/reachability checker to assign binary correctness labels. Reserve a calibration/validation fold to fit scalar calibration transforms. Evaluate predictive performance (AUC, precision-recall) of raw and calibrated confidence for predicting semantic correctness. Preregister metrics, calibration method, and data inclusion rules.",
+      "expected_data": "Per-sample records: intent, generated ACL, raw confidence metrics, calibrated confidence, formal verifier verdict (correct/incorrect), failure reason categories. Aggregated metrics: AUC/ROC, average precision, calibration plots (reliability diagrams), and chosen threshold performance (sensitivity, specificity, precision).",
+      "primary_outcome": "AUC of calibrated confidence as predictor of ACL semantic correctness (report point estimate with 95% CI) and comparison to uncalibrated confidence using DeLong's test or bootstrap CI difference.",
+      "analysis_outline": "Compute ROC and PR curves for raw and calibrated scores. Use bootstrapping (e.g., 2000 resamples) to produce CIs for AUC and compare methods. Report calibration error metrics (ECE, MCE) and produce decision-threshold analysis mapping confidence thresholds to expected false-execution rates and review workload. Include subgroup analyses by ACL complexity.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404781852",
+        "doi:10.21203/rs.3.rs-7038601/v1",
+        "https://openalex.org/W4399803256"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406170795",
+        "https://openalex.org/W4404781852"
+      ],
+      "risks": [
+        "Calibration evaluated on synthetic or limited datasets may not generalize; mitigate by using diverse ACL shapes and reporting external-validity limits.",
+        "Overreliance on confidence gating could create false safety; always pair gating evaluation with verifier/execution checks in the study.",
+        "Data contamination risk if ACL templates appear in model training data; audit provenance and exclude suspicious items when possible."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cns-m2026-03",
+      "title": "Prompt hardening and exemplar robustness for NetOps intent-to-config tasks under adversarial and benign perturbations",
+      "research_question": "Do prompt-hardening strategies (structured templates, constrained output schemas, few-shot exemplars) reduce performance variability and hallucination rates of LLMs across syntactic and semantic prompt perturbations in NetOps tasks?",
+      "hypotheses": [
+        "Structured prompts with constrained output schemas and representative few-shot exemplars will produce lower variance in correctness across a suite of controlled prompt perturbations compared to naive free-form prompts.",
+        "Adversarial prompt perturbations (typos, reordering, ambiguous phrasing) will disproportionately harm free-form prompts relative to hardened prompts."
+      ],
+      "proposed_design": "Assemble a balanced task set (T ≥ 300) of intent→config tasks with stratified complexity. Define a set of prompt strategies: (A) baseline free-text, (B) schema-constrained prompt, (C) schema + 3 exemplars, (D) schema + dynamic clarifying-question step. Create a perturbation battery (benign paraphrase, typo injection, sentence shuffling, added irrelevant context, adversarial negation). For each task and strategy, apply each perturbation and call the hosted LLM (fixed sampling). Measure correctness via deterministic validators and emulation when needed. Preregister perturbation generation rules and evaluation metrics.",
+      "expected_data": "Matrix of task × prompt-strategy × perturbation → generated config, validator verdict, execution outcome where applicable. Summary statistics: mean accuracy, variance across perturbations, hallucination/error rates per strategy, and failure-mode taxonomy.",
+      "primary_outcome": "Reduction in across-perturbation variance of correctness for hardened prompt strategies relative to baseline, quantified as percent reduction and tested with appropriate variance-comparison tests (Levene or bootstrap on variances).",
+      "analysis_outline": "Compute per-strategy mean correctness and variance across perturbations. Test hypothesis on variance reduction using bootstrapped confidence intervals and Levene's test; compare mean accuracies with paired tests where applicable. Report robustness curves (accuracy vs perturbation severity) and produce exemplar-based qualitative failure analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404782660",
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4414677042"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404782660",
+        "https://openalex.org/W4399803256"
+      ],
+      "risks": [
+        "Perturbation generators may be biased; mitigate by preregistering automated perturbation rules and including manual spot checks.",
+        "Prompt hardening might reduce creativity but increase brittle overfitting to exemplars; measure both mean accuracy and failure diversity.",
+        "API rate limiting and nondeterminism could introduce noise; freeze sampling parameters and log seeds and retries."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cns-m2026-04",
+      "title": "Human-in-the-loop gating policies: trade-offs between manual review load and catastrophic-action reduction in NetOps agentic workflows",
+      "research_question": "What trade-off curves arise between manual-review effort and reduction in catastrophic NetOps actions when applying confidence- or verifier-based gating policies to LLM-generated network changes?",
+      "hypotheses": [
+        "A combined gating policy (calibrated confidence threshold plus deterministic verifier pass requirement) will achieve a lower catastrophic-action rate for a given manual-review budget than either confidence-only or verifier-only gating.",
+        "There exists a point of diminishing returns where additional manual reviews produce negligible reductions in catastrophic-action probability."
+      ],
+      "proposed_design": "Using generated outputs and verifier labels from prior candidates (or a held-out task set of size S ≥ 400), simulate different gating policies: (1) confidence-only thresholds, (2) verifier-only (accept only verifier-pass), (3) combined rules, and (4) random sampling for human review. For each policy and threshold, compute expected manual-review count and simulated execution risk (using emulation/verifier-discrepancy observed rates to estimate catastrophic-action probability if accepted without review). Preregister the cost model (time per review) and the definition of catastrophic action. Optionally run a small human-in-the-loop pilot with domain reviewers to validate workload assumptions (public volunteers or simulated reviewer model) while respecting human-participation constraints.",
+      "expected_data": "For each policy and threshold: expected number of manual reviews per 1000 changes, estimated catastrophic-action rate if deployed, false-reject/false-accept rates, and cost metric (review time × reviewers). Curve data to plot safety vs review-load trade-offs and Pareto-optimal points.",
+      "primary_outcome": "Empirical trade-off curve (safety reduction vs manual-review load) and identification of threshold(s) that achieve specified operational targets (e.g., <X catastrophic actions per 10k changes) with minimal review load.",
+      "analysis_outline": "Simulate policies across thresholds and compute empirical risk estimates with bootstrap CIs. Identify Pareto frontier; perform sensitivity analysis on reviewer accuracy assumptions and verifier false-negative rates. Report recommended gating operating points with explicit assumptions and uncertainty bounds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W7129369048",
+        "https://openalex.org/W4403578102"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404781852",
+        "https://openalex.org/W4406170828"
+      ],
+      "risks": [
+        "Simulated reviewer models may not reflect real human behavior; mitigate by clearly labeling simulations and, if feasible under constraints, running a small human pilot with consenting domain experts.",
+        "Estimating catastrophic-action probabilities relies on emulation and verifier-discrepancy rates which may not equal production risk; report conservative bounds and limitations.",
+        "Operational cost assumptions (review time) vary by organization; present results parametrically so readers can adapt to their cost models."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

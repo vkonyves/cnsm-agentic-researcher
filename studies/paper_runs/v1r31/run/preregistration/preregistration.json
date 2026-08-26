@@ -1,0 +1,82 @@
+{
+  "study_id": "cns-m2026-01",
+  "title": "Generator–Validator–Repair (GVR) loop effectiveness using deterministic reachability validation for intent→configuration",
+  "research_question": "Does an LLM-driven generate–validate–repair (GVR) loop using a deterministic reachability validator increase the rate of correct, safely executable configurations (no unintended reachability changes) versus plain LLM generation on intent→configuration NetOps tasks?",
+  "confirmatory_hypotheses": [
+    "H1: The paired proportion of intents yielding correct, safely executable configurations (execution-validated) is higher after the GVR loop than for baseline plain-LLM generation (primary confirmatory hypothesis, paired analysis).",
+    "H2: Among residual failures after the GVR loop, a plurality are attributable to ambiguous or underspecified natural-language intents (specification ambiguity) rather than validator or execution defects."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do iteration counts (repairs needed) distribute across intent-complexity strata?",
+    "EQ2: What categories of validator–execution discrepancies occur (validator false negatives vs emulation-only failures)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4406170828",
+    "https://openalex.org/W4402929446",
+    "https://openalex.org/W4401042444",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4414677042",
+    "https://openalex.org/W4399803256"
+  ],
+  "benchmark_scope": [
+    "Public NetOps intent→config examples filtered by automated contamination checks (public datasets only)",
+    "Synthetic intent templates (deterministic, seed-controlled) to supplement filtered public tasks",
+    "Emulated device-level execution using containerized Mininet + containerized router images (Docker)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "baseline_success_rate (proportion of intents with execution-validated correct configs for baseline)",
+    "guarded_success_rate (proportion for GVR post-repair configs)",
+    "distribution of repair-iterations-to-success",
+    "validator–execution discrepancy rate (proportion of intents where validator passed but execution shows unintended reachability change)"
+  ],
+  "sampling_plan": "Automated procedure: 1) harvest candidate intent→config pairs from publicly available NetOps corpora and public config repositories; 2) run deterministic provenance/contamination checks (exact-string, k=8-token shingle Jaccard, token-overlap thresholds) and exclude candidates flagged above thresholds; 3) supplement with deterministically seeded synthetic intent templates to reach N=300; 4) stratify tasks by intent complexity (simple/medium/complex) via deterministic token/AST heuristic; 5) draw final 300 preserving strata proportions using preregistered fixed RNG seed. Inclusion: tasks passing contamination and syntactic-validity checks. Exclusion: contamination-flagged items and irrecoverable technical-retrieval failures (logged). All selection automated.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: 10 percentage-point absolute increase. Method: McNemar-style paired-proportion normal-approximation using assumed discordant-pair fraction 0.35, two-sided alpha=0.05, power=0.80. Recommended N=300 (see preregistration power_plan sensitivity analyses). Report paired difference, 95% CI, p-value; include sensitivity recomputations for discordant fractions 0.25 and 0.45 and a sensitivity treating excluded pairs as failures.",
+  "exclusion_rules": [
+    "Exclude tasks flagged by deterministic contamination heuristics (exact-string match >=95% or shingle Jaccard >=0.6).",
+    "Exclude items failing deterministic syntactic validation or parser round-trip irrecoverably.",
+    "Pairs where both baseline and guarded execution traces cannot be produced due to technical infrastructure failure after allowed retries are excluded under primary analysis ('complete_pair_primary') and reported in counts."
+  ],
+  "missingness_plan": "Primary analysis uses 'complete_pair_primary'—exclude pairs with technical infrastructure failures preventing both baseline and guarded traces. Log all such pairs and report counts. Sensitivity analysis treats excluded pairs as failures ('complete_pair_primary_with_failure_as_zero_sensitivity'). Retry policy: up to 2 automated retries for transient API/container startup failures with exponential backoff; after retries, log as technical failure.",
+  "analysis_plan": "Primary confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' with estimand 'paired_success_rate_difference_guarded_minus_baseline'. Unit = intent (paired baseline vs guarded). Outcome per pair: 1 if execution-validated config satisfies intent and shows no unintended reachability changes, else 0. Primary test: two-sided paired-proportion (McNemar-style approximation), alpha=0.05. Report paired difference, 95% CI, p-value. Prespecified failed_call_treatment: 'complete_pair_primary' with sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity'. Secondary/exploratory analyses: descriptive failure-mode breakdowns, repair-iteration histograms, validator–execution discrepancy contingency tables; exploratory p-values corrected with Benjamini–Hochberg FDR; exploratory results not elevated to confirmatory claims.",
+  "multiplicity_plan": "One pre-registered primary paired test. All subgroup and secondary comparisons are exploratory and reported with Benjamini–Hochberg FDR correction; exploratory findings are explicitly labeled and not treated as confirmatory.",
+  "contamination_plan": ":{",
+  "stopping_rule": "Process the full preregistered task_count (N=300). Stop early only if the maximum_model_calls budget (600 calls) is exhausted or the 7-day wall-clock execution budget is reached; in those early-stop cases record partial-completion metadata and treat analysis as prespecified (report observed N and run sensitivity analyses). Retry policy: up to 2 automated retries per transient failure; after retries, log as technical failure and follow missingness_plan.",
+  "planned_outputs": [
+    "IEEE-format short paper (≤5 pages) including mandatory Disclosure Statement",
+    "Machine-readable preregistration and execution manifest",
+    "Code and Docker images for validator and emulation; model prompt templates; raw model-call logs and hashes",
+    "Statistical-results file and failure-analysis record",
+    "NotebookLM brief if accepted"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cns-m2026-01",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Potential training-data contamination of public NetOps examples (inflates baseline).",
+        "Deterministic reachability validator may have false negatives; reliance on validator alone could misattribute success.",
+        "Emulation realism: mininet/container routers may not capture important device behaviors or side-effects.",
+        "Intent ambiguity may dominate residual failures unless intents are tightly specified/normalized."
+      ],
+      "required_design_repairs": [
+        "Add provenance/audit procedures to exclude examples likely present in model training data.",
+        "Specify the exact validator implementation (e.g., Batfish config) and its known completeness/limits; include tests to measure validator false-negative rate against emulation.",
+        "Define emulation topology suite and justify realism; isolate all execution to non-production testbeds and document images/versions.",
+        "Preregister intent normalization rules and an ambiguity-resolution policy (e.g., clarifying-question prompt or conservative interpretation).",
+        "Provide sample-size power justification for N and formalize the paired test decision rule and retry policy."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cns-m2026-02",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Dataset contamination risk (ACL templates may appear in LLM training data).",
+        "Sequence-level confidence metrics are underspecified (multiple plausible definitions).",
+        "Formal ACL verifier equivalence definition and limitations need explicit statement.",
+        "Calibration fold leakage risk if calibration set not strictly held-out."
+      ],
+      "required_design_repairs": [
+        "Define exact confidence features to be used (avg log-prob, normalized seq score, token-entropy aggregation) and justify choices.",
+        "Implement and document a provenance audit to exclude/flag examples present in public corpora or common config templates.",
+        "Specify and validate the formal ACL verifier (equivalence criteria, edge cases) and provide unit tests showing verifier correctness on synthetic cases.",
+        "Preregister calibration procedure (fold split, scaling method), and commit to held-out calibration and test sets with random-seed reproducibility.",
+        "Provide power/sample calculations supporting M≥500 or increase M if needed and document contamination-exclusion proportion."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cns-m2026-03",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Perturbation generator may introduce biased or unrealistic perturbations if not rigorously specified.",
+        "Correctness measurement depends on validators/emulation; need clear evaluation oracle.",
+        "Risk of overfitting to exemplars (hardened prompts may merely encode dataset heuristics).",
+        "Single-model evaluation (if planned) limits external validity."
+      ],
+      "required_design_repairs": [
+        "Preregister perturbation rules with algorithmic generators and provide representative examples and seeds; include manual spot-checks to validate realism.",
+        "Specify the validator/emulation used for correctness and ensure it is run consistently across strategies.",
+        "Include at least one additional model or a sensitivity analysis to check whether robustness gains generalize beyond a single LLM.",
+        "Add metrics for both mean accuracy and failure diversity (to detect brittle overfitting) and justify T≥300 with a power analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cns-m2026-04",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Design currently proposes an optional human pilot but capability manifest forbids human scientific labour; this must be reconciled.",
+        "Simulated reviewer models may not capture real reviewer behavior—results depend heavily on simulation assumptions.",
+        "Policy evaluation depends on upstream verifier/discriminator quality and prior-candidate outputs; dependencies must be made explicit and controlled.",
+        "Cost/time-per-review assumptions may be organization-specific and change results materially."
+      ],
+      "required_design_repairs": [
+        "Remove or reframe any required human-in-the-loop pilot to a simulated-reviewer evaluation (or justify ethically/contractually if real reviewers will be used and ensure permissions).",
+        "Preregister the simulated reviewer model (accuracy, bias parameters) and run sensitivity analyses over a range of reviewer accuracies.",
+        "Explicitly state dependencies on outputs from other candidates and either (a) produce a held-out, independent task set for this study or (b) describe how prior-output reuse is controlled to avoid double-dipping.",
+        "Make the cost model parametric and report Pareto frontiers under a range of review-time assumptions; provide conservative bounds on catastrophic-action estimates given verifier false-negative uncertainty."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

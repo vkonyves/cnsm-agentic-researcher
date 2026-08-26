@@ -1,0 +1,21 @@
+{
+  "summary": "Careful, well-logged preregistered paired study evaluating a single-step generate–validate–repair (GVR) wrapper around gpt-5-mini on 300 synthetic intent→configuration tasks. Execution and analysis artifacts are extensive and reproducible. Baseline was near ceiling (299/300) and guarded produced one additional success (300/300); the preregistered target improvement (10 percentage points) is not supported. The manuscript is honest about ceiling effects and limitations but omits one preregistered confirmatory item and needs a small set of artifact-resolvable clarifications.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "A preregistered confirmatory hypothesis (H2: attribution of residual failures to specification ambiguity) is not reported in the confirmatory results. The manuscript does not explicitly state that H2 could not be evaluated or present the required classification/analysis of residual failures using the archived artifacts."
+  ],
+  "required_revisions": [
+    "Explicitly report the preregistered H2 outcome: if the hypothesis analysis was unexecutable or underpowered given observed data, state this clearly and why (e.g., only one discordant/failed case). If H2 can be answered from existing artifacts, add the classification of the residual failure(s) (episode id(s), failure category from archived scoring/validator traces) and the resulting statement about H2. Cite the exact artifact paths and hashes used for this classification (e.g., execution/scoring/task-000117-*.json / execution/provider_calls/task-000117-guarded-repair.json).",
+    "Add a concise explicit statement in the manuscript (Results or Limitations) that the shared-initial baseline semantics were preregistered and therefore the experiment measures validator/repair impact on identical initial proposals rather than the effect of re-generating candidates under guarded prompts; explain the implication for external interpretation (this can reference the archived provider-call accounting in the execution manifest).",
+    "In the Analysis/Results section, include the episode ID and archived trace references (paths + SHA-256) for the single repair call and the lone discordant pair, and explicitly connect those artifacts to the reported contingency counts so a reviewer can verify the claimed n11/n10/n01/n00 counts without additional experiment runs."
+  ],
+  "optional_revisions": [
+    "Expand the failure-mode breakdown table (from archived scoring traces) showing counts of validator vs execution vs specification-ambiguity reasons even if counts are small; this will improve interpretability for readers planning follow-up studies.",
+    "Briefly note in Discussion whether an alternative paired design (independent generation per condition) was considered and why the shared-initial design was chosen (point readers to preregistration for design rationale).",
+    "Add a one-paragraph practical guidance box summarizing when single-step GVR is likely to provide measurable benefit (e.g., non-ceiling baseline, higher ambiguity tasks) using the observed arithmetic illustration (required discordant pairs to detect the preregistered 10% effect)."
+  ],
+  "accept_for_finalisation": false
+}

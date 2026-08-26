@@ -1,0 +1,153 @@
+{
+  "selected_candidate_id": "cns-m2026-01",
+  "title": "Generator–Validator–Repair (GVR) loop effectiveness using deterministic reachability validation for intent→configuration",
+  "research_question": "Does an LLM-driven generate–validate–repair (GVR) loop using a deterministic reachability validator increase the rate of correct, safely executable configurations (no unintended reachability changes) versus plain LLM generation on intent→configuration NetOps tasks?",
+  "confirmatory_hypotheses": [
+    "H1: The paired proportion of intents yielding correct, safely executable configurations (execution-validated) is higher after the GVR loop than for baseline plain-LLM generation (primary confirmatory hypothesis, paired analysis).",
+    "H2: Among residual failures after the GVR loop, a plurality are attributable to ambiguous or underspecified natural-language intents (specification ambiguity) rather than validator or execution defects."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do iteration counts (repairs needed) distribute across intent-complexity strata?",
+    "EQ2: What categories of validator–execution discrepancies occur (validator false negatives vs emulation-only failures)?"
+  ],
+  "benchmark_scope": [
+    "Public NetOps intent→config examples filtered by automated contamination checks (public datasets only)",
+    "Synthetic intent templates (deterministic, seed-controlled) to supplement filtered public tasks",
+    "Emulated device-level execution using containerized Mininet + containerized router images (Docker)"
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint (deterministically prompted, single-sample generation per call); model identifier to be recorded at execution time (hosted_model_api_available)."
+  ],
+  "transformation_scope": [
+    "Intent normalization (deterministic schema mapping)",
+    "Config post-processing (syntax sanitizer, vendor mapping)",
+    "Automated repair prompt templates up to K=3 iterations",
+    "Deterministic reachability validator (containerized Batfish/pybatfish-like engine) executed in Docker"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "baseline_success_rate (proportion of intents with execution-validated correct configs for baseline)",
+    "guarded_success_rate (proportion for GVR post-repair configs)",
+    "distribution of repair-iterations-to-success",
+    "validator–execution discrepancy rate (proportion of intents where validator passed but execution shows unintended reachability change)"
+  ],
+  "sampling_plan": "Two pre-specified scenarios (see budget_scenarios). Task selection procedure (automated): 1) harvest candidate intent→config pairs from publicly available NetOps corpora and public config repositories; 2) run automated provenance/contamination checks (string-exact, shingle Jaccard, token-overlap threshold) and exclude candidates flagged above contamination thresholds (rules below); 3) supplement with deterministically seeded synthetic intent templates to reach target N; 4) stratify tasks by intent complexity (simple/medium/complex) using an automated token/AST-based heuristic; 5) draw final N per scenario preserving strata proportions and fixed random seed (preregistered). Inclusion: tasks passing contamination filter and syntactic validity. Exclusion: automated contamination-flagged items (excluded), technical failures during dataset retrieval (logged, not counted). All selection is automated (no human review).",
+  "analysis_plan": "Primary confirmatory analysis executed by the registered 'paired_binary_analysis_v1' executor using estimand 'paired_success_rate_difference_guarded_minus_baseline'. For each intent (paired unit): outcome 1 if execution-validated config satisfies intent and has no unintended reachability changes; 0 otherwise. Primary test: two-sided paired-proportion test (McNemar-style approximation implemented by the analysis executor) with alpha=0.05; report paired difference, 95% CI, and p-value. Primary failed_call_treatment: 'complete_pair_primary' (exclude pairs with technical/infrastructure failures that prevent both baseline and guarded execution comparison); sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat failed pairs conservatively as failures). Secondary analyses (exploratory): descriptive failure-mode breakdown, iteration-count histograms, validator–execution discrepancy contingency tables; exploratory subgroup tests will have multiplicity-adjustment (Benjamini–Hochberg) and be reported as exploratory.",
+  "multiplicity_plan": "Single pre-registered primary paired test (family-wise control not required). All subgroup and secondary comparisons are exploratory and will be corrected with Benjamini–Hochberg FDR for presented p-values; no exploratory result will be elevated to confirmatory claims.",
+  "missingness_plan": "Pairs with technical infrastructure failures (model API outages, container execution errors preventing both baseline and guarded execution traces) will be logged and excluded under the primary analysis ('complete_pair_primary'). We will report counts and run the prespecified sensitivity analysis treating excluded pairs as failures. All exclusions and technical-retry attempts will be recorded with timestamps and hashes; retry policy: up to 2 automated retries for transient API or container startup failures separated by exponential backoff, after which the pair is logged as a technical failure.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NetOps corpora (harvested sources)",
+      "Deterministic synthetic template pool"
+    ],
+    "risk_factors": [
+      "Exact/config-template duplication present in LLM training data",
+      "High token-overlap with public config fragments",
+      "Common ACL or route snippets that are widely reposted"
+    ],
+    "detection_procedures": [
+      "Exact-string matches against harvested public corpora and public GitHub configs (automated)",
+      "Shingle-based Jaccard similarity (k=8 tokens) between candidate intent+config and public corpora; compute token-level overlap fraction",
+      "Token-overlap threshold via byte-pair tokenizer token overlap fraction against public corpora"
+    ],
+    "item_flagging_rules": [
+      "Flag and exclude if exact-string match of candidate config (>=95% exact) with any public corpus item",
+      "Flag and exclude if shingle Jaccard similarity >= 0.6 with any public corpus item",
+      "Flag for caution (not auto-exclude) if token-overlap fraction between 0.3 and 0.6; flagged items are moved to deterministic synthetic augmentation instead of inclusion"
+    ],
+    "analysis_treatment": "Primary analysis excludes items automatically flagged for contamination. We will report separate exploratory analyses including flagged items and report effect-size differences. All contamination decisions are deterministic and logged; no human adjudication is used.",
+    "residual_uncertainty": [
+      "Automated heuristics cannot guarantee zero training-data leakage; residual contamination may remain below flagging thresholds.",
+      "Contamination heuristics are conservative; some common templated configs may be excluded, biasing toward harder tasks."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-conservative",
+      "description": "Minimum-budget confirmatory run (preregistered minimal N meeting reviewer repair request: N=200). Conservative exclusions and synthetic supplementation; K=3 repair iterations allowed; worst-case model-call planning.",
+      "planned_model_calls": 800,
+      "models": [
+        "hosted-llm-api (single selected endpoint; identifier recorded at execution)"
+      ],
+      "transformations": [
+        "intent-normalization",
+        "config-postprocessing",
+        "repair-prompt-iterations (K=3)"
+      ],
+      "discovery_items": 350,
+      "confirmatory_items": 200,
+      "task_cluster_count": 200,
+      "feasibility_rationale": "Worst-case model calls = N * (1 baseline + up to 3 repairs) = 200 * 4 = 800 model calls (within manifest limit 10,000). Docker-based validator and Mininet emulation run on CPU nodes; expected wall time per pair measured in preregistration estimates. Planned retries and automated logging fit within the 7-day wall-clock execution budget with parallel Docker task scheduling."
+    },
+    {
+      "scenario_id": "S2-recommended",
+      "description": "Recommended powered confirmatory run (N=300) to target 80% power to detect a 10 percentage-point absolute increase under conservative discordant-pair assumptions.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-llm-api (single selected endpoint; identifier recorded at execution)"
+      ],
+      "transformations": [
+        "intent-normalization",
+        "config-postprocessing",
+        "repair-prompt-iterations (K=3)"
+      ],
+      "discovery_items": 500,
+      "confirmatory_items": 300,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Worst-case model calls = 300 * 4 = 1200 (within manifest cap 10,000). Power calculations (see power_plan) justify N=300; Docker-based validator (pybatfish-like) and containerized Mininet/router images execute on available CPU infrastructure in parallel batches. All actions automated; no human labor required."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "10 percentage points absolute increase (guarded − baseline)",
+    "clustering_unit": "intent (paired baseline vs guarded per intent)",
+    "calculation_method": "Normal-approximation McNemar-style paired-proportion sample-size approximation using assumed discordant-pair fraction",
+    "assumptions": [
+      "Two-sided alpha = 0.05, power = 0.80",
+      "Estimated discordant-pair fraction (p01 + p10) = 0.35 based on prior literature and conservative pilot heuristics",
+      "Target absolute paired difference = 0.10"
+    ],
+    "recommended_scenario_id": "S2-recommended",
+    "minimum_detectable_effect_notes": "Under stated assumptions (discordant fraction 0.35), required N ≈ 274; recommended N=300 provides margin for exclusions and technical failures.",
+    "sensitivity_analyses": [
+      "Recompute power under discordant fractions 0.25 and 0.45 and report achieved detectable effect-size at fixed N=300.",
+      "Sensitivity analysis treating technical failures as failures (worst-case) and recalculating paired difference and CIs."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "intent-normalization (schema mapping)",
+      "config-syntax-sanitizer (vendor mapping)",
+      "repair-prompting templates (K-limited)"
+    ],
+    "semantic_equivalence_checks": [
+      "Unit tests for validator: a synthetic suite of N_unit=100 deterministic topology/config mutations with known intended reachability changes; compare validator verdicts to emulation execution traces to estimate validator false-negative and false-positive rates",
+      "Post-processing check: parser round-trip (config→AST→config) equality test"
+    ],
+    "automatic_rejection_rules": [
+      "Reject transformed config if syntax sanitizer yields unfixable vendor syntax errors",
+      "Reject repair output if validator raises parse/unsupported-feature exception; record as repair failure and continue per retry policy"
+    ],
+    "audit_sample_policy": "Audit 10% random sample of accepted mapped intents/configs by re-running validator and emulation under alternative seeds and report discrepancies (automated re-execution, deterministic logging).",
+    "mapping_validation": "Deterministic unit tests (synthetic cases) and systematic validator-vs-emulation comparison to estimate validator misclassification rate; results drive conservative interpretation of validator-assisted success.",
+    "residual_risks": [
+      "Validator may have non-zero false-negative rate (missed unintended reachability changes) even after unit tests; such residual risk will be quantified and reported.",
+      "Emulation (Mininet + container images) may not capture all vendor-specific behaviors; this remains a noncritical external-validity limitation."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Residual possibility of training-data contamination below automated detection thresholds (may inflate baseline success rates); handled by exclusion heuristics and sensitivity analyses.",
+    "Validator completeness limits: deterministic reachability validator may not model some vendor-specific data-plane behaviors; unit tests and validator–execution discrepancy logging quantify this risk but cannot fully eliminate emulation-vs-real-device gaps.",
+    "Emulation realism: containerized router images + Mininet approximate many behaviors but may omit proprietary device quirks; external generalization to production devices is out of scope."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4406170828",
+    "https://openalex.org/W4402929446",
+    "https://openalex.org/W4401042444",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4414677042",
+    "https://openalex.org/W4399803256"
+  ]
+}

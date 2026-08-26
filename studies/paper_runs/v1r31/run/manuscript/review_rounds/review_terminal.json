@@ -1,0 +1,21 @@
+{
+  "summary": "Well‑executed, preregistered, artifact‑archived paired study that measures the marginal effect of inserting a deterministic validator + ≤1 automated repair around a single LLM (declared gpt‑5‑mini) for intent→configuration NetOps tasks. The pipeline and artifacts are comprehensive and deterministically reproducible. The corpus displays a very high baseline (299/300), the guarded pipeline corrected the single residual failure with one repair (300/300), but the pre‑registered primary test finds no evidentiary improvement (exact McNemar two‑sided p = 1.0) and the paired bootstrap CI for the difference is [0.00, 0.01]. The work is technically solid and highly reproducible; interpretation should be tightened to avoid overstating operational generality given the high‑ceiling baseline, single model, and emulator scope.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly state in Abstract, Introduction, and Conclusion that the primary confirmatory hypothesis was not supported: observed discordant counts (n10=1, n01=0) yield exact McNemar two‑sided p=1.0 and a paired bootstrap 95% CI [0.00,0.01]; clarify that the pre‑registered target effect (10 percentage points) was not observed and that the study was not informative for that target given the near‑ceiling baseline.",
+    "Add an explicit, compact paragraph in Threats to Validity (or Limitations) quantifying the power implications of the observed ceiling: show the preregistered power target and report post‑hoc sensitivity given the observed discordant counts (use archived counts and preregistered power plan file), and state consequences for interpretation (i.e., low ability to detect small practical effects).",
+    "Add one short paragraph clarifying the operational semantics and consequences of the shared‑initial design (both conditions used the same generator candidate): why this isolates validator+repair marginal effect, and that this design does not evaluate requery or multi‑candidate generator strategies (make explicit in Methods/Discussion).",
+    "In Results or Appendix (within the 5‑page limit) add one explicit line identifying the task id of the single repaired case (the archived repair trace execution/provider_calls/task-000117-guarded-repair.json and corresponding scoring JSON) and point readers to the archived per‑episode JSON paths and hashes already present; ensure the manuscript text calls out the repair accounting (301 model calls = 300 generator + 1 repair) and the reconciliation artifact path (analysis/deterministic_reconciliation.json).",
+    "Make the Discussion language more conservative about operational implications: replace any wording that could be read as claiming general production readiness or broad generality (e.g., ‘eliminated residual execution risks’) with calibrated statements that emphasize scope (single declared model, emulator snapshot, synthetic/curated tasks) and state that broader production claims require further preregistered runs across additional models, lower‑accuracy regimes, and live heterogeneous devices."
+  ],
+  "optional_revisions": [
+    "If space permits, include a one‑line summary table (or footnote) showing success rates stratified by preregistered task complexity strata (simple/medium/hard) using archived analysis/condition_summary.csv to illustrate whether the single failure concentrated in any stratum (artifact available).",
+    "Add a brief paragraph describing the exact test implementation and two‑sided p calculation used for the exact McNemar (point to archived analysis code/log entry), to aid reproducibility and reviewers’ verification.",
+    "Present a one‑sentence example (copied verbatim) of the generator candidate and repaired output from the archived per‑episode JSONs to illustrate the repair nature; ensure the example is already in archived artifacts and that including it fits the five‑page limit."
+  ],
+  "accept_for_finalisation": false
+}
