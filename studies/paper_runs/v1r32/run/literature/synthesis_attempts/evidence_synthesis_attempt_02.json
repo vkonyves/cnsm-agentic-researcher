@@ -1,0 +1,195 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs and agentic LLM systems frequently produce syntactic and semantic errors, hallucinations, or incorrect actions when generating infrastructure/configuration artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4414677042",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "Surveys and empirical studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Failure rates vary substantially by task, prompt, model, and evaluation protocol.",
+        "Surveys aggregate heterogeneous evidence; reported magnitudes are not uniform across studies."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate–verify–repair (GVR) or execution-guided closed-loop architectures that interpose deterministic validators or execution oracles substantially increase mechanically verifiable correctness of LLM outputs in code and IaC-style synthesis tasks.",
+      "evidence_record_ids": [
+        "doi:10.1145/3817608",
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.21203/rs.3.rs-10523195/v1"
+      ],
+      "evidence_type": "Empirical studies and architectural proposals",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations focus on code/IaC benchmarks and emulation; transfer to all NetOps tasks is not demonstrated.",
+        "Improvements target mechanically checkable failures (syntax, compilation, tests) and may not ensure semantic intent alignment."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Tool-augmented LLM agents (LLMs invoking external tools/APIs and validators) can extend capabilities and reduce certain classes of failures when tool interfaces and verification contracts are well-designed.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6840900",
+        "doi:10.2139/ssrn.6647800",
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4389518608"
+      ],
+      "evidence_type": "Systems studies and benchmarks",
+      "confidence": 0.85,
+      "limitations": [
+        "Tool integration adds latency, orchestration complexity, and new failure modes (tool-selection errors, result misinterpretation).",
+        "Effectiveness depends on tool quality, interface contracts, and prompt/tool-selection strategies."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "NetOps-focused prototypes commonly pair LLM intent-to-configuration generation with deterministic network validators/simulators (e.g., Batfish) and operator approval gates in proposed architectures.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "Design-science prototypes and benchmarks",
+      "confidence": 0.8,
+      "limitations": [
+        "Sources are proof-of-concept/tech reports with limited production-scale evaluation.",
+        "Reported experiments vary in rigor and replication detail."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Prompt design and prompt–model coupling materially affect the reliability of structured LLM outputs (JSON/CLI/IaC); prompt sensitivity is a documented factor influencing correctness.",
+      "evidence_record_ids": [
+        "doi:10.31234/osf.io/jqx7n_v1",
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4414677042"
+      ],
+      "evidence_type": "Prompt-sensitivity studies and conceptual analyses",
+      "confidence": 0.83,
+      "limitations": [
+        "Magnitude and direction of sensitivity vary by model and task; not all prompt strategies generalize across models.",
+        "Many prompt studies use limited seeds/models, limiting cross-model generality."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do validator-assisted LLM workflows (GVR / execution-guided loops) produce operationally safe, intent-aligned network changes in realistic production networks (beyond emulation/benchmarks)?",
+      "evidence_record_ids": [
+        "doi:10.1145/3817608",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "Extrapolation gap from existing evaluations",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing evidence shows mechanical improvements in emulated/code/IaC settings but lacks large-scale production NetOps field trials.",
+        "Operational safety depends on multi-vendor statefulness and real-world dynamics not fully captured in current artifacts."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How does verifier strength (formal/deterministic vs. lightweight checks) trade off with loop latency, operator workload, and deployment cost in NetOps contexts?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389727268",
+        "doi:10.2139/ssrn.6438169",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "Architectural trade-off question",
+      "confidence": 0.65,
+      "limitations": [
+        "Some works propose loop-cost metrics and deadline/latency analyses, but systematic NetOps-specific quantification across realistic network sizes and change rates is missing.",
+        "Empirical latency–reliability trade-offs depend on deployment constraints and tool implementations."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Can gains in mechanically verifiable correctness (syntax/compilation/test pass) reliably translate into improved intent-congruence and reduced operator interventions for complex network-change tasks?",
+      "evidence_record_ids": [
+        "doi:10.1145/3817608",
+        "doi:10.21203/rs.3.rs-10523195/v1"
+      ],
+      "evidence_type": "Correctness-vs-intent open question",
+      "confidence": 0.6,
+      "limitations": [
+        "IaC studies document a 'Correctness–Congruence Gap' where technical validity does not guarantee intent alignment.",
+        "NetOps intent alignment requires richer semantic and policy context beyond mechanical checks; evidence of translation to reduced operator workload is limited."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What standardized, NetOps-relevant benchmarks, datasets, and metrics are needed to measure operational safety, rollback rates, and real-world impact of LLM-driven configuration changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4407181088"
+      ],
+      "evidence_type": "Methodological gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing NetOps/AIOps surveys and NetConfEval identify tasks but no universally accepted operational benchmark suite is present in the supplied records.",
+        "Construct and external validity issues in current benchmarks are documented but unresolved for operational NetOps evaluation."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Scarcity of publicly available, realistic NetOps datasets and curated ground-truth corpora (multi-vendor configs, change logs, incident/rollback labels) suitable for validator-assisted LLM evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4401996408"
+      ],
+      "evidence_type": "Data availability gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Some synthetic benchmarks and prototypes exist, but diverse production-grade corpora with operational outcome labels are limited in the supplied records.",
+        "Vendor sensitivity and privacy hinder assembling representative public NetOps datasets."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient empirical studies measuring operational cost–benefit and human-operator intervention rates when deploying GVR/verifier architectures in live NetOps workflows.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389727268",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "Evaluation gap",
+      "confidence": 0.65,
+      "limitations": [
+        "Proposals include metrics and small-scale proofs-of-concept, but longitudinal or large-scale operator-impact studies are absent from supplied records.",
+        "Measuring operational cost requires field deployments and organizational collaboration not present in most artifacts."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for a NetOps-specific verifier taxonomy and benchmarked verifier oracles (e.g., formal reachability, policy compliance, simulation-based impact) to classify which failures are detectably deterministic vs. semantic.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4401996408",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "Methodology and tooling gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Verifier tools (e.g., Batfish) are known, but a standardized taxonomy linking verifier capabilities to NetOps harm models is not present in the supplied records.",
+        "Developing such taxonomies requires interdisciplinary consensus and curated benchmark tasks."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-only open-loop generation is production-ready for fully autonomous network configuration without deterministic verification and human oversight (unsupported by supplied records).",
+    "GVR / verifier-assisted approaches guarantee intent alignment in all cases (evidence shows improved mechanical correctness but documents a correctness–congruence gap).",
+    "Any single architectural choice (e.g., a specific prompt or tool-augmentation) is proven superior across all NetOps tasks and models (no cross-task, cross-model universal superiority demonstrated in supplied records).",
+    "Claims of large-scale, field-proven deployments of fully autonomous LLM agents performing NetOps changes with measured reductions in outages and rollbacks in production (no such production-scale, peer-reviewed evidence in supplied records)."
+  ]
+}

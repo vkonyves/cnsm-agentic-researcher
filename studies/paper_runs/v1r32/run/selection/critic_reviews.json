@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-2026-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Design relies on human \"blinded operator-rubric scorers\" whereas the capability manifest disallows human scientific labour — threatens compliance and reproducibility.",
+        "Operator-rubric subjectivity and potential low inter-rater reliability reduce internal validity and reproducibility.",
+        "Curated/synthetic task set may not adequately represent production multi-vendor diversity (external validity risk).",
+        "Validator scope (syntax + Batfish-style checks) may miss semantic/intent mismatches, creating a correctness–congruence gap not fully addressed.",
+        "Single LLM family limits generality; claims may not generalize across models or vendors."
+      ],
+      "required_design_repairs": [
+        "Remove dependence on human operator scoring or explicitly justify and document approved simulated/automated evaluators that obey the autonomy constraints (e.g., deterministic LLM-based evaluators with calibration and cross-checking).",
+        "Provide a detailed, privacy-safe public dataset construction plan (sources, anonymization, augmentation steps) and publish dataset + seed split for reproducibility.",
+        "Specify validator capabilities and failure modes; include explicit tests showing which semantic mismatches are undetectable and how repairs handle them.",
+        "Either include at least one additional, clearly named model family or justify single-family choice and scope claims accordingly.",
+        "Preregister inter-rater/agreement simulation procedure and automated fallback policies for ambiguous cases."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Operator-workload proxy is underspecified and may not validly represent real operator cognitive or temporal cost.",
+        "Lab latency measures risk being unrepresentative of production concurrency and scheduling; external validity concern.",
+        "Seeding strategy for failures may bias measured false-negative rates if not realistic.",
+        "Integration complexity between LLM outputs and verifier tiers is a source of measurement bias if not rigorously instrumented."
+      ],
+      "required_design_repairs": [
+        "Define and validate an operator-workload metric that requires no human annotation (e.g., deterministic reviewer-time estimator based on validator output characteristics) or justify use of simulated operators consistent with autonomy constraints.",
+        "Provide detailed latency-measurement protocol that includes variance estimation under simulated concurrency and standardized hardware/network conditions.",
+        "Specify realistic failure-seeding methodology (empirically grounded or drawn from public incident corpora) and publish seeding scripts and seeds.",
+        "Include end-to-end integration tests and publish containerized verifier implementations and harness to ensure others can reproduce timing and detection results."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Relies on human blinded operator evaluators (conflicts with no-human-labour constraint).",
+        "Formalizing high-level intent for semantic checks is underspecified and may require significant manual effort, threatening reproducibility and feasibility under autonomy constraints.",
+        "Between-tasks balanced design reduces within-task causal control; causal attribution to validators vs task heterogeneity may be weak.",
+        "Sample size/power for complex tasks may be insufficient; power analysis not shown."
+      ],
+      "required_design_repairs": [
+        "Replace human evaluators with an autonomously reproducible evaluation pipeline (e.g., formalized intent specs derived automatically from public intent templates, LLM-based adjudicators with calibration, or deterministic oracle checks).",
+        "Provide a precise method to generate formalized high-level intent automatically from dataset metadata or operator-like scripts; include validation of that method.",
+        "Change to a paired within-task design if feasible to strengthen causal claims or justify and preregister how between-task balancing will control confounding; include power analysis with preregistered sample-size justification.",
+        "Publish automated scoring code, data, seeds, and rubric as part of the artifact bundle to support reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-004",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Public corpus curation is constrained by privacy/vendor sensitivity; representativeness may suffer if only limited public artifacts are usable.",
+        "Taxonomy risks oversimplifying complex verifier behaviors and may misclassify hybrid verifier capabilities without clear attribute definitions.",
+        "Injection strategy for benchmark faults must avoid bias toward easily detectable failures; design is underspecified.",
+        "Community adoption depends on clear, containerized oracle implementations and straightforward reproduction instructions; current plan lacks explicit packaging details."
+      ],
+      "required_design_repairs": [
+        "Limit corpus to provably public, non-sensitive sources and document anonymization steps; include provenance metadata for each item.",
+        "Define taxonomy axes precisely (machine-readable descriptors) and provide mapping rules and examples tying taxonomy attributes to verifier implementations.",
+        "Design and document an adversary-aware injection protocol that balances naturalistic and engineered failure modes; publish injection scripts and seeds.",
+        "Provide containerized exemplar oracle implementations (Docker) and a reproducibility checklist; include unit tests and a small end-to-end replication script in the release artifacts."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

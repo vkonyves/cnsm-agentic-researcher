@@ -1,0 +1,26 @@
+{
+  "summary": "Well‑executed, fully archived preregistered study with strong reproducibility evidence and useful operational lessons. The confirmatory run is deterministic and correctly archived, but the experimental design produced a saturated outcome (100/100 for both verifiers) that prevents evaluation of the preregistered effect. Several manuscript and artifact‑reporting issues must be resolved before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Preregistered hypotheses labeling/mapping discrepancy: preregistration lists H1 and H2 but the archived confirmatory analysis reports a single confirmatory_result (labelled H1) using the paired_success_rate_difference estimand. The manuscript does not explicitly state how each preregistered hypothesis was tested and resolved.",
+    "The preregistered target effect and power assumptions (target delta = 0.15; sample N=100) are incompatible with the observed baseline success rate of 1.0. The paper does not present the preregistered post‑hoc power/precision calculation or an explicit statement that the power rationale was invalidated by the ceiling outcome.",
+    "Design choice that produced saturation (shared_initial single LLM candidate per task / independent_condition_generation=false) critically constrained the ability to observe discordant accept/reject outcomes. This limitation is central to interpreting the null confirmatory result and must be made explicit in Methods and in the statement about why H2 could not be evaluated as originally powered.",
+    "Absence of a compact evidence→claim mapping in the manuscript. The paper asserts multiple principal contributions but does not provide a concise table mapping each claim to the archived artifact paths and authoritative SHA‑256 checksums (required by reproducibility expectations).",
+    "Per‑leaf taxonomy counts are not transcribed from the authoritative task manifest; the paper instructs readers to extract counts from execution/task_manifest.jsonl but does not provide compact deterministic summary counts (leaf‑level counts) that are simple to include and required for readers to assess construct validity."
+  ],
+  "required_revisions": [
+    "Resolve preregistration→analysis hypothesis mapping: explicitly list each preregistered hypothesis (H1, H2), show where each is represented in the archived analysis outputs (file path(s) and SHA‑256), and state the confirmatory outcome for each (reject/fail to reject) with reference to the archived analysis artifact(s). If a preregistered hypothesis was not meaningfully testable given the run, state this clearly and reference the preregistration SHA and execution manifest path.",
+    "Add a post‑hoc power/precision statement computed from the observed baseline rate (baseline_success_rate = 1.0) and show the consequences for the preregistered sample‑size rationale and for testing H2. Include the calculation artifact or the small script / numeric result and reference its artifact path and SHA.",
+    "Insert a concise evidence‑to‑claim table into the manuscript (within the five‑page limit) that maps each principal claim to the authoritative archived artifact path(s) and SHA‑256 checksums (examples: preregistration SHA, execution_manifest path/SHA, representative scoring JSONs and response files). The table may be compact (claim → artifact path → SHA). Use only artifacts already archived.",
+    "Provide deterministic per‑leaf taxonomy counts derived from execution/task_manifest.jsonl (authoritative manifest). Add a one‑paragraph summary or a small table giving counts per failure leaf (syntax, policy‑violation, reachability, stateful‑emulation, ambiguous‑intent) and reference the manifest path and SHA. Do not require external retrieval; derive counts from the supplied manifest artifact and include them in manuscript text or a compact table.",
+    "Explicitly state in Methods that independent_condition_generation=false (shared_initial single candidate per task) was preregistered; explain how that choice deterministically reduces chance for discordant verifier outcomes and why it produced a saturated contingency table (n11=100, n10=n01=0). Cross‑reference the provider_call and response artifacts (execution/provider_calls/*.json and execution/responses/*.txt) and their SHA‑256s to support this explanation."
+  ],
+  "optional_revisions": [
+    "Add a short illustrative excerpt of a representative provider_call JSON (or a 1‑line extracted prompt) as an appendix line or one‑sentence example, referencing the exact archived provider_call path and SHA, to help readers reproduce the generation semantics more easily (this may be omitted if page budget prevents it).",
+    "Add a brief actionable checklist for future benchmark builders (2–3 bullets) summarising how to avoid saturation (e.g., multi‑draw generation, adversarial semantic failures, independent_condition_generation=true) and reference relevant archived artifacts to illustrate the points."
+  ],
+  "accept_for_finalisation": false
+}

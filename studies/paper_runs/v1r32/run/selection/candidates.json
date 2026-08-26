@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-2026-001",
+      "title": "Empirical evaluation of generate–verify–repair (GVR) loops for intent-aligned multi-vendor network changes",
+      "research_question": "To what extent does a generate–verify–repair (GVR) workflow with deterministic network validators reduce operator interventions and increase intent-aligned network-change outcomes compared to open-loop LLM generation in realistic multi-vendor configuration scenarios?",
+      "hypotheses": [
+        "A GVR workflow that interposes a deterministic network validator will produce higher rates of mechanically correct configurations than open-loop LLM generation.",
+        "Higher rates of mechanical correctness in the GVR workflow will translate into a statistically significant reduction in required operator interventions and higher measured intent-alignment for routine and moderately complex changes."
+      ],
+      "proposed_design": "Construct a paired within-task evaluation using a curated set of 120 multi-vendor change tasks (routing/ACL/VLAN changes) derived from public topology and configuration artifacts and augmented synthetic variations. Implement two conditions per task: (A) open-loop LLM-generated configuration (baseline) and (B) LLM-driven GVR loop where the LLM proposes a change, a deterministic validator (syntax + Batfish-style reachability/policy checks) certifies or rejects, and the LLM attempts automated repair up to two iterations; final outputs presented to a blinded operator-rubric scorer. Use a single LLM family accessed via hosted API with fixed prompting templates; freeze random seeds and retry policy in a preregistration. Record raw proposals, validator outputs, repair iterations, and operator-rubric labels (intent-alignment, safety, accept/reject).",
+      "expected_data": "Per-task records including: baseline proposal text, GVR proposal iterations, validator pass/fail codes, number of repairs, operator-rubric intent-alignment score (0–4), accept/reject decision, simulated rollback indicator (if applied), and wall-clock latency per loop. Aggregate counts of syntactic failures, semantic/reachability failures, and final acceptance rates for both conditions.",
+      "primary_outcome": "Difference in operator-rubric accept rate and mean intent-alignment score between GVR and open-loop conditions (paired per task).",
+      "analysis_outline": "Compute paired differences for primary outcomes; use paired t-test or Wilcoxon signed-rank test depending on distribution; report effect sizes (Cohen's d) and 95% confidence intervals. Secondary analyses: compare mechanical-failure rates (syntax/reachability) with McNemar's test; analyze repair iteration success probability with logistic regression (predictors: task complexity, vendor mix). Perform failure-mode taxonomy frequency counts and qualitative inspection of representative failure cases.",
+      "novelty_evidence_ids": [
+        "doi:10.1145/3817608",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3817608",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389518608"
+      ],
+      "risks": [
+        "Operator-rubric labels are subjective and may introduce inter-rater variability.",
+        "Curated/synthetic task set may not fully represent production-scale dynamics, limiting external validity.",
+        "Validator coverage (e.g., Batfish-style checks) may miss semantic intent mismatches, producing false confidence.",
+        "Hosted-model API rate limits, latency, or outages could interrupt preregistered retry policy."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cnd-2026-002",
+      "title": "Quantifying verifier-strength vs. loop-latency trade-offs for LLM-assisted NetOps",
+      "research_question": "How do verifier strength levels (lightweight syntax checks, policy-compliance checks, full reachability/simulation) trade off with detection effectiveness, loop latency, and operator workload in LLM-assisted network-change workflows?",
+      "hypotheses": [
+        "Stronger verifiers (simulation/reachability) detect a larger proportion of harmful semantic errors than lightweight verifiers, reducing undetected-failure rate.",
+        "Stronger verifiers introduce higher loop latency and operator review workload, producing diminishing returns beyond a verifier-strength threshold for routine changes."
+      ],
+      "proposed_design": "Design three verifier tiers: Tier 1 = syntax and schema checks; Tier 2 = policy-compliance rules (ACL/prefix filters); Tier 3 = full reachability/simulation (Batfish-style). Prepare a balanced set of 150 change tasks stratified by complexity (routine, complex, ambiguous). For each task, run a fixed LLM prompt to generate a proposal and then evaluate that same proposal under each verifier tier (no repair loop). Measure per-tier detection rate (proportion of injected or naturally occurring harmful changes flagged), per-tier processing latency, and an operator-workload proxy (estimated additional review time derived from validator output verbosity and flagged items). Include injected seeded failure cases to measure false-negative rates. Preregister metrics, seeds, and latency measurement method.",
+      "expected_data": "Per-task and per-tier: detection_flag (yes/no), detection_type (syntax/policy/reachability), processing_latency_ms, validator_output_size, operator-review-time-estimate_s, false-negative counts on seeded failures, and per-tier false-positive rate on benign proposals.",
+      "primary_outcome": "Trade-off curve summarizing verifier strength vs. undetected-harmful-change rate and mean loop latency; identification of an efficiency frontier where additional verifier strength yields minimal detection gains relative to latency cost.",
+      "analysis_outline": "Compute detection rates and latencies per tier; use repeated-measures ANOVA to test latency differences and Cochran's Q test for detection-rate differences across tiers. Fit nonlinear regression to model detection gain vs latency cost and derive the Pareto frontier. Report bootstrap confidence intervals for frontier points. Perform subgroup analyses by task complexity.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4389727268",
+        "doi:10.2139/ssrn.6438169",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389518608",
+        "doi:10.1145/3817608"
+      ],
+      "risks": [
+        "Latency measurements in a lab environment may not capture production scheduling and concurrency effects.",
+        "Operator-workload proxy may not fully represent real operator cognitive cost.",
+        "Integration bugs between LLM outputs and verifier tiers can bias detection measurements.",
+        "Seeding failures might not reflect naturalistic error distributions, altering false-negative estimates."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-2026-003",
+      "title": "Do mechanical correctness gains translate to reduced operator interventions for complex NetOps changes?",
+      "research_question": "For complex or ambiguous network-change tasks, does improving mechanically verifiable correctness (syntax/compilation/reachability) reduce operator interventions and accelerate approval compared to workflows that additionally include semantic/policy alignment checks?",
+      "hypotheses": [
+        "Mechanical-correctness improvements alone will not produce commensurate reductions in operator interventions for complex or ambiguous tasks.",
+        "Adding semantic/policy-alignment checks to mechanical validators will yield further reductions in operator interventions and faster approval times for complex tasks compared to mechanical-only validation."
+      ],
+      "proposed_design": "Create a testbed of 90 complex/ambiguous change tasks (multi-step routing and interdependent ACL/VLAN changes). Compare three arms in a between-tasks balanced design: (A) open-loop LLM output presented to operator; (B) LLM output filtered by mechanical validator (syntax + reachability) before operator; (C) LLM output filtered by mechanical validator plus an automated semantic-policymapper that checks alignment with a formalized high-level intent description. For each task, log operator decision (accept/edit/reject), time-to-decision, and rationale tags. Use blinded operator evaluators using a standardized rubric; preregister seeds and rubric thresholds. Analyze whether mechanical-only validation reduces interventions relative to open-loop and whether adding semantic checks yields additional benefit.",
+      "expected_data": "Per-task arm: operator decision distribution, median time-to-decision, intent-congruence score assigned by blinded evaluators, counts of manual edits applied, and examples of semantic mismatches detected only by semantic checks.",
+      "primary_outcome": "Difference in operator intervention rate (proportion of tasks requiring manual edits or rejection) between mechanical-only and mechanical+semantic-check arms for complex tasks.",
+      "analysis_outline": "Compare intervention rates across arms using chi-squared tests or Fisher's exact test; compare time-to-decision with Kruskal–Wallis test and pairwise post-hoc comparisons. Use logistic regression to model probability of intervention with predictors including arm, task complexity metrics, and vendor heterogeneity. Provide qualitative thematic analysis of semantic mismatch categories.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411735779",
+        "doi:10.21203/rs.3.rs-10523195/v1",
+        "doi:10.1145/3817608"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3817608",
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6647800"
+      ],
+      "risks": [
+        "Formalizing high-level intent for semantic checks may be labor-intensive and imperfect, affecting the arm C fidelity.",
+        "Blinded operator evaluators may disagree; inter-rater reliability must be monitored.",
+        "Sample size for complex tasks may limit power to detect small differences.",
+        "Synthetic complexity may not capture all real-world ambiguity sources."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cnd-2026-004",
+      "title": "NetOps verifier taxonomy and open benchmark for detectability of LLM-generated failures",
+      "research_question": "Can a structured verifier taxonomy and an associated open benchmark of LLM-generated network changes reliably characterize which classes of failures are detectably deterministic (syntax/policy/reachability) versus semantic (intent misalignment), and thereby guide verifier selection for NetOps workflows?",
+      "hypotheses": [
+        "A verifier taxonomy that distinguishes verification capability along orthogonal axes (syntax, policy, reachability, stateful simulation, semantic intent mapping) will explain variance in failure-detectability across tasks.",
+        "An open benchmark exercising LLM-generated changes will demonstrate that detection coverage differs substantially across verifier classes and that some failure classes remain systematically undetected by current deterministic verifiers."
+      ],
+      "proposed_design": "Develop a verifier taxonomy with explicit capability descriptors and implement exemplar oracles for each class (syntax checker, policy-rule engine, reachability/simulation oracle, stateful-change emulator, and intent-mapper). Curate a public benchmark corpus by collecting and anonymizing publicly available configs and change logs, and augment with controlled LLM-generated failure modes (injected misconfigurations and ambiguous-intent proposals). Run multiple LLMs/prompts to generate candidate changes and evaluate detectability of each injected and natural failure against each oracle. Publish taxonomy, benchmark tasks, oracle implementations, and detection matrices for community use.",
+      "expected_data": "Taxonomy document; benchmark corpus and metadata; per-change per-oracle detection labels (detected/not detected, detection confidence), confusion matrices by failure class, and summary metrics (coverage per oracle class, undetectable-failure list).",
+      "primary_outcome": "A repeatable benchmark report showing detection-coverage percentages per verifier class and a mapped taxonomy that predicts which failure classes are detectable deterministically vs. which require semantic review.",
+      "analysis_outline": "Produce detection-rate tables and heatmaps by failure class and verifier. Use cluster analysis to group failure types by detectability profile. Evaluate taxonomy predictive validity by measuring how well taxonomy attributes explain observed detection variance using multiple regression. Release benchmark artifacts and include replication instructions in preregistration.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4401996408",
+        "https://openalex.org/W4399629579",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.1145/3817608",
+        "https://openalex.org/W4411735779"
+      ],
+      "risks": [
+        "Public corpus curation may be limited by privacy and vendor-sensitive content, reducing representativeness.",
+        "Taxonomy may oversimplify complex verifier behaviors and lead to misclassification.",
+        "Benchmark injection strategies might bias toward detectable failure modes if not carefully designed.",
+        "Community adoption depends on clear documentation and ease of oracle reproduction."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}
