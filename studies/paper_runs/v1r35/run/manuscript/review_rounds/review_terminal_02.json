@@ -1,0 +1,20 @@
+{
+  "summary": "This is a focused closure review. The authors addressed most prior required revisions: they explicitly document and archive the verified execution deviation (the preregistered multimodel ensemble did not run), they unambiguously define the primary estimand (safe_rate_guarded − safe_rate_baseline) and use consistent safe/unsafe terminology, and they report the primary analysis on complete pairs (N=272) with the preregistered conservative sensitivity. A single substantive preregistration requirement remains unresolved: the manuscript does not report realized prompt‑family counts (benign/ambiguous/adversarial) for the planned N=300 tasks, for the 272 complete pairs, nor the distribution of the 28 failed pairs, despite those data being derivable from the archived task_manifest (execution/task_manifest.jsonl). Because that required item is unresolved, accept_for_finalisation must be false.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Missing realization of preregistered prompt‑family accounting: the manuscript fails to report realized counts by prompt family (benign/ambiguous/adversarial) for the planned N=300 tasks, for the 272 complete pairs used in the primary analysis, and for the 28 failed pairs. These counts are required by the original preregistration and are derivable from the supplied execution/task_manifest.jsonl and scoring artifacts; omission undermines the preregistration fidelity and limits interpretation across prompt families."
+  ],
+  "required_revisions": [
+    "Compute and report the realized prompt‑family counts (benign / ambiguous / adversarial) for: (a) the full preregistered sample (N=300), (b) the analyzable complete pairs used in the primary analysis (N=272), and (c) the 28 failed/both‑missing episodes. Derive these counts from execution/task_manifest.jsonl (and/or execution/scoring/*) and add a one‑row table or brief paragraph in Methods/Results with the counts and the exact artifact path(s) and SHA‑256(s) used to obtain them (e.g., execution/task_manifest.jsonl: <sha256>). This change must be resolvable from the supplied artifacts and does not require new model calls.",
+    "Optionally, but only if it can be done from archived artifacts, include a short line indicating whether prompt‑family composition differs materially between baseline/guarded outcomes (e.g., per‑family complete‑pair safe rates) and point to the analysis file used to compute that breakdown."
+  ],
+  "optional_revisions": [
+    "Add the short machine‑readable per‑family table of representative (redacted if necessary) prompt examples and counts with artifact SHA‑256s (only if allowed by contamination plan).",
+    "Briefly expand the Discussion with a short paragraph (one or two sentences) summarizing how the observed provider‑call failures (28 failed model calls) were distributed by prompt family (if derivable) and potential orchestration mitigations; reference the provider_call audit entries in execution/execution_manifest.json.",
+    "Include a one‑line reproducibility checklist in the Disclosure or Methods listing the minimal files and their SHA‑256s required to recompute the primary contingency (these SHA‑256s already exist in the archive)."
+  ],
+  "accept_for_finalisation": false
+}

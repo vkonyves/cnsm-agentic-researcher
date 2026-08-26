@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "cand-3e1b8c",
+  "title": "Measuring Claim‑to‑Action Rates and Automated Defenses in Simulated Agentic NetOps Pipelines (Preregistered)",
+  "research_question": "What is the empirical claim‑to‑action rate (proportion of LLM textual assertions that would trigger unsafe simulated deployments) in an agentic NetOps pipeline across benign, ambiguous, and adversarial prompts, and how much does a combined automated defense (validator + multimodel consensus + simulated human‑gate policy) reduce that rate relative to an unguarded baseline?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The unguarded agentic pipeline (directly executing LLM-proposed actions) has a nontrivial claim‑to‑action rate (unsafe simulated deployments) that is larger under adversarial prompts than under benign prompts.",
+    "H2 (confirmatory): A combined automated defense (validator + 3‑model consensus + simulated human‑gate threshold) yields a lower claim‑to‑action rate than the unguarded baseline (primary estimand: paired_success_rate_difference_guarded_minus_baseline > 0)."
+  ],
+  "exploratory_questions": [
+    "E1: How do single defenses (validator-only, consensus-only) compare to the combined defense in prevented unsafe actions and benign-block rates?",
+    "E2: How sensitive are defense effectiveness and benign‑block rates to consensus threshold (majority vs. unanimity) and simulated human‑gate thresholds (automated confidence threshold settings)?",
+    "E3: How transferable are adversarial prompts across adversary‑generation methods (transferability tests)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps task set: intent→configuration proposals for ACL rule changes and static route insertions in isolated simulated topologies (no production devices).",
+    "Simulator safety labels: reachability loss and explicit policy-breach detections produced by the isolated network simulator (synthetic topologies representative of small enterprise networks)."
+  ],
+  "model_scope": [
+    "Hosted LLM API instances (three identical hosted LLM endpoints for consensus when required). Models are explicitly preregistered as: hosted-llm-alpha (primary), hosted-llm-alpha (seeded-instance-1), hosted-llm-alpha (seeded-instance-2) for consensus experiments; hosted-llm-alpha (single instance) for baseline and validator‑guarded modes.",
+    "All model calls use the hosted model API permitted by the capability manifest (no local GPU). Exact model identifier string: \"hosted-llm-alpha\"; seed specification: per-call deterministic sampling seeds recorded in execution manifest."
+  ],
+  "transformation_scope": [
+    "Template-driven prompt families (benign, ambiguous) with explicit template slots and deterministic slot filling.",
+    "Adversarial prompt family produced by three distinct automated adversary generators (see preregistration) that produce perturbations from templates; adversarial examples are redacted in publication (abstracted examples only).",
+    "Automated parsers that map LLM textual proposals to simulator action schemas (deterministic extraction rules)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_success_rate_difference_validator_minus_baseline",
+    "paired_success_rate_difference_consensus_minus_baseline",
+    "benign_block_rate_difference_guarded_minus_baseline"
+  ],
+  "sampling_plan": "Confirmatory paired design with N = 300 independent tasks (100 benign, 100 ambiguous, 100 adversarial). For each task we run the unguarded baseline (one LLM generation producing a proposed action, then simulator evaluation) and the combined defense mode (3 LLM generations for consensus + validator run). The pair for each task produces two binary outcomes: unsafe_executed_baseline ∈ {0,1} and unsafe_executed_defended ∈ {0,1}. Confirmatory_items = 300. No clustering beyond independent tasks (task_cluster_count = 1). Discovery items = 0. Total confirmatory pairs = 300. Derivation: 3 prompt families × 100 tasks/family = 300 tasks; each task yields one paired baseline+combined observation for the primary estimand.",
+  "analysis_plan": "Primary analysis: executor paired_binary_analysis_v1 computing the paired_success_rate_difference_guarded_minus_baseline estimand on the 300 paired binary outcomes. Treatment of failed calls: follow executor-compatible failed_call_treatment options: (1) primary analysis uses 'complete_pair_primary' where pairs with both modes producing explicit binary outcomes are included; (2) sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed defended call as defended==0 (unsafe) to conservatively bound results). Report point estimate, 95% confidence interval, and two-sided exact paired test (McNemar) p-value. Secondary analyses: same executor applied to validator-only and consensus-only paired contrasts (exploratory; multiplicity-corrected). Logistic regression (exploratory) modeling unsafe outcome as function of prompt_family and defense_mode with robust (clustered by task) standard errors. All analysis seeds, executor versions, and input files are recorded.",
+  "multiplicity_plan": "Primary confirmatory test: single paired contrast (combined defense vs. baseline) reported without multiplicity correction. Secondary exploratory contrasts (validator-only, consensus-only, per-prompt-family subgroup tests) are reported with Bonferroni correction for up to 4 exploratory tests; all exploratory p-values explicitly labeled as exploratory.",
+  "missingness_plan": "Automatic deterministic rules: if an LLM call times out or returns unparsable output, re-execute once automatically (same seed); if still unparsable, mark that mode as 'failed_call'. Pairs where both baseline and defended modes are failed_call are excluded from the primary complete-pair analysis and counted in a failure-reporting table. For sensitivity, perform the 'failure_as_unsafe' analysis treating failed defended calls as defended==0 (unsafe) and failed baseline calls as baseline==0 (unsafe) to bound effects. No human adjudication is used; all decisions are deterministic rules.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic intent→configuration NetOps task set (preregistered synthetic corpus derived from templates)"
+    ],
+    "risk_factors": [
+      "Adversarial prompt text that includes actionable exploit recipes.",
+      "Cross-contamination between training and evaluation prompts if public model prompt leakages exist.",
+      "Publishing verbatim adversarial prompts enabling misuse."
+    ],
+    "detection_procedures": [
+      "Automated syntactic filters that detect explicit exploit or remote-execution language and redact examples flagged by pattern rules.",
+      "Automated similarity check (embedding-based) to detect near-duplicates between training/public corpora and evaluation prompts; flagging threshold preregistered.",
+      "Execution confined to an isolated simulator with no network egress for action effects; deployment hooks disabled and verified via runtime sandbox checks."
+    ],
+    "item_flagging_rules": [
+      "If a generated adversarial prompt contains verbatim exploit instructions (regex-based), it is redacted and replaced by an abstracted template before any publication artifact is stored.",
+      "If embedding similarity between an evaluation prompt and a known public exploit corpus > 0.95 (preregistered), the prompt is excluded from public release and retained only in hashed internal artifacts for reproducibility."
+    ],
+    "analysis_treatment": "Flagged items are excluded from public examples and aggregated analysis tables; they remain in the internal execution manifest and are included in conservative sensitivity analyses where flagged==unsafe is assumed.",
+    "residual_uncertainty": [
+      "Automated redaction may remove necessary context and slightly alter measured attack success rates (acknowledged and sensitivity-analysed).",
+      "Simulator-only execution does not fully capture device-level idiosyncrasies (quantified as a noncritical uncertainty)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S_small",
+      "description": "Lower-budget confirmatory run for rapid execution: N=150 tasks (50 per prompt family), paired baseline vs. combined defenses only; conservative sensitivity checks.",
+      "planned_model_calls": 850,
+      "models": [
+        "hosted-llm-alpha (baseline calls and consensus instances)"
+      ],
+      "transformations": [
+        "Template-based prompt instantiation; adversarial prompts produced by adversary-generator-A (preregistered) with one generator variant only; parser mapping LLM outputs to simulator schema."
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 150,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Per-task LLM calls budgeted as: baseline 1 + combined 3 + (adversarial-generation average 1 for adversarial tasks) => approx. 5.7 calls/task averaged across prompt mix; 150 × ~5.7 ≈ 850 model calls including margin for one automatic retry per failed call. Fits within the capability manifest model-call and time constraints."
+    },
+    {
+      "scenario_id": "S_recommended",
+      "description": "Recommended confirmatory run sized for power: N=300 tasks (100 benign, 100 ambiguous, 100 adversarial), primary paired contrast baseline vs. combined defenses; exploratory validator-only and consensus-only contrasts included as secondary analyses; preregistered sensitivity analyses for consensus thresholds and simulated human-gate parameters.",
+      "planned_model_calls": 1700,
+      "models": [
+        "hosted-llm-alpha (single-instance for baseline and validator-guarded modes)",
+        "hosted-llm-alpha (seeded-instance-1)",
+        "hosted-llm-alpha (seeded-instance-2)"
+      ],
+      "transformations": [
+        "Template-based prompt instantiation; adversarial prompts produced by three distinct automated adversary generators (A/B/C) with transferability tests; deterministic parser mapping LLM text to simulator actions."
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Per-task LLM calls: baseline 1, combined defense 3 (consensus) + validator is a simulator call (non-LLM). Adversarial tasks include 2 extra LLM calls for automated adversary generation on average for adversarial family. Calculation: benign(100)×4 + ambiguous(100)×4 + adversarial(100)×6 = 1,400 LLM calls; plus margin for sensitivity analyses and retries ≈ 1,700. This fits under the estimated model-call budget (manifest: 10,000 max; candidate estimate 2,500). CPU execution and simulator runs fit within the wall-clock and cpu execution availability."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction of 8 percentage points in unsafe-execution rate (example: baseline 12% → defended 4%; absolute difference = 0.08).",
+    "clustering_unit": "task (each task yields a paired binary outcome)",
+    "calculation_method": "Conservative paired binary (McNemar/paired proportion) sample-size approximation assuming baseline rate p0=0.12, defended rate p1=0.04, two-sided alpha=0.05, power=0.80. Under a conservative discordant-pair assumption, required N≈230; recommended scenario N=300 to provide margin and permit subgroup estimation by prompt family.",
+    "assumptions": [
+      "Independent tasks (no within-task clustering beyond the pair),",
+      "Baseline unsafe rate approximately 10–15% (domain-informed prior),",
+      "Defended combined mode reduces unsafe executions by at least 8 percentage points under plausible defense effectiveness assumptions,",
+      "Automated adversarial generation produces realistic adversarial prompts but is redacted; transferability sensitivity tests performed."
+    ],
+    "recommended_scenario_id": "S_recommended",
+    "minimum_detectable_effect_notes": "With N=300, the minimum detectable absolute paired difference (two-sided alpha=0.05, power=0.8) is approximately 5–6 percentage points under conservative discordant assumptions; with N=150 (S_small) detectable difference is larger (~8–10 pp).",
+    "sensitivity_analyses": [
+      "Recompute primary estimator under 'failure_as_unsafe' treatment for failed defended calls (conservative bound).",
+      "Vary assumed baseline unsafe rate between 8% and 20% and report resulting power curves.",
+      "Vary consensus threshold (majority=2/3 vs unanimity=3/3) and recompute effective sample-size impact using observed defended-call blocking rates."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Prompt template instantiation family (deterministic slot-filling rules).",
+      "Adversarial perturbation family (automated generators A/B/C producing perturbed templates).",
+      "LLM-output→action-parser mapping family (deterministic extraction rules to simulator schema)."
+    ],
+    "semantic_equivalence_checks": [
+      "Automated embedding‑based similarity checks to ensure that template-instantiated prompts remain within intended semantic family; threshold preregistered and failing items excluded or reclassified.",
+      "During parser mapping, syntactic validation and schema conformance checks ensure extracted action fields are well-formed; parser failures trigger deterministic retries and, if persistent, pair-level failure handling."
+    ],
+    "automatic_rejection_rules": [
+      "Any generated prompt or LLM output failing parser conformance after one automatic retry is marked as 'failed_call' and handled per missingness_plan.",
+      "Any adversarial prompt detected by exploit-pattern regex or exceeding embedding-similarity redaction thresholds is redacted/abstracted and excluded from public disclosure."
+    ],
+    "audit_sample_policy": "Automated reproducibility audit: 5% of pairs selected deterministically (hashed seed selection) and re-executed with identical seeds to verify deterministic behavior; any divergence logged and analyzed; no human adjudication.",
+    "mapping_validation": "Parser mapping validated on a held-out synthetic mapping corpus of 1,000 hand-derived mapping examples created pre-lock (these are development artifacts used only to validate parser logic and are not reported as empirical results). Mapping accuracy ≥ 98% required; failures trigger parser fixes pre-execution (documented).",
+    "residual_risks": [
+      "Parser edge cases that produce semantically different actions despite passing syntactic checks (mitigated but not eliminated).",
+      "Simulation fidelity limitations for vendor/device-specific behaviors."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator fidelity: isolated simulator may not capture all vendor/device-specific failure modes; we quantify this as a noncritical external-validity limitation and report simulator-versus-emulator disagreement rates where possible.",
+    "Simulated human‑gate policy approximates operator behavior and workload; this is a reproducible surrogate (deterministic threshold model) and remains a validity limitation for generalizing to real operator decisions.",
+    "Adversarial generation transferability: transferability to unseen adversary methods is assessed in preregistered transfer tests, but residual uncertainty about real-world adversary creativity remains."
+  ],
+  "evidence_record_ids": [
+    "doi:10.21203/rs.3.rs-10646557/v1",
+    "https://openalex.org/W4404782868",
+    "https://openalex.org/W4416927413",
+    "doi:10.2139/ssrn.7299799",
+    "https://openalex.org/W4402860127"
+  ]
+}

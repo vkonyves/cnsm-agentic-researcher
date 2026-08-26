@@ -1,0 +1,29 @@
+{
+  "study_id": "hosted-netops-gvr-v1-2026-08-26",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute paired_binary_analysis_v1 on execution/raw_results.jsonl (result_schema_id=paired_binary_episode_v1, version=1.0) using failed_call_treatment=complete_pair_primary. Use the preregistered primary estimand paired_success_rate_difference_guarded_minus_baseline. Compute: N (number of complete pairs present in execution/raw_results.jsonl), point estimate of absolute paired unsafe-rate reduction (baseline − guarded), 95% confidence interval, counts of discordant pairs, and two-sided exact paired test (McNemar) p-value. Use the provided artifact execution/raw_results.jsonl (artifact hash recorded in execution manifest) and compatible adapter family hosted_netops_gvr_v1.",
+  "secondary_analyses": [
+    "paired_binary_analysis_v1 on execution/raw_results.jsonl estimating paired_success_rate_difference_validator_minus_baseline using failed_call_treatment=complete_pair_primary (exploratory; report uncorrected and Bonferroni-adjusted p-values)",
+    "paired_binary_analysis_v1 on execution/raw_results.jsonl estimating paired_success_rate_difference_consensus_minus_baseline using failed_call_treatment=complete_pair_primary (exploratory; report uncorrected and Bonferroni-adjusted p-values)",
+    "paired_binary_analysis_v1 on execution/raw_results.jsonl estimating benign_block_rate_difference_guarded_minus_baseline (exploratory; report uncorrected and Bonferroni-adjusted p-values)"
+  ],
+  "sensitivity_analyses": [
+    "Repeat primary analysis using failed_call_treatment=complete_pair_primary_with_failure_as_zero_sensitivity (treat failed calls as unsafe per preregistration) and report resulting point estimate, 95% CI, and McNemar p-value",
+    "Report exact-complete-pair counts and run primary estimand recomputation after excluding tasks flagged by contamination filters (redacted items removed from public tables)"
+  ],
+  "uncertainty_quantification": "Report 95% confidence intervals for the paired difference and per-condition unsafe rates (exact/binomial CIs). Report exact McNemar two-sided p-value for the paired contrast. Present raw counts and discordant-pair counts so intervals and p-values can be reproduced from execution/raw_results.jsonl.",
+  "multiplicity_implementation": "Confirmatory primary test reported without multiplicity correction. Secondary/exploratory contrasts (up to 4 preregistered exploratory tests) labeled exploratory and reported with both uncorrected p-values and Bonferroni-adjusted p-values (Bonferroni factor = number of reported exploratory tests).",
+  "contamination_analysis": "Apply preregistered contamination pipeline: exploit-pattern regex filters and embedding-similarity checks (threshold 0.95) against known exploit corpora; items flagged are redacted from any public examples and summary tables, retained only in hashed internal artifacts (execution/task_manifest.jsonl and execution/raw_results.jsonl hash). Execution confined to isolated simulator; report counts of flagged tasks, list redaction summary, and run sensitivity analysis treating flagged items conservatively (treated as unsafe). Document redaction effect on measured rates.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary confirmatory results: N (complete pairs), baseline unsafe count, guarded unsafe count, paired_success_rate_difference_guarded_minus_baseline point estimate, 95% CI, discordant-pair counts, McNemar two-sided p-value; reference artifact: execution/raw_results.jsonl (hash in execution manifest)",
+    "Table 2 — Secondary exploratory contrasts: validator-only, consensus-only, benign-block difference; per-contrast N (complete pairs), point estimates, 95% CIs, uncorrected p-values, Bonferroni-adjusted p-values; mark exploratory",
+    "Table 3 — Failure and retry summary: counts of failed episodes, failed pairs (both modes failed), retry attempts, failure causes with references to execution/execution_log.jsonl and provider_calls artifacts (hashed)",
+    "Table 4 — Contamination/redaction summary: counts of tasks flagged by regex and by embedding-similarity>0.95, number redacted from public release, and sensitivity-treatment used"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Grouped bar chart: unsafe execution rate (%) by prompt_family (benign, ambiguous, adversarial) for baseline vs guarded (compute rates from execution/raw_results.jsonl; include 95% CIs)",
+    "Figure 2 — Bar chart of prevented unsafe actions and benign-blocks by defense variant (combined guarded, validator-only, consensus-only): show absolute counts and prevented fraction (derived from paired counts in execution/raw_results.jsonl)"
+  ]
+}

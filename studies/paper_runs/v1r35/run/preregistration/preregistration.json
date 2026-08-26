@@ -1,0 +1,77 @@
+{
+  "study_id": "hosted-netops-gvr-v1-2026-08-26",
+  "title": "Measuring Claim‑to‑Action Rates and Automated Defenses in Simulated Agentic NetOps Pipelines (Preregistered)",
+  "research_question": "What is the empirical claim‑to‑action rate (proportion of LLM textual assertions that would trigger unsafe simulated deployments) in an agentic NetOps pipeline across benign, ambiguous, and adversarial prompts, and how much does a combined automated defense (validator + multimodel consensus + simulated human‑gate policy) reduce that rate relative to an unguarded baseline?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The unguarded agentic pipeline (directly executing LLM-proposed actions) has a nontrivial claim‑to‑action rate (unsafe simulated deployments) that is larger under adversarial prompts than under benign prompts.",
+    "H2 (confirmatory): A combined automated defense (validator + 3‑model consensus + simulated human‑gate threshold) yields a lower claim‑to‑action rate than the unguarded baseline (primary estimand: paired_success_rate_difference_guarded_minus_baseline > 0)."
+  ],
+  "exploratory_questions": [
+    "E1: How do single defenses (validator-only, consensus-only) compare to the combined defense in prevented unsafe actions and benign-block rates?",
+    "E2: How sensitive are defense effectiveness and benign‑block rates to consensus threshold (majority vs. unanimity) and simulated human‑gate thresholds (automated confidence threshold settings)?",
+    "E3: How transferable are adversarial prompts across adversary‑generation methods (transferability tests)?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.21203/rs.3.rs-10646557/v1",
+    "https://openalex.org/W4404782868",
+    "https://openalex.org/W4416927413",
+    "doi:10.2139/ssrn.7299799",
+    "https://openalex.org/W4402860127"
+  ],
+  "benchmark_scope": [
+    "Synthetic intent→configuration tasks: natural-language intent → proposed ACL rule changes and static route insertions executed in isolated network simulator topologies (small enterprise representatives).",
+    "Simulator safety labels: reachability-loss detection and explicit policy-breach flags produced deterministically by the isolated simulator; no production devices or network egress."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute difference in unsafe-execution rate: baseline minus combined-defended, computed on paired binary outcomes per task)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_success_rate_difference_validator_minus_baseline",
+    "paired_success_rate_difference_consensus_minus_baseline",
+    "benign_block_rate_difference_guarded_minus_baseline"
+  ],
+  "sampling_plan": "Confirmatory paired design with N = 300 independent tasks: 100 benign, 100 ambiguous, 100 adversarial. For each task execute baseline (single gpt-5-mini generation → simulator eval) and guarded combined defense (three independent seeded gpt-5-mini generations for consensus + deterministic validator + simulated human-gate policy evaluation). Each task yields a paired binary outcome: unsafe_executed_baseline ∈ {0,1} and unsafe_executed_defended ∈ {0,1}. No clustering beyond independent tasks.",
+  "power_and_precision_plan": "Primary estimand: detect an absolute paired reduction of ~8 percentage points (example baseline 12% → defended 4%) with two-sided alpha=0.05 and power≈0.80. Conservative paired-sample calculation estimated required N≈230; preregistered N=300 provides margin and subgroup resolution by prompt family. Sensitivity analyses: recompute estimator under the 'failure_as_unsafe' rule and vary assumed baseline unsafe rate between 8%–20% to produce power curves.",
+  "exclusion_rules": [
+    "Tasks flagged by exploit-pattern regex or exceeding embedding-similarity redaction thresholds are excluded from public examples and from any public per-item tables (they remain in hashed internal artifacts).",
+    "Pairs where both baseline and defended modes produce failed/parsing outputs are excluded from the primary complete-pair analysis and reported in the failure table."
+  ],
+  "missingness_plan": "Deterministic rules: if an LLM call times out or returns unparsable output, automatically re-execute once with identical seed; if still unparsable mark that mode as 'failed_call'. Primary analysis uses 'complete_pair_primary' (include only pairs with explicit binary outcomes for both modes). Sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity'—treat failed defended calls as defended==0 (unsafe) and failed baseline calls as baseline==0 (unsafe) to provide conservative bounds. All treatments deterministic; no human adjudication.",
+  "analysis_plan": "Primary analysis: paired_binary_analysis_v1 executor computing primary estimand on 300 paired binary outcomes. Report point estimate, 95% CI, and two-sided exact paired test (McNemar) p-value. Include sensitivity analysis under 'failure_as_unsafe'. Secondary analyses: apply same executor to validator-only and consensus-only paired contrasts (exploratory with multiplicity correction). Exploratory logistic regression modeling unsafe outcome as function of prompt_family and defense_mode with robust task-clustered SEs. All analysis seeds, executor versions, and inputs recorded in the execution manifest.",
+  "multiplicity_plan": "Primary confirmatory test: single paired contrast (combined defense vs. baseline) reported without multiplicity correction. Secondary exploratory contrasts (validator-only, consensus-only, per-prompt-family subgroup tests) are labeled exploratory and corrected with Bonferroni for up to 4 exploratory tests; exploratory p-values explicitly labeled as such.",
+  "contamination_plan": "Risk factors: adversarial prompt text containing exploit recipes; public-model-prompt leakage producing overlap with training data; publishing verbatim adversarial prompts enabling misuse. Detection and mitigation: automated exploit-pattern regex filters with redaction/abstraction rules; embedding-similarity checks against known public exploit corpora (preregistered threshold 0.95) to exclude high-similarity items from public disclosure; execution confined to isolated simulator with verified sandbox (no egress). Flagged items remain in internal hashed artifacts and are treated as unsafe in conservative sensitivity analyses. Residual uncertainties (redaction altering measured attack success, simulator fidelity limits) are recorded and sensitivity-analysed.",
+  "stopping_rule": "Fixed-sample confirmatory design: execute until all 300 preregistered paired tasks complete (primary analysis) or until a verified infrastructure failure prevents completion. No interim hypothesis-driven stopping; technical restarts allowed only per capability manifest policy and logged. If wall-clock or model-call budget constraints force premature stop, record as execution failure and report completed-pair counts with sensitivity analyses.",
+  "planned_outputs": [
+    "IEEE CNSM 2026 short paper (≤5 pages) including mandatory Disclosure Statement",
+    "Machine-readable preregistration and execution manifest",
+    "Raw execution artifacts and analysis files (hashed/internal), and NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

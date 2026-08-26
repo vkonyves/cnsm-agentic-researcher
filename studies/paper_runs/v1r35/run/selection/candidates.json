@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-4b9f2a",
+      "title": "Quantified Generate–Validate–Repair for Multi‑Vendor Network Configurations",
+      "research_question": "Does integrating an LLM-based configuration generator with automated network verification engines (generate–validate–repair) measurably reduce the rate of configurations that would cause reachability or policy violations across heterogeneous, vendor-diverse config corpora compared to generation-only baselines?",
+      "hypotheses": [
+        "A generate–validate–repair pipeline that runs LLM-generated configs through automated validators (e.g., Batfish/header-space checks) will reduce the proportion of configs that cause simulated reachability or policy violations relative to an LLM-generation-only baseline.",
+        "When a validator detects a violation and the pipeline performs an automated repair loop, the repaired configs will have higher pass rates in downstream verification than configs produced by the baseline’s post-hoc manual repair attempts."
+      ],
+      "proposed_design": "Assemble a public, multi‑vendor corpus of router/switch configurations and topology fixtures from open-source corpora (anonymized). Implement three pipelines: (A) LLM generation only (prompt→config), (B) LLM + validator (prompt→config→automated verification; reject on failure), and (C) LLM + validator + automated repair loop (generate→verify→LLM-guided repair up to N iterations). Use Batfish and a header-space verifier to run reachability and ACL/policy checks across each proposed config on the topology. Predefine inclusion/exclusion rules and preregister: models, prompts, seeds, decoding settings, validator rules, repair prompt templates, max repair iterations, and stopping criteria. Randomize task order and use paired task assignment where identical intents are processed by each pipeline variant. Collect raw generator outputs, validator logs, repair iterations, and final verification results. All experiments run in simulation; no live network deployments. Preregister analysis plan and thresholds before observing results.",
+      "expected_data": "Per-task: original intent, LLM-generated configs (all iterations), validator pass/fail flags, specific violated properties, number of repair iterations, repaired-config verification outcomes, and simulated safety labels (reachability/policy pass). Aggregate counts: total proposals, validator-detected violations, successful repairs, and per-pipeline verification pass rates.",
+      "primary_outcome": "Absolute and relative reduction (%) in simulated unsafe configurations (configs causing reachability/policy violations) for pipeline C (generate–validate–repair) versus pipeline A (generation-only).",
+      "analysis_outline": "Use paired comparisons across identical intents: compute paired differences in unsafe-config rates and test with McNemar’s test or paired proportion tests; estimate 95% bootstrap confidence intervals around reduction percentages. Report effect sizes (risk difference, relative risk). Secondary analyses: compare pipeline B vs A and C vs B; stratify by vendor and topology complexity; analyze repair iteration success probability using survival curves (iteration-to-success). Correct for multiple comparisons with Benjamini–Hochberg where applicable.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7140000903"
+      ],
+      "risks": [
+        "Simulator/validator mismatch with real devices may misstate operational risk and external validity.",
+        "LLM-generated configs may contain sensitive structure if corpora are not properly anonymized; require data vetting and anonymization.",
+        "Automated repair loops may oscillate or produce syntactically valid but semantically unsafe configs; require iteration caps and manual audit policies.",
+        "Dependence on specific verifier implementations (Batfish/header-space) may bias results; results may not generalize to other verification backends."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-3e1b8c",
+      "title": "Measuring Claim‑to‑Action Rates and Defenses in Agentic NetOps Pipelines",
+      "research_question": "What is the empirical claim‑to‑action rate (proportion of LLM textual assertions that would trigger unsafe simulated deployments) in an agentic NetOps pipeline under benign, ambiguous, and adversarial prompts, and how effectively do defenses (validators, multi-check consensus, human‑gate thresholds) reduce that rate?",
+      "hypotheses": [
+        "An unguarded agentic pipeline that maps LLM textual outputs to simulated action invocations will exhibit a nontrivial claim‑to‑action rate (textual false claims leading to simulated unsafe deployments) that increases under adversarially crafted prompts.",
+        "Introducing layered defenses—automated validators, multimodel consensus checks, and gate thresholds for human approval—will reduce the claim‑to‑action rate significantly compared to the unguarded baseline, with combined defenses outperforming single defenses."
+      ],
+      "proposed_design": "Construct an instrumented agentic pipeline where the LLM (prompt→action plan) proposes concrete deployment steps (e.g., ACL changes, route insertions). A simulated deployment oracle executes actions in an isolated network simulator and reports whether the action would create a safety violation (reachability loss, policy breach). Create three prompt families: benign operator intents, ambiguous intents, and adversarially perturbed intents crafted to provoke incorrect claims. Run the pipeline in four modes: (1) unguarded (direct action), (2) validator-guarded (actions blocked if validator flags), (3) multimodel consensus (majority among three LLM instances required), and (4) combined defenses (validator + consensus + human-gate threshold simulated). Preregister adversarial construction method, threat models, seeds, models, and metrics. Measure per-task whether a textual claim would have triggered a simulated unsafe action and whether defenses blocked it.",
+      "expected_data": "Per-task records: prompt type, LLM textual claims, proposed actions, whether the simulated oracle would treat the action as unsafe, which defenses flagged or blocked the action, latency and decision path logs. Aggregate counts: total attempted actions, unsafe actions that would have executed, prevented unsafe actions by each defense and defense combination, false-block rates (benign blocked), and time-to-decision metrics.",
+      "primary_outcome": "Claim‑to‑action rate reduction: difference in proportion of unsafe simulated deployments executed in the unguarded baseline versus each defense and the combined defenses.",
+      "analysis_outline": "Estimate proportions and 95% CIs for claim‑to‑action rates per mode and prompt family. Use two-proportion z-tests (or exact tests if counts small) to evaluate differences between unguarded and defended modes; apply logistic regression modeling unsafe‑action occurrence as a function of prompt family and defense mode with clustered standard errors by task. Report tradeoffs: prevented unsafe actions vs. benign-block rates. Sensitivity analyses: vary consensus thresholds and human-gate simulated trust thresholds.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4404782868",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404782868",
+        "doi:10.2139/ssrn.7299799",
+        "https://openalex.org/W4402860127"
+      ],
+      "risks": [
+        "Adversarial prompt generation might produce realistic attack recipes; experiments must run only in simulation with no capability to deploy to production.",
+        "Overfitting defenses to the specific adversarial generation procedure may overstate robustness in the wild.",
+        "Multimodel consensus increases cost and latency; measuring realistic human gating impacts is approximative when human-in-the-loop is simulated.",
+        "Potential ethical concern: publishing concrete adversarial prompts could enable misuse; redact or abstract those in publications."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cand-9d4f51",
+      "title": "Scaling Invariant‑Based Validators Across Vendor Diversity: Engineering Cost versus Safety Gain",
+      "research_question": "What is the engineering cost (hours, rules) required to construct invariant-based validators across multiple vendor configuration languages, and how does that per-vendor cost translate into measurable safety gains (reduction in simulated unsafe deployments) when integrated with LLM-assisted NetOps workflows?",
+      "hypotheses": [
+        "The engineering effort (person-hours and rule-count) to author invariant-based validators increases with vendor syntax and feature diversity, producing diminishing marginal returns in safety gains after covering the most-common vendors.",
+        "A semi-automated validator construction workflow (template extraction + human refinement) will reduce engineering time per vendor while achieving comparable safety gains to fully manual validator authoring."
+      ],
+      "proposed_design": "Select a representative set of vendors/languages (e.g., Cisco IOS, Juniper Junos, Arista EOS) and a standardized set of operational intents. For each vendor: (a) measure manual validator construction time by experienced NetOps engineers to encode a predefined set of invariants (reachability, ACL semantics, route policies); (b) apply a semi-automated workflow that extracts candidate invariants from corpora and requires human refinement; record time and rule counts. Integrate validators with an LLM-assisted pipeline to quantify reduction in simulated unsafe deployments on vendor-specific topologies. Predefine metrics, engineer staffing baseline, anonymization, and reproducibility plan; preregister measurement protocol and time-logging. Compare marginal safety gains and compute cost-effectiveness (engineering hours per percentage point reduction in unsafe configs).",
+      "expected_data": "Per-vendor: validator rule counts, person-hours (manual and semi-automated), validator coverage metrics (percent of detected violations in a validation sweep), resulting safety improvement when integrated with LLM pipelines (reduction in unsafe simulated deployments), and qualitative notes on vendor-specific challenges.",
+      "primary_outcome": "Cost-effectiveness ratio: engineering hours required per percentage point reduction in simulated unsafe deployments for manual vs semi-automated validator construction across vendors.",
+      "analysis_outline": "Compute descriptive statistics by vendor for hours and safety gains; compare manual vs semi-automated workflows using paired t-tests or Wilcoxon signed-rank tests on hours and on safety gains. Model the relationship between vendor diversity parameters (syntax complexity index, feature-set size) and engineering cost via linear regression. Produce cost-effectiveness curves and identify points of diminishing returns. Report uncertainty using bootstrap CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7140000903",
+        "https://openalex.org/W4416927413",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W7140000903"
+      ],
+      "risks": [
+        "Estimating engineering cost requires human expert time—must be standardized to avoid biased time logs.",
+        "Semi-automated extraction quality depends on corpora quality; poor corpora could inflate human refinement time.",
+        "External validity limited if chosen vendors or intents are not representative of wider operator populations.",
+        "Potential commercial sensitivity of vendor-specific rules; avoid publishing proprietary rule text."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand-6a2c0e",
+      "title": "Prompt and Decoding Robustness for Safety in LLM‑Assisted NetOps",
+      "research_question": "How sensitive are safety‑critical LLM outputs for NetOps tasks to prompt perturbations and decoding nondeterminism, and to what extent do mitigation techniques (fixed decoding, multimodel consensus, paired-design aggregation) reduce unsafe-proposal rates and output variance?",
+      "hypotheses": [
+        "Small, systematically-constructed prompt perturbations (word order, templating, contextual examples) and decoding nondeterminism (sampling temperature, top-p) will produce statistically significant changes in the rate of unsafe configuration proposals detected by automated validators.",
+        "Mitigations—fixed deterministic decoding, multimodel consensus, and paired-design aggregation—will each reduce unsafe-proposal rate variance, with combined mitigations producing the largest decrease in both mean unsafe rate and variability across perturbations."
+      ],
+      "proposed_design": "Define a set of NetOps task intents. For each intent, generate a space of prompt perturbations (lexical paraphrases, exemplar swaps, ordering changes) and decoding settings (deterministic greedy, low-temperature sampling, top-p). For each prompt-decoding pair, obtain multiple LLM outputs (or multiple model instances for consensus). Evaluate each output via the same automated validators/verifiers used in other experiments to label unsafe proposals. Implement mitigation variants: deterministic decode, majority consensus over three model instances, and a paired design where each intent is processed in matched pairs and decisions aggregated. Preregister perturbation generation procedures, decoding seeds, model versions, and aggregation rules. Collect per-output labels and compute variance metrics.",
+      "expected_data": "Per-output labels indicating validator pass/fail, prompt perturbation metadata, decoding parameters, model instance id, and timestamps. Aggregates: unsafe-proposal rates per perturbation and decoding setting, variance across perturbations, mitigation-adjusted unsafe rates, and latency/cost per mitigation.",
+      "primary_outcome": "Reduction in variance (e.g., standard deviation) of unsafe-proposal rates across prompt perturbations when using combined mitigations versus baseline (sampling decoding without mitigation).",
+      "analysis_outline": "Quantify variance components using ANOVA / variance decomposition models with factors for prompt perturbation, decoding setting, and model instance. Test hypothesis on variance reduction using Levene’s test or bootstrap confidence intervals for variance ratios. Compare mean unsafe-proposal rates with paired proportion tests. Report mitigation cost (model calls, latency) versus variance and mean reduction. Conduct subgroup analyses by intent complexity.",
+      "novelty_evidence_ids": [
+        "doi:10.32388/be0zbc",
+        "https://openalex.org/W4402860127",
+        "https://openalex.org/W7165219968"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7299799",
+        "https://openalex.org/W4402860127",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Prompt perturbation space may not span real-world operator variability; results could under- or over-estimate sensitivity.",
+        "Mitigations like consensus increase query costs and latency; operational viability tradeoffs must be interpreted cautiously.",
+        "Deterministic decoding may reduce creativity but increase repeated errors; balance must be reported.",
+        "Potential for exposing adversarial prompt patterns; redact concrete exploit examples in dissemination."
+      ],
+      "estimated_model_calls": 2200
+    }
+  ]
+}

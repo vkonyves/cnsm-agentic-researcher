@@ -1,0 +1,90 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-4b9f2a",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator/validator realism vs. real devices may limit external validity.",
+        "Dependency on specific verifiers (Batfish/header-space) could bias results.",
+        "Data sourcing/anonymization risk for multi‑vendor corpora.",
+        "Automated repair loops can oscillate or produce semantically unsafe but syntactically valid configs."
+      ],
+      "required_design_repairs": [
+        "Add multiple verification backends (Batfish + alternative) and report backend disagreement rates.",
+        "Specify and publicize anonymization and dataset-licensing procedures; provide sanitized public corpus or clear reproducibility scripts.",
+        "Preregister repair-loop safety checks, iteration caps, and conservative fallback policies; log failed/oscillatory repairs.",
+        "Include sensitivity analysis for simulator-vs-device mismatch (e.g., spot-checks on vendor emulators if available)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-3e1b8c",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Ethical risk of publishing concrete adversarial prompts and attack recipes.",
+        "Simulated human‑gate is an approximation; measured human-workload/latency effects may not generalize.",
+        "Adversarial prompt generator may bias defenses if overfitted to its method."
+      ],
+      "required_design_repairs": [
+        "Preregister and redact adversarial prompt generation procedures; publish abstracted examples only.",
+        "Clearly define and justify human-gate simulation policy and perform sensitivity analyses over gate thresholds.",
+        "Use diverse adversary-generation methods and report transferability; include threat-model description and redaction policy."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-9d4f51",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Proposed measurement requires calibrated human expert time-logging but capability manifest forbids human scientific labour post-lock.",
+        "Engineering-cost estimates are subjective and hard to reproduce without standardized protocols.",
+        "Risk of publishing vendor‑proprietary rule text or sensitive engineering practices."
+      ],
+      "required_design_repairs": [
+        "Redesign to remove/limit real-time human expert labor: use public artifact proxies (open-source validator repos, commit histories, issue trackers) or standardized time-surveys run pre-lock and clearly labeled as external data.",
+        "If human measurement is essential, preregister exact rater recruitment, standardization, and IRB/ethics handling; otherwise convert to reproducible surrogate metrics (rule-count, code-diff LOC, automated template-extraction effort).",
+        "Ensure all vendor-specific artifacts are sanitized; publish only aggregated cost-effectiveness curves and non-proprietary examples."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-6a2c0e",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Prompt-perturbation space may not reflect realistic operator variability.",
+        "Publishing adversarial perturbation patterns risks enabling misuse.",
+        "Mitigations (consensus, deterministic decoding) have operational cost/latency tradeoffs that must be quantified."
+      ],
+      "required_design_repairs": [
+        "Preregister a systematic, justified perturbation generation procedure and release tooling to reproduce perturbations without exposing exploitable prompts.",
+        "Redact or abstract any adversarial examples in outputs; include a safe-disclosure plan.",
+        "Include latency/cost measurements for each mitigation and discuss operational tradeoffs; evaluate effectiveness vs. model-call budget constraints."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

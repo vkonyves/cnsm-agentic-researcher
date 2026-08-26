@@ -1,0 +1,196 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models (LLMs) routinely produce confident but incorrect or fabricated outputs (hallucinations); there is a developed taxonomy of detection/mitigation approaches.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7299799",
+        "https://openalex.org/W4362515116",
+        "https://openalex.org/W4401857375"
+      ],
+      "evidence_type": "Survey / Taxonomy / Review",
+      "confidence": 0.9,
+      "limitations": [
+        "Survey-level evidence; relative prevalence and exact rates of hallucination vary by task and model.",
+        "Most treatments are general LLM-focused rather than NetOps-specific."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Augmenting LLMs with external tools or agentic orchestration enables complex, end-to-end actions but introduces system-level failure modes where false textual claims can drive harmful tool calls (claim→action gap).",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4404782868",
+        "https://openalex.org/W4409562197"
+      ],
+      "evidence_type": "Empirical study / System papers / Protocol survey",
+      "confidence": 0.85,
+      "limitations": [
+        "Claim-to-action experiments are demonstrative across several domains; magnitude may be payload- and pipeline-dependent.",
+        "Tool-augmentation benefits and risks depend on tool design, orchestration, and guardrails."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Constraint‑ or validator‑based adaptation (e.g., extracting domain invariants, using external validators/simulators) improves reliability of LLM outputs in network-management tasks in reported studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "System / Empirical",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported results are from targeted prototypes and user studies; scalability across diverse production topologies and vendors is not established.",
+        "Details on dataset size, diversity, and replication vary by paper."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "LLM-assisted failure localization and RCA workflows can reduce operator time-to-root-cause and improve localization accuracy in deployment-case reports.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7118827999"
+      ],
+      "evidence_type": "Empirical / System deployment report",
+      "confidence": 0.75,
+      "limitations": [
+        "Improvements reported in specific operational environments; external validity to other networks/environments is not proven.",
+        "Potential operator-AI interaction effects (trust, overreliance) require further study."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Current benchmarks and evaluation practices can misalign with practitioner goals; tools exist to surface benchmark-content validity and evaluation-safety gaps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140000903",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "Tool paper / Conceptual framework",
+      "confidence": 0.85,
+      "limitations": [
+        "These works identify and illustrate validity gaps but do not by themselves provide a single corrective benchmark for NetOps.",
+        "Operational applicability depends on adoption and extension to NetOps-specific tasks."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "LLM outputs and agent behavior are sensitive to prompt framing, decoding nondeterminism, and input perturbations; reproducibility and robustness are therefore a methodological concern.",
+      "evidence_record_ids": [
+        "doi:10.32388/be0zbc",
+        "https://openalex.org/W4402860127",
+        "10.20944/preprints202602.0010.v1"
+      ],
+      "evidence_type": "Empirical robustness studies / Methodological audits",
+      "confidence": 0.88,
+      "limitations": [
+        "Quantitative sensitivity varies by model, prompt, and task slice; mitigation strategies (e.g., paired designs, fixed decoding) reduce but do not eliminate sensitivity."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what extent do constraint/validator-based workflows (e.g., invariants + formal checkers/simulators) scale to heterogeneous, vendor-diverse, production NetOps environments without prohibitive engineering cost?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7140000903"
+      ],
+      "evidence_type": "Prototype reports + benchmark validity analysis",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing evidence shows promise in constrained studies; systematic scaling experiments are not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Can multi-agent or tool‑augmented LLM pipelines reliably prevent claim‑to‑action failures under adversarial or ambiguous inputs for NetOps‑relevant tool calls (e.g., configuration deployment, firewall rules)?",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4404782868"
+      ],
+      "evidence_type": "Action-gap experiments and middleware/system analyses",
+      "confidence": 0.55,
+      "limitations": [
+        "Claim-to-action experiments demonstrate the risk but do not yet provide NetOps-specific, adversarially-hardened pipeline evaluations."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "What is the optimal human–AI oversight policy (degree and placement of human-in-the-loop) that balances operational safety, latency, and operator workload for LLM‑assisted NetOps?",
+      "evidence_record_ids": [
+        "doi:10.4018/979-8-3373-7036-1.ch013",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "Conceptual treatment + prototype user study",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing literature discusses HITL architectures and provides small-scale user evidence, but prescriptive, empirically-validated policies for NetOps are not supplied."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "How well do existing LLM‑robustness mitigations (e.g., decoding controls, multimodel consensus, validators) translate into measurable reduction of risky NetOps deployments (concrete misconfigurations leading to outages) in realistic testbeds?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7299799",
+        "https://openalex.org/W7140000903",
+        "https://openalex.org/W7165219968"
+      ],
+      "evidence_type": "Survey + benchmark/tool papers + dataset",
+      "confidence": 0.55,
+      "limitations": [
+        "Bridging method-level mitigations to end-to-end outage reduction requires controlled deployment experiments not present in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a lack of standardized, publicly available NetOps datasets/benchmarks that pair LLM-generated configuration proposals with executable validation targets (simulated device state / reachability) for reproducible evaluation of generate–validate–repair pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140000903",
+        "https://openalex.org/W7165219968",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "Benchmark validity analyses and domain dataset release",
+      "confidence": 0.6,
+      "limitations": [
+        "Some domain datasets exist (e.g., UAV-CAS) but are not NetOps-config-centric; supplied records do not show a dedicated, widely-adopted NetOps generate-validate benchmark."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Integrated, formally-grounded generate–validate–repair workflows that couple LLM generation with network verification engines (e.g., Batfish, header-space/SMT checkers) and quantify end-to-end safety remain under-explored in reproducible, comparative studies.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "Prototype reports, vulnerability/verification literature",
+      "confidence": 0.6,
+      "limitations": [
+        "Prototype integrations are reported, but no supplied record provides a reproducible, comparative evaluation across multiple verification backends and realistic config corpora."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Quantitative, NetOps‑specific measurements of the claim‑to‑action rate (false textual state → executed remediation/config change) and defenses against it are missing.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4404782868"
+      ],
+      "evidence_type": "Empirical action-gap study + middleware analysis",
+      "confidence": 0.55,
+      "limitations": [
+        "Claim-to-action studies show the phenomenon in multiple domains but do not present NetOps-targeted large-scale measurements or defense-evaluation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform NetOps (deploying configs/changes) without human oversight — not supported by the supplied records.",
+    "A single LLM architecture or off-the-shelf model generalizes reliably across all vendor device configurations and topologies — unsupported by supplied evidence.",
+    "There is decisive evidence that current LLM hallucination detectors eliminate operational risk in agentic tool pipelines — detectors reduce risk but do not eliminate it per supplied surveys and studies."
+  ]
+}

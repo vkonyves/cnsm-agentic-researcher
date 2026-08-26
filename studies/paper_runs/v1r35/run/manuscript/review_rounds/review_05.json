@@ -1,0 +1,22 @@
+{
+  "summary": "Well‑executed, fully archived paired NetOps study with strong provenance; preregistered design largely followed and analysis executed as planned. Two substantive provenance‑backed issues must be fixed in the manuscript (both resolvable from archived artifacts) before finalisation: (1) the preregistered multimodel consensus ensemble was not executed and the manuscript must remove/qualify any ensemble claims and label H2 as untested; (2) the causes and breakdown of the 56 failed episodes (28 task pairs) must be explicitly summarized and referenced to the execution logs/provider traces already archived.",
+  "novelty_score": 3,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered multimodel consensus ensemble (part of the 'guarded' pipeline) was not executed; the archived run applies a validator + simulated human‑gate to a single shared generation. The manuscript currently implies evaluation of a combined ensemble‑based defense in places — that is incorrect and must be corrected.",
+    "Significant missingness: 56 failed episodes (28 task pairs) removed from the primary analysis. The manuscript reports counts but does not report the proximate failure causes (e.g., provider timeouts, unparsable outputs, API errors) nor point readers to the exact execution_log/provider_call traces that document those causes. This omission hinders interpretation of reduced effective N and power."
+  ],
+  "required_revisions": [
+    "Explicitly correct all text that asserts the preregistered combined defense (validator + 3‑model consensus + simulated human gate) was evaluated. Replace with precise wording that the executed guarded condition corresponded to the deterministic validator + simulated human gate applied to a single shared generation, and mark H2 (ensemble effect) as untested by this execution. Make this correction in the Abstract, Introduction (contributions), Methods (preregistration vs executed pipeline), Results, and Discussion.",
+    "Add a concise, artifact‑anchored summary of the 56 failed episodes: enumerate failure categories (e.g., provider/API timeouts, unparsable outputs, provider-side errors), give counts for each category, and cite the exact archived paths and SHA‑256s (execution/execution_log.jsonl and relevant execution/provider_calls/*.json) that record the failures. If the execution_log contains structured failure codes, include the exact code counts; if only free‑text traces exist, quote the representative log entries (referencing the file+SHA) and summarize. This revision must be completed using only the stored run artifacts (no new executions).",
+    "Clarify statistical interpretation around the McNemar result and its p=1.0: add a short explanation (referencing the contingency counts n11=271,n10=1,n01=0,n00=0) explaining why the exact test yields p=1.0 and why that implies inconclusive evidence for an improvement. Retain the preregistered sensitivity analysis but explicitly state its assumptions and the effect of the excluded failed pairs on power and detectable effect size (cite analysis/missingness_summary.csv and deterministic_reconciliation.json)."
+  ],
+  "optional_revisions": [
+    "Provide a short table (or one paragraph) summarizing per‑prompt‑family outcomes (benign/ambiguous/adversarial) for the complete pairs using archived analysis/condition_summary.csv or the per‑episode scoring JSONs, and label these as exploratory.",
+    "Expand the Discussion with a brief, artifact‑backed note about why the consensus ensemble was not executed (e.g., orchestration/config issue or provider budget/latency) if that reason is present in execution logs; reference the exact execution artifact that documents the cause. This is optional if no clear single cause is recorded.",
+    "Add a link (or explicit file path + SHA‑256) in the manuscript body where readers can find the minimal set of artifacts needed to reproduce the primary analysis (paired_contingency_table.csv, analysis/condition_summary.csv, execution/execution_manifest.json)."
+  ],
+  "accept_for_finalisation": false
+}
