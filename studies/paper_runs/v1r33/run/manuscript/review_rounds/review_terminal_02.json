@@ -1,0 +1,21 @@
+{
+  "summary": "Carefully preregistered, well‑instrumented paired study that truthfully reports a degenerate confirmatory outcome: when the identical single LLM candidate was reused by both pipelines (shared_initial_candidate), the deterministic validator accepted every analyzable pair (n11=299, no discordant pairs). Artifacts, provider traces, scoring JSONs (validator_trace), analysis inputs/outputs, and preregistration are archived and SHA‑256 hashed. The manuscript honestly acknowledges the resulting ceiling effect and the consequent limits on the confirmatory inference; the experimental execution appears faithful to the preregistration and reproducibility bundle is strong.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 4,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript leaves the practical pipeline distinction between “baseline” and “guarded” insufficiently explicit given that both conditions produced identical validator traces. Reviewers cannot tell from the text alone which components differ operationally (e.g., whether baseline also invoked the deterministic validator or only the guarded path could call repairs), creating potential reader confusion about what was actually isolated by the shared_initial_candidate design."
+  ],
+  "required_revisions": [
+    "Add a concise, explicit step‑by‑step description (or small workflow diagram/table) of the two pipelines (baseline vs guarded) as executed under shared_initial_candidate semantics, making clear which components (LLM generation, validator, optional repair loop, simulator) were invoked in each path and in what order. Point to representative archived artifacts (paths + SHA‑256) that demonstrate the claimed per‑pipeline behavior (e.g., execution/responses/*, execution/scoring/*, execution/provider_calls/*).",
+    "Insert an explicit, artifact‑backed accounting paragraph or short table listing per‑condition aggregated call counts and repair usage: hosted_model_call_event_count, completed/failed call counts, model_calls_used, completed episodes, failed episodes, completed pairs, and aggregated repair_applied=true counts (with SHA‑256 references to the execution manifest and representative scoring JSONs). The necessary values and files already exist in the archived manifest; cite them directly.",
+    "Tone down and tighten any wording in the Abstract and Conclusion that could be read as a general claim about the value of deterministic post‑processing. Explicitly state that the result is narrowly about shared_initial_candidate semantics on the provided synthetic task set and that the ceiling effect (baseline success=1.0) prevents testing the preregistered minimally important effect; reference the archived contingency (analysis/paired_contingency_table.csv SHA‑256 d77df43abf83e...) and the power assumption in the preregistration (SHA‑256 provided).",
+    "Add a short, explicit discussion (one paragraph) clarifying why the degenerate contingency yields p=1.0 and a degenerate bootstrap CI (all zeros), why that was expected mathematically when there are zero discordant pairs, and how that interacts with the preregistered power assumption (baseline≈0.60). Cite the archived analysis log (analysis/analysis_log.jsonl SHA‑256 7364d6a1...) and paired_contingency_table.csv as supporting evidence."
+  ],
+  "optional_revisions": [
+    "Provide a short descriptive breakdown (counts and example artifact pointers) by preregistered strata (simple vs complex) to show that both strata are present even if discordance is zero; the task_manifest and scoring JSONs permit this without rerunning experiments.",
+    "Add one representative excerpt (quoted and SHA‑256 referenced) from a scoring JSON that shows validator_trace.repair_applied=false and the final_state snapshot (to make the audit trail quicker for readers)."
+  ],
+  "accept_for_finalisation": false
+}

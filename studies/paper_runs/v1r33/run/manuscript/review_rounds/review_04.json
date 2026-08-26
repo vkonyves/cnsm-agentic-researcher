@@ -1,0 +1,25 @@
+{
+  "summary": "Well‑executed, fully preregistered paired study that is meticulously archived and reproducible. The experiment answers a narrowly defined estimand (effect of downstream verifier/simulator processing on identical LLM candidates under shared_initial_candidate semantics) and finds no difference (299/299 passes in both conditions). Major strengths: rigorous preregistration, complete artifact hashing and provenance, deterministic validator traces, and transparent handling of a ceiling effect. Main concerns are about wording and positioning: the title and some text imply an agentic/tool‑augmented generation comparison when the run intentionally reused identical LLM candidates across conditions; the manuscript must be revised to avoid overclaiming and to emphasize the narrow executed estimand and the causes/implications of the observed ceiling effect. A short failure post‑mortem for the missing pair should be added referencing archived logs. All required fixes are resolvable from the supplied artifacts.",
+  "novelty_score": 4,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Misleading title/phrasing: manuscript title and some language suggest a comparison of an agentic/tool‑augmented generator vs an LLM baseline, but the executed design used shared_initial_candidate semantics (single LLM generation reused by both conditions). This could mislead readers about what was actually tested.",
+    "Insufficiently prominent statement of the executed estimand: the shared_initial_candidate restriction and its consequences (that guarded processing could only post‑process identical candidates) must be stated clearly in the title/abstract and at the end of the Introduction to avoid misinterpretation.",
+    "Missing short post‑mortem for the two failed episodes / one missing pair (pair-000269). The manuscript references logs and hashes but does not summarize failure mode(s) and immediate cause(s) using the archived execution_log/provider traces."
+  ],
+  "required_revisions": [
+    "Change the paper title (and any high‑level wording) to remove or qualify any implication of an agentic tool‑augmented generator producing independent candidates. Suggested: explicitly indicate 'shared_initial_candidate' or 'tool‑augmented post‑processing of identical LLM candidates' in title/short subtitle.",
+    "Prominently and unambiguously state the executed estimand (shared_initial_candidate semantics) in the Abstract and at the end of the Introduction, and add one clear sentence describing exactly what the guarded pipeline did and did not do (i.e., post‑processing/verification on the same LLM outputs rather than independent agentic generation).",
+    "Add a concise failure post‑mortem paragraph referencing the archived artifacts (execution/execution_log.jsonl and relevant provider_call trace SHA‑256s) that explains why the two episodes failed and which pair was dropped (pair-000269), including timestamps and error codes or a short quoted extract from the log to justify exclusion.",
+    "Clarify and strengthen the statistical discussion: explicitly state that the preregistered power assumption (baseline ≈0.60) was violated, explain consequences for hypothesis testing (ceiling effect; primary contrast effectively untestable), and remove any wording that could be read as evidence that tool‑augmentation cannot help under independent‑generation semantics.",
+    "Modify any claims in the Abstract, Introduction, and Conclusion that might be read as generalizing beyond the executed design (e.g., to agentic tool‑augmented generation, other models, or production environments). Replace with balanced, artifact‑backed statements limited to the shared_candidate estimand and synthetic tasks."
+  ],
+  "optional_revisions": [
+    "Include a brief table (or one‑paragraph summary) showing the simple vs complex stratum counts and success rates (these artifacts appear to be available) to help readers evaluate external validity and ceiling risk by stratum.",
+    "Add one short suggested pseudocode or workflow diagram (as figure or caption) that explicitly distinguishes the three generation semantics (shared_initial_candidate, independent_per_condition_generation, and agentic tool‑augmented generation) to help readers plan follow‑ups.",
+    "Discuss briefly whether and how the deterministic validator's rule set might be tuned to produce a less ceiling‑prone confirmatory task bank (e.g., increase difficulty labels or require longer dependency chains) and cite the relevant artifact examples."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,25 @@
+{
+  "summary": "Well‑executed, transparently archived confirmatory run that isolates the narrow effect of deterministic post‑processing when both pipelines receive the identical single LLM candidate (shared_initial_candidate). The experiment and preregistration were followed, artifact provenance is comprehensive, and the manuscript candidly reports the degenerate outcome (all analyzable pairs passed) and the resulting ceiling effect. The study is methodologically useful as an isolation experiment but offers limited operational generality.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Primary preregistered estimand is untestable under the observed ceiling (baseline success = 100%), which prevents answering the originally targeted practical effect size; this outcome is disclosed but constitutes a substantive limit on confirmatory inference.",
+    "The manuscript omits a preregistered subgroup (simple vs complex intents) summary that was specified in the preregistration; without per‑stratum counts/rates the claim that the ceiling effect is general across task difficulty is unsupported in the text.",
+    "The manuscript does not explicitly and unambiguously state that the guarded and baseline scoring paths invoked the identical deterministic validator with identical configuration/parameters (i.e., no validator‑parameter differences could explain identical outcomes). The proof is present in artifacts but not stated clearly in the paper.",
+    "Although repair was permitted by the preregistered contract, the paper does not explicitly report the operational rule that repair is only attempted on validator failure and therefore that no repair calls occurred because all candidates passed; this causal link must be made explicit and cross‑referenced to the repair/provider‑call artifacts."
+  ],
+  "required_revisions": [
+    "Add the preregistered subgroup (simple vs complex intents) confirmatory summary: number of planned and completed pairs per stratum, baseline and guarded success counts and rates by stratum, and the paired contingency cells per stratum. Use the existing task_manifest and scoring JSONs (execution/task_manifest.jsonl, execution/scoring/*.json) to populate these numbers and cite their SHA‑256s.",
+    "Explicitly state in Methods (and Disclosure or a footnote) that the exact same deterministic validator binary/configuration and the same validator parameters were used for baseline and guarded scoring, and cite the specific scoring JSON examples and execution/model_configuration.json and execution/execution_manifest.json hashes that prove byte‑for‑byte reuse.",
+    "Explicitly describe the repair invocation rule (preregistered: repair attempted only if validator fails) and show the artifact evidence that no repair provider traces exist and aggregated repair_applied=true count = 0 (cite execution manifest and scoring JSONs), so reviewers/readers can verify that the guarded path did not exercise repair because there were no validator failures.",
+    "Report the excluded/failed pair(s) with the episode id(s), reason(s), and pointer(s) to the provider failure logs (execution/provider_calls/<task>.json and execution/execution_manifest.json hashes) as required by the preregistered missingness plan."
+  ],
+  "optional_revisions": [
+    "Add a short table mapping each principal claim/conclusion to the exact archived artifact file path(s) and SHA‑256(s) (evidence‑to‑claim table) to simplify auditability (artifacts are present; this is a formatting/clarity improvement).",
+    "Add a one‑paragraph illustrative excerpt (1–2 JSON lines) from a representative scoring JSON (validator_trace) to make the validator_trace fields and repair_applied flag concrete for readers (ensure the excerpt fits the five‑page limit).",
+    "Where space permits, present a concise difficulty histogram or summary (counts per difficulty level) derived from task_manifest to support the ceiling‑effect discussion."
+  ],
+  "accept_for_finalisation": false
+}

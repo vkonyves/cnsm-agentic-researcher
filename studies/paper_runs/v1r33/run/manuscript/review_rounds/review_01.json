@@ -1,0 +1,25 @@
+{
+  "summary": "Well‑executed, fully preregistered paired study with complete provenance and hashes. The run is internally reproducible and transparently disclosed, but the preregistered choice of shared_initial_candidate generation semantics means the experiment tested only downstream verifier/tool effects on a single LLM candidate (not whether tool‑augmentation changes LLM generation). That mismatch between the broader research question and the executed intervention is the principal concern; it is disclosed but requires stronger, explicit framing and a small set of artifact‑resolvable clarifications and sensitivity summaries in the manuscript before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The preregistered and executed shared_initial_candidate semantics (single LLM generation reused across baseline and guarded conditions) make the study incapable of answering the broader question of whether tool‑augmentation changes the model’s generated configurations — the paper must not imply that it tested independent tool‑augmented generation.",
+    "Primary outcome is degenerate (no discordant pairs) because both conditions observed identical generated artifacts; statistical tests (McNemar, bootstrap CI) are uninformative for the intended broader question and require explicit explanation in the manuscript.",
+    "Preregistered sensitivity analyses (treatment of failed episodes) are not reported in the manuscript body; missingness (2 failed episodes, 1 complete‑pair missing) must be handled and reported per preregistration.",
+    "Title and contribution statements currently suggest a head‑to‑head test of tool‑augmentation versus LLM‑only; given the shared‑candidate design those claims are overstated unless revised to precisely reflect the executed protocol."
+  ],
+  "required_revisions": [
+    "Explicitly and unambiguously reframe title, abstract, and contribution bullets to state that the confirmatory test evaluated downstream verifier/tool intervention on a shared LLM candidate (shared_initial_candidate semantics), and that the experiment did not test independent per‑condition generation — include the exact phrase 'shared_initial_candidate' and the preregistered rationale.",
+    "Add a short, explicit table or single paragraph (Methods or Results) that reports how many tasks had identical shared initial candidates across conditions and show representative evidence (counts and example SHA‑256s). Use the supplied response hashes/artifacts (execution/responses/*.txt and execution/scoring/*.json) to support this statement.",
+    "Report the predeclared sensitivity analysis that treats technical failures as verifier‑fail per the preregistration (complete_pair_primary_with_failure_as_zero_sensitivity). Using the archived raw_results and missingness summary, compute and report the sensitivity outcome and state whether it changes the primary conclusion.",
+    "Add an explicit methodological paragraph clarifying why shared_initial_candidate semantics were chosen in the preregistration, the implications for internal and external validity, and a concise statement limiting the manuscript’s conclusions to the executed protocol (i.e., that null result pertains to downstream verification given identical generated artifacts). Point readers to the exact manifest/artifact hashes proving the shared‑candidate reuse (artifact paths already in the bundle)."
+  ],
+  "optional_revisions": [
+    "Add a short illustrative table of representative discordant and concordant validator traces (n11 examples) drawn from the archived scoring JSONs to help readers inspect typical valid traces.",
+    "Include a short cautionary note in Discussion about how shared‑candidate semantics interact with caching or call‑reuse risks in other experimental setups, and recommend a minimal independent‑generation experimental design for follow‑up (n and estimated calls).",
+    "Tighten Related Work to cite only primary sources that were verified in the evidence bundle and include the machine‑readable verification record as a supplementary artifact reference."
+  ],
+  "accept_for_finalisation": false
+}

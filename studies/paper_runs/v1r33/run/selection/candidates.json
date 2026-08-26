@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand_netops_itertrade_001",
+      "title": "Bounded Iterative Generate–Validate–Repair for Intent→Configuration Pipelines",
+      "research_question": "How does imposing a bounded maximum number of generate–validate–repair iterations affect verifier-pass rates, latency, and model-call cost for LLM-driven intent→configuration translation under realistic NetOps tasks?",
+      "hypotheses": [
+        "Allowing iterative repair up to a small bound (e.g., 3 iterations) will recover most verifier-pass gains compared to an unbounded (≤8) policy, with substantially lower median model-call and latency cost.",
+        "Marginal verifier-pass improvement per extra iteration will exhibit a diminishing-return elbow before 8 iterations for the majority (>50%) of tasks.",
+        "Some tasks will show oscillatory or divergent repair traces that are not resolved by any practical iteration bound and will concentrate in specific intent categories (e.g., ambiguous policy intents)."
+      ],
+      "proposed_design": "Preregister 200 intent tasks balanced across ACL, BGP, VLAN, and simple routing-policy templates drawn from public synthetic+curated sources. Fix one hosted LLM model and a deterministic network verifier (reachability and policy-checking). Implement an iterative pipeline: generate config → run verifier → on fail produce verifier-guided repair prompt and retry. Record per-iteration outputs, verifier boolean, repair diffs, latency, and cumulative model calls. Apply bounded policies (max iterations = 1, 3, 5, 8) offline to the same task traces to compare outcomes. Freeze prompts, verifier, seeds, and retry policy in preregistration. Archive raw artifacts and hashes for reproducibility.",
+      "expected_data": "Per-task per-iteration records (generated config text, verifier pass/fail, repair edit diff, per-iteration latency, cumulative latency, per-iteration model calls, cumulative model calls). Aggregated per-policy metrics: verifier-pass rate, distribution of iterations-to-pass, fraction unresolved within bound, median latency, median model-call consumption, and representative divergent/oscillatory repair traces.",
+      "primary_outcome": "The iteration bound at which marginal verifier-pass improvement falls below 5% (operational threshold), reported with corresponding latency and model-call cost trade-offs and 95% confidence intervals.",
+      "analysis_outline": "Compute cumulative verifier-pass curves across iterations and per-task marginal gains. Detect change-points using segmented regression and bootstrap elbow detection to estimate the iteration of diminishing returns. Compare bounded policies using paired-proportion tests (McNemar or paired z) for verifier-pass rates and Wilcoxon signed-rank tests for paired cost metrics. Report distributions, task-level examples of oscillatory repair, and cost-versus-safety frontiers.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4401857375",
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4396723768"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4401857375"
+      ],
+      "risks": [
+        "Iterative repairs may produce oscillatory edits or semantic drift undermining intent fidelity.",
+        "Ambiguous or adversarial intents may not converge within any practical bound, inflating unresolved fractions.",
+        "Hosted LLM API rate limits or transient failures may require preregistered retry handling and could bias cost measurements."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand_netops_benchmark_002",
+      "title": "Verifier-Grounded Public NetOps Intent→Configuration Benchmark",
+      "research_question": "Can a publicly released benchmark pairing natural-language NetOps intents with canonical vendor-style configurations and deterministic-verifier labels be constructed to enable reproducible evaluation of LLM-driven pipelines and reveal operational failure-mode structure?",
+      "hypotheses": [
+        "A curated benchmark of 1,000 intent→configuration pairs with deterministic verifier pass/fail labels will produce inter-model verifier-pass-rate variance of at least 10 percentage points across evaluated LLMs.",
+        "Providing diagnostic verifier traces and categorized failure labels (syntactic, semantic, policy-violation) will enable automated clustering that identifies at least three distinct dominant error classes across model outputs.",
+        "Baseline evaluations on two hosted LLMs using the benchmark will be reproducible and will show that verifier-pass rate correlates poorly with simple surface-match metrics, underlining the need for verifier-grounded evaluation."
+      ],
+      "proposed_design": "Design and preregister a dataset generation pipeline to produce 1,000 intents across ACL, BGP, VLAN, and routing-policy tasks using synthetic generators plus expert-curated templates. For each intent create a canonical vendor config (IOS and JUNOS variants where applicable). Run a deterministic verifier for each canonical and model-generated config to produce boolean pass/fail and diagnostic traces. Publish dataset JSON schema, verification code, anonymization steps, and evaluation harness under a permissive license. Run baseline evaluations on two hosted LLMs with frozen prompts and report verifier-based metrics and failure-mode analyses.",
+      "expected_data": "Released dataset files: 1,000 intents with canonical configurations (vendor variants), verifier pass/fail labels, diagnostic verifier traces, and failure-mode annotations. Baseline evaluation outputs: per-model verifier-pass rates with 95% CIs, per-error-class frequency tables, representative failing examples, and reproducibility checksums and scripts.",
+      "primary_outcome": "A public dataset and evaluation harness whose baseline runs produce measurable inter-model performance differences and a structured taxonomy of dominant operational failure modes, demonstrated via reproducible baseline evaluations.",
+      "analysis_outline": "Report dataset composition statistics (intent types, vendor split). Run baseline LLM evaluations to compute verifier-pass rates with 95% CIs (Wilson intervals). Compare models’ pass rates (two-proportion tests) and compute correlation between verifier-pass and surface-match scores (Spearman rho). Cluster diagnostic traces (e.g., DBSCAN or hierarchical clustering) to identify failure modes and report silhouette and cluster stability metrics. Release validation scripts and checksums to enable replication.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4401857375"
+      ],
+      "risks": [
+        "Synthetic or curated intents may not fully represent production diversity, limiting external validity.",
+        "Legal/privacy constraints may preclude inclusion of real operator artifacts, reducing realism.",
+        "Benchmark outputs may be gamed by formatting hacks that do not improve real operational safety."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand_netops_toolagent_003",
+      "title": "Tool-Augmented Agent vs LLM-Only Baseline: Fault-Injected Topology Evaluation",
+      "research_question": "Does augmenting an LLM with deterministic network verification and topology-aware simulation (tool-augmented agent) reduce high-impact misconfigurations relative to an LLM-only generator under injected fault and adversarial-intent scenarios?",
+      "hypotheses": [
+        "A tool-augmented agent that consults a deterministic verifier and a lightweight simulator will produce significantly higher verifier-pass rates and fewer simulated outage-inducing misconfigurations than an LLM-only baseline across fault-injection scenarios.",
+        "Relative improvement from tool augmentation will be largest for complex multi-statement intents (e.g., BGP policy sequences) versus simple single-rule intents (e.g., single ACL entries).",
+        "Tool augmentation will reduce the fraction of outputs causing simulated reachability loss by more than 30% compared to LLM-only generation under matched prompts and tasks."
+      ],
+      "proposed_design": "Construct a simulated evaluation environment with a set of public synthetic topologies and a deterministic verifier plus a lightweight network simulator (opensource tools). Preregister 300 tasks spanning simple and complex intents. Implement two pipelines with frozen prompts and seeds: (A) LLM-only: single-shot config generation; (B) Tool-augmented agent: generate → verifier check → guided repair loop up to 3 iterations, with simulator validation for reachability. Define injected faults (link failures, route flap scenarios) and adversarially ambiguous intents. Measure verifier-pass, simulated outage incidence, and model-call cost. Freeze all prompts, tool interfaces, and seeds in preregistration.",
+      "expected_data": "Per-task outputs from both pipelines: generated configs, verifier booleans, simulator reachability matrices under baseline and fault scenarios, repair traces for the augmented agent, latency, and model-call counts. Aggregated metrics: verifier-pass rates, simulated outage rates, improvement delta between pipelines, subgroup breakdowns by task complexity, and representative failure cases.",
+      "primary_outcome": "Quantified difference in verifier-pass rate and simulated outage incidence between the tool-augmented agent and LLM-only baseline with statistical significance (paired tests) and effect sizes, reported with operational-cost trade-offs (latency, model calls).",
+      "analysis_outline": "Use paired comparisons (McNemar's test or paired-proportion tests) for verifier-pass and simulated outage incidence between pipelines. Compute effect sizes (risk difference, relative risk) and 95% CIs. Stratify results by task complexity and perform interaction tests (e.g., Cochran–Mantel–Haenszel). Report cost trade-offs using Wilcoxon tests on model-call and latency distributions. Present representative scenario traces for failure analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4401857375",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4401857375"
+      ],
+      "risks": [
+        "Tool integration increases latency and model-call cost, possibly making augmentation impractical for low-latency workflows.",
+        "Simulator approximations may misclassify operational impact compared to real deployments.",
+        "Adversarially ambiguous intents may intentionally defeat verifier-guided repair, inflating unresolved failure counts."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand_netops_promptsens_004",
+      "title": "Prompt-Sensitivity and Cross-Model Robustness for Intent→Config Generation across Vendor CLIs",
+      "research_question": "How sensitive are intent→configuration outputs to prompt template variations across models and vendor CLIs, and can prompt-normalization reduce cross-model variance in verifier-pass outcomes?",
+      "hypotheses": [
+        "Small controlled prompt-template perturbations (ordering, explicit constraints, vendor examples) will produce statistically significant changes in verifier-pass rates for multiple LLMs.",
+        "A prompt-normalization strategy (canonical phrasing + minimal vendor examples) will reduce inter-model verifier-pass-rate variance by at least 25% compared to naive prompts.",
+        "Prompt sensitivity will be greater for vendor-specific CLI variants (IOS vs JUNOS) than for abstract policy intents, indicating vendor-coupling vulnerability."
+      ],
+      "proposed_design": "Preregister 240 intent tasks with canonical vendor variants (IOS and JUNOS where applicable). Define a set of prompt templates: naive, constraint-heavy, example-augmented, and normalized-canonical. Evaluate three hosted LLMs (frozen model identifiers in preregistration) on each prompt-template × task combination, collect generated configs and verifier outcomes. Measure inter-model variance in verifier-pass rates per template and per vendor variant. Freeze prompts and evaluation procedures in preregistration and archive outputs.",
+      "expected_data": "Per-task per-model per-template records: generated config, verifier boolean, per-template verifier-pass rates, inter-model variance distributions, and per-vendor breakdowns. Aggregated measures: variance reduction achieved by normalization, sensitivity indices per prompt token-class, and representative prompt-induced failure examples.",
+      "primary_outcome": "Measured change in inter-model verifier-pass-rate variance attributable to prompt-normalization, reported as percentage reduction with 95% bootstrap CIs, and evidence of vendor-specific sensitivity patterns.",
+      "analysis_outline": "Compute per-task verifier-pass rates across models and templates; quantify inter-model variance (e.g., variance or standard deviation) per template. Test variance reductions using permutation tests and bootstrap CIs. Use mixed-effects logistic regression to model verifier-pass probability with fixed effects for template, model, vendor, and random intercepts for task to estimate sensitivity and interactions. Report prompt-normalization effect sizes and representative failure analyses.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4406928793",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406928793",
+        "https://openalex.org/W4396723768"
+      ],
+      "risks": [
+        "Hosted-model API variability and rate limits may introduce noise in measured sensitivity.",
+        "Prompt-normalization may overfit to the benchmarked vendor variants and not generalize to unseen CLI idiosyncrasies.",
+        "Cross-model differences in tokenization or hidden-system prompts may confound attribution of sensitivity to user-visible prompt changes."
+      ],
+      "estimated_model_calls": 600
+    }
+  ]
+}

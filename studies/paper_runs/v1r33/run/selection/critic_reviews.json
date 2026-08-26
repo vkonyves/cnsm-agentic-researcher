@@ -1,0 +1,101 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand_netops_itertrade_001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Representativeness of the 200 intent tasks (synthetic vs realistic) may limit external validity.",
+        "Strength and coverage of the deterministic verifier must be detailed — weak verifiers will bias pass-rate conclusions.",
+        "Prompt sensitivity and hidden-system prompts could change iteration dynamics; single-model design constrains generality.",
+        "Handling and detection of oscillatory/divergent repair traces needs explicit, pre-registered criteria to avoid post-hoc selection.",
+        "API rate limits and transient provider failures could bias latency and model-call cost measurements if not carefully logged and handled."
+      ],
+      "required_design_repairs": [
+        "Specify canonical sources and sampling strategy for the 200 intents and include a realism/coverage justification (or a small human-validated holdout).",
+        "Define the deterministic verifier (tool, version, exact checks) and its known limitations; include unit tests demonstrating verifier behavior on canonical cases.",
+        "Pre-register formal oscillation/divergence detection rules (e.g., edit-distance cycles, semantic-equivalence thresholds) and exclusion policies.",
+        "Include at least one model-sensitivity check (second model or model-temperature perturbation) or justify single-model choice.",
+        "Preregister explicit retry and infrastructure-failure handling policies and collect provider-metadata (timestamps, error codes) for bias analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_netops_benchmark_002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Public-release feasibility given operator privacy/legal constraints is unclear and must be concretely addressed.",
+        "Synthetic/curated data may not capture production diversity; benchmark risk of encouraging formatting or template overfitting.",
+        "Canonical vendor variants (IOS/JUNOS) require expert validation—risk of subtle semantic mismatches across vendor syntaxes.",
+        "Metric design (pass/fail boolean) may oversimplify operational correctness unless supplemented with richer diagnostic labels and trace semantics."
+      ],
+      "required_design_repairs": [
+        "Provide a concrete anonymization and legal-risk mitigation plan (examples, licenses, provenance and synthetic augmentation policy).",
+        "Describe the canonical-configuration creation process and include expert validation (or an inter-annotator agreement report) for a representative subset.",
+        "Expand verifier outputs to include structured diagnostic labels and a taxonomy; preregister labeling rules to avoid ad-hoc post hoc categorization.",
+        "Add adversarial-formatting and surface-hack detection controls (e.g., whitespace-insensitive verification, parse-level checks) to prevent gaming.",
+        "Supply a small baseline prompt bank and deterministic evaluation harness with checksums and environment manifests to ensure reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_netops_toolagent_003",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulator fidelity: lightweight simulators may misclassify outage risk relative to real deployments—threat to construct and external validity.",
+        "Agent orchestration details (tool APIs, prompting for repairs, deterministic behavior) must be fully specified to permit causal attribution.",
+        "Definition and operationalization of 'high-impact misconfiguration' must be preregistered (outage thresholds, path disruption metrics).",
+        "Latency and cost trade-offs may make augmentation impractical; needs concrete latency budgets and operational use-case framing."
+      ],
+      "required_design_repairs": [
+        "Preregister the exact simulator and verifier implementations, versions, deterministic seeds, and validation tests comparing simulator outputs to known ground truths.",
+        "Define formal outage/impact metrics (e.g., fraction of destination pairs losing connectivity, prefix reachability thresholds) and decision thresholds.",
+        "Specify the agent/tool interface, prompts for repair, and deterministic control (e.g., temperature=0) to allow causal claims about augmentation.",
+        "Include an ablation that separates verifier-only, simulator-only, and full-agent pipelines to isolate sources of improvement.",
+        "Preregister latency budgets and report end-to-end wall-clock times including tool call overhead; plan for rate-limit logging and mitigation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_netops_promptsens_004",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Hidden/system prompts, model-side normalization, and tokenization differences can confound attribution of observed sensitivity to user-visible prompt changes.",
+        "Selecting three hosted LLMs without documenting exact model identifiers/versions undermines reproducibility and interpretability.",
+        "Prompt-normalization risks overfitting to the chosen dataset and vendor variants; generalization must be demonstrated or bounded.",
+        "Statistical power and multiplicity control must be specified given many templates × models × tasks comparisons."
+      ],
+      "required_design_repairs": [
+        "Preregister exact model identifiers, versions, and provider metadata; include a short explanation if constrained by provider naming policies.",
+        "Add controls for hidden prompts/system messages (where possible) and document tokenization-aware comparisons or normalization procedures.",
+        "Specify multiplicity adjustments and sample-size calculations / power analysis for mixed-effects models and permutation tests.",
+        "Define the prompt-normalization procedure formally and include evaluation on held-out vendor/CLI variants to measure generalization.",
+        "Include low-level synthetic control tasks that isolate prompt-token effects (e.g., token-order swaps with semantically invariant intents)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

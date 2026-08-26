@@ -1,0 +1,19 @@
+{
+  "summary": "Well-executed, narrowly scoped preregistered paired study that rigorously archives artifacts and isolates the effect of deterministic post‑processing (validator + simulator) on identical LLM candidates (shared_initial_candidate semantics). The run is reproducible and correctly reports that, for the 299 analyzable pairs, both baseline and guarded pipelines accepted the identical candidates (n11=299; no discordant pairs). The manuscript correctly acknowledges the ceiling effect and limits claims. Recommended revisions are limited and resolvable from supplied artifacts.",
+  "novelty_score": 4,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add a single-sentence explicit implementation statement that for each paired task one shared LLM call was issued and the identical raw candidate was reused verbatim by both pipelines (cite execution/provider_calls/* entry and the exact shared_initial response file path/hash). This must reference the authoritative artifact path(s) (e.g., execution/provider_calls/task-<NNN>-shared-initial.json and execution/responses/task-<NNN>-shared-initial.txt) so readers can verify the shared_initial_candidate semantics.",
+    "In the Missingness / failure post‑mortem, report the provider error code and exact timestamp for the failed shared_initial call that produced pair-000269 (authoritative source: execution/provider_calls/task-000269-shared-initial.json and execution/execution_log.jsonl). Include the short error string and timestamp within the five-page manuscript (not just a path).",
+    "Clarify (concise insertion in Results and Abstract) that the bootstrap 95% CI = [0.00,0.00] is degenerate because there were zero discordant pairs (no within-pair variance) and therefore the preregistered minimally important effect was unobservable given the observed baseline rate = 1.00; rephrase any language that could be read as a powered ‘null’ acceptance to avoid implying the experiment ruled out meaningful effects the design could not detect. (All numbers must continue to reference archived artifacts.)"
+  ],
+  "optional_revisions": [
+    "Add a brief table (one row) pointing to the single authoritative execution_manifest path and hash (execution/execution_manifest.json and its SHA‑256) to simplify artifact discovery for reviewers/readers.",
+    "Expand Discussion with a short concrete checklist for designing follow‑ups that test independent agentic generation (e.g., independent per‑condition generation semantics, adversarial/harder task strata, multi‑model replication) — framed as actionable preregistration items rather than demands for new experiments.",
+    "If space permits, include one short example of a provider error record excerpt (sanitized) in the supplementary evidence bundle to illustrate the failure logging format."
+  ],
+  "accept_for_finalisation": false
+}

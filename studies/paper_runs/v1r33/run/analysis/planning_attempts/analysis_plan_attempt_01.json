@@ -1,0 +1,29 @@
+{
+  "study_id": "cand_netops_toolagent_003_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute paired_binary_analysis_v1 on result_schema paired_binary_episode_v1 using the deterministic-verifier pass indicator as the outcome; compute the paired_success_rate_difference_guarded_minus_baseline (agent − baseline) with two-sided alpha=0.05. Use adapter_family hosteds indicated in execution_manifest (hosted_netops_gvr_v1), shared_initial_candidate semantics, and primary failed_call_treatment = complete_pair_primary. Input artifacts: execution/raw_results.jsonl, execution/scoring/task-*.json, execution/task_manifest.jsonl, execution/transformation_manifest.json.",
+  "secondary_analyses": [
+    "Paired binary estimator on simulated-outage indicator (agent − baseline), reported as exploratory with 95% CI; computed by paired_binary_analysis_v1 from execution/scoring/task-*.json (exploratory label per preregistration).",
+    "Descriptive cost comparisons: median(model-call count difference) and median(wall-clock latency difference) (agent − baseline) with Wilcoxon signed-rank test; medians/IQR and paired differences computed from execution/scoring/task-*.json model_call_count and latency fields.",
+    "Pre-registered subgroup (exploratory): simple (tasks 1–150) vs complex (151–300) comparison of paired verifier-pass difference using Cochran–Mantel–Haenszel / stratified paired summary as implemented by paired_binary_analysis_v1; labeled exploratory and reported without multiplicity correction."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity"
+  ],
+  "uncertainty_quantification": "Report two-sided 95% confidence interval for the paired difference for all paired estimands (primary and paired simulated-outage secondary) as produced by paired_binary_analysis_v1 (analytic paired-binary CI / exact/McNemar-style implementation per executor). Report exact p-values and the analysis-specific CI computation method recorded by the executor output. For cost comparisons report Wilcoxon signed-rank p and 95% CI for median differences if produced by executor; otherwise report medians and IQRs.",
+  "multiplicity_implementation": "Single pre-registered primary endpoint (verifier-pass paired difference). All other endpoints (simulated outage, subgroup, cost, sensitivity) are pre-registered but explicitly exploratory and reported without multiplicity correction, per preregistration.",
+  "contamination_analysis": "Follow preregistered contamination_plan: remove exact-string matches to the curated public-config corpus from the confirmatory set (moved to exploratory); flag token-similarity >0.95 items and exclude them from confirmatory analysis (moved to exploratory). Detection artifacts and flags are recorded in execution/transformation_manifest.json, execution/task_manifest.jsonl, and execution/execution_log.jsonl; include hashes from execution/artifact_hashes in the report. Report counts and lists of flagged/excluded task indices and corresponding artifact hashes in a contamination appendix table.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory primary outcome (preregistered): aggregated paired verifier-pass outcomes (per-task baseline and guarded pass/fail counts, included-pair count, excluded/flagged counts with reasons/hashes, discordant-pair counts, paired_success_rate_difference_guarded_minus_baseline, two-sided p-value, 95% CI). Source artifacts: execution/scoring/task-*.json, execution/task_manifest.jsonl, execution/transformation_manifest.json.",
+    "Table 2 — Exploratory simulated-outage paired estimator: per-task baseline and guarded simulated-outage indicators, paired difference, 95% CI, and p (labeled exploratory). Source: execution/scoring/task-*.json and simulator traces under execution/raw_results.jsonl.",
+    "Table 3 — Cost trade-offs (descriptive): per-pair model_call_count and wall-clock latency medians/IQR, Wilcoxon signed-rank test statistics and p-values for model-call counts and latency; include median differences (agent − baseline). Source: execution/scoring/task-*.json and execution/provider_calls/task-*-shared-initial.json.",
+    "Table 4 — Contamination and exclusions: list of tasks excluded/flagged (exact-match and token-similarity>0.95), reason codes, and artifact hashes (execution/transformation_manifest.json, execution/task_manifest.jsonl). Source: execution/transformation_manifest.json, execution/task_manifest.jsonl, execution/execution_log.jsonl."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Verifier-pass rates by condition (bar chart) with 95% CI for baseline and guarded and paired-difference annotation; data aggregated from execution/scoring/task-*.json and paired_binary_analysis_v1 output.",
+    "Figure 2 — Paired-difference by stratum (simple vs complex): dot/interval plot showing paired difference and 95% CI per stratum (tasks 1–150, 151–300) produced from paired_binary_analysis_v1 subgroup outputs.",
+    "Figure 3 — Cost distribution: paired boxplots or violin plots of model-call counts and wall-clock latencies (baseline vs guarded) with median/IQR; source execution/scoring/task-*.json and execution/provider_calls/*.json."
+  ]
+}

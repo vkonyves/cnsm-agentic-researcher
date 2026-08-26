@@ -1,0 +1,151 @@
+{
+  "selected_candidate_id": "cand_netops_toolagent_003",
+  "title": "Tool-Augmented Agent vs LLM-Only Baseline: Fault-Injected Topology Evaluation (Repaired Preregistration)",
+  "research_question": "Does augmenting an LLM with a deterministic network verifier and a topology-aware lightweight simulator (tool-augmented agent) increase verifier-pass rates and reduce simulated outage-inducing misconfigurations versus an LLM-only single-shot generator under injected faults and adversarially ambiguous intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The tool-augmented agent yields a higher verifier-pass rate (binary: pass/fail) than the LLM-only pipeline on matched tasks; estimand = paired_success_rate_difference_guarded_minus_baseline (agent − baseline).",
+    "H2: The tool-augmented agent yields a lower simulated outage incidence (binary: any destination-pair reachability loss under injected faults) than the LLM-only pipeline (reported as a secondary estimand, exploratory for formal testing).",
+    "H3: Relative improvement (verifier-pass rate delta) is larger on complex multi-statement intents than on simple single-statement intents (pre-registered subgroup analysis)."
+  ],
+  "exploratory_questions": [
+    "E1: Which repair iteration counts dominate improvement (iter=1 vs iter>=2) in the full-agent pipeline?",
+    "E2: Typical repair trace patterns and common failure modes (semantic mismatch, parser errors, verifier false-negatives).",
+    "E3: Cost trade-offs (model calls, wall-clock latency) required to achieve verifier-pass improvements."
+  ],
+  "benchmark_scope": [
+    "Public synthetic topology pool (see sampling_plan) limited to generated topologies and vendor-agnostic CLI templates included in execution artifacts.",
+    "Injected fault scenarios (link failures, route flap events) executed only in the lightweight topology simulator described below."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (same model used for all pipelines). Model provider and exact model identifier will be recorded in the execution manifest at runtime and included in artifacts; model-call settings are deterministic (temperature=0, top_p=1.0)."
+  ],
+  "transformation_scope": [
+    "Deterministic config canonicalization: whitespace normalization, vendor-agnostic token mapping, parse-tree canonicalization for verifier/simulator ingestion.",
+    "Repair-prompt templates (frozen) that convert verifier diagnostics into constrained edit requests."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline on deterministic-verifier pass indicator (agent minus baseline); computed by paired_binary_analysis_v1 executor.",
+  "secondary_estimands": [
+    "paired_success_rate_difference_guarded_minus_baseline on simulated outage indicator (agent minus baseline) — reported with CIs and labeled exploratory.",
+    "median model-call count difference (agent − baseline) and median wall-clock latency difference (agent − baseline) — cost trade-offs (descriptive)."
+  ],
+  "sampling_plan": "Confirmatory sample: 300 intent tasks (paired design). Task strata: 150 simple single-statement intents (ACL single-rule, single-prefix reachability), 150 complex multi-statement intents (BGP policy sequences, multi-prefix policies). Inclusion: public/synthetic topology templates and CLI fragments constructed deterministically from the provided synthetic template pool. Exclusion: tasks that are exact verbatim matches to a public training corpus (auto-detected via exact-string match) will be flagged and removed from the confirmatory set prior to analysis (moved to exploratory). Confirmatory_items=300, Discovery_items=0, task_cluster_count=2. Totals derived: 150 simple + 150 complex = 300 confirmatory tasks.",
+  "analysis_plan": "Primary analysis: paired_binary_analysis_v1 executor computing paired_success_rate_difference_guarded_minus_baseline on the deterministic-verifier pass indicator, alpha=0.05 two-sided. Primary failed_call_treatment: complete_pair_primary (exclude pairs where either pipeline technical failure prevents a valid binary outcome); sensitivity analysis: complete_pair_primary_with_failure_as_zero_sensitivity (treating failed runs as verifier-fail). Secondary analyses: paired binary estimator on simulated outage indicator (reported with 95% CI, labeled exploratory). Cost comparisons (model-call count, latency) analyzed using nonparametric paired tests (Wilcoxon signed-rank) and descriptive medians/IQR. Stratified subgroup (simple vs complex) interaction tests via Cochran–Mantel–Haenszel; these subgroup tests are pre-registered as secondary/exploratory. All analysis pipeline and exact executor invocation parameters are frozen and recorded in the execution manifest.",
+  "multiplicity_plan": "Single pre-registered primary endpoint (verifier-pass difference). Secondary and subgroup analyses are labeled exploratory and interpreted without confirmatory multiplicity correction. Sensitivity analyses for failure handling are pre-registered and reported transparently.",
+  "missingness_plan": "Technical failures (API errors, tool crashes) are logged with provider error codes and timestamps. Primary analysis uses complete-pair handling (exclude pairs lacking both binary outcomes). A sensitivity analysis treats failed model calls as failures (verifier-fail) to bound effects. All exclusions and counts will be reported with reasons and hashes of raw artifacts.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic-topo-300"
+    ],
+    "risk_factors": [
+      "Verbatim task overlap with public corpora or model training data",
+      "Template leakage causing over-optimistic generation",
+      "Simulator/verifier mis-specification causing false-positive verifier passes"
+    ],
+    "detection_procedures": [
+      "Exact-string matching of each intent and generated config against a curated public-config corpus (automated).",
+      "Token-level similarity thresholding (deterministic) to flag near-verbatim matches.",
+      "Unit tests that compare verifier outputs on canonical seeded cases to detect semantic drift of verifier or simulator."
+    ],
+    "item_flagging_rules": [
+      "If an intent or generated config is an exact match with any public-corpus entry, flag and remove from confirmatory set.",
+      "If token-level similarity > 0.95 with a corpus entry, flag for exploratory-only treatment."
+    ],
+    "analysis_treatment": "Flagged items are excluded from the confirmatory primary analysis and analyzed separately as exploratory. All flags and decisions are deterministically recorded in the execution manifest.",
+    "residual_uncertainty": [
+      "Partial semantic overlap below detection thresholds (non-exact matches) may remain undetected.",
+      "Model-side hidden prompts or vendor training data characteristics remain external uncertainties and are noncritical but reported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_recommended_300_expected1500",
+      "description": "Recommended expected-case: 300 confirmatory tasks; four ablation pipelines (LLM-only, verifier-only, simulator-only, full-agent). Assumes full-agent average model calls per task ≈ 2 (initial + 1 repair on average). Planned_model_calls computed: per-task calls = 1 (LLM-only) +1 (verifier-only) +1 (simulator-only) +2 (full-agent expected) =5; 300*5=1500 planned model calls. Models: [\"hosted LLM API (single model, temperature=0)\"]; transformations: [\"canonicalize CLI formatting\",\"vendor-agnostic token mapping\",\"repair-prompt templates\"]. Feasibility rationale: within capability manifest limit (max planned model calls 10000); expected average-case minimizes provider cost while preserving full ablation coverage.",
+      "planned_model_calls": 1500,
+      "models": [
+        "hosted LLM API (single model, temperature=0)"
+      ],
+      "transformations": [
+        "canonicalize CLI formatting",
+        "vendor-agnostic token mapping",
+        "repair-prompt templates"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Expected-call estimate (1500) fits the hosted-model budget and uses deterministic model settings; simulator/verifier run on CPU-only resources (no local GPU)."
+    },
+    {
+      "scenario_id": "scenario_conservative_300_worst2100",
+      "description": "Conservative worst-case: same 300 tasks but full-agent uses up to 3 repair iterations for every task (worst-case model calls). Planned_model_calls computed: per-task calls =1+1+1+4 =7; 300*7=2100 planned calls. This scenario budgets worst-case provider cost and runtime; used if strict no-retry-for-cost policy is unacceptable.",
+      "planned_model_calls": 2100,
+      "models": [
+        "hosted LLM API (single model, temperature=0)"
+      ],
+      "transformations": [
+        "canonicalize CLI formatting",
+        "vendor-agnostic token mapping",
+        "repair-prompt templates"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Worst-case upper bound still under maximum planned model calls (10000); runtime wall-clock fits within 7-day limit given parallelism limits in hosted API; conservative scenario used only if observed repair rates in pilot runs are high."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (verifier-pass binary outcome, agent − baseline)",
+    "target_effect": "Absolute increase in verifier-pass rate of 0.20 (20 percentage points) is the minimally important effect for operational impact.",
+    "clustering_unit": "task (paired within-task comparison between pipelines)",
+    "calculation_method": "Normal-approximation for paired-proportion difference and McNemar-compatible paired analysis assumptions; conservative discordant-pair estimate used for sample-size reasoning.",
+    "assumptions": [
+      "Baseline verifier-pass rate ~0.60 (pilot-informed).",
+      "Two-sided alpha=0.05, desired power=0.90.",
+      "Discordant-pair fraction conservatively estimated at 0.30 to account for dependence."
+    ],
+    "recommended_scenario_id": "scenario_recommended_300_expected1500",
+    "minimum_detectable_effect_notes": "With n=300 paired tasks and the conservative discordant estimate, the study is powered to detect ~0.20 absolute paired-success difference with >90% power; smaller effects (≈0.10) will have reduced power (~50–70%) and thus are exploratory.",
+    "sensitivity_analyses": [
+      "Recompute power under discordant-pair fractions 0.20 and 0.40 to bound detectable effect sizes.",
+      "Report observed discordant counts and the achieved 95% CI for paired difference rather than relying solely on pre-study power."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "CLI canonicalizer (whitespace/ordering normalization)",
+      "vendor-agnostic token mapping (canonical tokens for common primitives)",
+      "config parse-tree canonicalization (AST-based equivalence)",
+      "repair-prompt templating (deterministic insertion of verifier diagnostics)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip parse: original generated config -> parse-tree -> regenerate config -> parse-tree equality.",
+      "Reachability-preserving check: NetworkX-based canonical simulator applied to both original and canonicalized configs must produce identical reachability matrices on seed topologies.",
+      "Edit-distance thresholding to detect spurious changes introduced by canonicalization."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any transformed config whose round-trip parse-tree equality fails.",
+      "Reject configs that cannot be parsed deterministically by the canonical parser (parse error).",
+      "Reject configs that introduce syntactic constructs outside the pre-registered vendor-agnostic token set."
+    ],
+    "audit_sample_policy": "Automated deterministic sampling: 10% of confirmatory set (30 tasks) selected via hash-based deterministic sampler; each selected task's transformation artifacts undergo extended automated checks (semantic equivalence and reachability re-run). No manual annotation or review is used; all checks are algorithmic.",
+    "mapping_validation": "Mapping tables (token maps) are stored as versioned JSON artifacts and validated by unit tests on canonical examples included in the repository; unit tests are deterministic and included in execution artifacts.",
+    "residual_risks": [
+      "Parser/transformer bugs producing subtle semantic changes undetectable by current checks.",
+      "Simulator assumptions (graph-level reachability) may not cover vendor-specific semantic nuances."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator fidelity: lightweight topology/synthetic simulator may not fully capture production forwarding-plane behaviors; this is a bounded external-validity limitation (noncritical) because conclusions are explicitly scoped to the synthetic benchmark.",
+    "Single hosted-model scope: using one hosted model limits cross-model generality; this is noncritical because claims are bounded to the tested model and the paper will state this limitation.",
+    "Possible undetected semantic overlap with model training data below string-similarity thresholds (contamination detection is deterministic but imperfect)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4396723768",
+    "https://openalex.org/W4401857375",
+    "doi:10.20944/preprints202604.1820.v1",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W4411735779"
+  ]
+}

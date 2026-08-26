@@ -1,0 +1,19 @@
+{
+  "summary": "Carefully executed, well‑documented preregistered confirmatory study that isolates the effect of deterministic post‑processing when identical LLM candidates are reused by both pipelines (shared_initial_candidate semantics). The archived artifacts are extensive and well hashed. The empirical outcome (299/299 shared successes; no discordant pairs) is artifact‑grounded but degenerate (ceiling effect); manuscript acknowledges main limitations. Required revisions are minor, artifact‑resolvable clarifications about pipeline differences, repair activity counts, and the statistical handling/interpretation of the degenerate contingency.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 4,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly report aggregated repair/repair‑call statistics across the analyzed pairs (e.g., count of episodes with repair_applied=true, count of repair_provider_trace files used, and paths/SHA‑256s). This must cite the archived scoring/provider artifacts (execution/scoring/*.json, execution/provider_calls/*) so the claim is verifiable from supplied files.",
+    "Add a concise methodological note in Methods (and a pointer in Results) that explains the statistical behaviour in the degenerate contingency case: why exact McNemar returns p=1.0, why the bootstrap CI is [0.00,0.00], and the implications for inference and preregistered power assumptions (i.e., clarify the ceiling effect and its consequence for testing the preregistered minimally important effect). Cite analysis/analysis_log.jsonl and analysis/paired_contingency_table.csv.",
+    "Clarify the operational definitions of the baseline and guarded pipelines in one paragraph (what the guarded pipeline is permitted to do beyond baseline — e.g., run repairs, iterative validation — and whether the same deterministic validator implementation and settings were used for both pipelines). Explicitly state how often (if ever) the guarded pipeline invoked repair logic during this run and reference representative scoring JSONs showing repair_applied flags and model_configuration.json for declared settings.",
+    "In the Discussion or Limitations, add a short, artifact‑referenced recommendation that readers use independent per‑condition generation and harder/adversarial strata to avoid ceiling effects; point to the archived repair traces and scoring JSONs as supporting evidence for feasibility of those follow‑ups."
+  ],
+  "optional_revisions": [
+    "Include a one‑paragraph walkthrough of a representative discordant (if any exploratory) or typical episode using direct artifact pointers (e.g., execution/responses/task-0000XX-shared-initial.txt and execution/scoring/task-0000XX-*.json) to help readers reproduce the scoring pipeline locally.",
+    "Summarize latency/cost statistics (median/IQR model calls and wall‑clock per task) in a single table or sentence referencing execution/provider_calls/* and analysis logs so readers understand operational cost tradeoffs."
+  ],
+  "accept_for_finalisation": false
+}

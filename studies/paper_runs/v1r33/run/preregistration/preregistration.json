@@ -1,0 +1,82 @@
+{
+  "study_id": "cand_netops_toolagent_003_v1",
+  "title": "Tool-Augmented Agent vs LLM-Only Baseline: Fault-Injected Topology Evaluation (Preregistered)",
+  "research_question": "Does augmenting an LLM with a deterministic network verifier and a topology-aware lightweight simulator (tool-augmented agent) increase verifier-pass rates and reduce simulated outage-inducing misconfigurations versus an LLM-only single-shot generator under injected faults and adversarially ambiguous intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The tool-augmented agent yields a higher verifier-pass rate (binary: pass/fail) than the LLM-only pipeline on matched tasks; estimand = paired_success_rate_difference_guarded_minus_baseline (agent − baseline).",
+    "H2: The tool-augmented agent yields a lower simulated outage incidence (binary: any destination-pair reachability loss under injected faults) than the LLM-only pipeline (reported as a secondary estimand, exploratory for formal testing).",
+    "H3: Relative improvement (verifier-pass rate delta) is larger on complex multi-statement intents than on simple single-statement intents (pre-registered subgroup analysis)."
+  ],
+  "exploratory_questions": [
+    "E1: Which repair iteration counts dominate improvement (iter=1 vs iter>=2) in the full-agent pipeline?",
+    "E2: Typical repair trace patterns and common failure modes (semantic mismatch, parser errors, verifier false-negatives).",
+    "E3: Cost trade-offs (model calls, wall-clock latency) required to achieve verifier-pass improvements."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4396723768",
+    "https://openalex.org/W4401857375",
+    "doi:10.20944/preprints202604.1820.v1",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W4411735779"
+  ],
+  "benchmark_scope": [
+    "Public synthetic topology pool (deterministic synthetic topology templates and vendor-agnostic CLI fragments).",
+    "Injected fault scenarios (link failures, route flap events) executed only in the lightweight topology simulator described in execution artifacts."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline on deterministic-verifier pass indicator (agent − baseline); computed by paired_binary_analysis_v1 executor.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_success_rate_difference_guarded_minus_baseline on simulated outage indicator (agent − baseline) — reported with 95% CI, exploratory.",
+    "median model-call count difference (agent − baseline) and median wall-clock latency difference (agent − baseline) — descriptive cost trade-offs."
+  ],
+  "sampling_plan": "Confirmatory sample: 300 paired intent tasks (paired within-task comparison). Strata: 150 simple single-statement intents, 150 complex multi-statement intents. Inclusion: deterministic selection from the synthetic topology/template pool. Exclusion: exact-string matches to curated public-config corpus (auto-detected) will be removed from confirmatory set and moved to exploratory; token-similarity >0.95 flagged for exploratory treatment. Confirmatory_items=300.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target minimally important effect: 0.20 absolute increase in verifier-pass rate. Assumptions: baseline pass ~0.60, two-sided alpha=0.05, power=0.90, conservative discordant-pair fraction=0.30. With n=300 paired tasks, powered to detect ~0.20 absolute paired-success difference with >90% power. Sensitivity analyses: recompute under discordant fractions 0.20 and 0.40 and report observed 95% CI for paired difference.",
+  "exclusion_rules": [
+    "Exclude tasks that are exact-string matches to entries in the curated public-config corpus (moved to exploratory).",
+    "Exclude any task whose generated or transformed config fails deterministic parse-tree round-trip canonicalization (reported and moved to exploratory)."
+  ],
+  "missingness_plan": "Technical failures (API errors, tool crashes) are logged with provider error codes/timestamps/hashes. Primary analysis: complete-pair handling (exclude pairs missing both binary outcomes). Sensitivity analysis treats failed model calls as verifier-fail (complete_pair_primary_with_failure_as_zero_sensitivity). All exclusions and counts reported with reasons and artifact hashes.",
+  "analysis_plan": "Primary analysis: paired_binary_analysis_v1 executor computing paired_success_rate_difference_guarded_minus_baseline on deterministic-verifier pass indicator, alpha=0.05 two-sided. Primary failed_call_treatment: complete_pair_primary (exclude pairs lacking valid binary outcomes). Sensitivity: treat failed runs as verifier-fail. Secondary analyses: paired binary estimator on simulated outage indicator (exploratory) with 95% CI. Cost comparisons (model-call count, latency) via Wilcoxon signed-rank and descriptive medians/IQR. Subgroup (simple vs complex) via Cochran–Mantel–Haenszel (exploratory). All analysis executor parameters frozen and recorded in execution manifest.",
+  "multiplicity_plan": "Single pre-registered primary endpoint (verifier-pass difference). Secondary and subgroup analyses labeled exploratory and interpreted without multiplicity correction. Sensitivity analyses pre-registered and reported transparently.",
+  "contamination_plan": "Benchmarks: synthetic-topo-300. Risk factors: verbatim task overlap with public corpora, template leakage, simulator/verifier mis-specification. Detection: exact-string matching vs curated public-config corpus; token-level similarity thresholding to flag near-verbatim matches; unit tests comparing verifier outputs on seeded canonical cases. Flagging rules: exact matches -> exclude from confirmatory; token-similarity >0.95 -> exploratory-only. Analysis: flagged items excluded from confirmatory analysis and analyzed separately; all flags, detection outputs, and hashes recorded. Residual uncertainty: semantic overlap below thresholds and vendor training-data characteristics may remain.",
+  "stopping_rule": "Stop when all 300 paired tasks have produced valid binary outcomes for both pipelines (complete-pair) or when maximum model-call budget for the adapter contract is exhausted (maximum_model_calls = 600), or upon reaching the wall-clock limit of 7 days; technical restarts allowed only per frozen retry policy and recorded.",
+  "planned_outputs": [
+    "IEEE-formatted five-page short paper (CNSM Agentic AI Researcher track) including Disclosure Statement",
+    "Preregistration JSON and execution manifest",
+    "Experiment code, deterministic seeds, transformation artifacts, verifier/simulator unit tests",
+    "Raw model responses and artifact hashes",
+    "Analysis artifacts: paired_binary_analysis_v1 outputs, CIs, nonparametric tests",
+    "Failure-analysis record and evidence-to-claim table",
+    "NotebookLM presentation brief (machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,165 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "LLMs and agentic LLM systems are actively applied to NetOps/AIOps tasks (intent-to-configuration translation, incident summarization, agentic network-management prototypes) and show promise in prototype and research settings.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4392875514",
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.1145/3611643.3613891",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "mixed (empirical system papers, prototypes, and surveys)",
+      "confidence": 0.9,
+      "limitations": [
+        "Most reported results are prototypes or controlled evaluations rather than large-scale production deployments.",
+        "Tasks and datasets used in these works are heterogeneous and often narrow in scope."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Hallucination (factually unsupported or incorrect outputs) is a prominent and well-documented failure mode of LLMs; detection/mitigation strategies (RAG, ensembles, self-reflection, abductive checks) reduce but do not eliminate such failures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389518784",
+        "https://openalex.org/W4401857375",
+        "doi:10.2139/ssrn.7200222",
+        "doi:10.20944/preprints202511.1688.v1",
+        "https://openalex.org/W4389519928"
+      ],
+      "evidence_type": "survey and method-development studies",
+      "confidence": 0.95,
+      "limitations": [
+        "Mitigation effectiveness varies by domain, evaluation metric, and dataset; none guarantee elimination of hallucination.",
+        "Few studies evaluate these methods specifically on NetOps configuration-generation end-to-end."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Tool-augmented LLM agents (invoking external tools, domain solvers, or verification components) demonstrably improve task correctness and robustness in multiple domains; this pattern is proposed as a promising mitigation direction for high-stakes automation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4396723768",
+        "doi:10.26434/chemrxiv.15003915/v1",
+        "doi:10.2139/ssrn.7317098",
+        "doi:10.2139/ssrn.6214418",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "evidence_type": "empirical agent/system papers and engineering reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Most empirical demonstrations are in non-networking domains or prototypes; NetOps-specific tool integrations remain less-explored.",
+        "Tool integration increases system complexity, latency, and engineering effort."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "The literature documents scarcity of public supervision data and tailored benchmarks for network-configuration translation and verification, limiting reproducible evaluation of LLM-based NetOps approaches.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "system paper and survey noting dataset/benchmark gaps",
+      "confidence": 0.8,
+      "limitations": [
+        "Absence claim is based on surveyed literature in these sources; other undiscovered datasets may exist.",
+        "Some projects create private corpora or task-specific corpora not publicly released."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Can composing LLM generation with deterministic network-verification (generate–validate–repair) produce end-to-end safety levels adequate for automated configuration deployment in operational networks?",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "proposal/prototype papers and agent survey (not full empirical NetOps verifier–LLM studies)",
+      "confidence": 0.5,
+      "limitations": [
+        "Provided records propose or motivate such pipelines but do not present large-scale, production-grade empirical evaluations demonstrating operational safety.",
+        "Concrete composition with canonical network verifiers and deployment studies are not present among the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "To what extent does human-in-the-loop oversight reliably prevent automation-induced incidents in NetOps, versus serving primarily as liability/approval ritual?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "doi:10.36227/techrxiv.176118749.93102582/v1",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "conceptual analyses and surveys",
+      "confidence": 0.6,
+      "limitations": [
+        "Evidence includes theoretical critique and cross-domain surveys rather than controlled NetOps field experiments measuring HITL effectiveness.",
+        "Human oversight effectiveness likely depends on workflow design, operator incentives, and time pressure—factors not uniformly studied."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "Which evaluation metrics and protocols most validly capture operational correctness, safety, and trustworthiness for LLM-driven NetOps agents?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "survey and system paper noting evaluation/benchmarking gaps",
+      "confidence": 0.65,
+      "limitations": [
+        "Surveys identify the gap but do not converge on a standardized metric suite specific to NetOps safety.",
+        "Designing metrics that map to real operational risk requires access to deployment traces and incident data absent in these sources."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Create standardized public NetOps datasets and benchmarks that target operational correctness, verifier-groundedness, and safety properties (e.g., ACL/BGP/ACL semantics, intended policy preservation) for LLM evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "system paper and survey identifying dataset/benchmark scarcity",
+      "confidence": 0.8,
+      "limitations": [
+        "Feasibility depends on data sharing constraints and anonymization of operator artifacts.",
+        "Benchmark design must avoid superficial proxies and target operationally meaningful failure modes."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Conduct empirical NetOps-specific evaluations of generate–validate–repair pipelines that compose LLMs with deterministic network validators across realistic topologies and failure-injection scenarios.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401857375",
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "RAG/agent surveys and design-proposal papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing evidence shows promise of tool-augmentation in other domains but lacks NetOps end-to-end empirical studies in the supplied records.",
+        "Such experiments require careful preregistration and operational realism to be convincing."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Investigate prompt-coupling and prompt-sensitivity for NetOps templates and cross-model robustness to support multi-vendor, multi-model deployments of intent-to-config systems.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6262638",
+        "https://openalex.org/W4406928793"
+      ],
+      "evidence_type": "conceptual/method papers on prompt coupling and prompt-engineering survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Prompt coupling work is conceptual and nascent; empirical NetOps-focused prompt-sensitivity studies are required.",
+        "Cross-model compilation solutions introduce engineering complexity and may not generalize across vendor-specific CLIs."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to perform fully autonomous NetOps configuration changes without human oversight (unsupported by supplied records).",
+    "RAG or a single mitigation method fully eliminates hallucination or misconfiguration risk in operational NetOps contexts (no supplied record proves complete elimination).",
+    "The supplied literature contains empirical evidence that verifier–LLM pipelines have been validated at production scale to prevent all misconfigurations (not supported by provided records)."
+  ]
+}

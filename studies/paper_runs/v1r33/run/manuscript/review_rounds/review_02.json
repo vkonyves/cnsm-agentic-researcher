@@ -1,0 +1,30 @@
+{
+  "summary": "Well‑executed, fully archived preregistered paired study with exemplary provenance and tooling; however the manuscript contains critical interpretive/statistical overstatements tied to the preregistered shared_initial_candidate design and an incorrect claim about power assumptions. Require targeted manuscript clarifications (no new experiments) before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Primary inference framing is misleading: the preregistered and executed shared_initial_candidate semantics mean the study evaluates downstream verifier/tool processing of identical LLM outputs, not whether tool‑augmented agents produce safer *generations*. The manuscript still frames the research question as comparing agentic generation vs LLM‑only, which is inconsistent with the executed design and risks overclaiming.",
+    "Incorrect statement about power/power assumptions: the preregistration assumed a baseline success ≈0.60 for power calculations, but observed baseline success=1.0 (ceiling). The manuscript claims the preregistered power assumptions were respected; that is false and must be corrected and discussed (ceiling effect renders the originally powered test uninformative for the planned estimand).",
+    "Statistical interpretation incomplete: with perfect/near‑perfect paired outcomes (n11=299, n10=n01=0, n00=0) the planned confirmatory test is uninformative regarding improvement and the manuscript must explicitly call the primary test non‑informative and explain consequences for interpretability and planned sensitivity analyses.",
+    "Missing explicit reporting of the two failed episodes: reasons, timestamps/provider error codes, and authoritative artifact hashes are available in the execution manifest but are not shown in the paper; their omission weakens completeness of the confirmatory report.",
+    "Construct‑validity detail lacking: the deterministic validator is central to the estimand but its operational rule set (key checks, examples of what constitutes a violation, and the canonical scoring rules) is only described at high level. A concise, artifact‑anchored summary (with path/hash pointers to the validator configuration or unit tests) must be added so readers can judge whether the validator matches the operational property claimed.",
+    "Minor: the Abstract wording implies a broader claim than the executed protocol supports; this must be edited to avoid misleading readers about what was tested."
+  ],
+  "required_revisions": [
+    "Rewrite Abstract and the Introduction’s final problem statement to explicitly state that the preregistered generation semantics used in this run were shared_initial_candidate and therefore the confirmatory test measures downstream verifier/tool effects on identical LLM outputs rather than agentic generation differences. Use exact phrasing or equivalent clarity (this is verifiable from the preregistration and execution manifest).",
+    "Remove or correct the sentence(s) claiming that preregistered power assumptions were \"respected\". Insert a short, explicit explanation that the observed baseline success=1.00 violates the power analysis assumption (baseline≈0.60), creating a ceiling effect that makes the planned confirmatory test uninformative for detecting the prespecified minimally important effect; state the consequence for interpretation.",
+    "Add an explicit sentence in Results (and repeat in Discussion) that the primary statistical test is non‑informative given the perfect pass rates, and report the exact contingency counts (n11, n10, n01, n00) and why McNemar/CI outputs do not imply evidence of equivalence or of superiority under this protocol.",
+    "Include a brief table or paragraph listing the two failed episodes: episode identifiers, timestamps, provider/adapter error codes or short failure reason strings, and SHA‑256 hashes for the corresponding raw artifacts (these entries exist in the execution manifest and raw artifact list). Ensure this is cross‑referenced to the execution_manifest path in the Disclosure.",
+    "Add a concise, artifact‑anchored description of the deterministic validator’s key operational rules sufficient for construct‑validity assessment (e.g., what classes of dependency/transient rules are enforced, examples of violation codes, pointer to validator configuration or unit tests and SHA‑256). Cite the exact path(s) and hash(es) in the archive (these artifacts are present).",
+    "Tighten language throughout to avoid implying broader generalization (e.g., remove wording suggesting the run adjudicates whether ‘tool‑augmented agents improve generation‑level safety’). Replace with bounded claims about the run’s actual estimand (paired_success_rate_difference under shared_initial_candidate semantics)."
+  ],
+  "optional_revisions": [
+    "Add a short machine‑readable reference‑verification table (path and hash) linking every cited prior work to the verified bibliographic artifact included in your evidence bundle (useful but not required for verification).",
+    "Add one paragraph in Discussion that sketches how a confirmatory follow‑up with independent per‑condition generation semantics would be preregistered (sample size implications, budget, and expected analytic changes) — useful to guide readers and future replication.",
+    "Include a small appendix‑style box summarizing representative validator violation codes and one or two short examples drawn from archived scoring JSONs (already in the artifact bundle) for pedagogy, if space permits within five pages.",
+    "If space allows, add a one‑paragraph operational lesson about when shared_initial_candidate semantics are appropriate vs when independent generation is required (illustrative examples drawn from your failure analysis)."
+  ],
+  "accept_for_finalisation": false
+}
