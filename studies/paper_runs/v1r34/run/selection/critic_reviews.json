@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Risk-scoring method unspecified — could systematically miss adversarial/novel faults.",
+        "Digital-twin / formal-checker construct validity not quantified (may not reflect production devices).",
+        "Latency SLO not numerically specified; feasibility depends on precise SLO choice.",
+        "Threshold selection, risk-calibration, and preregistered decision rules under-specified."
+      ],
+      "required_design_repairs": [
+        "Specify numeric latency SLO(s) (e.g., 95th percentile target in ms) and justify chosen values.",
+        "Define the risk-scoring algorithm, features, calibration data, and preregistered thresholds and selection procedure.",
+        "Include adversarial / OOD test cases in sensitivity analysis to evaluate risk-scoring blind spots.",
+        "Document digital-twin fidelity limits, scope of protocols/vendors modeled, and how full-checker ground truth is produced and validated.",
+        "Predefine retry and failure-handling policies for provider outages and how such incidents are treated in latency/accuracy analyses."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Curated vendor-accurate dataset creation is nontrivial and may limit reproducibility and external validity.",
+        "Legal/ethical concerns around vendor-specific semantics — need to ensure publicly shareable synthetic equivalence.",
+        "Digital-twin verifier coverage may miss vendor-specific regressions; potential construct validity gap.",
+        "Baseline/template repair selection must be justified to avoid unfair comparison."
+      ],
+      "required_design_repairs": [
+        "Specify dataset construction rules, data sources, and provide synthetic-but-shareable examples with generation scripts to ensure reproducibility.",
+        "Include legal/ethical clearance statement and avoid proprietary config artifacts; document how vendor semantics are modeled/validated.",
+        "Provide metrics of verifier coverage by vendor/protocol and include manual spot-checks or external validation of verifier labels.",
+        "Predefine deterministic baseline repair templates and justify their selection; include ablation showing sensitivity to baseline choice.",
+        "Preregister stopping criteria, max iterations, and random seeds; provide code/IR to reproduce mixed-effects model fitting and diagnostics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Adversarial-prompt generation is dual-use; ethical safeguards and artifact-release restrictions required.",
+        "Formal validator coverage gaps could mislabel unsafe outputs, biasing detector performance estimates.",
+        "Detector methods and thresholds not enumerated — results will be hard to interpret without concrete detector specs.",
+        "Risk of overfitting detectors to synthetic adversarial examples; generalization concerns."
+      ],
+      "required_design_repairs": [
+        "Define and preregister adversarial-generation methods, include ethical guardrails, limited artifact release policy, and red-team oversight.",
+        "List candidate detectors explicitly (algorithms, hyperparameters, thresholds) and preregister ensemble aggregation rule.",
+        "Quantify validator coverage and include uncertainty estimates; where validator gaps exist, include manual adjudication or conservative labeling policy.",
+        "Include held-out adversarial scenarios and cross-validation to measure overfitting; preregister dataset splits and random seeds.",
+        "Specify allowed dissemination level for adversarial prompts/outputs and justify with safety assessment."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "novelty": 0.6,
+      "falsifiability": 0.6,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Heavy reliance on simulated operators creates a large simulation-to-reality validity gap.",
+        "Calibration sources for simulated operator behavior are underspecified and may be nonrepresentative.",
+        "Causal claims about operator workload/trust from simulation could be misleading without human validation.",
+        "Risk of overclaiming utility of explanation augmentation when human subjects not involved."
+      ],
+      "required_design_repairs": [
+        "Fully specify simulated-operator model: data sources, parameter estimates, distributional forms, and calibration procedure; preregister alternative parameterizations for sensitivity analysis.",
+        "Limit claims to simulated-proxy conclusions and include explicit plans and constraints for future human-subject validation.",
+        "Provide mathematical/formal definition of explanation augmentation (format, length, content) and how it affects simulated acceptance probabilities.",
+        "Include wide sensitivity analyses over simulated-operator parameters and present Pareto frontiers with uncertainty bands to reflect calibration uncertainty.",
+        "Ensure reproducibility by publishing simulation code, seeds, and calibration scripts; document limitations prominently in manuscript."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

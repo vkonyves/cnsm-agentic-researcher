@@ -1,0 +1,23 @@
+{
+  "summary": "Careful, well-documented preregistered paired study comparing a selective low-latency verifier vs LLM-only on synthetic NetOps intents. Execution and scoring artifacts are extensively archived and hashed; primary paired analysis is reproducible and correctly reported. Main unresolved problem is the preregistered latency hypothesis (H2) — latency telemetry is missing from the confirmatory artifacts and therefore H2 cannot be evaluated. There is also a nondisclosed deviation between planned model-call budget (800) and actual calls used (401) that must be transparently explained in the manuscript. Given those issues the work is scientifically sound and reproducible from the supplied artifacts but requires clarifying revisions before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered latency hypothesis (H2) cannot be evaluated because end-to-end latency telemetry is absent from the archived confirmatory artifacts — this is a mandatory preregistered outcome but remains unresolved in the evidence set.",
+    "The manuscript does not explicitly disclose or reconcile the discrepancy between planned_model_calls (800) in the preregistration/execution contract and the observed model_calls_used = 401 recorded in the execution manifest. Any post-preregistration deviation must be transparently reported and justified using the archived artifacts.",
+    "The shared-initial generation design (independent_condition_generation=false) materially reduced model-call counts and narrows inference to verifier effects; the manuscript needs a clearer, explicit statement of how this design choice changes the estimand and the generality of conclusions (must be linked to preregistered design elements and the execution manifest)."
+  ],
+  "required_revisions": [
+    "Add an explicit, prominent disclosure (within the five-page manuscript) that H2 (latency SLO) could not be evaluated because confirmatory artifacts lack end-to-end latency telemetry; remove or reframe any language that might imply H2 was tested or met. Cite the exact execution_manifest path and SHA-256 entry that documents the missing latency telemetry.",
+    "Add a clear, artifact-backed deviation disclosure explaining why planned_model_calls=800 differs from model_calls_used=401. Use the execution/provider_call audit and execution manifest (paths and SHA-256 hashes already in the bundle) to show that the preregistered shared-initial design produced 400 shared_initial_generation calls + 1 repair call = 401 model calls, and state this as an observed deviation (or explain why the preregistered planned_model_calls value is not applicable given the preregistered independent_condition_generation=false setting).",
+    "Explicitly clarify in the Methods (and succinctly in the Introduction/Contributions) the inferential consequences of the shared-initial design (independent_condition_generation=false): state that by reusing a single generated candidate per intent across conditions the trial isolates verifier/repair effects but does not evaluate independent-generation variability between conditions, and therefore constrains generalisability of the safety estimate to settings with a shared candidate design. Point readers to the execution manifest and provider-call audit (paths + hashes) as artifact evidence for this accounting."
+  ],
+  "optional_revisions": [
+    "Include a short, artifact-backed note that the single observed repair invocation (repair stage count = 1 in the provider_call_audit) is archived and point to the per-episode repair/provider trace for the discordant pair so readers can inspect it (execution/scoring and execution/responses paths are already present).",
+    "Add a concise numeric sensitivity statement (not requiring new computation) summarizing that with near-ceiling baseline correctness the study has limited power to detect small absolute improvements; either cite the preregistered power plan or include the observed paired counts to make this point crisp. (This is optional if an adequate statement already appears in the Limitations.)",
+    "If space permits, include the existing analysis artifact figure (analysis/paired_difference_figure.svg) and a one-sentence caption summarising the contingency counts; the SVG and hash are available in the artifact bundle."
+  ],
+  "accept_for_finalisation": false
+}

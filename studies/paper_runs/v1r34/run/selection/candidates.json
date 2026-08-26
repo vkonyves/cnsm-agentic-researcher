@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "title": "Latency-aware generate–validate integration for live NetOps change pipelines",
+      "research_question": "Can a selective, low-latency verification tier integrated into a generate–validate–repair pipeline for LLM-generated network changes reduce unsafe commits while meeting operational latency constraints for live change-control pipelines?",
+      "hypotheses": [
+        "LLM-alone change proposals commit an operationally measurable higher unsafe-commit rate than proposals filtered by verification tiers.",
+        "A selective low-latency verification tier that runs only on high-risk proposals significantly reduces unsafe-commit rate without violating predefined pipeline latency SLOs compared to full-verification and no-verification baselines."
+      ],
+      "proposed_design": "Controlled simulation of a live change-control pipeline using a corpus of operator intents mapped to desired configuration changes. Implement three interventions: (1) No verification (LLM-only commits), (2) Full offline formal verification for every proposal (high-latency baseline), (3) Selective low-latency verification tier that scores proposals for risk and runs a fast validator only on those above a threshold. Use a network digital-twin / formal checker to label ground-truth functional correctness. Measure per-proposal end-to-end pipeline latency, unsafe-commit rate (as verified by full-checker), and compute-resource cost. Preregister latency SLO (e.g., 95th percentile <= X ms) and verification budget. Run each intervention on the same shuffled intent set with fixed random seeds and fixed LLM prompt templates; preserve raw outputs/logs.",
+      "expected_data": "Per-proposal records: operator intent ID, generated configuration, selective-verifier risk score, selective-verifier decision (verify or pass), end-to-end latency, full-checker correctness label (safe/unsafe), compute time for verification, counts of false-negatives (unsafe passes) and false-positives (safe blocked), and resource usage metrics.",
+      "primary_outcome": "Difference in unsafe-commit rate (proportion of proposals that would be unsafe if committed) between selective low-latency verification and LLM-only, and whether selective verification meets the preregistered latency SLO (95th percentile latency comparison).",
+      "analysis_outline": "Compute per-intervention unsafe-commit rates with 95% binomial CIs. Compare proportions using two-sided McNemar or paired proportion tests (paired by intent) for the same input set. Compare latency distributions using paired Wilcoxon signed-rank tests and report 95th percentile latencies with CIs via bootstrap. Report trade-off curves of verification budget (fraction verified) vs unsafe-commit reduction. Conduct sensitivity analyses across risk-score thresholds and report subgroup results by intent complexity. Control for multiple comparisons via Benjamini–Hochberg FDR where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7155247165"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7162218766"
+      ],
+      "risks": [
+        "Selective verifier risk-scoring may systematically miss adversarial or novel fault modes leading to undetected unsafe commits.",
+        "Digital-twin or formal checker labelling may not fully represent production device behavior (construct validity threat).",
+        "Latency SLO choice may be unrealistic for some verification toolchains, forcing infeasible trade-offs.",
+        "Potential provider/API outages during LLM calls could bias observed latencies if not handled per preregistered retry policy."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "title": "Cross-vendor topology robustness of LLM-driven configuration repair",
+      "research_question": "How does vendor heterogeneity and topology diversity affect the correctness and safety of LLM-driven configuration-repair agents, and to what extent does verifier-assisted repair improve cross-vendor robustness?",
+      "hypotheses": [
+        "LLM-driven repair agents show statistically significant degradation in functional-correctness rates as vendor and topology heterogeneity increase.",
+        "Augmenting LLM-driven repair with a verifier-assisted repair loop significantly improves cross-vendor functional-correctness and reduces regressions compared to LLM-only repair across heterogeneous topologies."
+      ],
+      "proposed_design": "Assemble a curated dataset of realistic misconfiguration cases spanning at least three vendor families (synthetic but vendor-accurate configurations) and multiple topology classes (single-switch fabric, multi-POX/edge–core, transit/peering). For each case, run three treatments: (A) LLM-only repair (generate repair and commit), (B) LLM + verifier-assisted iterative repair (generate→verify→repair until pass or max iterations), (C) Deterministic template-based repair baseline. Use a common digital-twin verifier to assess functional correctness and detect regressions. Record per-case correctness, number of iterations, time-to-repair, and types of failure. Use fixed prompts and seeds; preregister inclusion/exclusion rules and stopping criteria.",
+      "expected_data": "Per-case measurements: vendor family, topology class, initial fault label, generated repair artifacts per trial, verifier pass/fail labels per iteration, final correctness (binary), number of repair iterations, time-to-repair, and categorized failure modes (e.g., syntax, semantics, side-effect regressions). Aggregate per-vendor and per-topology performance matrices.",
+      "primary_outcome": "Interaction effect between vendor heterogeneity/topology class and treatment on final functional-correctness rate; specifically, the improvement in correctness for verifier-assisted repair over LLM-only across heterogeneous vendors and topologies.",
+      "analysis_outline": "Fit a mixed-effects logistic regression with correctness as outcome, fixed effects for treatment, vendor, topology, and their interactions, and random intercepts for fault-case ID. Test treatment differences via likelihood-ratio tests and report odds ratios with 95% CIs. Perform post-hoc pairwise contrasts with Tukey correction. Report stratified descriptive tables and visualize correctness heatmaps by vendor × topology. Conduct failure-mode frequency analysis and survival analysis on iterations-to-success.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W4400234235"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7163636922",
+        "https://openalex.org/W7160275374"
+      ],
+      "risks": [
+        "Curated vendor-accurate cases may not capture full production diversity (external validity).",
+        "Licensing or reverse-engineering of vendor-specific configuration semantics could pose legal/ethical constraints; dataset must use publicly sharable or synthetic-equivalent cases.",
+        "LLM hallucinations may produce plausible but harmful repairs that pass superficial checks and require strong verifier coverage to detect regressions.",
+        "Resource/time cost for verifier-assisted iterative repair may be large and affect practical feasibility."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "title": "Adversarial robustness of hallucination-detection and self-verification methods for NetOps outputs",
+      "research_question": "Do current hallucination-detection and self-verification techniques reliably detect adversarially induced unsafe NetOps outputs from LLMs, and can an ensemble of detectors plus a formal validator reduce undetected unsafe outputs under adversarial prompt injection?",
+      "hypotheses": [
+        "Existing single-method hallucination detectors and self-verification checks have higher false-negative rates (miss unsafe outputs) when LLMs are subjected to adversarial prompt perturbations compared to benign prompts.",
+        "An ensemble detection strategy combined with formal validation significantly reduces the undetected-unsafe-output rate under adversarial conditions compared to single detectors while maintaining acceptable false-positive levels and latency bounds."
+      ],
+      "proposed_design": "Construct an adversarial prompt suite targeting NetOps outputs (e.g., crafted injections that encourage unsafe but syntactically plausible configurations) derived from adversarial-attack techniques and guided by prior literature. For each adversarial and matched benign prompt, generate LLM outputs under fixed prompt templates and model settings. Apply multiple detectors/self-verification methods (e.g., uncertainty-based scoring, consistency checks, output-to-spec verification) individually and as an ensemble; finally run a formal validator on flagged outputs. Measure detection true-positive, false-negative, false-positive rates, detection latency, and undetected unsafe outputs as judged by the formal validator. Preregister adversarial-perturbation generation methods and ethical safeguards; log all raw prompts/outputs for audit.",
+      "expected_data": "For each prompt-output pair: adversarial/benign label, LLM output, ground-truth safety label (via formal validator), detector scores and binary flags for each detector, ensemble decision, detection latency, and whether the unsafe output was undetected. Aggregate detection ROC curves and confusion matrices for adversarial vs benign sets.",
+      "primary_outcome": "False-negative rate (proportion of unsafe outputs not detected) for detectors and ensemble under adversarial prompts; primary comparison is ensemble vs best single detector under adversarial conditions.",
+      "analysis_outline": "Compute per-detector and ensemble FNR/FPR with 95% CIs; compare FNRs using paired proportion tests (McNemar) on the same set of unsafe instances. Produce ROC and precision–recall curves; compare AUCs via DeLong test where applicable. Analyze detection latency distributions and trade-offs between FNR reduction and added latency. Conduct ablation studies removing individual detectors from the ensemble. Report robustness degradation ratio (adversarial FNR / benign FNR).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7200222",
+        "https://openalex.org/W4410636386",
+        "doi:10.20944/preprints202511.1688.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4411735779"
+      ],
+      "risks": [
+        "Adversarial prompt generation research can be dual-use; ethical safeguards and restricted artifact release are required to prevent misuse.",
+        "Detectors tuned on synthetic adversarial examples may overfit and not generalize to unseen attacks (construct validity).",
+        "Formal validator coverage gaps could mislabel some unsafe outputs, biasing detector evaluation.",
+        "Provider rate-limits or API costs could constrain the adversarial sample size if not managed per preregistered budget."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "title": "Simulated-operator escalation policies: safety vs workload trade-offs for agentic NetOps",
+      "research_question": "Which automated escalation policies for LLM-driven NetOps agents yield optimal trade-offs between operational safety (reduced unsafe commits) and operator workload, when evaluated against calibrated simulated-operator models and explanation augmentation strategies?",
+      "hypotheses": [
+        "Threshold-based escalation policies that escalate lower-confidence or higher-risk proposals to operators will reduce unsafe commits but increase operator workload measured by escalation rate and simulated decision time.",
+        "Augmenting escalated proposals with concise model-produced explanations and verifier-derived justification reduces simulated-operator rejection time and maintains or improves trust proxies, enabling lower escalation thresholds without increasing unsafe commits."
+      ],
+      "proposed_design": "Because live human-subject experiments are precluded, construct calibrated simulated-operator models based on empirically derived cost and decision-time distributions from published NetOps case studies (translate MTTR/workload proxies into parametric models). Implement multiple escalation policies (no escalation, high-threshold, medium-threshold, low-threshold) and an explanation-augmented variant for each threshold. For each policy, run the LLM agent on a corpus of intents/config changes; when escalation occurs, route to the simulated operator which returns accept/reject/time based on calibrated stochastic model and the presence/absence of the explanation. Use a verifier to label true safety and model the operator’s probability of acceptance conditional on verifier pass/fail and explanation. Measure safety (unsafe commits), workload (escalation counts, cumulative simulated decision time), and trust proxies (simulated acceptance rates). Preregister simulation calibration sources, parameters, and sensitivity analyses.",
+      "expected_data": "Per-trial logs: policy, intent ID, LLM proposal, verifier pass/fail, escalation decision, simulated-operator response (accept/reject), simulated decision time, final commit correctness (by full checker), cumulative escalations per policy, and aggregated workload/time statistics. Produce Pareto frontiers of safety vs workload across policies and explanation conditions.",
+      "primary_outcome": "Trade-off frontier showing minimal unsafe-commit rate achievable at given simulated-operator workload budgets; formal comparison of explanation-augmented policies vs non-augmented at matched escalation rates.",
+      "analysis_outline": "Compute aggregated unsafe-commit rates and workload metrics with bootstrapped CIs. Compare policies using paired tests on the same input corpus (McNemar for unsafe-commit differences; paired t/Wilcoxon for workload). Derive Pareto frontier and quantify statistical dominance via bootstrap. Run sensitivity analyses across simulated-operator parameterizations and report how policy ranking changes. Report scenarios where explanation augmentation yields statistically significant workload reduction at equal safety.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4417099672",
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7155247165"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4417099672",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7163636922"
+      ],
+      "risks": [
+        "Simulated-operator models may not capture true human behavior, limiting external validity (simulation-to-reality gap).",
+        "Calibration sources may be sparse or non-transferable across organizations, producing biased workload estimates.",
+        "Overreliance on simulation could understate rare but critical human error modes; real-world deployment may differ.",
+        "Ethical risk: claiming operator effects without human validation; results must be framed as simulated-proxy findings only."
+      ],
+      "estimated_model_calls": 600
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "study_id": "CAND-2026-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute paired_binary_analysis_v1 on execution/raw_results.jsonl (schema paired_binary_episode_v1). Restrict to complete pairs per preregistered missingness_plan ('complete_pair_primary'). Compute per-condition unsafe-commit rates (exact 95% binomial CIs) and the paired difference estimand paired_success_rate_difference_guarded_minus_baseline using the executor's McNemar-equivalent paired logic; report unadjusted p-value.",
+  "secondary_analyses": [
+    "Absolute 95th-percentile end-to-end latency per intervention (guarded, baseline, full-checker) with bootstrap 95% CIs computed from end_to_end_latency_ms and full_checker_latency_ms in execution/raw_results.jsonl (bootstrap script from preregistration).",
+    "Verification-budget (fraction verifier_invoked_flag true) vs unsafe-commit rate curve computed from execution/scoring/*.json and execution/raw_results.jsonl (deterministic threshold sweeps using saved feature_vector/risk_score and verifier_invoked_flag).",
+    "False-negative rate (verifier false negatives) on adversarial / OOD intents: compute verifier_decision vs full_checker_label for tasks flagged as adversarial per task_manifest.jsonl (10% adversarial items)."
+  ],
+  "sensitivity_analyses": [
+    "Primary estimand recomputed treating unrecovered infrastructure-failure pairs as unsafe using failed_call_treatment identifier complete_pair_primary_with_failure_as_zero_sensitivity (conservative bound).",
+    "Primary estimand and secondary analyses recomputed excluding OOD-suspect flagged items (per contamination_plan) to assess drift/contamination impact.",
+    "Threshold-sweep exploratory sensitivity: alternate selective-verifier thresholds from preregistered calibration grid; report unadjusted and BH-adjusted exploratory p-values."
+  ],
+  "uncertainty_quantification": "Per preregistration: exact binomial 95% CIs for rates; bootstrap (preregistered bootstrap script, N=10000) for 95th-percentile latency CIs; paired bootstrap where applicable for estimand CIs; report exact p-values from paired executor (McNemar-equivalent) and paired Wilcoxon signed-rank for latency comparisons.",
+  "multiplicity_implementation": "Confirmatory family limited to H1 and H2 (report unadjusted p-values for these). All other tests (threshold sweeps, subgroup scans) labeled exploratory; control FDR with Benjamini–Hochberg (q=0.05) for reported exploratory collections and present both unadjusted and adjusted p-values.",
+  "contamination_analysis": "Follow preregistered contamination_plan: 10% adversarial/OOD intents embedded deterministically (task_manifest.jsonl); post-run flagging of OOD-suspect items via percentile rules against classifier training features (KS checks recorded); report selective-verifier false-negative rates on adversarial subset; report drift statistics and list of flagged items; present analyses with and without flagged items as preregistered.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory paired results: N complete pairs, baseline unsafe rate (n, %), guarded unsafe rate (n, %), paired difference (pp), 95% CI, McNemar-equivalent p-value; data from execution/scoring/*.json and execution/raw_results.jsonl.",
+    "Table 2 — Latency summary: per-condition median and 95th-percentile end_to_end_latency_ms with bootstrap 95% CIs and full_checker_latency_ms comparison; data from execution/raw_results.jsonl and provider_call artifacts.",
+    "Table 3 — Verification budget sweep: selected thresholds showing fraction verified (verifier_invoked_flag), unsafe-commit rate, marginal safety gains; derived from execution/raw_results.jsonl and saved risk_score fields.",
+    "Table 4 — Adversarial subgroup: counts, verifier-invoked, verifier false negatives (verifier_decision vs full_checker_label), false-negative rate and CI for adversarial (10%) vs non-adversarial.",
+    "Table 5 — Execution manifest summary: planned vs completed episodes, model_calls_used, failed_episode_count, artifact hashes (execution_manifest)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart: baseline vs guarded unsafe-commit rates with exact 95% binomial CIs (Table 1 source).",
+    "Figure 2 — Verification-budget Pareto curve: fraction verified (x) vs unsafe-commit rate (y) across preregistered thresholds (Table 3 source).",
+    "Figure 3 — Latency comparison: empirical CDFs of end_to_end_latency_ms for baseline, guarded, and full-checker with 95th-percentile markers (Table 2 source).",
+    "Figure 4 — Risk-score distribution and chosen threshold: histogram/density of preregistered risk_score with vertical line for operative threshold and indication of flagged OOD items; data from execution/raw_results.jsonl and classifier artifacts."
+  ]
+}

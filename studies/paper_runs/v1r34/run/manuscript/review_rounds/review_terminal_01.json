@@ -1,0 +1,21 @@
+{
+  "summary": "Carefully preregistered, artifact-backed paired study testing a selective low‑latency verifier in an LLM→NetOps generate–validate pipeline. Execution artifacts are comprehensive and consistent; the shared‑initial design was preregistered and reconciled. Results show a near‑ceiling baseline (399/400) and a single discordant improvement under the guarded pipeline (400/400), yielding a paired difference of 0.0025 with wide, near‑zero‑inclusive CI. The preregistered latency hypothesis (H2) could not be evaluated because latency telemetry was not archived; this is disclosed.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "In the manuscript main text (not only in the disclosure), cite the exact artifact file paths and full SHA‑256 values for the discordant episode(s) used to support the primary claim (e.g., execution/scoring/task-000149-baseline.json and execution/scoring/task-000149-guarded.json with their exact SHA‑256s as listed in the execution manifest). This is necessary so a reader can directly inspect the single discordant example that underpins the numerical claim.",
+    "Add a concise, explicit description (one paragraph) of the exact statistical test implementation used for H1 (state the exact function/script invocation, repository/file path within the archived analysis artifacts, parameterization, and the 'exact_mcnemar_two_sided' implementation details) and explain why the reported two‑sided p=1.0 arises for the observed discordant counts (n10=1,n01=0). Reference the analysis artifact (analysis/paired_contingency_table.csv and analysis/analysis_log.jsonl) and the bootstrap parameters (seed and resample count) already archived.",
+    "Amplify the manuscript's methods paragraph to state explicitly that independent_condition_generation=false was preregistered (i.e., the shared‑initial candidate design), explain how that changes the estimand compared with the independent‑generation estimand, and point to the deterministic_reconciliation artifact (analysis/deterministic_reconciliation.json) and execution manifest entries that document model_calls_used=401 vs planned_model_calls=800. This must appear in Methods and in the Limitations/Threats section so readers can unambiguously interpret the reported paired effect.",
+    "Because H2 (latency SLO) is preregistered but unresolvable from the supplied artifacts, add a short, clearly labeled statement in the Results and Abstract that H2 is unresolved due to missing archived timing telemetry (state exactly which telemetry files were expected per the preregistration and that they are absent). Do not make any latency claims elsewhere.",
+    "Correctly label any claims of operational relevance to make clear they are conditional on: (a) synthetic corpus, (b) single generator model (gpt-5-mini), (c) single deterministic validator (deterministic_netops_validator_v5), and (d) the shared‑initial design. These conditional qualifiers should appear where contributions and operational implications are stated (Introduction, Results, Discussion)."
+  ],
+  "optional_revisions": [
+    "Include a short appendix table (or condensed paragraph) that lists the primary artifact file paths and SHA‑256 hashes for the main analysis artifacts (paired_contingency_table.csv, condition_summary.csv, deterministic_reconciliation.json, representative discordant scoring JSONs, model_configuration.json, execution manifest) so readers can copy/paste paths; these artifacts are already present and hashed in the execution manifest.",
+    "In Discussion, more explicitly comment on choice of exact McNemar vs mid‑p or other small‑sample corrections and note how conclusions would (not) change under alternate small‑sample treatments; link to the analysis implementation so readers can re-run these variants from the archived artifacts.",
+    "If space permits, show the one discordant pair's normalized candidate and the validator 'violation' field (short excerpt) inline (or as a 1–2 line quote) with an artifact path reference, to make the failure/repair mechanism immediately inspectable without requiring readers to open the full JSON."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,172 @@
+{
+  "selected_candidate_id": "CAND-2026-001",
+  "title": "Latency-aware selective verification in generate–validate NetOps pipelines",
+  "research_question": "Can a selective, low-latency verification tier (risk-scoring + fast validator) integrated into a generate–validate–repair pipeline for LLM-generated network changes reduce unsafe commits versus LLM-only while meeting a preregistered end-to-end latency SLO?",
+  "confirmatory_hypotheses": [
+    "H1 (safety): The selective low-latency verification intervention yields a lower unsafe-commit rate (proportion of proposals that are unsafe per full-checker ground truth) than LLM-only on the same intent set (paired comparison).",
+    "H2 (latency): The selective verification intervention meets the preregistered latency SLO: 95th-percentile end-to-end pipeline latency ≤ 2000 ms, and its 95th-percentile latency is statistically lower than the full-verification baseline while providing materially lower unsafe-commit rate than LLM-only."
+  ],
+  "exploratory_questions": [
+    "How does the unsafe-commit reduction vary with the selective-verifier threshold (budget trade-off curve)?",
+    "How do adversarial / out-of-distribution (OOD) intents affect selective-verifier false-negative rates relative to in-distribution intents?",
+    "What is the verification budget (fraction verified) at which marginal safety gains diminish (Pareto frontier)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic operator-intent corpus (publicly shareable generator) representing common change tasks: ACL changes, route addition/removal (static/BGP/OSPF), and interface configuration edits.",
+    "Two vendor-family semantic models (VendorFamily-A, VendorFamily-B) at configuration/semantics abstraction level supported by the experiment Docker image digital-twin."
+  ],
+  "model_scope": [
+    "Hosted LLM API for generation (single provider/model endpoint per preregistered run).",
+    "Lightweight CPU-executable risk classifier (logistic regression) trained on synthetic labeled data derived from the experiment's digital-twin/full-checker.",
+    "Fast verifier component: CPU-executable deterministic static-checking script that runs within Docker; full-checker (digital-twin) used as ground truth and may be higher-latency."
+  ],
+  "transformation_scope": [
+    "Intent → canonical intermediate representation (IR) (deterministic parser).",
+    "IR → generated configuration (LLM output canonicalization/parsing).",
+    "Configuration canonicalization → engineered feature vector for risk-scoring (deterministic feature extractor)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute 95th-percentile end-to-end latency per intervention (with bootstrap CIs)",
+    "Verification budget (fraction of proposals sent to fast verifier) vs unsafe-commit rate curve",
+    "False-negative rate among adversarial / OOD intents"
+  ],
+  "sampling_plan": "Confirmatory paired design. Confirmatory item count = 400 unique operator intents (same intent presented to each intervention in randomized order; fixed random seed). Interventions = 3 (LLM-only baseline; Full-verification baseline; Selective low-latency verification). Per-intent LLM calls: one generation per intervention → planned_model_calls = 3 * 400 = 1200. The corpus includes 10% adversarial/OOD variants (40 intents) deterministically generated per preregistered adversarial rules. In addition, a synthetic training/discovery set of 2000 labeled intent→config pairs will be algorithmically generated (discovery_items = 2000) for risk-classifier training; these are not part of the confirmatory 400 and are used only for classifier training and threshold selection. All seeds, generator scripts, and Docker images are frozen prior to execution.",
+  "analysis_plan": "Primary analysis: paired binary analysis using the registered executor paired_binary_analysis_v1 computing the estimand paired_success_rate_difference_guarded_minus_baseline. Primary dataset: only complete pairs (all three interventions produced a generation without unrecovered infrastructure failure). Primary failed-call treatment (preregistered): 'complete_pair_primary' — exclude pairs with unrecovered infrastructure failures from the primary analysis; a sensitivity analysis will use 'complete_pair_primary_with_failure_as_zero_sensitivity' treating missing/failed pairs as unsafe to obtain a conservative bound. Compute 95% binomial CIs for each intervention's unsafe-commit rate. Compare paired proportions using the registered paired executor (McNemar-equivalent logic implemented in paired_binary_analysis_v1). Latency analysis: compute per-intent end-to-end latencies; compare 95th-percentiles with bootstrap CIs and paired Wilcoxon signed-rank tests for pairwise latency comparisons (selective vs full, selective vs LLM-only). Multiplicity control: primary confirmatory test family limited to H1 and H2 (two primary claims); control FDR across exploratory subgroup and threshold scans using Benjamini–Hochberg at q=0.05 and report unadjusted p-values with adjusted statements. Predefine subgroup analyses (adversarial vs non-adversarial) and threshold-sweep sensitivity analyses; label all as exploratory except H1/H2.",
+  "multiplicity_plan": "Two preregistered confirmatory hypotheses (H1, H2). Any additional hypothesis tests (threshold sweeps, subgroups) are exploratory and adjusted via Benjamini–Hochberg FDR at q=0.05 when reporting multiple comparisons. All primary p-values reported unadjusted and FDR-adjusted side-by-side.",
+  "missingness_plan": "Define infrastructure failure types a priori. LLM/provider transient failures: retry policy = up to 2 additional attempts with exponential backoff (initial backoff 500 ms, then 1500 ms). If after retries a generation is not obtained, record as infrastructure failure. For primary analysis: exclude incomplete pairs (complete_pair_primary). Sensitivity analysis: treat infrastructure-failure pairs as unsafe (failure_as_zero) to obtain conservative bounds. All failures and retries logged and hashed in the execution manifest.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "CNSM-SelectiveVerify-SyntheticCorpus-v1"
+    ],
+    "risk_factors": [
+      "Adversarial/OOD intent variants crafted to induce ambiguous or conflicting configurations",
+      "Distributional mismatch between synthetic training data and confirmatory corpus",
+      "Model provider API nondeterminism affecting latency measurements"
+    ],
+    "detection_procedures": [
+      "Embed 10% adversarial/OOD intents (40 of 400) generated deterministically from preregistered perturbation rules; track selective-verifier false-negative rate on these intents.",
+      "Post-run automated drift checks comparing feature-distribution statistics between classifier training data and the confirmatory corpus (KS tests on numeric features)."
+    ],
+    "item_flagging_rules": [
+      "Flag an intent as 'OOD-suspect' if any engineered feature lies outside the 1st–99th percentile range observed in classifier training data; flagged items will be reported and analyzed in sensitivity analyses but not excluded from primary analysis.",
+      "Flag and log any LLM provider request with latency > 10s or any retry; these are treated as infrastructure incidents per the missingness_plan."
+    ],
+    "analysis_treatment": "Primary analysis excludes infrastructure-failure pairs (complete_pair_primary). Flagged OOD items remain in the confirmatory set; exploratory analyses will report results with and without OOD-suspect items. All flagging is deterministic and reproducible from saved artifacts.",
+    "residual_uncertainty": [
+      "Selective-verifier blind spots may remain for adversarial modes not represented by the preregistered adversarial rules.",
+      "Digital-twin limitations (semantic fidelity) may leave residual uncertainty about real-device behavior."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-recommended",
+      "description": "Recommended confirmatory run: 400 confirmatory intents; 3 interventions per intent (LLM-only, full-verifier, selective verifier); planned_model_calls derived as 3*400=1200 LLM generations. Discovery training set: 2000 synthetic labeled samples generated and labeled via full-checker for classifier training. Models used: single hosted LLM API for generation; local CPU logistic-regression risk classifier; fast verifier and full-checker packaged in Docker. Transformations: intent→IR parser, canonicalizer, feature extractor. Discovery items: 2000. Confirmatory items: 400. Task cluster count: 1 (single randomized paired cluster). Feasibility rationale: 1200 model calls <= capability manifest maximum 10000; CPU-only classifier and Dockerized checkers are compatible with the frozen capabilities.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted_llm_api (single model endpoint)",
+        "cpu_logistic_regression_risk_classifier"
+      ],
+      "transformations": [
+        "intent_to_IR_parser",
+        "LLM_output_canonicalizer",
+        "feature_extractor_for_risk_scoring"
+      ],
+      "discovery_items": 2000,
+      "confirmatory_items": 400,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "3 interventions × 400 intents = 1200 LLM calls matches the candidate estimate and fits the capability manifest's model-call budget; all non-LLM components run on CPU/docker."
+    },
+    {
+      "scenario_id": "S2-low-budget",
+      "description": "Lower-budget confirmatory run: 200 confirmatory intents, same intervention set. planned_model_calls = 3*200=600. Discovery training set reduced to 1000 synthetic labeled samples. Use same tools and procedures; lower statistical power but reduced runtime/cost.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted_llm_api (single model endpoint)",
+        "cpu_logistic_regression_risk_classifier"
+      ],
+      "transformations": [
+        "intent_to_IR_parser",
+        "LLM_output_canonicalizer",
+        "feature_extractor_for_risk_scoring"
+      ],
+      "discovery_items": 1000,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Halves confirmatory workload and model-call budget for constrained runs while preserving paired design and preregistered procedures."
+    },
+    {
+      "scenario_id": "S3-high-budget-optional",
+      "description": "Larger confirmatory run for greater power: 800 intents → planned_model_calls = 2400. Included for optional follow-up; not recommended within first-wall-clock-day constraints but feasible under model-call budget.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted_llm_api (single model endpoint)",
+        "cpu_logistic_regression_risk_classifier"
+      ],
+      "transformations": [
+        "intent_to_IR_parser",
+        "LLM_output_canonicalizer",
+        "feature_extractor_for_risk_scoring"
+      ],
+      "discovery_items": 4000,
+      "confirmatory_items": 800,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Increases power at the cost of extra API calls; still within capability manifest model-call cap."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction in unsafe-commit rate of 5 percentage points (e.g., from 8% to 3%) between LLM-only and selective-verifier on paired intents",
+    "clustering_unit": "intent (paired across interventions)",
+    "calculation_method": "Exact binomial/pairwise power approximation for paired-proportion tests (McNemar-like logic). We approximate detectable absolute difference using paired-proportion calculations and validate via simulation in preregistration code. For N=400 paired items, with baseline unsafe rate 8% and expected selective rate 3% (absolute diff 5%), estimated power > 0.8 for two-sided test at alpha=0.05 under conservative within-pair correlation assumptions. Exact power will be rechecked with the experiment's preregistered simulation script (frozen) before run.",
+    "assumptions": [
+      "Baseline unsafe-commit rate (LLM-only) ≈ 8% (literature-aligned prior; used for planning only).",
+      "Selective verifier effect reduces unsafe commits by ≈5 percentage points in confirmatory distribution.",
+      "Pairwise dependence structure consistent with simulations in preregistration script.",
+      "Infrastructure failures excluded from primary analysis (complete pairs only)."
+    ],
+    "recommended_scenario_id": "S1-recommended",
+    "minimum_detectable_effect_notes": "With N=400, the preregistered MDE (minimum detectable effect) for an absolute paired-proportion difference is approximately 3–6 percentage points depending on within-pair concordance; the study is powered for ~5 pp difference under the planning assumptions. Sensitivity analyses will report how power changes with lower baseline rates.",
+    "sensitivity_analyses": [
+      "Recompute power under baseline unsafe rates of 5% and 12%.",
+      "Simulate paired outcomes with varying within-pair correlation to assess robustness of MDE.",
+      "Repeat primary analysis including infrastructure-failure pairs treated as unsafe (conservative)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent parsing and canonicalization",
+      "LLM output canonicalizer and syntactic parser",
+      "Deterministic feature extraction for risk-scoring"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: canonical IR → (LLM/generator) → parsed config → IR canonicalizer; verify IR equality on a preregistered audit sample of 100 confirmatory items (deterministic comparator).",
+      "For generated configurations, verify that parsed semantics (e.g., route prefix, ACL action, interface) match the intended IR fields for 100 randomly sampled confirmatory outputs; failures flagged and reported."
+    ],
+    "automatic_rejection_rules": [
+      "Reject LLM generation automatically if parsing fails deterministically (syntax parse error) and record as a generation failure (subject to retry policy).",
+      "Reject any configuration containing disallowed tokens or missing required fields per deterministic schema and log for analysis."
+    ],
+    "audit_sample_policy": "Deterministic audit sample: 100 confirmatory items uniformly sampled by fixed seed; all semantic-equivalence checks and audit logs are recorded and hashed. Audit is automated (scripted) with no human adjudication.",
+    "mapping_validation": "Feature extractor unit tests included in Docker; validation runs on the discovery set and on audit sample prior to confirmatory run. Mapping mismatches cause deterministic abort with logged diagnostic artifacts.",
+    "residual_risks": [
+      "Parser/canonicalizer may mis-handle extremely novel vendor-specific syntax not represented in the vendor-family abstractions.",
+      "Feature extraction choices could omit latent safety-relevant cues; sensitivity analyses sweep critical engineered features."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Digital-twin / full-checker semantic fidelity: the Dockerized checker models core semantics (routing, ACLs, BGP/OSPF) at an abstract level but does not capture device-specific hardware bugs or live-traffic-induced emergent behaviors; this is a construct-validity limitation (noncritical to running the confirmatory paired test because ground truth is defined by the checker).",
+    "Selective-verifier blind spots: adversarial modes beyond the preregistered perturbation rules may remain and are addressed only by exploratory sensitivity scans.",
+    "Hosted LLM API nondeterminism: output variability may affect measured unsafe rates and latencies; fully deterministic inference is not available but all seeds, timestamps, and raw outputs are recorded to quantify nondeterminism."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7162218766",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7160275374",
+    "https://openalex.org/W4400490130",
+    "https://openalex.org/W4417099672",
+    "https://openalex.org/W4410636386"
+  ]
+}

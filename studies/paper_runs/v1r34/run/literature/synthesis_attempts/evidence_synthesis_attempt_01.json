@@ -1,0 +1,190 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "LLMs can be used to translate natural-language operator intent into concrete network configuration artifacts and JSON/NSD outputs in controlled evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400490130",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "empirical evaluation / system demonstration",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are on curated testbeds or focused use-cases (NFV, NSD) rather than broad production networks.",
+        "Performance depends on model tuning, prompt strategy, and verification templates used in those studies."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "LLM-based agentic workflows and multi-agent systems can automate troubleshooting and incident-diagnosis workflows and have been shown to improve success rates or time-to-root-cause in specific deployments/evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4417099672",
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W4410636386",
+        "https://openalex.org/W4412876941"
+      ],
+      "evidence_type": "empirical deployment / evaluation",
+      "confidence": 0.75,
+      "limitations": [
+        "Reported gains are for particular datasets, incident collections, or operator environments and may not generalize across all NetOps contexts.",
+        "Some systems rely on proprietary models or specific tool integrations (e.g., GPT-4.1) reported in the papers."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Integrating LLMs into generate–validate–repair pipelines that use formal verification or digital-twin validation reduces unsafe fixes; conversely, LLMs applied alone often introduce regressions and degrade at larger scales.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7156100150",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7162218766"
+      ],
+      "evidence_type": "benchmark results and methodological papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Benchmarks (e.g., Cornetto) are synthetic or semi-synthetic and reflect the benchmark generation choices of the authors.",
+        "Verification/digital-twin integration can be computationally expensive and evaluated offline in these works."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Agentic (tool-augmented / multi-step) architectures outperform base LLMs on configuration-repair tasks in published evaluations (reported improvements on repair efficacy and safety).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7163636922"
+      ],
+      "evidence_type": "comparative empirical evaluation",
+      "confidence": 0.7,
+      "limitations": [
+        "Reported numeric improvements (e.g., ~12% efficacy, ~17% safety) are specific to the evaluated models, toolchains, and datasets.",
+        "Details on model selection, tuning, and task scope constrain external validity."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Formal verification techniques and network digital-twins are used as validators in recent work to assess functional correctness of generated or repaired network configurations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7162218766"
+      ],
+      "evidence_type": "methodological / system design evidence",
+      "confidence": 0.9,
+      "limitations": [
+        "Verification is typically used offline or in closed-loop evaluation rather than as lightweight, always-on production validators in the cited works.",
+        "Scalability and latency trade-offs for integrating verification in real-time workflows remain an implementation challenge."
+      ]
+    },
+    {
+      "claim_id": "E6",
+      "statement": "Survey and review literature for LLMs/AIOps/agentic AI in networking consistently highlight hallucination risks, safety challenges, and the need for guardrails, evaluation frameworks, and human-in-the-loop designs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4406756422",
+        "https://openalex.org/W4406928793"
+      ],
+      "evidence_type": "survey / review",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize prior work and identify gaps but do not by themselves provide new experimental evidence.",
+        "Recommendations vary in specificity and are often high-level."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How reliably do LLM-driven repair and configuration systems perform at production scale across heterogeneous topologies, device vendors, and live traffic conditions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160275374"
+      ],
+      "evidence_type": "benchmark evidence indicating scale-related degradation",
+      "confidence": 0.6,
+      "limitations": [
+        "Cornetto documents performance degradation at scale in benchmarked scenarios but does not provide exhaustive production deployment results across all vendor ecosystems.",
+        "Absence of broad production-scale evidence in the supplied records; question remains open."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Which agentic orchestration patterns, human-in-the-loop escalation points, and guardrail designs yield acceptable operational risk/benefit trade-offs for NetOps automation?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4417099672",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "architectural proposals and deployment case studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing works propose architectures (Aether, StepFly, BiAn) and report case results, but comparative studies of orchestration patterns and human–agent escalation policies are not conclusive in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "To what extent can hallucination-detection and self-verification methods reliably prevent unsafe or functionally incorrect NetOps outputs in adversarial or out-of-distribution scenarios?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7200222",
+        "https://openalex.org/W4410636386",
+        "https://openalex.org/W4416732290"
+      ],
+      "evidence_type": "method / survey papers addressing hallucination detection and constrained workflows",
+      "confidence": 0.55,
+      "limitations": [
+        "Detection and mitigation methods exist but their robustness under adversarial prompt injection and distribution shift is not settled in the provided records.",
+        "Some referenced detection frameworks are general-purpose and not NetOps-specific."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A need exists for standardized, broadly representative benchmarks that measure functional correctness (via formal verification or digital-twin validation) across diverse real-world topologies, vendor configurations, and protocols.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160275374",
+        "https://openalex.org/W7155247165"
+      ],
+      "evidence_type": "benchmark proposal and system paper",
+      "confidence": 0.75,
+      "limitations": [
+        "Cornetto is a step toward such benchmarking but the supplied records indicate further diversity and real-world coverage are still needed.",
+        "Building and validating such benchmarks is resource-intensive."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Scalable, low-latency integration patterns for formal verification or digital-twin validation into live change-control pipelines are under-explored.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7160275374"
+      ],
+      "evidence_type": "system/implementation limitations noted in methodological work",
+      "confidence": 0.7,
+      "limitations": [
+        "Papers document verification use but emphasize offline or iterative validation; real-time integration trade-offs are not fully resolved in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Empirical studies quantifying operator trust, workload, and decision-quality when interacting with LLM-driven NetOps agents (including controlled HCI measurements) are limited in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W4417099672"
+      ],
+      "evidence_type": "deployment/case-study papers with limited operator-study content",
+      "confidence": 0.65,
+      "limitations": [
+        "Some systems report operational benefits (e.g., reduced MTTR) but rigorous, multi-site HCI studies measuring trust and approval workflows are not evident in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous, unsupervised NetOps without human oversight (unsupported by the supplied records).",
+    "LLM-generated network configurations never introduce regressions or safety faults (contradicted by benchmark findings in Cornetto).",
+    "There is conclusive evidence that LLMs universally outperform human operators across all NetOps configuration and repair tasks (unsupported by supplied evaluations).",
+    "No verification or tool-augmentation is needed to safely deploy LLMs for network configuration repair (contradicted by multiple papers recommending verification and tool integration)."
+  ]
+}

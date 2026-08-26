@@ -1,0 +1,80 @@
+{
+  "study_id": "CAND-2026-001",
+  "title": "Latency-aware selective verification in generate–validate NetOps pipelines",
+  "research_question": "Can a selective, low-latency verification tier (risk-scoring + fast validator) integrated into a generate–validate–repair pipeline for LLM-generated network changes reduce unsafe commits versus LLM-only while meeting a preregistered end-to-end latency SLO?",
+  "confirmatory_hypotheses": [
+    "H1 (safety): The selective low-latency verification intervention yields a lower unsafe-commit rate (proportion of proposals that are unsafe per full-checker ground truth) than LLM-only on the same intent set (paired comparison).",
+    "H2 (latency + joint claim): The selective verification intervention meets the preregistered latency SLO: 95th-percentile end-to-end pipeline latency ≤ 2000 ms; its 95th-percentile latency is statistically lower than the full-verification baseline while providing materially lower unsafe-commit rate than LLM-only."
+  ],
+  "exploratory_questions": [
+    "How does the unsafe-commit reduction vary with the selective-verifier threshold (budget trade-off curve)?",
+    "How do adversarial / out-of-distribution (OOD) intents affect selective-verifier false-negative rates relative to in-distribution intents?",
+    "What is the verification budget (fraction verified) at which marginal safety gains diminish (Pareto frontier)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7162218766",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7160275374",
+    "https://openalex.org/W4400490130",
+    "https://openalex.org/W4417099672",
+    "https://openalex.org/W4410636386"
+  ],
+  "benchmark_scope": [
+    "Synthetic operator-intent corpus (publicly shareable generator) representing common change tasks: ACL changes, route addition/removal (static/BGP/OSPF), and interface configuration edits.",
+    "Two vendor-family semantic models (VendorFamily-A, VendorFamily-B) at configuration/semantics abstraction level supported by the experiment Docker image digital-twin."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 400,
+    "planned_episode_count": 800,
+    "maximum_model_calls": 800,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute 95th-percentile end-to-end latency per intervention (with bootstrap CIs)",
+    "Verification budget (fraction of proposals sent to fast verifier) vs unsafe-commit rate curve",
+    "False-negative rate among adversarial / OOD intents"
+  ],
+  "sampling_plan": "Confirmatory paired design. Confirmatory item count = 400 unique operator intents (same intent presented to each condition: baseline=LLM-only; guarded=selective low-latency verifier). Fixed random seed for intent ordering. Per-intent: one generation per condition. Planned_model_calls = 400 tasks * 2 conditions * 1 generation = 800 LLM generations. The confirmatory corpus deterministically includes 10% adversarial/OOD variants (40 intents) per preregistered perturbation rules. A separate synthetic discovery/training set of 2000 labeled intent→config pairs (discovery_items=2000) is generated and labeled via the full-checker for risk-classifier training and threshold calibration; discovery items are not part of confirmatory analysis.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction in unsafe-commit rate of 5 percentage points (e.g., from 8% to 3%) between baseline (LLM-only) and guarded (selective verifier). Clustering unit: intent (paired). Calculation method: exact paired-proportion power approximation and preregistered simulation script (frozen). For N=400 paired items, under planning assumptions (baseline unsafe ≈8%, selective ≈3%), estimated power > 0.8 for two-sided alpha=0.05. Sensitivity analyses: recompute power for baseline rates 5% and 12%; simulate varying within-pair correlation; rerun primary analysis treating infrastructure-failure pairs as unsafe (conservative).",
+  "exclusion_rules": [
+    "Exclude pairs from primary analysis if any condition for that intent suffers unrecovered infrastructure failure (per missingness_plan: 'complete_pair_primary').",
+    "Deterministic parsing failures of LLM output after allowed retries are recorded as generation failures and trigger exclusion per above rule.",
+    "No ad-hoc exclusions; any additional exclusions must be logged and justified in revision log."
+  ],
+  "missingness_plan": "Define infrastructure failures a priori. LLM/provider transient failures: retry policy up to 2 additional attempts with exponential backoff (500 ms, then 1500 ms). If generation still unavailable, mark as infrastructure failure. Primary analysis excludes incomplete pairs ('complete_pair_primary'). Sensitivity analysis treats infrastructure-failure pairs as unsafe ('complete_pair_primary_with_failure_as_zero_sensitivity') to obtain conservative bounds. All retries, timestamps, and failure artifacts logged and hashed in the execution manifest.",
+  "analysis_plan": "Primary analysis: use available analysis executor paired_binary_analysis_v1 to compute the primary estimand paired_success_rate_difference_guarded_minus_baseline on complete pairs only. Compute per-condition unsafe-commit rates with exact 95% binomial CIs. Apply McNemar-equivalent paired logic implemented by paired_binary_analysis_v1 for hypothesis testing (H1). Latency analysis: compute per-intent end-to-end latencies for guarded and baseline pipelines; compute 95th-percentiles with bootstrap CIs; compare 95th-percentiles using paired Wilcoxon signed-rank tests for selective vs full-checker latency and selective vs baseline where appropriate. For H2 latency comparison against full-verification baseline: measure full-checker (digital-twin) check time per intent deterministically (applied to the same generated configuration) and compare to selective pipeline latencies. Multiplicity: primary confirmatory family limited to H1 and H2; report unadjusted p-values for primary tests and FDR-adjusted values for exploratory scans. Predefine subgroup analyses (adversarial vs non-adversarial) and threshold sweeps; label exploratory.",
+  "multiplicity_plan": "Two preregistered confirmatory hypotheses (H1, H2). All other tests (threshold sweeps, subgroups) are exploratory. When reporting multiple exploratory comparisons, control FDR via Benjamini–Hochberg at q=0.05 and present both unadjusted and adjusted p-values.",
+  "contamination_plan": "{\"benchmark_names\": [\"CNSM-SelectiveVerify-SyntheticCorpus-v1\"], \"risk_factors\": [\"Adversarial/OOD intent variants crafted to induce ambiguous or conflicting configurations\",\"Distributional mismatch between synthetic training data and confirmatory corpus\",\"Model provider API nondeterminism affecting latency measurements\"], \"detection_procedures\": [\"Embed 10% adversarial/OOD intents (40 of 400) generated deterministically from preregistered perturbation rules; track selective-verifier false-negative rate on these intents.\", \"Post-run automated drift checks comparing feature-distribution statistics between classifier training data and the confirmatory corpus (KS tests on numeric features).\"], \"item_flagging_rules\": [\"Flag an intent as 'OOD-suspect' if any engineered feature lies outside the 1st–99th percentile range observed in classifier training data; flagged items are reported and analyzed in sensitivity analyses but remain in primary analysis.\", \"Flag and log any LLM provider request with latency > 10s or any retry; treat as infrastructure incidents per missingness_plan.\"], \"analysis_treatment\": \"Primary analysis excludes infrastructure-failure pairs (complete_pair_primary). Flagged OOD items remain in the confirmatory set; exploratory analyses report results with and without OOD-suspect items. All flagging is deterministic and reproducible from saved artifacts.\", \"residual_uncertainty\": [\"Selective-verifier blind spots may remain for adversarial modes not represented by the preregistered adversarial rules.\", \"Digital-twin limitations (semantic fidelity) may leave residual uncertainty about real-device behavior.\"]}",
+  "stopping_rule": "No interim analyses or early stopping for efficacy. Complete execution over the full preregistered confirmatory set (400 intents). Technical retries limited per missingness_plan. If infrastructure disruption prevents completion within capability manifest constraints, abort and report with full execution manifest.",
+  "planned_outputs": [
+    "Execution manifest and raw outputs (LLM responses, verifier decisions, full-checker labels, latencies, logs, hashes).",
+    "Paired analysis results (primary estimand, CIs, p-values), latency summaries, exploratory scans and curves.",
+    "Synthetic corpus generator and discovery/training data, pretrained risk-classifier artifact and calibration logs.",
+    "Complete IEEE LaTeX manuscript, BibTeX, five-page compiled PDF, Disclosure Statement, evidence-to-claim table, nearest-work matrix, and NotebookLM presentation brief."
+  ],
+  "unresolved_critical_issues": []
+}
