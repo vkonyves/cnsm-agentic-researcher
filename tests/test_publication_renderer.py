@@ -190,6 +190,16 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
         "limit → ∞; "
         "temperature 25°C; "
         "parameter μ = 0.5; "
+        "micro sign µ = 0.4; "
+        "matrix Λ = 1; "
+        "parameters Γ, Δ, Θ, Ξ, Π, Σ, Υ, Φ, Ψ, Ω; "
+        "lowercase α, β, γ, δ, ε, ζ, η, θ, ι, κ, "
+        "λ, ν, ξ, π, ρ, σ, τ, υ, φ, χ, ψ, ω; "
+        "relation x ∼ y; "
+        "approximation x ≃ y; "
+        "identity a ≡ b; "
+        "product x ⋅ y; "
+        "root √x; "
         "set x ∈ S; "
         "CO₂ measurement; "
         "Kovačić."
@@ -207,6 +217,7 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
         document_class=r"\documentclass[conference]{IEEEtran}",
     )
 
+    # Unicode punctuation/symbols should not survive into raw LaTeX.
     assert "−" not in source
     assert "–" not in source
     assert "—" not in source
@@ -220,15 +231,56 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     assert "∞" not in source
     assert "°" not in source
     assert "μ" not in source
+    assert "µ" not in source
+    assert "Λ" not in source
+    assert "Γ" not in source
+    assert "Δ" not in source
+    assert "Θ" not in source
+    assert "Ξ" not in source
+    assert "Π" not in source
+    assert "Σ" not in source
+    assert "Υ" not in source
+    assert "Φ" not in source
+    assert "Ψ" not in source
+    assert "Ω" not in source
+    assert "α" not in source
+    assert "β" not in source
+    assert "γ" not in source
+    assert "δ" not in source
+    assert "ε" not in source
+    assert "ζ" not in source
+    assert "η" not in source
+    assert "θ" not in source
+    assert "ι" not in source
+    assert "κ" not in source
+    assert "λ" not in source
+    assert "ν" not in source
+    assert "ξ" not in source
+    assert "π" not in source
+    assert "ρ" not in source
+    assert "σ" not in source
+    assert "τ" not in source
+    assert "υ" not in source
+    assert "φ" not in source
+    assert "χ" not in source
+    assert "ψ" not in source
+    assert "ω" not in source
+    assert "∼" not in source
+    assert "≃" not in source
+    assert "≡" not in source
+    assert "⋅" not in source
+    assert "√" not in source
     assert "∈" not in source
     assert "₂" not in source
 
+    # Text-normalized punctuation.
     assert "Guarded - baseline" in source
     assert "range 1--2" in source
     assert "test---case" in source
     assert r"target >= 30\%" in source
     assert "value <= 5" in source
 
+    # Mathematical/scientific symbol replacements.
     assert r"\ensuremath{\approx}" in source
     assert r"\ensuremath{\neq}" in source
     assert r"\ensuremath{\pm}" in source
@@ -237,13 +289,53 @@ def test_render_ieee_latex_normalizes_problematic_unicode():
     assert r"\ensuremath{\infty}" in source
     assert r"\ensuremath{^\circ}" in source
     assert r"\ensuremath{\mu}" in source
+    assert r"\ensuremath{\Lambda}" in source
+    assert r"\ensuremath{\Gamma}" in source
+    assert r"\ensuremath{\Delta}" in source
+    assert r"\ensuremath{\Theta}" in source
+    assert r"\ensuremath{\Xi}" in source
+    assert r"\ensuremath{\Pi}" in source
+    assert r"\ensuremath{\Sigma}" in source
+    assert r"\ensuremath{\Upsilon}" in source
+    assert r"\ensuremath{\Phi}" in source
+    assert r"\ensuremath{\Psi}" in source
+    assert r"\ensuremath{\Omega}" in source
+
+    assert r"\ensuremath{\alpha}" in source
+    assert r"\ensuremath{\beta}" in source
+    assert r"\ensuremath{\gamma}" in source
+    assert r"\ensuremath{\delta}" in source
+    assert r"\ensuremath{\epsilon}" in source
+    assert r"\ensuremath{\zeta}" in source
+    assert r"\ensuremath{\eta}" in source
+    assert r"\ensuremath{\theta}" in source
+    assert r"\ensuremath{\iota}" in source
+    assert r"\ensuremath{\kappa}" in source
+    assert r"\ensuremath{\lambda}" in source
+    assert r"\ensuremath{\nu}" in source
+    assert r"\ensuremath{\xi}" in source
+    assert r"\ensuremath{\pi}" in source
+    assert r"\ensuremath{\rho}" in source
+    assert r"\ensuremath{\sigma}" in source
+    assert r"\ensuremath{\tau}" in source
+    assert r"\ensuremath{\upsilon}" in source
+    assert r"\ensuremath{\phi}" in source
+    assert r"\ensuremath{\chi}" in source
+    assert r"\ensuremath{\psi}" in source
+    assert r"\ensuremath{\omega}" in source
+
+    assert r"\ensuremath{\sim}" in source
+    assert r"\ensuremath{\simeq}" in source
+    assert r"\ensuremath{\equiv}" in source
+    assert r"\ensuremath{\cdot}" in source
+    assert r"\ensuremath{\sqrt{}}" in source
     assert r"\ensuremath{\in}" in source
     assert r"\textsubscript{2}" in source
 
+    # Unicode author names remain supported through UTF-8/T1.
     assert "Kovačić" in source
     assert r"\usepackage[utf8]{inputenc}" in source
     assert r"\usepackage[T1]{fontenc}" in source
-
 
 def test_publication_renderer_uses_robust_subprocess_decoding(
     tmp_path: Path,

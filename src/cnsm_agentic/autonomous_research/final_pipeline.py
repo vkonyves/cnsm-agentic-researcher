@@ -3897,12 +3897,18 @@ class FinalAutonomousResearchPipeline:
                 revised_manuscript,
             )
 
+        previous_terminal_review: PeerReviewReport | None = None
         maximum_terminal_revision_rounds = 2
 
         for terminal_round in range(
             1,
             maximum_terminal_revision_rounds + 2,
         ):
+            terminal_review_mode = (
+                "full_terminal_review"
+                if terminal_round == 1
+                else "closure_review"
+            )
             latest_peer_review = await run_agent(
                 PEER_REVIEWER,
                 {
@@ -3932,6 +3938,14 @@ class FinalAutonomousResearchPipeline:
                         maximum_peer_review_rounds
                         + terminal_round
                     ),
+                    "review_mode": (
+                        terminal_review_mode
+                    ),
+                    "previous_terminal_review": (
+                        previous_terminal_review.model_dump()
+                        if previous_terminal_review is not None
+                        else None
+                    ),
                 },
                 expected_type=PeerReviewReport,
                 stage_name=(
@@ -3939,6 +3953,8 @@ class FinalAutonomousResearchPipeline:
                     f"round {terminal_round}"
                 ),
             )
+
+            previous_terminal_review = latest_peer_review
 
             write_json(
                 review_rounds_dir
@@ -4003,14 +4019,24 @@ class FinalAutonomousResearchPipeline:
                         f"{terminal_round}"
                     ),
                     "revision_instruction": (
-                        "Resolve every required terminal peer-review "
-                        "revision using only the supplied archived "
-                        "evidence and artifacts. Preserve all supported "
-                        "scientific content already present. Do not "
-                        "change empirical results, invent evidence, "
-                        "introduce new experiments, or weaken required "
-                        "disclosure. Maintain the exact five-page IEEE "
-                        "publication requirement."
+                        "Resolve every required revision in the supplied "
+                        "terminal peer-review report using only the supplied "
+                        "archived evidence and completed analysis artifacts. "
+                        "Address the listed required revisions explicitly and "
+                        "preserve previously resolved reviewer requirements. "
+                        "Raw execution artifacts may support factual accounting "
+                        "such as call counts, episode identifiers, repair flags, "
+                        "validator reuse, missingness, and provenance, but do "
+                        "not perform or invent new post-lock statistical "
+                        "analyses from raw execution data. If a requested "
+                        "preregistered analysis was not completed by the "
+                        "autonomous analysis stage, report it transparently as "
+                        "unexecuted or unavailable and qualify any dependent "
+                        "claim. Preserve all supported scientific content "
+                        "already present. Do not change empirical results, "
+                        "invent evidence, introduce new experiments, or weaken "
+                        "required disclosure. Maintain the exact five-page "
+                        "IEEE publication requirement."
                     ),
                 },
                 expected_type=ManuscriptPackage,
@@ -4059,6 +4085,173 @@ class FinalAutonomousResearchPipeline:
                 ),
                 publication_validation,
             )
+
+            maximum_terminal_format_rounds = 3
+
+            for terminal_format_round in range(
+                1,
+                maximum_terminal_format_rounds + 1,
+            ):
+                terminal_compile_status = (
+                    publication_validation.get(
+                        "compile_status"
+                    )
+                )
+                terminal_page_count = (
+                    publication_validation.get(
+                        "page_count"
+                    )
+                )
+                terminal_maximum_pages = (
+                    publication_validation.get(
+                        "maximum_pages"
+                    )
+                )
+
+                if terminal_compile_status != "passed":
+                    break
+
+                if (
+                    terminal_page_count
+                    == terminal_maximum_pages
+                ):
+                    break
+
+                if (
+                    terminal_page_count is None
+                    or terminal_maximum_pages is None
+                ):
+                    break
+
+                if terminal_page_count < terminal_maximum_pages:
+                    terminal_pages_missing = (
+                        terminal_maximum_pages
+                        - terminal_page_count
+                    )
+
+                    if terminal_pages_missing >= 2:
+                        terminal_format_instruction = (
+                            "The terminal-review revision is "
+                            f"{terminal_page_count} pages but must occupy "
+                            f"exactly {terminal_maximum_pages} compiled IEEE "
+                            "pages. Preserve every reviewer-resolved and "
+                            "artifact-supported statement already present. "
+                            "Substantively expand Methods, Results, statistical "
+                            "interpretation, execution accounting, limitations, "
+                            "reproducibility details, verified related work, "
+                            "or artifact-grounded tables/figures using only "
+                            "existing evidence. Do not shorten existing "
+                            "supported content and do not invent evidence."
+                        )
+                    else:
+                        terminal_format_instruction = (
+                            "The terminal-review revision is one compiled "
+                            "page below the required IEEE length. Preserve "
+                            "all reviewer-resolved and artifact-supported "
+                            "content and add substantive artifact-grounded "
+                            "scientific detail until the manuscript occupies "
+                            f"exactly {terminal_maximum_pages} pages. "
+                            "Do not invent evidence or pad with repetition."
+                        )
+
+                else:
+                    terminal_format_instruction = (
+                        "The terminal-review revision exceeds the frozen "
+                        f"{terminal_maximum_pages}-page IEEE budget. "
+                        "Compact it to exactly that length while preserving "
+                        "all reviewer-resolved scientific content, results, "
+                        "limitations, references, and Disclosure Statement. "
+                        "Do not alter empirical findings or formatting rules."
+                    )
+
+                revised_manuscript = await run_agent(
+                    MANUSCRIPT_REVISER,
+                    {
+                        "master_prompt": master_prompt,
+                        "verified_records": records,
+                        "evidence_verification": (
+                            evidence_report
+                        ),
+                        "preregistration": (
+                            preregistration.model_dump()
+                        ),
+                        "execution_manifest": (
+                            execution_manifest
+                        ),
+                        "analysis_results": (
+                            analysis_results
+                        ),
+                        "deterministic_reconciliation": (
+                            deterministic_reconciliation
+                        ),
+                        "manuscript_evidence_bundle": (
+                            manuscript_evidence_bundle
+                        ),
+                        "manuscript": (
+                            revised_manuscript.model_dump()
+                        ),
+                        "peer_review": (
+                            latest_peer_review.model_dump()
+                        ),
+                        "publication_validation": (
+                            publication_validation
+                        ),
+                        "revision_round": (
+                            "terminal_format_"
+                            f"{terminal_round}_"
+                            f"{terminal_format_round}"
+                        ),
+                        "revision_instruction": (
+                            terminal_format_instruction
+                        ),
+                    },
+                    expected_type=ManuscriptPackage,
+                    stage_name=(
+                        "Terminal manuscript page convergence "
+                        f"{terminal_round}."
+                        f"{terminal_format_round}"
+                    ),
+                )
+
+                write_json(
+                    revision_rounds_dir
+                    / (
+                        "terminal_format_revised_package_"
+                        f"{terminal_round:02d}_"
+                        f"{terminal_format_round:02d}.json"
+                    ),
+                    revised_manuscript,
+                )
+
+                write_json(
+                    run_dir
+                    / "manuscript"
+                    / "revised_package.json",
+                    revised_manuscript,
+                )
+
+                publication_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            revised_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_validation_terminal_format_"
+                        f"{terminal_round:02d}_"
+                        f"{terminal_format_round:02d}.json"
+                    ),
+                    publication_validation,
+                )
 
         # Compatibility/latest-terminal-review alias.
         write_json(

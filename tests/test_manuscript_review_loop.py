@@ -678,3 +678,171 @@ def test_regular_peer_review_receives_evidence_bundle():
         '"manuscript_evidence_bundle"'
         in review_section
     )
+
+
+def test_terminal_review_uses_closure_mode_after_first_round():
+    source = _final_pipeline_source()
+
+    assert (
+        'previous_terminal_review: PeerReviewReport | None = None'
+        in source
+    )
+
+    assert (
+        '"full_terminal_review"'
+        in source
+    )
+
+    assert (
+        '"closure_review"'
+        in source
+    )
+
+    assert (
+        '"review_mode": ('
+        in source
+    )
+
+    assert (
+        '"previous_terminal_review": ('
+        in source
+    )
+
+    assert (
+        "previous_terminal_review = latest_peer_review"
+        in source
+    )
+
+
+def test_peer_reviewer_does_not_turn_outcomes_into_revision_defects():
+    source = _final_agents_source()
+
+    assert (
+        "unfavorable scientific outcomes are not themselves"
+        in source
+    )
+
+    assert (
+        "scientific result or limitation"
+        in source
+    )
+
+    assert (
+        "Do not use raw execution artifacts as authorization"
+        in source
+    )
+
+    assert (
+        'review_mode="closure_review"'
+        in source
+    )
+
+    assert (
+        "do not introduce a new"
+        in source
+    )
+
+
+def test_terminal_revision_has_bounded_page_convergence_loop():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    normalized_terminal_section = " ".join(
+        terminal_section.split()
+    )
+
+    assert (
+        "maximum_terminal_format_rounds = 3"
+        in terminal_section
+    )
+
+    assert (
+        "for terminal_format_round in range("
+        in terminal_section
+    )
+
+    assert (
+        "terminal_compile_status"
+        in terminal_section
+    )
+
+    assert (
+        "terminal_page_count"
+        in terminal_section
+    )
+
+    assert (
+        "terminal_maximum_pages"
+        in terminal_section
+    )
+
+    assert (
+        "terminal_page_count == terminal_maximum_pages"
+        in normalized_terminal_section
+    )
+
+    assert (
+        '"terminal_format_revised_package_"'
+        in terminal_section
+    )
+
+    assert (
+        '"publication_validation_terminal_format_"'
+        in terminal_section
+    )
+
+    assert (
+        "Terminal manuscript page convergence "
+        in terminal_section
+    )
+
+    assert (
+        "terminal_format_instruction"
+        in terminal_section
+    )
+
+    assert (
+        "Do not invent evidence"
+        in terminal_section
+    )
+
+
+def test_terminal_page_convergence_occurs_after_terminal_revision_render():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    terminal_revision_pos = terminal_section.index(
+        '"terminal_revised_package_"'
+    )
+
+    first_terminal_validation_pos = terminal_section.index(
+        '"publication_validation_terminal_"'
+    )
+
+    terminal_format_loop_pos = terminal_section.index(
+        "maximum_terminal_format_rounds = 3"
+    )
+
+    assert (
+        terminal_revision_pos
+        < first_terminal_validation_pos
+        < terminal_format_loop_pos
+    )

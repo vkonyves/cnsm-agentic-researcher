@@ -46,66 +46,98 @@ def _latex_escape(value: str) -> str:
     # Scientific symbols that should retain their mathematical
     # meaning in the generated IEEE LaTeX.
     unicode_latex_replacements = {
-        "\u2248": r"\ensuremath{\approx}",       # ≈
-        "\u2260": r"\ensuremath{\neq}",          # ≠
-        "\u00b1": r"\ensuremath{\pm}",           # ±
-        "\u2213": r"\ensuremath{\mp}",           # ∓
-        "\u00d7": r"\ensuremath{\times}",        # ×
-        "\u00f7": r"\ensuremath{\div}",          # ÷
-        "\u221e": r"\ensuremath{\infty}",        # ∞
-        "\u221d": r"\ensuremath{\propto}",       # ∝
-        "\u2202": r"\ensuremath{\partial}",      # ∂
-        "\u2207": r"\ensuremath{\nabla}",        # ∇
-        "\u2211": r"\ensuremath{\sum}",          # ∑
-        "\u220f": r"\ensuremath{\prod}",         # ∏
-        "\u222b": r"\ensuremath{\int}",          # ∫
-        "\u2208": r"\ensuremath{\in}",           # ∈
-        "\u2209": r"\ensuremath{\notin}",        # ∉
-        "\u2282": r"\ensuremath{\subset}",       # ⊂
-        "\u2286": r"\ensuremath{\subseteq}",     # ⊆
-        "\u2283": r"\ensuremath{\supset}",       # ⊃
-        "\u2287": r"\ensuremath{\supseteq}",     # ⊇
-        "\u222a": r"\ensuremath{\cup}",          # ∪
-        "\u2229": r"\ensuremath{\cap}",          # ∩
-        "\u2192": r"\ensuremath{\rightarrow}",   # →
-        "\u2190": r"\ensuremath{\leftarrow}",    # ←
+        "\u2248": r"\ensuremath{\approx}",          # ≈
+        "\u2260": r"\ensuremath{\neq}",             # ≠
+        "\u00b1": r"\ensuremath{\pm}",              # ±
+        "\u2213": r"\ensuremath{\mp}",              # ∓
+        "\u00d7": r"\ensuremath{\times}",           # ×
+        "\u00f7": r"\ensuremath{\div}",             # ÷
+        "\u221e": r"\ensuremath{\infty}",           # ∞
+        "\u221d": r"\ensuremath{\propto}",          # ∝
+        "\u2202": r"\ensuremath{\partial}",         # ∂
+        "\u2207": r"\ensuremath{\nabla}",           # ∇
+        "\u2211": r"\ensuremath{\sum}",             # ∑
+        "\u220f": r"\ensuremath{\prod}",            # ∏
+        "\u222b": r"\ensuremath{\int}",             # ∫
+        "\u2208": r"\ensuremath{\in}",              # ∈
+        "\u2209": r"\ensuremath{\notin}",           # ∉
+        "\u2282": r"\ensuremath{\subset}",          # ⊂
+        "\u2286": r"\ensuremath{\subseteq}",        # ⊆
+        "\u2283": r"\ensuremath{\supset}",          # ⊃
+        "\u2287": r"\ensuremath{\supseteq}",        # ⊇
+        "\u222a": r"\ensuremath{\cup}",             # ∪
+        "\u2229": r"\ensuremath{\cap}",             # ∩
+        "\u2192": r"\ensuremath{\rightarrow}",      # →
+        "\u2190": r"\ensuremath{\leftarrow}",       # ←
         "\u2194": r"\ensuremath{\leftrightarrow}",  # ↔
-        "\u21d2": r"\ensuremath{\Rightarrow}",   # ⇒
-        "\u21d0": r"\ensuremath{\Leftarrow}",    # ⇐
+        "\u21d2": r"\ensuremath{\Rightarrow}",      # ⇒
+        "\u21d0": r"\ensuremath{\Leftarrow}",       # ⇐
         "\u21d4": r"\ensuremath{\Leftrightarrow}",  # ⇔
-        "\u00b0": r"\ensuremath{^\circ}",        # °
-        "\u00b7": r"\ensuremath{\cdot}",         # ·
-        "\u2022": r"\textbullet{}",              # •
-        "\u03b1": r"\ensuremath{\alpha}",        # α
-        "\u03b2": r"\ensuremath{\beta}",         # β
-        "\u03b3": r"\ensuremath{\gamma}",        # γ
-        "\u03b4": r"\ensuremath{\delta}",        # δ
-        "\u03b5": r"\ensuremath{\epsilon}",      # ε
-        "\u03b8": r"\ensuremath{\theta}",        # θ
-        "\u03bb": r"\ensuremath{\lambda}",       # λ
-        "\u03bc": r"\ensuremath{\mu}",           # μ
-        "\u00b5": r"\ensuremath{\mu}",           # µ
-        "\u03c0": r"\ensuremath{\pi}",            # π
-        "\u03c1": r"\ensuremath{\rho}",           # ρ
-        "\u03c3": r"\ensuremath{\sigma}",         # σ
-        "\u03c4": r"\ensuremath{\tau}",           # τ
-        "\u03c6": r"\ensuremath{\phi}",           # φ
-        "\u03c9": r"\ensuremath{\omega}",         # ω
-        "\u0394": r"\ensuremath{\Delta}",         # Δ
-        "\u03a3": r"\ensuremath{\Sigma}",         # Σ
-        "\u03a9": r"\ensuremath{\Omega}",         # Ω
-        "\u00b2": r"\textsuperscript{2}",         # ²
-        "\u00b3": r"\textsuperscript{3}",         # ³
-        "\u2080": r"\textsubscript{0}",           # ₀
-        "\u2081": r"\textsubscript{1}",           # ₁
-        "\u2082": r"\textsubscript{2}",           # ₂
-        "\u2083": r"\textsubscript{3}",           # ₃
-        "\u2084": r"\textsubscript{4}",           # ₄
-        "\u2085": r"\textsubscript{5}",           # ₅
-        "\u2086": r"\textsubscript{6}",           # ₆
-        "\u2087": r"\textsubscript{7}",           # ₇
-        "\u2088": r"\textsubscript{8}",           # ₈
-        "\u2089": r"\textsubscript{9}",           # ₉
+        "\u00b0": r"\ensuremath{^\circ}",           # °
+        "\u00b7": r"\ensuremath{\cdot}",            # ·
+        "\u2022": r"\textbullet{}",                 # •
+
+        # Additional common mathematical/statistical symbols.
+        "\u221a": r"\ensuremath{\sqrt{}}",          # √
+        "\u223c": r"\ensuremath{\sim}",             # ∼
+        "\u2243": r"\ensuremath{\simeq}",           # ≃
+        "\u2261": r"\ensuremath{\equiv}",           # ≡
+        "\u22c5": r"\ensuremath{\cdot}",            # ⋅
+
+        # Lower-case Greek letters.
+        "\u03b1": r"\ensuremath{\alpha}",           # α
+        "\u03b2": r"\ensuremath{\beta}",            # β
+        "\u03b3": r"\ensuremath{\gamma}",           # γ
+        "\u03b4": r"\ensuremath{\delta}",           # δ
+        "\u03b5": r"\ensuremath{\epsilon}",         # ε
+        "\u03b6": r"\ensuremath{\zeta}",            # ζ
+        "\u03b7": r"\ensuremath{\eta}",             # η
+        "\u03b8": r"\ensuremath{\theta}",           # θ
+        "\u03b9": r"\ensuremath{\iota}",            # ι
+        "\u03ba": r"\ensuremath{\kappa}",           # κ
+        "\u03bb": r"\ensuremath{\lambda}",          # λ
+        "\u03bc": r"\ensuremath{\mu}",              # μ
+        "\u00b5": r"\ensuremath{\mu}",              # µ
+        "\u03bd": r"\ensuremath{\nu}",              # ν
+        "\u03be": r"\ensuremath{\xi}",              # ξ
+        "\u03bf": "o",                              # ο
+        "\u03c0": r"\ensuremath{\pi}",              # π
+        "\u03c1": r"\ensuremath{\rho}",             # ρ
+        "\u03c3": r"\ensuremath{\sigma}",           # σ
+        "\u03c2": r"\ensuremath{\sigma}",           # ς
+        "\u03c4": r"\ensuremath{\tau}",             # τ
+        "\u03c5": r"\ensuremath{\upsilon}",         # υ
+        "\u03c6": r"\ensuremath{\phi}",             # φ
+        "\u03c7": r"\ensuremath{\chi}",             # χ
+        "\u03c8": r"\ensuremath{\psi}",             # ψ
+        "\u03c9": r"\ensuremath{\omega}",           # ω
+
+        # Upper-case Greek letters with distinct LaTeX commands.
+        "\u0393": r"\ensuremath{\Gamma}",           # Γ
+        "\u0394": r"\ensuremath{\Delta}",           # Δ
+        "\u0398": r"\ensuremath{\Theta}",           # Θ
+        "\u039b": r"\ensuremath{\Lambda}",          # Λ
+        "\u039e": r"\ensuremath{\Xi}",              # Ξ
+        "\u03a0": r"\ensuremath{\Pi}",              # Π
+        "\u03a3": r"\ensuremath{\Sigma}",           # Σ
+        "\u03a5": r"\ensuremath{\Upsilon}",         # Υ
+        "\u03a6": r"\ensuremath{\Phi}",             # Φ
+        "\u03a8": r"\ensuremath{\Psi}",             # Ψ
+        "\u03a9": r"\ensuremath{\Omega}",           # Ω
+
+        # Superscripts/subscripts commonly emitted in scientific prose.
+        "\u00b2": r"\textsuperscript{2}",           # ²
+        "\u00b3": r"\textsuperscript{3}",           # ³
+        "\u2080": r"\textsubscript{0}",             # ₀
+        "\u2081": r"\textsubscript{1}",             # ₁
+        "\u2082": r"\textsubscript{2}",             # ₂
+        "\u2083": r"\textsubscript{3}",             # ₃
+        "\u2084": r"\textsubscript{4}",             # ₄
+        "\u2085": r"\textsubscript{5}",             # ₅
+        "\u2086": r"\textsubscript{6}",             # ₆
+        "\u2087": r"\textsubscript{7}",             # ₇
+        "\u2088": r"\textsubscript{8}",             # ₈
+        "\u2089": r"\textsubscript{9}",             # ₉
     }
 
     value = "".join(

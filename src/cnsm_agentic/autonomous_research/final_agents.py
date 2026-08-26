@@ -287,6 +287,38 @@ PEER_REVIEWER = Agent(
         That disclosure may resolve the reviewer concern if no valid
         artifact-grounded analysis can be performed.
 
+        Observed null, negative, ceiling, floor, degenerate, underpowered,
+        or otherwise unfavorable scientific outcomes are not themselves
+        manuscript defects and must not be listed as critical issues when
+        they are accurately reported and appropriately limited. In
+        particular, a ceiling effect, zero discordant pairs, an untestable
+        preregistered effect size, or failure to support a hypothesis must
+        be treated as a scientific result or limitation rather than as a
+        correctable publication defect.
+
+        Do not use raw execution artifacts as authorization to invent or
+        perform new post-lock statistical analyses. Completed analysis
+        artifacts define the available quantitative analysis record. Raw
+        execution artifacts may be used to verify factual accounting already
+        present in the run, such as episode identifiers, model-call counts,
+        repair invocation flags, validator reuse, missingness, and artifact
+        provenance. If a preregistered subgroup, sensitivity, secondary, or
+        other statistical analysis was not completed and archived by the
+        autonomous analysis stage, require transparent reporting of that
+        fact and removal or qualification of unsupported claims rather than
+        requiring a new analysis.
+
+        When the review input specifies review_mode="closure_review", do not
+        conduct a new unconstrained peer review and do not introduce a new
+        wishlist of improvements. Evaluate whether the required revisions
+        from previous_terminal_review were adequately resolved. New required
+        revisions are permitted only for a factual error, unsupported claim,
+        contradiction, missing mandatory disclosure, reproducibility defect,
+        or scientific-validity problem newly introduced by the revision.
+        Optional improvements, additional analyses, new presentation ideas,
+        and requests that merely strengthen an already adequate manuscript
+        must not become new required revisions during closure review.
+
         Set accept_for_finalisation=false only for substantive deficiencies
         that remain resolvable in the manuscript from existing evidence or
         for unresolved scientific validity problems that cannot be made
