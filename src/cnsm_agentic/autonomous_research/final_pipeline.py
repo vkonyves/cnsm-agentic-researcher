@@ -3561,6 +3561,10 @@ class FinalAutonomousResearchPipeline:
         maximum_format_revision_rounds = 10
         publication_validation: dict[str, Any] | None = None
 
+        best_manuscript = revised_manuscript
+        best_publication_validation: dict[str, Any] | None = None
+        best_page_count = -1
+
         for format_round in range(
             0,
             maximum_format_revision_rounds + 1,
@@ -3586,6 +3590,39 @@ class FinalAutonomousResearchPipeline:
                 ),
                 publication_validation,
             )
+
+            current_page_count = publication_validation.get(
+                "page_count"
+            )
+            current_maximum_pages = publication_validation.get(
+                "maximum_pages"
+            )
+
+            if (
+                isinstance(current_page_count, int)
+                and isinstance(current_maximum_pages, int)
+                and current_page_count <= current_maximum_pages
+            ):
+                if current_page_count > best_page_count:
+                    best_page_count = current_page_count
+                    best_manuscript = revised_manuscript
+                    best_publication_validation = dict(
+                        publication_validation
+                    )
+
+                elif (
+                    current_page_count == best_page_count
+                    and len(
+                        revised_manuscript.manuscript
+                    )
+                    > len(
+                        best_manuscript.manuscript
+                    )
+                ):
+                    best_manuscript = revised_manuscript
+                    best_publication_validation = dict(
+                        publication_validation
+                    )
 
             if publication_validation.get(
                 "passed"
@@ -3661,6 +3698,21 @@ class FinalAutonomousResearchPipeline:
             else:
                 pages_missing = maximum_pages - page_count
 
+                if pages_missing >= 2:
+                    substantive_expansion_target = (
+                        "Increase the substantive scientific content "
+                        "by approximately 45–60% relative to the "
+                        "current manuscript while preserving all "
+                        "supported content already present. "
+                    )
+                else:
+                    substantive_expansion_target = (
+                        "Increase the substantive scientific content "
+                        "by approximately 20–30% relative to the "
+                        "current manuscript while preserving all "
+                        "supported content already present. "
+                    )
+
                 revision_instruction = (
                     f"The manuscript compiled successfully but occupies only "
                     f"{page_count} of the required {maximum_pages} IEEE pages, "
@@ -3672,7 +3724,8 @@ class FinalAutonomousResearchPipeline:
                     f"{maximum_format_revision_rounds}. "
                     "Substantively expand the manuscript using only information "
                     "supported by the archived autonomous-run artifacts and "
-                    "verified evidence."
+                    "verified evidence. "
+                    f"{substantive_expansion_target}"
                     "Preserve all already artifact-supported reviewer-resolved "
                     "content from the current manuscript. While the manuscript "
                     "remains below the required page count, do not shorten, "
@@ -3733,6 +3786,8 @@ class FinalAutonomousResearchPipeline:
                 ),
             }
 
+            revision_base_manuscript = best_manuscript
+
             revised_manuscript = await run_agent(
                 MANUSCRIPT_REVISER,
                 {
@@ -3757,7 +3812,7 @@ class FinalAutonomousResearchPipeline:
                         manuscript_evidence_bundle
                     ),
                     "manuscript": (
-                        revised_manuscript
+                        revision_base_manuscript
                         .model_dump()
                     ),
                     "peer_review": (
@@ -3798,41 +3853,206 @@ class FinalAutonomousResearchPipeline:
                 revised_manuscript,
             )
 
-        latest_peer_review = await run_agent(
-            PEER_REVIEWER,
-            {
-                "master_prompt": master_prompt,
-                "evidence_verification": (
-                    evidence_report
-                ),
-                "preregistration": (
-                    preregistration.model_dump()
-                ),
-                "execution_manifest": (
-                    execution_manifest
-                ),
-                "analysis_results": (
-                    analysis_results
-                ),
-                "deterministic_reconciliation": (
-                    deterministic_reconciliation
-                ),
-                "manuscript_evidence_bundle": (
-                    manuscript_evidence_bundle
-                ),
-                "manuscript": (
-                    revised_manuscript.model_dump()
-                ),
-                "review_round": (
-                    maximum_peer_review_rounds + 1
-                ),
-            },
-            expected_type=PeerReviewReport,
-            stage_name=(
-                "Terminal AI peer review after format revision"
-            ),
-        )
+        if (
+            best_publication_validation is not None
+            and (
+                publication_validation is None
+                or best_page_count
+                > publication_validation.get(
+                    "page_count",
+                    -1,
+                )
+            )
+        ):
+            revised_manuscript = best_manuscript
 
+            # Re-render the selected best-so-far manuscript so that
+            # the authoritative publication artifacts correspond to
+            # the manuscript actually carried forward.
+            publication_validation = (
+                build_publication_artifacts(
+                    manuscript=(
+                        revised_manuscript.model_dump()
+                    ),
+                    verified_records=records,
+                    output_dir=publication_dir,
+                    paper_run_constraints=(
+                        paper_run_constraints
+                    ),
+                )
+            )
+
+            write_json(
+                run_dir
+                / "manuscript"
+                / "revised_package.json",
+                revised_manuscript,
+            )
+
+        maximum_terminal_revision_rounds = 2
+
+        for terminal_round in range(
+            1,
+            maximum_terminal_revision_rounds + 2,
+        ):
+            latest_peer_review = await run_agent(
+                PEER_REVIEWER,
+                {
+                    "master_prompt": master_prompt,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_evidence_bundle
+                    ),
+                    "manuscript": (
+                        revised_manuscript.model_dump()
+                    ),
+                    "review_round": (
+                        maximum_peer_review_rounds
+                        + terminal_round
+                    ),
+                },
+                expected_type=PeerReviewReport,
+                stage_name=(
+                    "Terminal AI peer review "
+                    f"round {terminal_round}"
+                ),
+            )
+
+            write_json(
+                review_rounds_dir
+                / (
+                    "review_terminal_"
+                    f"{terminal_round:02d}.json"
+                ),
+                latest_peer_review,
+            )
+
+            # A clean terminal review means no further manuscript
+            # revision is required.
+            if (
+                not latest_peer_review.critical_issues
+                and not latest_peer_review.required_revisions
+            ):
+                break
+
+            # At most two terminal review-driven revisions are
+            # permitted. The third terminal review is therefore
+            # review-only and becomes the final archived judgement.
+            if (
+                terminal_round
+                > maximum_terminal_revision_rounds
+            ):
+                break
+
+            revised_manuscript = await run_agent(
+                MANUSCRIPT_REVISER,
+                {
+                    "master_prompt": master_prompt,
+                    "verified_records": records,
+                    "evidence_verification": (
+                        evidence_report
+                    ),
+                    "preregistration": (
+                        preregistration.model_dump()
+                    ),
+                    "execution_manifest": (
+                        execution_manifest
+                    ),
+                    "analysis_results": (
+                        analysis_results
+                    ),
+                    "deterministic_reconciliation": (
+                        deterministic_reconciliation
+                    ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_evidence_bundle
+                    ),
+                    "manuscript": (
+                        revised_manuscript.model_dump()
+                    ),
+                    "peer_review": (
+                        latest_peer_review.model_dump()
+                    ),
+                    "publication_validation": (
+                        publication_validation
+                    ),
+                    "revision_round": (
+                        "terminal_"
+                        f"{terminal_round}"
+                    ),
+                    "revision_instruction": (
+                        "Resolve every required terminal peer-review "
+                        "revision using only the supplied archived "
+                        "evidence and artifacts. Preserve all supported "
+                        "scientific content already present. Do not "
+                        "change empirical results, invent evidence, "
+                        "introduce new experiments, or weaken required "
+                        "disclosure. Maintain the exact five-page IEEE "
+                        "publication requirement."
+                    ),
+                },
+                expected_type=ManuscriptPackage,
+                stage_name=(
+                    "Terminal peer-review manuscript revision "
+                    f"{terminal_round}"
+                ),
+            )
+
+            write_json(
+                revision_rounds_dir
+                / (
+                    "terminal_revised_package_"
+                    f"{terminal_round:02d}.json"
+                ),
+                revised_manuscript,
+            )
+
+            # Keep the conventional latest-manuscript alias in sync
+            # with the manuscript actually being reviewed/rendered.
+            write_json(
+                run_dir
+                / "manuscript"
+                / "revised_package.json",
+                revised_manuscript,
+            )
+
+            publication_validation = (
+                build_publication_artifacts(
+                    manuscript=(
+                        revised_manuscript.model_dump()
+                    ),
+                    verified_records=records,
+                    output_dir=publication_dir,
+                    paper_run_constraints=(
+                        paper_run_constraints
+                    ),
+                )
+            )
+
+            write_json(
+                publication_dir
+                / (
+                    "publication_validation_terminal_"
+                    f"{terminal_round:02d}.json"
+                ),
+                publication_validation,
+            )
+
+        # Compatibility/latest-terminal-review alias.
         write_json(
             review_rounds_dir
             / "review_terminal.json",
@@ -3844,6 +4064,7 @@ class FinalAutonomousResearchPipeline:
                 "Publication validation did not execute."
             )
 
+        # Compatibility/latest-publication-validation alias.
         write_json(
             publication_dir
             / "publication_validation.json",

@@ -1,11 +1,22 @@
 from pathlib import Path
 
 
-def test_final_pipeline_has_bounded_review_revision_loop():
-    source = Path(
+def _final_pipeline_source() -> str:
+    return Path(
         "src/cnsm_agentic/autonomous_research/"
         "final_pipeline.py"
-    ).read_text()
+    ).read_text(encoding="utf-8")
+
+
+def _final_agents_source() -> str:
+    return Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "final_agents.py"
+    ).read_text(encoding="utf-8")
+
+
+def test_final_pipeline_has_bounded_review_revision_loop():
+    source = _final_pipeline_source()
 
     assert "maximum_peer_review_rounds = 5" in source
     assert "latest_peer_review" in source
@@ -41,14 +52,14 @@ def test_final_pipeline_has_bounded_review_revision_loop():
 
     assert '"peer_review"' in final_judge_section
     assert "latest_peer_review" in final_judge_section
-    assert "peer_review.model_dump()" not in final_judge_section
+    assert (
+        "peer_review.model_dump()"
+        not in final_judge_section
+    )
 
 
 def test_final_pipeline_requires_full_five_page_budget():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert "maximum_format_revision_rounds = 10" in source
 
@@ -62,11 +73,11 @@ def test_final_pipeline_requires_full_five_page_budget():
 
     # Underfilled papers must be expanded rather than accepted merely
     # because they are below the maximum page limit.
-    assert "pages_missing = maximum_pages - page_count" in source
     assert (
-        "occupies only "
+        "pages_missing = maximum_pages - page_count"
         in source
     )
+    assert "occupies only " in source
     assert (
         "of the required {maximum_pages} IEEE pages"
         in source
@@ -95,11 +106,33 @@ def test_final_pipeline_requires_full_five_page_budget():
     )
 
 
+def test_underfill_revision_uses_page_gap_specific_expansion():
+    source = _final_pipeline_source()
+
+    assert "pages_missing >= 2" in source
+
+    assert (
+        "45–60%"
+        in source
+        or "45-60%"
+        in source
+    )
+
+    assert (
+        "20–30%"
+        in source
+        or "20-30%"
+        in source
+    )
+
+    assert (
+        "substantive_expansion_target"
+        in source
+    )
+
+
 def test_final_judge_requires_exact_page_budget():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_agents.py"
-    ).read_text()
+    source = _final_agents_source()
 
     assert (
         "publication_validation.uses_full_page_budget=true"
@@ -118,7 +151,8 @@ def test_final_judge_requires_exact_page_budget():
         in source
     )
     assert (
-        "than the frozen maximum must be treated as failing the exact-page "
+        "than the frozen maximum must be treated as "
+        "failing the exact-page "
         in source
     )
     assert (
@@ -132,12 +166,12 @@ def test_final_judge_requires_exact_page_budget():
 
 
 def test_peer_reviewer_does_not_require_unavailable_post_lock_work():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_agents.py"
-    ).read_text()
+    source = _final_agents_source()
 
-    assert "Do not require new post-lock experiments" in source
+    assert (
+        "Do not require new post-lock experiments"
+        in source
+    )
 
     assert (
         "retrospective modification of the sealed preregistration"
@@ -150,7 +184,8 @@ def test_peer_reviewer_does_not_require_unavailable_post_lock_work():
     )
 
     assert (
-        "into an explicit manuscript clarification, limitation, deviation"
+        "into an explicit manuscript clarification, limitation, "
+        "deviation"
         in source
     )
 
@@ -165,16 +200,14 @@ def test_peer_reviewer_does_not_require_unavailable_post_lock_work():
     )
 
     assert (
-        "unavailable, with its consequence for interpretation stated clearly"
+        "unavailable, with its consequence for interpretation "
+        "stated clearly"
         in source
     )
 
 
 def test_manuscript_payload_compacts_verified_records():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert (
         "def compact_verified_records_for_manuscript("
@@ -184,52 +217,28 @@ def test_manuscript_payload_compacts_verified_records():
         "compact_verified_records_for_manuscript("
         in source
     )
-    assert (
-        '"abstract"'
-        in source
-    )
-    assert (
-        "value[:1200]"
-        in source
-    )
+    assert '"abstract"' in source
+    assert "value[:1200]" in source
 
 
 def test_context_window_failure_is_not_retried():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert "context_length_exceeded" in source
     assert "exceeds the context window" in source
-    assert (
-        "identical retries "
-        in source
-    )
+    assert "identical retries " in source
 
 
 def test_manuscript_payload_compacts_execution_manifest():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert (
         "def compact_execution_manifest_for_manuscript("
         in source
     )
-    assert (
-        '"artifact_hashes"'
-        in source
-    )
-    assert (
-        '"artifact_hash_summary"'
-        in source
-    )
-    assert (
-        '"artifact_count"'
-        in source
-    )
+    assert '"artifact_hashes"' in source
+    assert '"artifact_hash_summary"' in source
+    assert '"artifact_count"' in source
     assert (
         "compact_execution_manifest_for_manuscript("
         in source
@@ -237,16 +246,15 @@ def test_manuscript_payload_compacts_execution_manifest():
 
 
 def test_format_revision_performs_only_one_revision_per_round():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     start = source.index(
         "maximum_format_revision_rounds = 10"
     )
+
+    # Stop before the separate terminal-review/revision loop.
     end = source.index(
-        "if publication_validation is None:",
+        "maximum_terminal_revision_rounds = 2",
         start,
     )
 
@@ -266,55 +274,102 @@ def test_format_revision_performs_only_one_revision_per_round():
     )
 
 
+def test_format_revision_preserves_best_under_limit_candidate():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_format_revision_rounds = 10"
+    )
+    end = source.index(
+        "maximum_terminal_revision_rounds = 2",
+        start,
+    )
+
+    format_section = source[start:end]
+
+    assert (
+        "best_manuscript = revised_manuscript"
+        in format_section
+    )
+    assert (
+        "best_publication_validation"
+        in format_section
+    )
+    assert (
+        "best_page_count = -1"
+        in format_section
+    )
+    assert (
+        "current_page_count > best_page_count"
+        in format_section
+    )
+    assert (
+        "current_page_count <= current_maximum_pages"
+        in format_section
+    )
+    assert (
+        "revision_base_manuscript = best_manuscript"
+        in format_section
+    )
+    assert (
+        "revised_manuscript = best_manuscript"
+        in format_section
+    )
+
+
+def test_best_format_candidate_is_rerendered_before_terminal_review():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "if (\n"
+        "            best_publication_validation is not None"
+    )
+    end = source.index(
+        "maximum_terminal_revision_rounds = 2",
+        start,
+    )
+
+    selection_section = source[start:end]
+
+    assert (
+        "revised_manuscript = best_manuscript"
+        in selection_section
+    )
+
+    assert (
+        "publication_validation = (\n"
+        "                build_publication_artifacts("
+        in selection_section
+    )
+
+    assert (
+        '"revised_package.json"'
+        in selection_section
+    )
+
+
 def test_manuscript_revision_receives_compact_evidence_bundle():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert (
         "def build_manuscript_evidence_bundle("
         in source
     )
-    assert (
-        '"artifact_examples"'
-        in source
-    )
-    assert (
-        '"analysis_artifacts"'
-        in source
-    )
-    assert (
-        '"manuscript_evidence_bundle"'
-        in source
-    )
-    assert (
-        '"model_configuration"'
-        in source
-    )
+    assert '"artifact_examples"' in source
+    assert '"analysis_artifacts"' in source
+    assert '"manuscript_evidence_bundle"' in source
+    assert '"model_configuration"' in source
     assert (
         '"initial_master_prompt_reference"'
         in source
     )
-    assert (
-        '"representative_tasks"'
-        in source
-    )
-    assert (
-        '"shared-initial"'
-        in source
-    )
-    assert (
-        '"condition_summary.csv"'
-        in source
-    )
+    assert '"representative_tasks"' in source
+    assert '"shared-initial"' in source
+    assert '"condition_summary.csv"' in source
 
 
 def test_manuscript_evidence_bundle_is_archived():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert (
         '"manuscript_evidence_bundle.json"'
@@ -323,10 +378,7 @@ def test_manuscript_evidence_bundle_is_archived():
 
 
 def test_underfill_revisions_are_cumulative():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     assert (
         "Each underfill revision must be "
@@ -343,37 +395,99 @@ def test_underfill_revisions_are_cumulative():
 
 
 def test_terminal_peer_review_runs_after_format_revision():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
+
+    format_pos = source.index(
+        "maximum_format_revision_rounds = 10"
+    )
+    terminal_pos = source.index(
+        "maximum_terminal_revision_rounds = 2",
+        format_pos,
+    )
+
+    assert format_pos < terminal_pos
 
     assert '"review_terminal.json"' in source
     assert (
-        "Terminal AI peer review after format revision"
+        '"Terminal AI peer review "'
         in source
     )
     assert (
-        "maximum_peer_review_rounds + 1"
+        "maximum_peer_review_rounds\n"
+        "                        + terminal_round"
         in source
+    )
+
+
+def test_terminal_peer_review_can_drive_bounded_revisions():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    assert (
+        "maximum_terminal_revision_rounds = 2"
+        in terminal_section
+    )
+    assert (
+        "for terminal_round in range("
+        in terminal_section
+    )
+    assert (
+        "maximum_terminal_revision_rounds + 2"
+        in terminal_section
+    )
+
+    assert (
+        '"review_terminal_"'
+        in terminal_section
+    )
+    assert (
+        '"terminal_revised_package_"'
+        in terminal_section
+    )
+    assert (
+        '"publication_validation_terminal_"'
+        in terminal_section
+    )
+
+    assert (
+        "not latest_peer_review.critical_issues"
+        in terminal_section
+    )
+    assert (
+        "not latest_peer_review.required_revisions"
+        in terminal_section
+    )
+
+    assert (
+        "terminal_round\n"
+        "                > maximum_terminal_revision_rounds"
+        in terminal_section
+    )
+
+    assert (
+        "Terminal peer-review manuscript revision "
+        in terminal_section
     )
 
 
 def test_terminal_peer_review_receives_evidence_bundle():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     terminal_start = source.index(
-        "latest_peer_review = await run_agent(",
-        source.index(
-            "maximum_format_revision_rounds"
-        ),
+        "maximum_terminal_revision_rounds = 2"
     )
 
     terminal_end = source.index(
-        '"review_terminal.json"',
+        "if publication_validation is None:",
         terminal_start,
     )
 
@@ -385,31 +499,157 @@ def test_terminal_peer_review_receives_evidence_bundle():
         '"manuscript_evidence_bundle"'
         in terminal_section
     )
+    assert (
+        '"evidence_verification"'
+        in terminal_section
+    )
+    assert (
+        '"preregistration"'
+        in terminal_section
+    )
+    assert (
+        '"execution_manifest"'
+        in terminal_section
+    )
+    assert (
+        '"analysis_results"'
+        in terminal_section
+    )
+    assert (
+        '"deterministic_reconciliation"'
+        in terminal_section
+    )
+
+
+def test_terminal_revision_receives_latest_peer_review():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    assert (
+        '"peer_review": (\n'
+        "                        latest_peer_review.model_dump()"
+        in terminal_section
+    )
+
+    assert (
+        '"publication_validation": (\n'
+        "                        publication_validation"
+        in terminal_section
+    )
+
+    assert (
+        '"revision_round": (\n'
+        '                        "terminal_"'
+        in terminal_section
+    )
+
+
+def test_terminal_revision_is_rerendered_and_archived():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    assert (
+        '"terminal_revised_package_"'
+        in terminal_section
+    )
+
+    assert (
+        '"publication_validation_terminal_"'
+        in terminal_section
+    )
+
+    assert (
+        "build_publication_artifacts("
+        in terminal_section
+    )
+
+    # The conventional latest-manuscript alias must track terminal
+    # revisions as well.
+    assert (
+        '"revised_package.json"'
+        in terminal_section
+    )
+
+
+def test_terminal_review_compatibility_alias_is_written():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+    end = source.index(
+        "if publication_validation is None:",
+        start,
+    )
+
+    terminal_section = source[start:end]
+
+    assert (
+        '"review_terminal.json"'
+        in terminal_section
+    )
+
+    assert (
+        "latest_peer_review"
+        in terminal_section
+    )
 
 
 def test_terminal_review_precedes_final_judge():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     terminal_pos = source.index(
         '"review_terminal.json"'
     )
 
-    final_judge_pos = source.index(
-        "FINAL_JUDGE",
+    final_marker_pos = source.index(
+        "Final autonomous readiness judgement",
         terminal_pos,
     )
 
-    assert terminal_pos < final_judge_pos
+    assert terminal_pos < final_marker_pos
+
+
+def test_final_publication_validation_alias_is_written():
+    source = _final_pipeline_source()
+
+    terminal_pos = source.index(
+        "maximum_terminal_revision_rounds = 2"
+    )
+
+    final_alias_pos = source.index(
+        '"publication_validation.json"',
+        terminal_pos,
+    )
+
+    final_judge_pos = source.index(
+        "Final autonomous readiness judgement",
+        final_alias_pos,
+    )
+
+    assert final_alias_pos < final_judge_pos
 
 
 def test_regular_peer_review_receives_evidence_bundle():
-    source = Path(
-        "src/cnsm_agentic/autonomous_research/"
-        "final_pipeline.py"
-    ).read_text()
+    source = _final_pipeline_source()
 
     review_loop_start = source.index(
         "for review_round in range("
