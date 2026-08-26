@@ -70,6 +70,12 @@ NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
     r"\bwithout[\s-]+manual[\s-]+adjudicat"
     r"(?:ion|or|ors|e|ed|ing)?\b",
 
+    r"\brather[\s-]+than[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
+    r"\binstead[\s-]+of[\s-]+manual[\s-]+adjudicat"
+    r"(?:ion|or|ors|e|ed|ing)?\b",
+
     r"\bdoes[\s-]+not[\s-]+require"
     r"[\s-]+manual[\s-]+adjudicat"
     r"(?:ion|or|ors|e|ed|ing)?\b",

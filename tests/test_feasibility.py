@@ -628,3 +628,48 @@ def test_no_human_annotation_is_used_is_accepted():
         or "annotation" in issue.lower()
         for issue in issues
     )
+
+
+def test_rather_than_manual_adjudication_is_not_a_human_dependency():
+    issues = validate_design_feasibility(
+        design={
+            "analysis_treatment": (
+                "Reject outputs with invalid addressing and treat "
+                "the case as a verifier-detected issue rather than "
+                "manual adjudication."
+            )
+        },
+        capability_manifest={
+            "human_scientific_labour_allowed": False,
+            "human_annotation_allowed": False,
+            "external_partner_allowed": True,
+            "nda_resources_allowed": True,
+        },
+    )
+
+    assert not any(
+        "manual adjudication" in issue.lower()
+        for issue in issues
+    )
+
+
+def test_instead_of_manual_adjudication_is_not_a_human_dependency():
+    issues = validate_design_feasibility(
+        design={
+            "analysis_treatment": (
+                "Use deterministic verifier resolution instead of "
+                "manual adjudication."
+            )
+        },
+        capability_manifest={
+            "human_scientific_labour_allowed": False,
+            "human_annotation_allowed": False,
+            "external_partner_allowed": True,
+            "nda_resources_allowed": True,
+        },
+    )
+
+    assert not any(
+        "manual adjudication" in issue.lower()
+        for issue in issues
+    )
