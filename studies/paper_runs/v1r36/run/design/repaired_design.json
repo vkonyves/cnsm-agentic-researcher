@@ -1,0 +1,162 @@
+{
+  "selected_candidate_id": "netverify_gvr_empirical_integration_2026",
+  "title": "Empirical integration of a formal network verifier as an oracle inside an LLM Generate–Verify–Repair loop for intent→configuration pipelines",
+  "research_question": "Does embedding a formal-network verifier as an oracle inside a paired Generate–Verify–Repair (GVR) loop increase detection/rejection of unsafe or incorrect LLM-generated network configurations and improve end-to-end repair success versus a generate-only baseline?",
+  "confirmatory_hypotheses": [
+    "Embedding a formal verifier as an oracle in a GVR loop increases the proportion of unsafe or incorrect generated configurations that are detected and rejected relative to a generate-only baseline (paired estimand).",
+    "When the verifier rejects a candidate, a bounded automated LLM-guided repair loop (bounded attempts) will produce a verifier-accepted configuration within the preregistered repair budget more often than single-shot generation."
+  ],
+  "exploratory_questions": [
+    "By how much do false-accept and false-reject rates (verifier vs. emulator ground truth) vary across vendor-style syntaxes and topology templates?",
+    "Does a conservative vs permissive verifier rule-set materially change measured repair success and false-accept rates?"
+  ],
+  "benchmark_scope": [
+    "SyntheticNetOpsIntentConfig_v1 (public synthetic intent→configuration suite produced and published with this study)",
+    "Emulator environment: Kathará/Mininet emulation images (Docker-based) for dynamic semantic ground-truth"
+  ],
+  "model_scope": [
+    "Single hosted LLM API (one model identifier; exact identifier logged in execution artifacts and Disclosure)."
+  ],
+  "transformation_scope": [
+    "Syntax normalization (vendor CLI canonicalizer)",
+    "Token-level canonical mapping between vendor syntaxes",
+    "Semantic-preserving whitespace/comment normalization"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired difference in proportion of unsafe configs detected/rejected by the verifier in GVR arm minus baseline generate-only detection)",
+  "secondary_estimands": [
+    "repair_success_probability_conditional_on_initial_reject (proportion of rejected tasks where bounded repair produced verifier-accepted config)",
+    "verifier_false_accept_rate (verifier accepted but emulator reports violation)",
+    "verifier_false_reject_rate (verifier rejected but emulator reports safe)"
+  ],
+  "sampling_plan": "Paired within-task design. N = 270 distinct intent→configuration tasks, constructed as 3 vendor-style syntaxes × 3 topology templates = 9 clusters × 30 tasks per cluster = 270 tasks. For each task both arms are executed (paired): (A) generate-only baseline: single generation attempt; (B) GVR: generate, verifier check, and if rejected invoke bounded repair loop (up to R attempts per task; R varies by budget scenario and is preregistered). Random seeds and deterministic prompt templates are fixed and recorded. Validation subset: 20% stratified sample (6 tasks per cluster × 9 clusters = 54 tasks) reserved for verifier-vs-emulator coverage validation (device-executed via emulator) and used to compute verifier false-accept/false-reject rates.",
+  "analysis_plan": "Primary analysis executed by the registered executor 'paired_binary_analysis_v1' computing estimand 'paired_success_rate_difference_guarded_minus_baseline'. Primary treatment of failed model calls: 'complete_pair_primary' (see missingness_plan); sensitivity analysis with 'complete_pair_primary_with_failure_as_zero_sensitivity' will be reported. Test: paired-proportion comparison (McNemar / paired binary analysis per registered contract) two-sided alpha=0.05 with 95% CIs. Report repair-success probability conditional on initial rejection and compute number-needed-to-repair. Subgroup analyses by vendor-style and topology (Bonferroni-corrected per multiplicity_plan). Report verifier false-accept and false-reject rates against emulator ground truth from the 54-task validation set and for the full dataset where emulator checks were performed. All analysis code and raw outputs are logged.",
+  "multiplicity_plan": "Primary outcome is a single preregistered paired comparison. Nine preregistered subgroup comparisons (3 vendors × 3 topologies) will use Bonferroni correction: adjusted alpha = 0.05/9 = 0.0056. All secondary/exploratory analyses will be flagged as exploratory.",
+  "missingness_plan": "Model/API call failures: deterministic retry policy of up to 2 retries per failed call with exponential backoff; retries are logged. If retries exhaust, treat the pair per the registered analysis primary option 'complete_pair_primary' (pair remains but primary estimand executor handles failure per contract). Sensitivity analysis will treat unresolved generation/repair failures as 'zero' successes ('complete_pair_primary_with_failure_as_zero_sensitivity'). No manual human intervention is permitted; any task with infrastructure/emulator failure is recorded and excluded only if the failure prevents emulator ground-truth acquisition; exclusions and counts will be reported exactly.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "SyntheticNetOpsIntentConfig_v1"
+    ],
+    "risk_factors": [
+      "Pre-lock development artifacts accidentally re-used in dataset (pre-lock rehearsals not to be used).",
+      "Duplicate or near-duplicate tasks leaking between validation/confirmatory sets.",
+      "RAG retrieval store contamination (e.g., containing test answers)."
+    ],
+    "detection_procedures": [
+      "Deterministic SHA-256 hashing of all prompts, intents, and retrieved documents recorded per invocation to detect reuse.",
+      "Automated exact and fuzzy duplicate detection (token-level Jaccard similarity threshold 0.9) across dataset and retrieval store.",
+      "Deterministic snapshotting of the RAG retrieval index at experiment start; index is frozen for all model calls."
+    ],
+    "item_flagging_rules": [
+      "Exact-duplicate tasks flagged and excluded from confirmatory set automatically.",
+      "Near-duplicates exceeding similarity threshold are flagged and placed into a separate diagnostic set; flags are deterministic and recorded."
+    ],
+    "analysis_treatment": "Automatically exclude exact duplicates from primary analysis; report analyses with and without near-duplicate exclusions. Perform sensitivity analyses to quantify effects of duplicate exclusion.",
+    "residual_uncertainty": [
+      "Undetected semantic near-duplicates below fuzzy threshold.",
+      "Potential retrieval-store content overlap with LLM training data (model nondeterminism and proprietary training data unknown)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_a_worst_case_3repairs",
+      "description": "Conservative worst-case: GVR repair budget R=3; retry policy as preregistered. Paired execution runs both arms for all N tasks.",
+      "planned_model_calls": 1350,
+      "models": [
+        "hosted_llm_api"
+      ],
+      "transformations": [
+        "syntax_normalization",
+        "vendor_token_mapping"
+      ],
+      "discovery_items": 54,
+      "confirmatory_items": 270,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Per-task worst-case model calls = baseline(1) + GVR(initial 1 + 3 repairs) = 5 calls; 270 tasks × 5 = 1350 calls. 1350 < capability manifest maximum_planned_model_calls (10000) and CPU/docker-based emulation fits within the 7-day wallclock with deterministic run scheduling."
+    },
+    {
+      "scenario_id": "scenario_b_recommended_2repairs",
+      "description": "Recommended pragmatic scenario (balanced cost/reliability): GVR repair budget R=2 (preregistered), retries and validation as specified.",
+      "planned_model_calls": 1080,
+      "models": [
+        "hosted_llm_api"
+      ],
+      "transformations": [
+        "syntax_normalization",
+        "vendor_token_mapping"
+      ],
+      "discovery_items": 54,
+      "confirmatory_items": 270,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Per-task worst-case model calls = baseline(1) + GVR(initial 1 + 2 repairs) = 4 calls; 270 × 4 = 1080 calls. This keeps headroom for API transient retries and logging while remaining well under the model-call cap and within 7-day execution budget. Recommended to balance evaluation power and cost."
+    },
+    {
+      "scenario_id": "scenario_c_minimal_no_repairs",
+      "description": "Minimal / low-cost scenario: GVR limited to initial verify only (R=0), used as sensitivity/diagnostic arm when API cost or rate limits are binding.",
+      "planned_model_calls": 540,
+      "models": [
+        "hosted_llm_api"
+      ],
+      "transformations": [
+        "syntax_normalization"
+      ],
+      "discovery_items": 54,
+      "confirmatory_items": 270,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Per-task calls = baseline(1) + GVR(initial 1) = 2 calls; 270 × 2 = 540 calls. Useful as lower-cost sensitivity run; retains paired structure but does not evaluate repair efficacy."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute difference of 0.10 (10 percentage points) in detection/rejection proportion between GVR and baseline",
+    "clustering_unit": "individual task (paired within-task comparison)",
+    "calculation_method": "Approximate paired binary-power calculation / McNemar-style sample-size reasoning using normal approximation under conservative assumptions (two-sided alpha=0.05, power=0.80). Exact test executed post-hoc via the registered analysis executor.",
+    "assumptions": [
+      "Paired design with independent task pairs",
+      "Conservative baseline detector rate p0 ≈ 0.50 for sensitivity calculation (conservative for variance)",
+      "Two-sided alpha=0.05 and desired power 80%"
+    ],
+    "recommended_scenario_id": "scenario_b_recommended_2repairs",
+    "minimum_detectable_effect_notes": "With N=270 paired observations and conservative baseline p0≈0.50, the approximate minimum detectable absolute paired difference is ≈0.10 (10 percentage points) at 80% power under normal approximation assumptions. Exact confidence intervals and exact test p-values will be computed by the registered analysis executor.",
+    "sensitivity_analyses": [
+      "Vary baseline p0 between 0.30 and 0.70 to quantify MDE changes.",
+      "Alternate failed-call treatment: treat unresolved calls as zero-success (sensitivity executor option)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "syntax_normalization (vendor CLI canonicalizer)",
+      "token-level mapping (vendor-to-canonical tokens)",
+      "comment/whitespace stripping"
+    ],
+    "semantic_equivalence_checks": [
+      "For each transformation, run the transformed config in the emulator and compare emulator reachability/safety outputs with pre-transformation outputs on a diagnostic set; any semantic divergence is flagged automatically.",
+      "Automated diffing of control-plane relevant fields and deterministic acceptance thresholds applied; differences recorded"
+    ],
+    "automatic_rejection_rules": [
+      "If a transformation causes emulator-detected semantic changes for any task in the 100-item transformation test-suite, the transformation is rejected and removed from the pipeline automatically.",
+      "If syntax normalization introduces parse errors in target vendor syntax, the transformed output is rejected and original output is retained for diagnostics."
+    ],
+    "audit_sample_policy": "20% stratified audit: the 54-task validation subset (6 per cluster) is used for verifier-vs-emulator checks and transformation validation; all validation runs are recorded in full and hashes of artifacts are archived.",
+    "mapping_validation": "Mapping tables validated deterministically via a 100-sample synthetic suite covering common token patterns; all mapping changes are versioned and tested automatically in Dockerized unit tests.",
+    "residual_risks": [
+      "Transformations that preserve high-level reachability but alter low-level vendor-specific operational side-effects undetected by emulator.",
+      "Edge-case vendor CLI constructs not exercised by synthetic mapping tests."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator (Kathará/Mininet) approximations may not capture all production device stateful behaviors; conclusions are explicitly scoped to emulator-grounded behavior.",
+    "Verifier coverage: despite device-executed validation subset, the verifier may miss vendor-specific corner cases outside the validated sample.",
+    "Repair loop may overfit to the verifier rules and produce configs that pass verifier but fail in untested dynamic scenarios; mitigation: emulator checks and conservative verifier rule-set sensitivity analysis reduce but do not eliminate this risk.",
+    "Model API nondeterminism and proprietary training data: retrieval of model behavior variability may affect repeatability; logged seeds and full transcripts mitigate but cannot eliminate model nondeterminism.",
+    "Synthetic task suite may not fully represent production intent distribution; external generalization is therefore limited."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4414359351",
+    "https://openalex.org/W4400072049",
+    "https://openalex.org/W4386722061"
+  ]
+}

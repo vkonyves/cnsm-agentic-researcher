@@ -1,0 +1,25 @@
+{
+  "selected_candidate_id": "netverify_gvr_empirical_integration_2026",
+  "selection_rationale": "This candidate directly addresses the core CNSM topic (operational reliability of LLM-driven NetOps) by empirically testing a formal-verifier-as-oracle inside a GVR loop. It is falsifiable, experimentally clear, feasible within the stated model-call budget, and maps to key unresolved gaps (integration of formal verification with GVR). Reviewer concerns are addressable via concrete preregistration repairs.",
+  "runner_up_candidate_id": "netops_intentbench_dataset_emulator_2026",
+  "unresolved_uncertainties": [
+    "Verifier coverage relative to vendor-specific CLI semantics and completeness of the verifier model (evidence gap U2).",
+    "Potential verifier/emulator semantic mismatch: verifier decisions (accept/reject) may not align with emulator (ground-truth) outcomes, producing false-accepts or false-rejects.",
+    "Risk that the repair loop will overfit to the verifier (satisfy verifier rules but fail under emulator dynamic/stateful semantics).",
+    "Emulator limitations (Mininet/Kathará) in representing real device dynamic/stateful behaviors (evidence gap U1).",
+    "Model/API rate limits, transient failures, or retry behavior biasing results if not strictly controlled."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4414359351",
+    "https://openalex.org/W4400072049",
+    "https://openalex.org/W4386722061"
+  ],
+  "required_repairs_before_preregistration": [
+    "Validate verifier coverage against a gold-labelled subset (human-reviewed or device-executed) and report verifier false-accept and false-reject rates.",
+    "Include conservative and permissive verifier rule-sets and preregister sensitivity analyses comparing them.",
+    "Provide anti-overfitting safeguards for the repair loop (e.g., diversity-promoting objectives, verifier+emulator checks) and log full repair transcripts for audit.",
+    "Predefine and freeze a retry policy and model-call budget; instrument and report API failures and their deterministic handling (retries vs. abort)."
+  ]
+}

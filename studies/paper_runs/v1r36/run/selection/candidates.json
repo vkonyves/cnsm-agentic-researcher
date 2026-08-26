@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "netverify_gvr_empirical_integration_2026",
+      "title": "Empirical integration of a formal network verifier as an oracle inside an LLM Generate–Verify–Repair loop for intent→configuration pipelines",
+      "research_question": "Can a formal network-verification oracle (NetKAT-like) embedded in a Generate–Verify–Repair (GVR) loop materially increase detection/rejection of unsafe or incorrect LLM-generated network configurations and improve end-to-end repair success across heterogeneous vendor-style configurations?",
+      "hypotheses": [
+        "Embedding a formal verifier as an oracle in a GVR loop increases the proportion of unsafe or incorrect generated configurations that are detected and rejected relative to a generate-only baseline.",
+        "When the verifier rejects a candidate, a bounded automated repair loop (LLM-guided) will produce a verifier-accepted configuration within a fixed budget of repair attempts more often than random retry or naive prompting."
+      ],
+      "proposed_design": "Construct a controlled task set (N=240 intent→configuration tasks) covering three vendor-style syntaxes and three topology templates. For each task: (1) call a hosted LLM with a fixed RAG prompt to generate a candidate configuration; (2) run a NetKAT-inspired verifier to check safety/reachability invariants; (3) if rejected, invoke a bounded repair loop (up to 3 LLM repair attempts) with the verifier as oracle; (4) record acceptance, verifier decisions, and execution-semantic checks in an emulator (Mininet/Kathará) to approximate dynamic semantics. Compare two arms paired per task: (A) LLM generate-only (no verifier in-the-loop, single attempt) and (B) LLM+Verifier+Repair (GVR). Use fixed random seeds and deterministic prompt templates; freeze retry policy and stopping rules in preregistration.",
+      "expected_data": "Per-task records including generated config text, verifier pass/fail flags, repair attempt transcripts, emulator-executed semantic outcomes (reachability/safety violations), time and number of model calls per task. Aggregated counts of verifier-detected unsafe configs, false-accepts (verifier accepted but emulator indicates violation), false-rejects, repair-success rates, and model-call budgets used.",
+      "primary_outcome": "Difference in verifier-detected unsafe-config rejection rate (proportion of unsafe configs detected/rejected) between generate-only baseline and GVR arm, measured across paired tasks.",
+      "analysis_outline": "Compute paired proportions of unsafe detections (McNemar's test or paired-sample two-sided test for proportions) between arms with 95% CIs; compute repair-success probability conditional on initial rejection and estimate number-needed-to-repair. Report false-accept and false-reject rates (verifier vs emulator ground truth). Produce subgroup analyses by vendor-style and topology (Bonferroni-corrected). Conduct sensitivity analysis varying verifier specification (conservative vs permissive rule sets).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4414359351"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4386722061",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "The formal verifier may not fully model vendor-specific CLI semantics, producing false-accepts or false-rejects relative to emulator semantics.",
+        "Emulator approximations (Mininet/Kathará) may not capture all dynamic stateful behaviors, causing mismatch between verifier and ground truth.",
+        "Repair loops may lead to repeated trivial edits that satisfy the verifier but fail under emulator semantics (overfitting to verifier).",
+        "Model API rate limits or transient failures could bias results if retries exceed preregistered policies."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "netops_intentbench_dataset_emulator_2026",
+      "title": "NetOps-IntentBench: a reproducible benchmark and emulator-based evaluation suite for intent→configuration and verify–repair pipelines",
+      "research_question": "Does a standardized, open benchmark that includes multi-vendor-style CLIs, diverse topologies, and dynamic-state test cases reveal systematic failure modes and cross-vendor weaknesses in LLM-based intent→configuration pipelines that are not visible in smaller prototype evaluations?",
+      "hypotheses": [
+        "A publicly released benchmark covering multi-vendor-style intents and dynamic scenarios will reveal systematic performance gaps of LLM pipelines, with significantly higher incorrect-configuration rates on vendor-specific syntax and stateful tasks than on vendor-agnostic tasks.",
+        "RAG-augmented pipelines will outperform plain prompting on grounded factuality metrics, but pockets of failure will persist concentrated on edge-case dynamic-state intents."
+      ],
+      "proposed_design": "Assemble and release a benchmark of M=500 intents with paired gold-reference configurations where available and emulator-executable scenario descriptions. Tasks span 4 vendor-style syntaxes (Cisco-like, Juniper-like, open-source), three topology families, and a mix of static and dynamic (stateful) objectives. Build an evaluation harness using Kathará/Mininet to execute configs and check operational invariants. Run a set of baseline LLM pipelines (hosted model API): plain prompt, RAG-augmented prompt, and LLM+simple verifier. Record correctness, safety violations, verifier pass rates, and per-task failure taxonomy. Publish dataset, harness, and evaluation scripts under an open license.",
+      "expected_data": "Released dataset (intents, topologies, gold configs where public), per-model evaluation results (correctness rates, safety violation counts), error taxonomy listing frequent failure modes (syntax, semantic, stateful), and cross-vendor comparative tables.",
+      "primary_outcome": "Benchmark-derived per-task correctness rates aggregated by vendor-style; specifically, the difference in correctness between vendor-style groups measured with 95% CIs and accompanied by an error-mode taxonomy.",
+      "analysis_outline": "Descriptive statistics of accuracy and safety metrics by vendor-style and task type; chi-squared tests for independence to assess vendor-style effect on failure rate; cluster analysis on failure-mode vectors to identify common error classes; release of reproducible analysis notebooks and evaluation scripts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4322576964"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4400490116",
+        "https://openalex.org/W4404602270"
+      ],
+      "risks": [
+        "Legal/privacy constraints limit inclusion of real vendor production configs; synthetic or sanitized corpora may not perfectly represent production distributions.",
+        "Emulator limitations may bias benchmark outcomes relative to real hardware.",
+        "Dataset curation choices may inadvertently favor certain pipelines; careful documentation required to avoid evaluation bias.",
+        "Compute and model-call budget limits may restrict the number of models or prompt variants evaluated initially."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "rag_adversarial_robustness_netops_2026",
+      "title": "Adversarial robustness of RAG-backed LLM NetOps pipelines under retrieval corruption and prompt attacks",
+      "research_question": "How do retrieval-store corruption and targeted prompt attacks affect the safety and correctness of RAG-augmented LLM intent→configuration pipelines, and can simple mitigation strategies (retrieval validation, prompt sanitization) measurably reduce attack success?",
+      "hypotheses": [
+        "Corrupting or poisoning the retrieval store (returning stale/wrong vendor snippets) increases the rate of unsafe or incorrect configurations produced by a RAG-augmented pipeline compared to a clean retrieval baseline.",
+        "Applying lightweight retrieval-validation checks and prompt sanitization reduces but does not eliminate attack success; residual failures remain concentrated in high-ambiguity intents."
+      ],
+      "proposed_design": "Use a fixed benchmark subset (N=200 tasks) and a RAG pipeline that fetches supporting configuration snippets from a simulated document store. Design three attack classes: (A) retrieval poisoning (injected incorrect snippets), (B) adversarial prompt suffixes (crafted to induce unsafe actions), and (C) combined attacks. For each task and attack condition, run the LLM pipeline, apply optional mitigations (retrieve-check heuristics, answer-constrained prompting), and evaluate outputs via an emulator and a verifier for safety. Measure attack success rates and mitigation efficacy. Freeze attack generation procedures and mitigation heuristics in preregistration.",
+      "expected_data": "Per-condition attack success rates (proportion of runs producing unsafe/config-violating output), distribution of error types under each attack class, mitigation effectiveness (relative reduction in success), and model-call/time overhead introduced by mitigations.",
+      "primary_outcome": "Relative increase in unsafe-config production rate under retrieval-poisoning attacks compared to clean-retrieval baseline, and the percent reduction in attack success achieved by the best mitigation in the preregistered set.",
+      "analysis_outline": "Estimate attack success proportions with 95% CIs and compare conditions using paired proportion tests; compute mitigation effect sizes and significance; stratify results by task ambiguity and vendor-style; report ROC-style curves for detection heuristics where applicable; provide qualitative examples of successful attacks and mitigations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4400490116"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4415707175",
+        "https://openalex.org/W4386722061"
+      ],
+      "risks": [
+        "Attack generation may unintentionally exploit model-specific vulnerabilities that limit generalizability to other LLM APIs.",
+        "Mitigations evaluated may be ad hoc and not representative of more sophisticated defenses.",
+        "Reliance on emulated semantics may under- or over-estimate attack consequences in real hardware.",
+        "Ethical considerations around publishing attack details must be managed to avoid enabling harm; disclosure policy will follow responsible-release norms."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "auto_oversight_policy_tradeoffs_2026",
+      "title": "Automated oversight policies for high-frequency LLM-driven NetOps: safety–latency tradeoffs and Pareto-optimal thresholds",
+      "research_question": "For high-frequency or low-latency NetOps interventions driven by LLMs, which automated oversight policy parameters (verification strictness, retry limits, conditional delegation thresholds) best trade off safety (avoiding unsafe changes) against operational latency, and where are the Pareto-optimal points?",
+      "hypotheses": [
+        "Increasing verification strictness and lowering automatic-accept thresholds monotonically reduces unsafe-change incidence but increases average intervention latency and frequency of human-delegation events.",
+        "A conditional-delegation policy that uses a small bounded repair budget followed by delegation achieves a better safety–latency tradeoff (Pareto dominance) than always-delegate or always-automate extremes."
+      ],
+      "proposed_design": "Simulate a continuous stream of M=1000 intent-change requests sampled from a frozen distribution across task types. Implement an LLM-driven pipeline with a verifier and configurable oversight policy parameters: verifier strictness levels (conservative/permissive), repair-attempt budget (0–5), and delegation threshold (probability/uncertainty cutoff). For each policy configuration, measure safety (unsafe configs per 1000 requests), mean and 95th-percentile latency to completion, and delegation rate. Use the emulator+verifier to determine safety outcomes. Predefine policy grid and stopping rules in preregistration. No human participants; delegation is simulated as a latency penalty plus perfect correction model to isolate policy tradeoffs.",
+      "expected_data": "Policy grid results: safety rates, latency distributions, delegation rates per configuration; derived Pareto frontier of safety vs latency; recommended policy parameter ranges for different operational priorities.",
+      "primary_outcome": "Identification and quantification of Pareto-optimal oversight parameter settings that minimize unsafe-change incidence for a given latency budget (e.g., <X ms or <Y model calls), reported as concrete threshold recommendations.",
+      "analysis_outline": "Compute safety and latency metrics for each policy setting; build and plot Pareto frontiers; use bootstrapped CIs for safety and latency estimates; perform multi-objective comparison and recommend candidate operating points under different latency constraints; sensitivity analyses with alternate simulated workload mixes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4319339070",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4224940987"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400490116",
+        "doi:10.2139/ssrn.6528298",
+        "https://openalex.org/W4414359351"
+      ],
+      "risks": [
+        "Simulated delegation (perfect-correction model) may overstate benefits of delegation relative to real human operator behavior.",
+        "Workload sampling choices affect recommended thresholds; recommendations may not generalize to different organizations or traffic patterns.",
+        "Latency estimates depend on model-call times and network conditions of hosted APIs; results must be interpreted with those constraints.",
+        "Automated policy recommendations could be misapplied in production without site-specific validation."
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

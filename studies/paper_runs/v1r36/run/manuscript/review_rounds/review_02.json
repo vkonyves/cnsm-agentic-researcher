@@ -1,0 +1,19 @@
+{
+  "summary": "Well-executed, fully preregistered paired study with strong provenance and reproducibility artifacts. The paper transparently reports a null result: under the preregistered shared-initial-generation semantics the LLM produced verifier-acceptable candidates for all tasks, so the verifier/repair path was never exercised and no marginal improvement was observed. Scientific design, preregistration fidelity, execution logging, and artifact hashes are excellent. The main limitation is methodological (shared_initial_candidate semantics and single-model/synthetic tasks) and should be made unambiguously explicit in the main manuscript text (not only in the Disclosure). I recommend minor but mandatory clarifications to improve interpretability; no new experiments are required.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "In Results (and Abstract): explicitly report counts for verifier rejections and repair invocations (e.g., \"verifier rejected initial candidate: 0/270; bounded repair calls invoked: 0; repair successes conditional on initial reject: 0/0\"). Although these are inferable from the contingency table, an explicit statement and a small table will remove ambiguity for readers.",
+    "In the Abstract and the end of the Introduction, explicitly state the preregistered shared_initial_candidate generation semantics and its practical consequence (one initial generation per pair, model_calls_used=270). Make clear that the primary estimand measures the verifier's marginal effect on the same generated candidate rather than the effect under independently sampled per-condition generations.",
+    "In Methods, add an inline pointer (path and SHA-256) to the archived initial master prompt and the deterministic prompt templates used for generation (provenance/master_prompt.txt and its SHA already in the bundle). Also state the deterministic seeding/sampling settings used (recorded in execution/model_configuration.json) so readers can unambiguously reproduce the generation semantics from supplied artifacts."
+  ],
+  "optional_revisions": [
+    "Discuss more explicitly in the Discussion how the preregistered power calculation (target MDE ≈ 0.10) relates to the observed degenerate contingency (zero discordant pairs), and explain limits on what the null result implies about verifier utility under different generation semantics (this can be done by referencing the provided artifacts rather than new analyses).",
+    "Add a concise per-episode summary table (or pointer to analysis/ files) in the main text showing repair_applied flags and validator verdict distribution to help non-technical readers verify that the repair path was never invoked.",
+    "Recommend (for future work) running the preregistered independent_condition_generation variant and/or varying sampling temperature / additional LLMs; present these as explicit follow-on experiments rather than requirements for this submission."
+  ],
+  "accept_for_finalisation": false
+}

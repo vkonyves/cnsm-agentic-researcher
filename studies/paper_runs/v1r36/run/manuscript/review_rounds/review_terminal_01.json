@@ -1,0 +1,25 @@
+{
+  "summary": "Carefully documented, fully reproducible preregistered paired study that executed a Generate–Verify–Repair (GVR) pipeline with a deterministic verifier and a single LLM (gpt-5-mini) over a synthetic intent→configuration suite (N=270 pairs). Execution used shared_initial_candidate semantics (one generated candidate per pair evaluated under both arms), producing 270/270 accepts in both baseline and guarded arms (n11=270, n10=n01=n00=0). The run is artifact-rich and deterministically archived, but a preregistration/design inconsistency (power calculations assumed independent per‑arm sampling while execution_contract.independent_condition_generation=false implemented shared candidates) materially changes the estimand tested. The manuscript documents the conditional/null outcome and releases full provenance; however the paper needs targeted clarifications (preregistration inconsistency, explicit pointer to verifier rule set, and tightened claim framing) before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Preregistration/design inconsistency: the preregistered power/MDE calculations assume independent per‑arm generation, but the frozen execution used shared_initial_candidate semantics (execution_contract.independent_condition_generation=false). This means the executed estimand differs from the one used for power justification and must be declared explicitly and unambiguously in the manuscript and disclosure.",
+    "Insufficient explicit artifact pointer for verifier rule set: the paper names deterministic_netops_validator_v5 but does not provide a clear, human‑readable path (file name / SHA‑256) to the verifier rule set or its configuration that determines accept/reject behavior; reproducing verifier behavior requires that exact rule set be surfaced in the artifact manifest and the manuscript.",
+    "Potentially misleading framing in title/abstract: some readers may interpret the title/abstract as having tested the preregistered independent‑sampling estimand; because the run is conditional on shared candidates the manuscript must more strongly and unambiguously limit claims to the conditional estimand actually executed."
+  ],
+  "required_revisions": [
+    "Add a concise, explicit statement in Methods (and mirror in the Disclosure Statement) that the preregistration contained inconsistent sampling assumptions: cite the preregistration SHA‑256, state that power/MDE calculations assumed independent per‑arm generation, and declare that execution used execution_contract.independent_condition_generation=false (shared_initial_candidate), therefore the observed inferential results are conditional on identical generated candidates.",
+    "Provide an exact artifact pointer to the verifier rule set and configuration used by deterministic_netops_validator_v5 (file path within the released artifact bundle and its SHA‑256). If the rule set is embedded in an artifact (e.g., a rules.json, policy file, or Docker image), state the path and SHA‑256 and a short note on how to invoke/inspect it. Do not require new execution — only point to and document the existing artifact.",
+    "Edit title/abstract/conclusion wording to avoid any implication that the executed run tests the original independent‑sampling estimand; explicitly state in the abstract and conclusion that results are conditional on shared_initial_candidate semantics and therefore do not test the preregistered independent‑sampling estimand.",
+    "Add a short paragraph in Methods or Discussion that reconciles the preregistered power calculation with the executed design, making clear the consequences for interpretation (i.e., why the MDE is inapplicable and what the observed contingency implies about the conditional regime)."
+  ],
+  "optional_revisions": [
+    "Include a brief artifact table (one paragraph or small table) listing the minimal set of artifact paths and SHA‑256s required to reproduce the main claims (preregistration JSON, execution/raw_results.jsonl, model_configuration.json, deterministic verifier rule file, example scoring JSONs). The run already archives hashes; listing a concise subset in the paper improves clarity for reviewers/readers.",
+    "In Discussion, add a short, explicit recommendation (artifact instructions) for the minimal, deterministic parameter edits required to run the independent‑sampling experiment that the preregistration originally powered (the manuscript already outlines these; a one‑line checklist would help reproducibility).",
+    "Flag in Limitations that single‑model and single‑rule‑set scope prevents generalization and suggest this as a concrete next preregistered follow‑up; this is optional but useful for readers.",
+    "If space permits, include one short representative excerpt of the verifier rule diagnostics (from an example scoring JSON) to illustrate what a typical rejection/diagnostic would look like (no new experiments required; use existing scoring JSONs)."
+  ],
+  "accept_for_finalisation": false
+}

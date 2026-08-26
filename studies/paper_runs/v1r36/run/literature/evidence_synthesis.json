@@ -1,0 +1,198 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "LLMs and LLM-centric architectures have been proposed and demonstrated as feasible for intent-based network configuration/translation and other NetOps tasks in prototype or small-scale evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4400490116",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "architectural proposal / prototype evaluation",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence consists largely of proposals, prototypes, or limited deployments rather than large-scale production studies.",
+        "Heterogeneous evaluation metrics and limited disclosure of dataset/scale reduce comparability."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Retrieval-augmented generation (RAG) and other tool-augmentation patterns are widely recommended and shown to improve grounding and factuality of LLM outputs, and have been applied in domain-specific pipelines relevant to security and operations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4415707175"
+      ],
+      "evidence_type": "survey / applied RAG study",
+      "confidence": 0.88,
+      "limitations": [
+        "Improvements are task- and dataset-dependent; RAG studies report promising results but not uniform guarantees of correctness for operational actions.",
+        "Many RAG applications cited are domain-specific (e.g., cybersecurity, bio) rather than comprehensive NetOps production evaluations."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Generate–Verify–Repair (GVR) or generate-then-verify architectures are proposed as a practical approach to reconcile stochastic LLM generation with deterministic acceptance criteria, and initial studies in code and regulated domains show this pattern can raise detection/rejection rates for mechanically verifiable defects.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6528298",
+        "https://openalex.org/W4414359351"
+      ],
+      "evidence_type": "architectural proposal / case study",
+      "confidence": 0.8,
+      "limitations": [
+        "GVR evidence is strongest for code and regulated-software examples; direct end-to-end evidence in NetOps contexts (multi-vendor configs, live deployments) is limited in the supplied records.",
+        "Effectiveness depends on the coverage and soundness of the verification oracle(s)."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Formal and semi-formal verification frameworks for network properties (e.g., quantitative NetKAT variants) exist and can express and decide many safety/reachability properties relevant to network correctness.",
+      "evidence_record_ids": [
+        "doi:10.1145/3808318"
+      ],
+      "evidence_type": "formal-methods / language design",
+      "confidence": 0.86,
+      "limitations": [
+        "Formal frameworks address many properties but may not cover all operational invariants (vendor-specific commands, dynamic stateful behaviors) without additional modeling effort.",
+        "Scalability and integration into LLM-driven pipelines require engineering work beyond the formalism itself."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Human–AI collaboration design (transparency, conditional delegation, protocol order) materially affects operator trust and decision outcomes and is an active, evidence-backed area of study.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4319339070",
+        "https://openalex.org/W4281566573",
+        "https://openalex.org/W4224940987"
+      ],
+      "evidence_type": "empirical human-AI studies / HCI",
+      "confidence": 0.88,
+      "limitations": [
+        "Existing human-AI studies are from other domains (medicine, content moderation); transferability to NetOps requires domain-specific validation.",
+        "Operational deployment constraints (time pressure, auditability) may change collaboration dynamics."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How reliably do end-to-end LLM-driven intent→configuration pipelines (including RAG/GVR/tooling) prevent unsafe or incorrect network changes under realistic, multi-vendor NetOps conditions and adversarial inputs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4400490116",
+        "https://openalex.org/W4386722061",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "gap / question supported by prototypes and GVR proposals",
+      "confidence": 0.55,
+      "limitations": [
+        "Supplied records report prototypes and architectural proposals but do not provide comprehensive adversarial or large-scale empirical evaluations in heterogeneous NetOps environments."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "To what extent do existing network verification tools (e.g., NetKAT variants) cover the operational semantics and vendor-specific behaviors necessary to act as sound oracles within a GVR loop for real-world device configurations?",
+      "evidence_record_ids": [
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "question derived from formal-methods and NetOps prototype literature",
+      "confidence": 0.6,
+      "limitations": [
+        "Weighted NetKAT demonstrates formal expressiveness for many quantitative properties but adapting/verifying vendor-specific CLIs and dynamic stateful behaviors is nontrivial and not shown end-to-end in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "What standardized benchmarks, datasets, and evaluation methodologies should be adopted to measure operational correctness, safety, and robustness of LLM-based NetOps systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4400072049"
+      ],
+      "evidence_type": "open methodological question supported by surveys and intent-IBN reviews",
+      "confidence": 0.6,
+      "limitations": [
+        "Surveys and reviews call out benchmarking needs but do not converge on specific, widely adopted NetOps evaluation suites in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "How do human oversight protocols (e.g., conditional delegation, order-of-review, transparency features) need to be tailored for high-frequency or low-latency NetOps interventions to avoid automation brittleness or overreliance?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4224940987",
+        "https://openalex.org/W4319339070"
+      ],
+      "evidence_type": "human-AI protocol question grounded in HCI/empirical findings",
+      "confidence": 0.58,
+      "limitations": [
+        "Existing human-AI empirical results come from other domains; NetOps-specific constraints (change windows, rollback policies) may alter optimal designs."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A reproducible, public benchmark dataset and emulator-based evaluation suite for intent→configuration and verify-repair pipelines (covering multi-vendor CLIs, realistic topologies, dynamic state) is lacking in the supplied records and would enable fair, comparable assessments.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4322576964"
+      ],
+      "evidence_type": "identified dataset/benchmark gap (supported by survey and prototype literature)",
+      "confidence": 0.75,
+      "limitations": [
+        "Some projects use emulators (Kathará) or private testbeds but a standardized, widely adopted NetOps LLM benchmark is not evident in the supplied records.",
+        "Creating representative, licensed multi-vendor config corpora has legal and privacy challenges."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical integration of formal network-verification tools (e.g., NetKAT-like frameworks) as verification oracles inside LLM GVR loops and measurement of end-to-end detection/rejection rates for configuration faults is not demonstrated in the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.1145/3808318",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "integration / experimental-gap",
+      "confidence": 0.73,
+      "limitations": [
+        "Formal tools exist and GVR architectures are proposed, but their combined, empirically measured application to NetOps config generation/repair is not presented in the supplied corpus."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Systematic adversarial robustness evaluations (prompt attacks, malicious intents, or corrupted context/retrieval stores) against LLM-driven NetOps pipelines are underrepresented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4400490116",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "evaluation / security gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Some security- or adversarial-focused LLM literature exists generally, but explicit adversarial NetOps experiments (using the bundled intent→config systems) are not evident in the provided records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Operational human-in-the-loop policies (e.g., thresholds for automated acceptance, audit trails suitable for compliance) tailored for LLM-agent NetOps workflows are described conceptually but lack reproducible empirical validation in the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4319339070"
+      ],
+      "evidence_type": "policy / operationalization gap",
+      "confidence": 0.66,
+      "limitations": [
+        "TechRxiv proposals describe architectures and human-in-the-loop checkpoints, but reproducible studies measuring operator workload, latency, and compliance outcomes are not present in the supplied set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-driven NetOps systems are proven production-ready and safe for unsupervised autonomous deployment across heterogeneous, real-world networks (unsupported by supplied records).",
+    "LLMs can deterministically avoid all hallucinations or misconfigurations without external verification or tool augmentation (evidence shows mitigation patterns, not perfect elimination).",
+    "There is incontrovertible evidence that a single mitigation architecture (e.g., RAG or a given GVR design) universally solves correctness and safety concerns for all NetOps tasks (unsupported; results are task- and context-dependent)."
+  ]
+}

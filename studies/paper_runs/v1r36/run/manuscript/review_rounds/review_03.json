@@ -1,0 +1,24 @@
+{
+  "summary": "Well‑executed, fully preregistered paired experiment with complete artifact provenance testing a verifier-as-oracle inside an LLM Generate–Verify–Repair loop. Execution and archival are exemplary; the observed null result (270/270 accepted in both arms) is artifact‑backed. The principal interpretive limitation is the preregistered shared_initial_candidate generation semantics, which produced identical initial candidates across arms and therefore prevented the verifier/repair path from being exercised. Reviewable clarifications are needed to make that design consequence and its statistical implications unambiguous to readers.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Primary estimand and power calculation assumed generation variability between arms, but the preregistered/shared_initial_candidate execution semantics produced a single shared generated candidate per pair (one generation per task). This deterministically eliminated discordant outcomes and therefore prevented the verifier or repair path from being exercised — a core constraint on interpretation that must be made explicit and prominent.",
+    "The statistical test (McNemar exact) and bootstrap CI are degenerate in the observed data (zero discordant pairs). The manuscript presents p=1.0 and CI [0,0] but does not explicitly state that these values are uninformative about verifier utility under independently sampled generation semantics and that the preregistered power target (MDE≈0.10) is not applicable given the observed absence of variability.",
+    "The manuscript’s framing and abstract risk being read as evaluating verifier utility generally; because independent_condition_generation=false was preregistered and used, the work only measures the verifier’s marginal effect conditional on the exact shared candidate generation protocol. That constraint should be stated in the highest‑visibility locations (title/abstract/introduction) to avoid overinterpretation."
+  ],
+  "required_revisions": [
+    "Add a concise, explicit statement (one or two sentences) in the abstract and the end of the Introduction that the experiment used shared_initial_candidate semantics (independent_condition_generation=false), that this produced one generated candidate per paired task, and that consequence was the verifier/repair path was never invoked — i.e., the study measures verifier marginal effect conditional on the same candidate, not verifier utility under independent resampling.",
+    "In Results and Threats to Validity add an explicit paragraph explaining the statistical consequences of zero discordant pairs: why McNemar p=1.0 and bootstrap CI=[0,0] are degenerate here, why the preregistered power/MDE calculation assumed between‑condition variability and thus does not speak to the observed regime, and how that affects inferential claims.",
+    "Add a short, explicit sentence in Methods (Preregistration or Execution) clarifying why shared_initial_candidate semantics were chosen (preregistration rationale) and note in Discussion that follow‑ups using independent_condition_generation or increased sampling temperature are required to test verifier utility under stochastic generation.",
+    "Ensure the abstract’s final sentence and the Conclusion explicitly limit claims to the executed experimental regime (shared_initial semantics, single model, synthetic tasks) and avoid any wording that could be read as generalizing beyond those conditions."
+  ],
+  "optional_revisions": [
+    "Move or highlight the wording about shared_initial_candidate semantics earlier in the manuscript (e.g., first paragraph of Introduction) to foreground the design constraint.",
+    "Add a one‑paragraph worked example showing how independent_condition_generation would produce non‑identical candidates and how that could allow verifier rejections/repairs to be invoked (illustrative only, no new experiments).",
+    "Report the preregistered power/MDE calculation numerically alongside the observed contingency to further illustrate the mismatch between planned power assumptions and observed degeneracy."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,95 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "netverify_gvr_empirical_integration_2026",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier/emulator semantic mismatch (vendor CLI coverage may be incomplete) leading to false-accepts/false-rejects.",
+        "Repair loop may overfit to verifier rules (satisfy verifier but fail dynamic semantics).",
+        "Emulator (Mininet/Kathará) may not capture stateful/vendor-specific behaviors used in production.",
+        "Risk of model/API rate limits or transient failures biasing outcomes if not strictly controlled."
+      ],
+      "required_design_repairs": [
+        "Validate verifier coverage against a gold-labelled subset (human-reviewed or device-executed) and report false-accept/false-reject rates.",
+        "Include conservative and permissive verifier rule-sets and report sensitivity analyses.",
+        "Provide concrete anti-overfitting safeguards for repair loop (e.g., diversity-promoting objectives, verifier+emulator checks) and log repair transcripts.",
+        "Predefine retry policy and model-call budget; instrument and report API failures and their handling."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "netops_intentbench_dataset_emulator_2026",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Legal/privacy restrictions may prevent inclusion of representative real vendor configs; synthetic/sanitized data may not fully reflect production.",
+        "Scope/scale risk: dataset+emulator+evaluation release is large and may exceed a short five-page presentation unless focused.",
+        "Emulator limitations may bias conclusions about real-device behavior.",
+        "Curation choices can introduce evaluation bias favoring some pipelines."
+      ],
+      "required_design_repairs": [
+        "Define and document a reproducible data-generation/sanitization pipeline and provenance metadata; publish licensing and redaction policies.",
+        "Constrain the paper to a core reproducible subset (e.g., 100–200 canonical tasks) for the five-page submission and describe broader release plan.",
+        "Provide validation comparing emulator outcomes to a small set of real-device or vendor-validated cases if possible.",
+        "Include explicit evaluation-harness and scripts, plus seed/config logs, to maximize reproducibility and reduce selection bias."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "rag_adversarial_robustness_netops_2026",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Attack generation may be model-specific; results might not generalize across LLM APIs.",
+        "Publishing attack details risks enabling misuse; ethical disclosure must be handled responsibly.",
+        "Mitigations tested may be ad hoc and not representative of stronger defenses.",
+        "Emulator-ground-truth limitations affect measured impact of attacks."
+      ],
+      "required_design_repairs": [
+        "Preregister attacker threat model and ensure cross-model evaluation (at least two different LLM APIs) to assess generality.",
+        "Adopt a responsible-disclosure plan: publish high-level results and redacted attack artefacts, release mitigations but with cautionary notes.",
+        "Include sensitivity analyses showing which attacks transfer across models and which are model-specific.",
+        "Validate attack consequences against emulator+verifier and, where feasible, a small vetted real-device subset or expert review."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "auto_oversight_policy_tradeoffs_2026",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Simulated delegation as a 'perfect-correction' black box overstates real human operator behavior and may bias recommended thresholds.",
+        "Workload sampling choices and simulated latencies heavily influence Pareto frontiers; external validity is limited.",
+        "Latency estimates depend on real-world API/network variability not fully captured in simulation."
+      ],
+      "required_design_repairs": [
+        "Replace or augment perfect-correction delegation with at least one imperfect/human-like correction model (latency/error distribution) and report sensitivity.",
+        "Provide multiple workload mixes and report how recommendations change; preregister workload sampling procedure.",
+        "Measure and report model-call latency variance (empirical API timing) and incorporate into latency estimates; present conservative operating points.",
+        "Clearly frame recommendations as simulation-derived and require site-specific validation before production use."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

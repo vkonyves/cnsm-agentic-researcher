@@ -1,0 +1,32 @@
+{
+  "study_id": "netverify_gvr_empirical_integration_2026_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Compute estimand paired_success_rate_difference_guarded_minus_baseline using the registered executor paired_binary_analysis_v1: two-sided paired-proportion (McNemar-style) test at alpha=0.05, report paired difference (G−B), 95% confidence interval, two-sided p-value, and discordant-pair counts. All inputs drawn from execution/raw_results.jsonl and execution/scoring/*.json as produced in the execution_manifest.",
+  "secondary_analyses": [
+    "repair_success_probability_conditional_on_initial_reject",
+    "verifier_false_accept_rate",
+    "verifier_false_reject_rate"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity",
+    "baseline_p0_sensitivity_range_0.30_to_0.70",
+    "exclude_flagged_near_duplicates_and_recompute"
+  ],
+  "uncertainty_quantification": "Report 95% confidence intervals and two-sided p-values produced by the paired_binary_analysis_v1 executor for the primary estimand; report exact/binomial or normal-approximation variant as returned by the executor; propagate sample-size denominators and report bootstrap-based CIs only if produced by the registered executor (none beyond executor output will be invented).",
+  "multiplicity_implementation": "Primary outcome: single preregistered paired comparison at alpha=0.05. Nine preregistered subgroup comparisons (3 vendors × 3 topologies) use Bonferroni correction: adjusted alpha = 0.05/9 = 0.005555...; all secondary and exploratory analyses labeled exploratory and interpreted accordingly.",
+  "contamination_analysis": "Apply preregistered contamination procedures using stored SHA-256 hashes and fuzzy-duplicate detector against execution/task_manifest.jsonl and prompt hashes in execution/raw_results.jsonl. Exact duplicates (matching SHA-256) are auto-excluded from primary analysis; near-duplicates above the preregistered Jaccard threshold are flagged and moved to a diagnostic set; report counts and rerun sensitivity analyses excluding flagged items. Source manifests: execution/task_manifest.jsonl, execution/transformation_manifest.json, execution/execution_log.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired outcome: n_pairs (N=270), n_guarded_detected, n_baseline_detected, discordant counts (G accepted / B rejected and vice versa), paired difference, 95% CI, two-sided p-value. Source: aggregated execution/scoring/*.json and execution/raw_results.jsonl.",
+    "Table 2 — Repair outcomes: among tasks with initial guarded rejection, number rejected→repaired accepted, repair_success_probability_conditional_on_initial_reject, 95% CI, number-needed-to-repair. Source: execution/scoring/*_guarded.json.",
+    "Table 3 — Verifier validation (validation subset N=54): confusion matrix vs. emulator ground truth, verifier_false_accept_rate, verifier_false_reject_rate, per-vendor and per-topology breakdown. Source: execution/scoring validation records and emulator outputs recorded in execution/scoring/*.json.",
+    "Table 4 — Subgroup summary (3 vendors × 3 topologies): paired difference, 95% CI, unadjusted p-value, Bonferroni-adjusted p-value (alpha_adj=0.005555...). Source: aggregated per-cluster scoring files.",
+    "Table 5 — Execution and provenance: completed_episode_count, model_calls_used, failed_episode_count, per-task artifact hashes summary (paths from execution_manifest). Source: execution/execution_log.jsonl and execution_manifest."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart: detection/rejection proportion (baseline vs guarded) with 95% CI error bars; data from Table 1 aggregated. Producing artifact: aggregated execution/scoring JSONs.",
+    "Figure 2 — Heatmap: paired difference (guarded−baseline) across vendor × topology (3×3) with annotated Bonferroni-significant cells (alpha_adj=0.005555...), source: Table 4.",
+    "Figure 3 — Repair outcome waterfall: count of initial rejects → accepted after bounded repair vs remaining rejects (absolute counts and percentage), source: Table 2 and execution/scoring/*_guarded.json."
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "study_id": "netverify_gvr_empirical_integration_2026_v1",
+  "title": "Empirical integration of a formal network verifier as an oracle inside an LLM Generate–Verify–Repair loop for intent→configuration pipelines",
+  "research_question": "Does embedding a formal-network verifier as an oracle inside a paired Generate–Verify–Repair (GVR) loop increase detection/rejection of unsafe or incorrect LLM-generated network configurations and improve end-to-end repair success versus a generate-only baseline?",
+  "confirmatory_hypotheses": [
+    "Embedding a formal verifier as an oracle in a GVR loop increases the proportion of unsafe or incorrect generated configurations that are detected and rejected relative to a generate-only baseline (paired estimand).",
+    "When the verifier rejects a candidate, a bounded automated LLM-guided repair loop (bounded attempts per the registered adapter) will produce a verifier-accepted configuration within the preregistered repair budget more often than single-shot generation."
+  ],
+  "exploratory_questions": [
+    "By how much do false-accept and false-reject rates (verifier vs. emulator ground truth) vary across vendor-style syntaxes and topology templates?",
+    "Does a conservative vs permissive verifier rule-set materially change measured repair success and false-accept rates?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4414359351",
+    "https://openalex.org/W4400072049",
+    "https://openalex.org/W4386722061"
+  ],
+  "benchmark_scope": [
+    "SyntheticNetOpsIntentConfig_v1 (public synthetic intent→configuration suite produced and published with this study)",
+    "Emulator environment: Kathará/Mininet emulation images (Docker-based) for dynamic semantic ground-truth"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 270,
+    "planned_episode_count": 540,
+    "maximum_model_calls": 540,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired difference in proportion of unsafe configs detected/rejected by the verifier in GVR arm minus baseline generate-only detection)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "repair_success_probability_conditional_on_initial_reject (proportion of rejected tasks where bounded repair produced verifier-accepted config)",
+    "verifier_false_accept_rate (verifier accepted but emulator reports violation)",
+    "verifier_false_reject_rate (verifier rejected but emulator reports safe)"
+  ],
+  "sampling_plan": "Paired within-task design. N = 270 distinct intent→configuration tasks constructed as 3 vendor-style syntaxes × 3 topology templates = 9 clusters × 30 tasks per cluster = 270 tasks. For each task both arms executed (A) generate-only baseline: single generation attempt; (B) guarded (GVR) via adapter: generate, verifier check, and if rejected invoke bounded repair loop per adapter (maximum 1 repair call per task). Random seeds and deterministic prompt templates are fixed and recorded. Validation subset: 20% stratified sample (6 tasks per cluster × 9 clusters = 54 tasks) reserved for verifier-vs-emulator coverage validation (device-executed via emulator) and used to compute verifier false-accept/false-reject rates.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute difference of 0.10 (10 percentage points) in detection/rejection proportion between GVR and baseline. Calculation method: approximate paired binary power reasoning (McNemar-style normal approximation) with two-sided alpha=0.05, power=0.80. With N=270 paired observations the MDE ≈ 0.10 under conservative assumptions; exact tests and CIs will be computed by the registered analysis executor. Sensitivity analyses: vary baseline p0 between 0.30 and 0.70 and alternate failed-call treatments.",
+  "exclusion_rules": [
+    "Exclude tasks only when infrastructure/emulator failure prevents acquisition of emulator ground truth; all exclusions and counts will be reported.",
+    "Automatically exclude exact-duplicate tasks detected by deterministic SHA-256 hashing from the primary analysis (see contamination plan)."
+  ],
+  "missingness_plan": "Model/API call failures: deterministic retry policy up to 2 retries per failed call with exponential backoff; retries logged. If retries exhaust, treat the pair according to the registered analysis primary option 'complete_pair_primary' (pair remains but handled by analysis executor). Sensitivity analysis will treat unresolved generation/repair failures as 'zero' successes ('complete_pair_primary_with_failure_as_zero_sensitivity'). No manual human intervention; any task with emulator infrastructure failure recorded and excluded only if ground-truth cannot be obtained.",
+  "analysis_plan": "Primary analysis executed by registered executor 'paired_binary_analysis_v1' computing estimand 'paired_success_rate_difference_guarded_minus_baseline' (primary_estimand_id). Test: paired-proportion comparison (McNemar / paired binary analysis) two-sided alpha=0.05 with 95% CIs. Report repair-success probability conditional on initial rejection and compute number-needed-to-repair. Report verifier false-accept and false-reject rates against emulator ground truth from the 54-task validation set and for all emulator-checked tasks. Primary failed-call treatment: 'complete_pair_primary'; sensitivity: 'complete_pair_primary_with_failure_as_zero_sensitivity'. Subgroup analyses by vendor-style and topology (Bonferroni-corrected per multiplicity_plan). All analysis code, raw outputs, and exact test implementations are logged and versioned.",
+  "multiplicity_plan": "Primary outcome is a single preregistered paired comparison. Nine preregistered subgroup comparisons (3 vendors × 3 topologies) will use Bonferroni correction: adjusted alpha = 0.05/9 = 0.0056. All secondary/exploratory analyses flagged as exploratory and interpreted with caution.",
+  "contamination_plan": "Benchmarks: SyntheticNetOpsIntentConfig_v1. Risks: pre-lock development artifacts reuse, duplicate/near-duplicate tasks leaking between validation/confirmatory sets, retrieval-store contamination. Detection: deterministic SHA-256 hashing of all prompts/intents/retrieved documents per invocation; automated exact and fuzzy duplicate detection (token-level Jaccard similarity threshold 0.9); deterministic snapshotting and freezing of the RAG retrieval index at experiment start. Item treatment: exact duplicates excluded automatically from primary analysis; near-duplicates exceeding threshold flagged and moved to diagnostic set; sensitivity analyses reported with/without flagged items. Residual uncertainty: undetected semantic near-duplicates below fuzzy threshold and potential overlap with model training data.",
+  "stopping_rule": "No interim statistical stopping rules. Stop when all 270 paired task executions complete successfully or when the 7-day wall-clock execution limit is reached. Per-call retries limited to 2 attempts; no early stopping based on interim outcomes is permitted.",
+  "planned_outputs": [
+    "Verified preregistration JSON and execution manifest",
+    "SyntheticNetOpsIntentConfig_v1 dataset release (public)",
+    "Dockerized emulator images and transformation unit tests",
+    "Execution logs and hashed raw transcripts for all model calls",
+    "Analysis code and outputs for paired_binary_analysis_v1",
+    "IEEE-format LaTeX manuscript (≤5 pages) with Disclosure Statement",
+    "Compiled PDF (≤5 pages)",
+    "BibTeX bibliography",
+    "NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}
