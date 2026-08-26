@@ -660,23 +660,14 @@ def preregistration_execution_contract_issues(
     available_execution_models: list[str],
     required_task_count: int,
 ) -> list[str]:
+    """
+    Verify that structured preregistration fields and scientific prose
+    describe an experiment actually executable by the selected adapter.
+    """
     issues: list[str] = []
-
-    declared = (
-        preregistration
-        .execution_contract
-        .model_dump()
-    )
-
-    adapter_family = str(
-        declared["adapter_family"]
-    )
-
-    adapter_contract = (
-        planning_contracts.get(
-            adapter_family
-        )
-    )
+    declared = preregistration.execution_contract.model_dump()
+    adapter_family = str(declared["adapter_family"])
+    adapter_contract = planning_contracts.get(adapter_family)
 
     if adapter_contract is None:
         return [
@@ -695,58 +686,32 @@ def preregistration_execution_contract_issues(
         "maximum_repair_calls_per_task",
         "retrieval_augmented_generation",
     ):
-        if (
-            declared.get(field)
-            != adapter_contract.get(field)
-        ):
-            issues.append(
-                "Preregistration execution_contract "
-                f"{field} does not match the registered "
-                "adapter planning contract."
-            )
-        if (
-            declared.get(field)
-            != adapter_contract.get(field)
-        ):
+        if declared.get(field) != adapter_contract.get(field):
             issues.append(
                 "Preregistration execution_contract "
                 f"{field} does not match the registered "
                 "adapter planning contract."
             )
 
-    if (
-        declared["model_names"]
-        != available_execution_models
-    ):
+    if declared["model_names"] != available_execution_models:
         issues.append(
-            "Preregistration model_names must exactly "
-            "match the frozen available execution models."
+            "Preregistration model_names must exactly match the frozen "
+            "available execution models."
         )
 
-    if (
-        preregistration.model_scope
-        != declared["model_names"]
-    ):
+    if preregistration.model_scope != declared["model_names"]:
         issues.append(
-            "Preregistration model_scope must exactly "
-            "match execution_contract.model_names."
+            "Preregistration model_scope must exactly match "
+            "execution_contract.model_names."
         )
 
     expected_transformations = list(
-        adapter_contract.get(
-            "transformations",
-            {},
-        ).values()
+        adapter_contract.get("transformations", {}).values()
     )
-
-    if (
-        preregistration.transformation_scope
-        != expected_transformations
-    ):
+    if preregistration.transformation_scope != expected_transformations:
         issues.append(
-            "Preregistration transformation_scope must "
-            "exactly match the registered adapter "
-            "transformations."
+            "Preregistration transformation_scope must exactly match the "
+            "registered adapter transformations."
         )
 
     prereg_text = " ".join(
@@ -763,98 +728,95 @@ def preregistration_execution_contract_issues(
     ).lower()
 
     if (
-        adapter_contract.get(
-            "retrieval_augmented_generation"
-        ) is False
-        and (
-            "retrieval-augmented" in prereg_text
-            or "retrieval augmented" in prereg_text
-            or "rag+" in prereg_text
-            or "rag +" in prereg_text
-        )
+        adapter_contract.get("supports_multi_model_consensus", False) is False
+        and any(phrase in prereg_text for phrase in (
+            "multi-model consensus", "multimodel consensus",
+            "multi model consensus", "3-model consensus",
+            "3 model consensus", "three-model consensus",
+            "three model consensus", "model ensemble",
+            "multi-model ensemble", "multimodel ensemble",
+            "consensus ensemble", "ensemble defense",
+            "ensemble defence", "majority vote across models",
+            "majority voting across models",
+        ))
     ):
         issues.append(
-            "Preregistration describes retrieval-augmented "
-            "generation, but the registered adapter does not "
-            "execute retrieval-augmented generation."
+            "Preregistration describes a multi-model consensus or ensemble "
+            "execution stage, but the selected registered adapter does not "
+            "execute multi-model consensus."
         )
 
     if (
-        adapter_contract.get(
-            "independent_condition_generation"
-        ) is False
-        and (
-            "independent generation" in prereg_text
-            or "independently generated" in prereg_text
-            or "separate generation" in prereg_text
-            or "separately generated" in prereg_text
-        )
+        adapter_contract.get("supports_simulated_human_gate", False) is False
+        and any(phrase in prereg_text for phrase in (
+            "simulated human gate", "simulated human review",
+            "human gate", "human-in-the-loop gate",
+        ))
     ):
         issues.append(
-            "Preregistration describes independent "
-            "per-condition generation, but the registered "
-            "adapter uses one shared initial candidate."
+            "Preregistration describes a simulated-human or human-gate stage, "
+            "but the selected registered adapter does not execute such a stage."
         )
 
     if (
-        int(declared["task_count"])
-        != required_task_count
+        adapter_contract.get("supports_prompt_family_stratification", False) is False
+        and all(label in prereg_text for label in (
+            "benign", "ambiguous", "adversarial",
+        ))
     ):
         issues.append(
-            "Preregistration task_count must equal "
-            "required_confirmatory_task_count."
+            "Preregistration describes benign/ambiguous/adversarial prompt-family "
+            "stratification, but the selected registered adapter does not "
+            "generate or record those strata."
         )
-
-    episodes_per_task = int(
-        adapter_contract[
-            "episodes_per_task"
-        ]
-    )
-
-    expected_episode_count = (
-        required_task_count
-        * episodes_per_task
-    )
 
     if (
-        int(
-            declared[
-                "planned_episode_count"
-            ]
-        )
-        != expected_episode_count
+        adapter_contract.get("retrieval_augmented_generation") is False
+        and any(phrase in prereg_text for phrase in (
+            "retrieval-augmented", "retrieval augmented", "rag+", "rag +",
+        ))
     ):
         issues.append(
-            "Preregistration planned_episode_count "
-            "does not match the executable adapter "
-            "contract."
+            "Preregistration describes retrieval-augmented generation, but the "
+            "registered adapter does not execute retrieval-augmented generation."
         )
-
-    calls_per_task = int(
-        adapter_contract[
-            "maximum_model_calls_per_task"
-        ]
-    )
-
-    expected_maximum_model_calls = (
-        required_task_count
-        * calls_per_task
-    )
 
     if (
-        int(
-            declared[
-                "maximum_model_calls"
-            ]
-        )
-        != expected_maximum_model_calls
+        adapter_contract.get("independent_condition_generation") is False
+        and any(phrase in prereg_text for phrase in (
+            "independent generation", "independently generated",
+            "separate generation", "separately generated",
+        ))
     ):
         issues.append(
-            "Preregistration maximum_model_calls does "
-            "not match the executable adapter contract."
+            "Preregistration describes independent per-condition generation, "
+            "but the registered adapter uses one shared initial candidate."
         )
 
-    return issues
+    if int(declared["task_count"]) != required_task_count:
+        issues.append(
+            "Preregistration task_count must equal required_confirmatory_task_count."
+        )
+
+    expected_episode_count = required_task_count * int(
+        adapter_contract["episodes_per_task"]
+    )
+    if int(declared["planned_episode_count"]) != expected_episode_count:
+        issues.append(
+            "Preregistration planned_episode_count does not match the executable "
+            "adapter contract."
+        )
+
+    expected_maximum_model_calls = required_task_count * int(
+        adapter_contract["maximum_model_calls_per_task"]
+    )
+    if int(declared["maximum_model_calls"]) != expected_maximum_model_calls:
+        issues.append(
+            "Preregistration maximum_model_calls does not match the executable "
+            "adapter contract."
+        )
+
+    return sorted(set(issues))
 
 def canonicalize_preregistration_execution_contract(
     preregistration: PreregistrationDocument,
@@ -2442,12 +2404,15 @@ class FinalAutonomousResearchPipeline:
                         "execution_contract, model_scope, "
                         "transformation_scope, sampling plan, "
                         "and analysis plan must describe the "
-                        "same experiment. Do not introduce "
-                        "additional model families, conditions, "
-                        "transformations, run counts, or "
-                        "execution modes that are absent from "
-                        "the executable contract. Set task_count "
-                        "exactly to "
+                        "same experiment. Do not introduce additional model "
+                        "families, conditions, transformations, run counts, "
+                        "execution modes, consensus stages, ensembles, multi-model "
+                        "voting, simulated-human gates, prompt-family strata, or "
+                        "any other defense stage absent from the selected executable "
+                        "adapter contract. Scientific prose, hypotheses, estimands, "
+                        "sampling plans, and analysis plans must describe only stages "
+                        "and task strata that the selected adapter actually executes "
+                        "and records. Set task_count exactly to "
                         "required_confirmatory_task_count. "
                         "If previous_contract_issues is nonempty, "
                         "return a complete replacement "
@@ -3733,6 +3698,13 @@ class FinalAutonomousResearchPipeline:
                     "Substantively expand the manuscript using only information "
                     "supported by the archived autonomous-run artifacts and "
                     "verified evidence. "
+                    "Make structural additions rather than primarily rewriting "
+                    "existing prose. Add distinct artifact-grounded material across "
+                    "multiple scientific sections. Where supported, add methodological "
+                    "detail, execution accounting, quantitative interpretation, "
+                    "reproducibility information, limitations, and compact "
+                    "artifact-grounded tables or figures. Preserve existing supported "
+                    "paragraphs rather than exchanging them for new wording. "
                     f"{substantive_expansion_target}"
                     "Preserve all already artifact-supported reviewer-resolved "
                     "content from the current manuscript. While the manuscript "
@@ -4173,7 +4145,12 @@ class FinalAutonomousResearchPipeline:
                             "The terminal-review revision is "
                             f"{terminal_page_count} pages but must occupy "
                             f"exactly {terminal_maximum_pages} compiled IEEE "
-                            "pages. Preserve every reviewer-resolved and "
+                            "pages. Make structural additions across every substantive "
+                            "scientific section rather than primarily rewriting existing "
+                            "prose. Add artifact-grounded methodology, execution accounting, "
+                            "quantitative interpretation, reproducibility information, "
+                            "limitations, and compact tables or figures where supported. "
+                            "Preserve every reviewer-resolved and "
                             "artifact-supported statement already present. "
                             "Preserve the current manuscript rather than "
                             "rewriting or compressing it. Do not remove, "
@@ -4193,7 +4170,15 @@ class FinalAutonomousResearchPipeline:
                     else:
                         terminal_format_instruction = (
                             "The terminal-review revision is one compiled page "
-                            "below the required IEEE length. Preserve all "
+                            "below the required IEEE length. Because one full compiled "
+                            "page remains unused, make structural additions rather than "
+                            "stylistic rewriting. Add multiple new artifact-grounded "
+                            "paragraphs across Methods, Results, and Discussion or "
+                            "Limitations where supported. Add a compact artifact-grounded "
+                            "table where the available evidence supports one. Each addition "
+                            "must communicate distinct technical information not already "
+                            "stated elsewhere. Preserve existing supported paragraphs rather "
+                            "than replacing them. Preserve all "
                             "reviewer-resolved and artifact-supported content. "
                             "Preserve the current manuscript rather than "
                             "rewriting or compressing it. Do not remove, "

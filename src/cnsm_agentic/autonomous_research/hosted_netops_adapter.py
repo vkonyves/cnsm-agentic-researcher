@@ -71,6 +71,9 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
         "initial_generation_calls_per_task": 1,
         "maximum_repair_calls_per_task": 1,
         "retrieval_augmented_generation": False,
+        "supports_multi_model_consensus": False,
+        "supports_simulated_human_gate": False,
+        "supports_prompt_family_stratification": False,
         "result_schema_id": (
             PAIRED_BINARY_RESULT_SCHEMA_ID
         ),

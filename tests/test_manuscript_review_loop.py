@@ -876,3 +876,98 @@ def test_terminal_page_convergence_occurs_after_terminal_revision_render():
         < first_terminal_validation_pos
         < terminal_format_loop_pos
     )
+
+def test_preregistration_blocks_unsupported_scientific_execution_stages():
+    source = _final_pipeline_source()
+
+    start = source.index(
+        "def preregistration_execution_contract_issues("
+    )
+    end = source.index(
+        "def canonicalize_preregistration_execution_contract(",
+        start,
+    )
+
+    section = source[start:end]
+
+    assert "supports_multi_model_consensus" in section
+    assert "3-model consensus" in section
+
+    assert "supports_simulated_human_gate" in section
+
+    assert (
+        "supports_prompt_family_stratification"
+        in section
+    )
+
+    assert "benign" in section
+    assert "ambiguous" in section
+    assert "adversarial" in section
+
+    # Source-level tests must tolerate adjacent Python
+    # string literals split across lines.
+    assert (
+        "execute multi-model consensus."
+        in section
+    )
+
+    assert (
+        "generate or record those strata."
+        in section
+    )
+
+
+def test_preregistration_repair_prompt_forbids_unsupported_stages():
+    source = _final_pipeline_source()
+
+    assert (
+        "consensus stages, ensembles, multi-model "
+        in source
+    )
+
+    assert (
+        "voting, simulated-human gates, prompt-family strata"
+        in source
+    )
+
+    assert (
+        "and task strata that the selected adapter actually executes "
+        in source
+    )
+
+    assert (
+        "and records. Set task_count exactly to "
+        in source
+    )
+
+
+def test_underfill_prompts_require_structural_additions():
+    source = _final_pipeline_source()
+
+    assert (
+        "Make structural additions rather than primarily rewriting"
+        in source
+    )
+
+    assert (
+        "Because one full compiled "
+        in source
+    )
+
+    assert (
+        "page remains unused, make structural additions"
+        in source
+    )
+
+    assert (
+        "Make structural additions across every substantive"
+        in source
+    )
+
+    assert (
+        "compact artifact-grounded tables or figures"
+        in source
+        or
+        "compact artifact-grounded "
+        in source
+    )
