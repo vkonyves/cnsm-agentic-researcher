@@ -4086,7 +4086,46 @@ class FinalAutonomousResearchPipeline:
                 publication_validation,
             )
 
-            maximum_terminal_format_rounds = 3
+            # Preserve the best valid terminal-format candidate seen so far.
+            # For equal page counts, prefer the manuscript with more
+            # substantive serialized content so underfill revisions cannot
+            # regress by rewriting/compressing a better candidate.
+            best_terminal_manuscript: ManuscriptPackage | None = None
+            best_terminal_publication_validation: (
+                dict[str, Any] | None
+            ) = None
+            best_terminal_page_count = -1
+            best_terminal_size = -1
+
+            initial_terminal_page_count = (
+                publication_validation.get("page_count")
+            )
+            initial_terminal_maximum_pages = (
+                publication_validation.get("maximum_pages")
+            )
+
+            if (
+                isinstance(initial_terminal_page_count, int)
+                and isinstance(initial_terminal_maximum_pages, int)
+                and initial_terminal_page_count
+                <= initial_terminal_maximum_pages
+            ):
+                best_terminal_manuscript = revised_manuscript
+                best_terminal_publication_validation = dict(
+                    publication_validation
+                )
+                best_terminal_page_count = (
+                    initial_terminal_page_count
+                )
+                best_terminal_size = len(
+                    json.dumps(
+                        revised_manuscript.model_dump(),
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    )
+                )
+
+            maximum_terminal_format_rounds = 5
 
             for terminal_format_round in range(
                 1,
@@ -4136,22 +4175,43 @@ class FinalAutonomousResearchPipeline:
                             f"exactly {terminal_maximum_pages} compiled IEEE "
                             "pages. Preserve every reviewer-resolved and "
                             "artifact-supported statement already present. "
+                            "Preserve the current manuscript rather than "
+                            "rewriting or compressing it. Do not remove, "
+                            "shorten, summarize, or replace existing supported "
+                            "content. The revised manuscript must contain "
+                            "strictly more substantive content than the "
+                            "supplied manuscript. Add new evidence-grounded "
+                            "material to multiple scientific sections using "
+                            "only the supplied archived evidence. "
                             "Substantively expand Methods, Results, statistical "
                             "interpretation, execution accounting, limitations, "
                             "reproducibility details, verified related work, "
-                            "or artifact-grounded tables/figures using only "
-                            "existing evidence. Do not shorten existing "
-                            "supported content and do not invent evidence."
+                            "or artifact-grounded tables/figures. Do not trade "
+                            "existing text for new text. Do not invent evidence, "
+                            "statistics, references, or experiments."
                         )
                     else:
                         terminal_format_instruction = (
-                            "The terminal-review revision is one compiled "
-                            "page below the required IEEE length. Preserve "
-                            "all reviewer-resolved and artifact-supported "
-                            "content and add substantive artifact-grounded "
-                            "scientific detail until the manuscript occupies "
-                            f"exactly {terminal_maximum_pages} pages. "
-                            "Do not invent evidence or pad with repetition."
+                            "The terminal-review revision is one compiled page "
+                            "below the required IEEE length. Preserve all "
+                            "reviewer-resolved and artifact-supported content. "
+                            "Preserve the current manuscript rather than "
+                            "rewriting or compressing it. Do not remove, "
+                            "shorten, summarize, or replace existing supported "
+                            "content. The revised manuscript must contain "
+                            "strictly more substantive content than the supplied "
+                            "manuscript. Add new evidence-grounded material to "
+                            "multiple scientific sections using only the "
+                            "supplied archived evidence until the manuscript "
+                            "occupies exactly "
+                            f"{terminal_maximum_pages} pages. Prefer additions "
+                            "to Methods, execution accounting, Results "
+                            "interpretation, limitations, reproducibility "
+                            "details, and artifact-grounded tables where "
+                            "appropriate. Do not trade existing text for new "
+                            "text. Do not invent evidence, statistics, "
+                            "references, or experiments, and do not pad with "
+                            "repetition."
                         )
 
                 else:
@@ -4163,6 +4223,15 @@ class FinalAutonomousResearchPipeline:
                         "limitations, references, and Disclosure Statement. "
                         "Do not alter empirical findings or formatting rules."
                     )
+
+                # Always revise from the best valid candidate seen so far.
+                # This prevents a shorter same-page rewrite from becoming
+                # the base for the next expansion round.
+                terminal_revision_base_manuscript = (
+                    best_terminal_manuscript
+                    if best_terminal_manuscript is not None
+                    else revised_manuscript
+                )
 
                 revised_manuscript = await run_agent(
                     MANUSCRIPT_REVISER,
@@ -4188,7 +4257,7 @@ class FinalAutonomousResearchPipeline:
                             manuscript_evidence_bundle
                         ),
                         "manuscript": (
-                            revised_manuscript.model_dump()
+                            terminal_revision_base_manuscript.model_dump()
                         ),
                         "peer_review": (
                             latest_peer_review.model_dump()
@@ -4249,6 +4318,118 @@ class FinalAutonomousResearchPipeline:
                         "publication_validation_terminal_format_"
                         f"{terminal_round:02d}_"
                         f"{terminal_format_round:02d}.json"
+                    ),
+                    publication_validation,
+                )
+
+                # Evaluate the newly rendered candidate. A candidate is
+                # eligible only when it is within the frozen page limit.
+                # Prefer higher page count; for equal page count, prefer
+                # greater manuscript content.
+                current_terminal_page_count = (
+                    publication_validation.get(
+                        "page_count"
+                    )
+                )
+                current_terminal_maximum_pages = (
+                    publication_validation.get(
+                        "maximum_pages"
+                    )
+                )
+                current_terminal_size = len(
+                    json.dumps(
+                        revised_manuscript.model_dump(),
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    )
+                )
+
+                current_terminal_candidate_is_better = False
+
+                if (
+                    isinstance(
+                        current_terminal_page_count,
+                        int,
+                    )
+                    and isinstance(
+                        current_terminal_maximum_pages,
+                        int,
+                    )
+                    and current_terminal_page_count
+                    <= current_terminal_maximum_pages
+                ):
+                    if (
+                        current_terminal_page_count
+                        > best_terminal_page_count
+                    ):
+                        current_terminal_candidate_is_better = True
+
+                    elif (
+                        current_terminal_page_count
+                        == best_terminal_page_count
+                        and current_terminal_size
+                        > best_terminal_size
+                    ):
+                        current_terminal_candidate_is_better = True
+
+                if current_terminal_candidate_is_better:
+                    best_terminal_manuscript = revised_manuscript
+                    best_terminal_publication_validation = dict(
+                        publication_validation
+                    )
+                    best_terminal_page_count = (
+                        current_terminal_page_count
+                    )
+                    best_terminal_size = current_terminal_size
+
+                # If this attempt has reached the exact frozen page
+                # budget, no further format-model call is necessary.
+                if (
+                    publication_validation.get(
+                        "compile_status"
+                    )
+                    == "passed"
+                    and current_terminal_page_count
+                    == current_terminal_maximum_pages
+                ):
+                    break
+
+            # Carry forward the best valid terminal-format manuscript,
+            # not merely whichever model response happened to be last.
+            if (
+                best_terminal_manuscript is not None
+                and best_terminal_publication_validation is not None
+            ):
+                revised_manuscript = best_terminal_manuscript
+
+                write_json(
+                    run_dir
+                    / "manuscript"
+                    / "revised_package.json",
+                    revised_manuscript,
+                )
+
+                # Re-render the selected candidate so the authoritative
+                # PDF/TeX artifacts correspond to the manuscript actually
+                # passed to the next closure review and final judge.
+                publication_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            revised_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_validation_terminal_best_"
+                        f"{terminal_round:02d}.json"
                     ),
                     publication_validation,
                 )

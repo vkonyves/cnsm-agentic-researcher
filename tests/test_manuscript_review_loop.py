@@ -761,7 +761,7 @@ def test_terminal_revision_has_bounded_page_convergence_loop():
     )
 
     assert (
-        "maximum_terminal_format_rounds = 3"
+        "maximum_terminal_format_rounds = 5"
         in terminal_section
     )
 
@@ -815,6 +815,36 @@ def test_terminal_revision_has_bounded_page_convergence_loop():
         in terminal_section
     )
 
+    assert (
+        "best_terminal_manuscript"
+        in terminal_section
+    )
+
+    assert (
+        "best_terminal_publication_validation"
+        in terminal_section
+    )
+
+    assert (
+        "best_terminal_size"
+        in terminal_section
+    )
+
+    assert (
+        "terminal_revision_base_manuscript"
+        in terminal_section
+    )
+
+    assert (
+        "current_terminal_candidate_is_better"
+        in terminal_section
+    )
+
+    assert (
+        '"publication_validation_terminal_best_"'
+        in terminal_section
+    )
+
 
 def test_terminal_page_convergence_occurs_after_terminal_revision_render():
     source = _final_pipeline_source()
@@ -838,7 +868,7 @@ def test_terminal_page_convergence_occurs_after_terminal_revision_render():
     )
 
     terminal_format_loop_pos = terminal_section.index(
-        "maximum_terminal_format_rounds = 3"
+        "maximum_terminal_format_rounds = 5"
     )
 
     assert (
