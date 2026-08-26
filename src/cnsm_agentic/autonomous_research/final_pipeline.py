@@ -3613,10 +3613,18 @@ class FinalAutonomousResearchPipeline:
                 elif (
                     current_page_count == best_page_count
                     and len(
-                        revised_manuscript.manuscript
+                        json.dumps(
+                            revised_manuscript.model_dump(),
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
                     )
                     > len(
-                        best_manuscript.manuscript
+                        json.dumps(
+                            best_manuscript.model_dump(),
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
                     )
                 ):
                     best_manuscript = revised_manuscript

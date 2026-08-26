@@ -316,6 +316,16 @@ def test_format_revision_preserves_best_under_limit_candidate():
         in format_section
     )
 
+    assert (
+        "revised_manuscript.manuscript"
+        not in format_section
+    )
+
+    assert (
+        "revised_manuscript.model_dump()"
+        in format_section
+    )
+
 
 def test_best_format_candidate_is_rerendered_before_terminal_review():
     source = _final_pipeline_source()
