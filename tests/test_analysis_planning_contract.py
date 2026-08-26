@@ -7,6 +7,7 @@ from cnsm_agentic.autonomous_research.analysis_executors import (
 
 from cnsm_agentic.autonomous_research.final_pipeline import (
     analysis_preregistration_fidelity_issues,
+    preregistration_analysis_contract_issues,
 )
 
 from cnsm_agentic.autonomous_research.final_schemas import (
@@ -104,6 +105,9 @@ def test_paired_binary_analysis_rejects_auc_composite_preregistration():
             "(composite score vs best single submetric) "
             "for predicting binary simulated outage."
         ),
+        primary_estimand_id=(
+            "auc_composite_vs_best_submetric"
+        ),
         secondary_estimands=[],
         sampling_plan="Fixed held-out paired test tasks.",
         power_and_precision_plan="Pre-specified power plan.",
@@ -119,23 +123,15 @@ def test_paired_binary_analysis_rejects_auc_composite_preregistration():
         planned_outputs=["analysis results"],
     )
 
-    plan = {
-        "study_id": "study-auc",
-        "analysis_executor": "paired_binary_analysis_v1",
-        "estimand": (
-            "paired_success_rate_difference_guarded_minus_baseline"
-        ),
-        "failed_call_treatment": "complete_pair_primary",
-    }
-
-    issues = analysis_preregistration_fidelity_issues(
-        preregistration=preregistration,
-        analysis_plan=plan,
+    issues = preregistration_analysis_contract_issues(
+        preregistration,
         analysis_contracts=contracts,
     )
 
+    assert issues
     assert any(
-        "cannot compute" in issue
+        "not supported by any registered analysis executor"
+        in issue
         for issue in issues
     )
 
@@ -184,8 +180,12 @@ def test_paired_binary_analysis_accepts_matching_paired_success_preregistration(
             retrieval_augmented_generation=False,
         ),
         primary_estimand=(
-            "Paired success-rate difference between "
-            "guarded and baseline conditions."
+            "Per-task difference in verifier pass indicator "
+            "(pipeline-after-up-to-1-repair) minus single-shot "
+            "baseline pass indicator (paired proportion difference)."
+        ),
+        primary_estimand_id=(
+            "paired_success_rate_difference_guarded_minus_baseline"
         ),
         secondary_estimands=[],
         sampling_plan="Fixed held-out paired test tasks.",
@@ -201,6 +201,13 @@ def test_paired_binary_analysis_accepts_matching_paired_success_preregistration(
         stopping_rule="Complete the fixed test set.",
         planned_outputs=["analysis results"],
     )
+
+    prereg_issues = preregistration_analysis_contract_issues(
+        preregistration,
+        analysis_contracts=contracts,
+    )
+
+    assert prereg_issues == []
 
     plan = {
         "study_id": "study-paired",

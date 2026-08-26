@@ -83,6 +83,7 @@ class PreregistrationDocument(BaseModel):
     transformation_scope: list[str]
     execution_contract: PreregistrationExecutionContract
     primary_estimand: str
+    primary_estimand_id: str
     secondary_estimands: list[str]
     sampling_plan: str
     power_and_precision_plan: str
@@ -102,6 +103,7 @@ class PreregistrationDocument(BaseModel):
         'title',
         'research_question',
         'primary_estimand',
+        'primary_estimand_id',
         'sampling_plan',
         'power_and_precision_plan',
         'missingness_plan',

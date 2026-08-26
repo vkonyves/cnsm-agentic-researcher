@@ -497,6 +497,31 @@ def build_manuscript_evidence_bundle(
 
     return bundle
 
+def preregistration_analysis_contract_issues(
+    preregistration: PreregistrationDocument,
+    *,
+    analysis_contracts: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Validate the sealed primary estimand against registered analysis."""
+    issues: list[str] = []
+
+    estimand_id = preregistration.primary_estimand_id
+
+    matching = [
+        family
+        for family, contract
+        in analysis_contracts.items()
+        if contract.get("estimand") == estimand_id
+    ]
+
+    if not matching:
+        issues.append(
+            "Preregistration primary_estimand_id is not "
+            "supported by any registered analysis executor."
+        )
+
+    return sorted(set(issues))
+
 async def run_agent(
     agent: Agent,
     payload: dict[str, Any],
@@ -1279,72 +1304,57 @@ def analysis_preregistration_fidelity_issues(
     analysis_plan: dict[str, Any],
     analysis_contracts: dict[str, dict[str, Any]],
 ) -> list[str]:
-    """Check that analysis planning preserves the sealed primary estimand."""
+    """
+    Enforce exact machine-readable fidelity between the sealed
+    preregistration and the selected analysis executor.
+    """
     issues: list[str] = []
 
-    analysis_executor = analysis_plan.get(
-        "analysis_executor"
-    )
-
-    contract = analysis_contracts.get(
-        str(analysis_executor),
-        {},
+    prereg_estimand_id = (
+        preregistration.primary_estimand_id
     )
 
     planned_estimand = analysis_plan.get(
         "estimand"
     )
 
-    contract_estimand = contract.get(
-        "estimand"
+    if planned_estimand != prereg_estimand_id:
+        issues.append(
+            "Analysis plan estimand does not exactly match "
+            "the sealed preregistered primary_estimand_id."
+        )
+
+    matching_contracts = [
+        contract
+        for contract in analysis_contracts.values()
+        if contract.get("estimand")
+        == prereg_estimand_id
+    ]
+
+    if not matching_contracts:
+        issues.append(
+            "No registered analysis executor can compute "
+            "the sealed preregistered primary_estimand_id."
+        )
+
+    selected_executor = analysis_plan.get(
+        "analysis_executor"
+    )
+
+    selected_contract = analysis_contracts.get(
+        str(selected_executor),
+        {},
     )
 
     if (
-        contract_estimand
-        and planned_estimand != contract_estimand
+        selected_contract
+        and selected_contract.get("estimand")
+        != prereg_estimand_id
     ):
         issues.append(
-            "Analysis plan estimand does not exactly match "
-            "the selected executor planning contract."
+            "Selected analysis executor does not support "
+            "the sealed preregistered primary_estimand_id."
         )
-
-    prereg_text = " ".join(
-        [
-            preregistration.primary_estimand,
-            preregistration.analysis_plan,
-            *preregistration.confirmatory_hypotheses,
-        ]
-    ).lower()
-
-    if contract_estimand == (
-        "paired_success_rate_difference_guarded_minus_baseline"
-    ):
-        required_concepts = (
-            "success",
-            "baseline",
-            "guarded",
-        )
-
-        if not all(
-            concept in prereg_text
-            for concept in required_concepts
-        ):
-            issues.append(
-                "Selected paired-binary analysis executor "
-                "does not preserve the sealed preregistered "
-                "primary estimand."
-            )
-
-        if (
-            "auc" in prereg_text
-            or "roc" in prereg_text
-            or "composite" in prereg_text
-        ):
-            issues.append(
-                "Sealed preregistration requires an AUC/"
-                "composite estimand that paired_binary_analysis_v1 "
-                "cannot compute."
-            )
 
     return sorted(set(issues))
 
@@ -2024,6 +2034,14 @@ class FinalAutonomousResearchPipeline:
             }
         )
 
+        available_analysis_families = (
+            registered_analysis_families()
+        )
+
+        available_analysis_contracts = (
+            registered_analysis_planning_contracts()
+        )
+
         repair_payload = {
             "programme": programme,
             "master_prompt": master_prompt,
@@ -2043,6 +2061,12 @@ class FinalAutonomousResearchPipeline:
             ),
             "allowed_evidence_record_ids": (
                 allowed_evidence_record_ids
+            ),
+            "available_analysis_families": (
+                available_analysis_families
+            ),
+            "available_analysis_contracts": (
+                available_analysis_contracts
             ),
         }
 
@@ -2383,6 +2407,12 @@ class FinalAutonomousResearchPipeline:
                     "registered_adapter_planning_contracts": (
                         available_adapter_contracts
                     ),
+                    "available_analysis_families": (
+                        available_analysis_families
+                    ),
+                    "available_analysis_contracts": (
+                        available_analysis_contracts
+                    ),
                     "available_execution_models": (
                         available_execution_models
                     ),
@@ -2397,6 +2427,16 @@ class FinalAutonomousResearchPipeline:
                         "preregistration that is exactly "
                         "executable under one supplied "
                         "registered adapter planning contract. "
+                        "The preregistered confirmatory primary "
+                        "estimand must also be exactly executable "
+                        "by one supplied registered analysis "
+                        "planning contract. Set primary_estimand_id "
+                        "to the exact machine-readable estimand "
+                        "identifier from that analysis contract. "
+                        "Keep primary_estimand as the scientifically "
+                        "readable description of the same estimand. "
+                        "Do not invent, paraphrase, or substitute "
+                        "primary_estimand_id. "
                         "Use only the supplied available "
                         "execution models. The structured "
                         "execution_contract, model_scope, "
@@ -2451,6 +2491,19 @@ class FinalAutonomousResearchPipeline:
                         prereg_required_task_count
                     ),
                 )
+            )
+
+            preregistration_contract_issues.extend(
+                preregistration_analysis_contract_issues(
+                    preregistration,
+                    analysis_contracts=(
+                        available_analysis_contracts
+                    ),
+                )
+            )
+
+            preregistration_contract_issues = sorted(
+                set(preregistration_contract_issues)
             )
 
             write_json(
@@ -2876,10 +2929,6 @@ class FinalAutonomousResearchPipeline:
         # 10. Analysis planning and execution
         # -------------------------------------------------
 
-        available_analysis_families = (
-            registered_analysis_families()
-        )
-
         if not available_analysis_families:
             report = create_failure_report(
                 passed_gates=[
@@ -2935,10 +2984,6 @@ class FinalAutonomousResearchPipeline:
         analysis_attempts_dir.mkdir(
             parents=True,
             exist_ok=True,
-        )
-
-        available_analysis_contracts = (
-            registered_analysis_planning_contracts()
         )
 
         previous_analysis_plan: dict[str, Any] | None = None

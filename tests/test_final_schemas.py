@@ -93,6 +93,9 @@ def test_unresolved_prereg_rejected() -> None:
                 )
             ),
             primary_estimand="e",
+            primary_estimand_id=(
+                "paired_success_rate_difference_guarded_minus_baseline"
+            ),
             secondary_estimands=[],
             sampling_plan="s",
             power_and_precision_plan="p",
