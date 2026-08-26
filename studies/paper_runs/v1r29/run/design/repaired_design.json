@@ -1,0 +1,163 @@
+{
+  "selected_candidate_id": "cand-2026-netops-scale-001",
+  "title": "Scalability of Generate→Verify→Repair Pipelines for Multi-Device, Multi-Vendor Network Configurations (Repaired Design)",
+  "research_question": "Do deterministic generate→verify→repair pipelines materially improve operational-correctness rates relative to LLM-only generation as topology size and vendor heterogeneity increase (10–200 devices)?",
+  "confirmatory_hypotheses": [
+    "H1: Verifier-assisted generate→verify→repair pipelines yield a higher operational-correctness rate than LLM-only generation on multi-device, multi-vendor configuration tasks (paired, per-topology comparison).",
+    "H2: The absolute per-device correctness improvement provided by verifier-assisted pipelines decreases with increasing topology size and vendor heterogeneity, with an inflection point where per-device correctness gain falls below 10%."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do repair-iteration counts (0–3) correlate with final per-device correctness and model-call cost?",
+    "EQ2: Which fault classes (syntax, addressing, reachability, ACL semantics) are most frequently left unresolved after three automated repairs?"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi-device topologies generated deterministically from public network design idioms (no proprietary device configs).",
+    "Vendor-template families: two public-vendor-like templates (Vendor-A-like, Vendor-B-like) plus one heterogeneous synthetic template derived from public RFCs and open-source configs."
+  ],
+  "model_scope": [
+    "Single hosted LLM API accessible via the provided capability manifest (deterministic decoding, temperature=0).",
+    "All calls limited to the mounted hosted-model API; no local GPU execution."
+  ],
+  "transformation_scope": [
+    "Programmatic generation of device configuration files from topology descriptions.",
+    "Deterministic, reversible canonicalization transforms (whitespace/ordering normalization, canonical interface/device naming) used for semantic-equivalence checks."
+  ],
+  "primary_estimand": "Per-device operational-correctness probability difference (verifier-pipeline − LLM-only), aggregated and modeled as a function of topology size and vendor-heterogeneity index.",
+  "secondary_estimands": [
+    "Per-topology proportion of fully-correct devices (no simulator-detected failures).",
+    "Mean number of repair iterations invoked per topology for the verifier pipeline.",
+    "Model-call budget per topology and per-device, averaged by topology size."
+  ],
+  "sampling_plan": "Stratified paired design across five topology-size strata: {10, 25, 50, 100, 200} devices. For the recommended scenario: 100 independent topology seeds per stratum (same seeds used for both methods). Topologies generated deterministically from seeded topology generator (seed list preregistered). Per-topology vendor mixes: three pre-specified mixes (A-dominant, B-dominant, heterogeneous) balanced within each stratum (approximately equal counts). Inclusion: topologies successfully instantiated by the simulator and not failing deterministic input validation. Exclusion: topologies failing infrastructure (simulator crash) after automated retry policy (see missingness_plan). Random seeds and the topology generator code are preregistered and archived with evidence hashes.",
+  "analysis_plan": "Primary analysis: paired comparison at topology level and device-level mixed-effects logistic regression. Device-level model: correctness ~ method + topology_size + vendor_heterogeneity_index + method:topology_size + method:vendor_heterogeneity + (1 | topology_id). Report estimated marginal effects and 95% bootstrap CIs (cluster bootstrap at topology-level). Paired tests: McNemar-style paired-proportion test aggregated by topology (paired by seed). Sensitivity analyses: (a) cluster-robust SEs vs. mixed model, (b) varying assumed ICC (0.01–0.10) for design-effect adjustment, (c) per-vendor subgroup analyses. Multiplicity: primary confirmatory tests limited to H1 and H2; other comparisons are exploratory and labeled accordingly.",
+  "multiplicity_plan": "Primary confirmatory family: two tests (H1 overall improvement; H2 inflection point detection). For remaining post-hoc contrasts, control FDR using Benjamini–Hochberg. Report both unadjusted and adjusted p-values; emphasize effect sizes and CIs over p-values.",
+  "missingness_plan": "Automated retry policy: simulator or API transient failures retried up to 2 times with fixed seeds; if still failing, the topology is excluded and logged as infrastructure failure (not counted as scientific failure). Missingness due to deterministic verifier blocking (e.g., malformed generator output) triggers automated canonicalization and one re-generation attempt; if still invalid, the seed is flagged and excluded from confirmatory counts; exclusions and reasons are reported with hashes. No human adjudication for exclusions; all decisions deterministic and logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic-NetOps-TopoCorpus-v1 (preregistered synthetic corpus derived from public examples)"
+    ],
+    "risk_factors": [
+      "Hidden vendor-specific behaviors not modeled by simulator (simulation fidelity gap).",
+      "Model output that replicates real-world secrets (low likelihood given synthetic templates) or proprietary fragments."
+    ],
+    "detection_procedures": [
+      "Automated scan for high-entropy tokens resembling secrets; flagged outputs are redacted automatically and the run logged.",
+      "Simulator sanity-check: run a small reference validation suite (preregistered public examples) before main execution and require pass threshold (≥95% deterministic checks) to proceed."
+    ],
+    "item_flagging_rules": [
+      "If a topology's simulation run returns a simulator crash or inconsistent routing state, it is flagged as 'infrastructure failure' and retried automatically; persistent failures are excluded with deterministic logging.",
+      "If verifier reports vendor-specific unknown constructs outside the three template families, the topology is flagged and excluded from confirmatory analysis (counts reported)."
+    ],
+    "analysis_treatment": "Flagged/excluded items are reported transparently; primary analyses use the preregistered paired set after deterministic exclusions. Sensitivity analyses include best-case (include automated-repaired cases) and worst-case (exclude flagged items) results.",
+    "residual_uncertainty": [
+      "Residual simulation-to-production fidelity gap (documented and quantified in remaining_noncritical_uncertainties)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "budget-conservative-001",
+      "description": "Conservative: 50 topology seeds per size-stratum (5 strata) → 250 topologies total. Lower-cost run for quick checks.",
+      "planned_model_calls": 1250,
+      "models": [
+        "hosted-LLM-API (deterministic decoding)"
+      ],
+      "transformations": [
+        "topology→per-device-config generator",
+        "canonicalization transform",
+        "verifier checks"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 250,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "Per-topology worst-case 5 model calls (LLM-only 1 + verifier pipeline up to 4). 250 topologies × 5 = 1250 calls; within manifest limits and low wall-clock usage."
+    },
+    {
+      "scenario_id": "budget-recommended-002",
+      "description": "Recommended: 100 topology seeds per size-stratum (5 strata) → 500 topologies total (balanced vendor mixes).",
+      "planned_model_calls": 2500,
+      "models": [
+        "hosted-LLM-API (deterministic decoding)"
+      ],
+      "transformations": [
+        "topology→per-device-config generator",
+        "canonicalization transform",
+        "verifier checks"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 500,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "Per-topology worst-case 5 model calls; 500 × 5 = 2500 total model calls. Paired design, 100 seeds per stratum provides device-level sample (see power plan) adequate for target effects while remaining comfortably under the capability manifest model-call cap (10,000). CPU execution and simulator runs fit 7-day wallclock under automated batching."
+    },
+    {
+      "scenario_id": "budget-ambitious-003",
+      "description": "Ambitious: 200 topology seeds per size-stratum (5 strata) → 1000 topologies total for finer-grained power and subgroup analysis.",
+      "planned_model_calls": 5000,
+      "models": [
+        "hosted-LLM-API (deterministic decoding)"
+      ],
+      "transformations": [
+        "topology→per-device-config generator",
+        "canonicalization transform",
+        "verifier checks"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1000,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "1000 × 5 = 5000 model calls worst-case. Still within the manifest limit (10k calls) but higher wall-clock and compute; recommended only if additional subgroup precision is required."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Per-device correctness probability difference (verifier − LLM-only).",
+    "target_effect": "Detect an absolute per-device correctness improvement of ~2–3% (conservative detectable effect accounting for clustering) with 80% power under recommended scenario.",
+    "clustering_unit": "Topology (devices nested within topology).",
+    "calculation_method": "Design-effect adjusted approximate power using device-level binomial variance and cluster ICC assumptions. Compute-effective sample size n_eff = n_devices / DE, where DE = 1 + (m-1)*ICC and m = average devices per topology. Use normal-approximation for difference in proportions and bootstrap cluster-level CIs for inference.",
+    "assumptions": [
+      "Recommended scenario: 500 topologies (100 per stratum) producing total devices n = 100 * (10+25+50+100+200) = 38,500 devices.",
+      "Average devices per topology m = 38,500 / 500 = 77.",
+      "Baseline per-device correctness ~50% (conservative).",
+      "ICC (intra-topology) assumed range 0.01–0.10 for sensitivity; primary conservative analysis uses ICC=0.05 producing DE≈4.8, n_eff≈8,020.",
+      "With n_eff≈8,020 and p≈0.5, SE ≈ 0.0056; two-sided 95% CI margin ≈1.1%, enabling detection of ≈2.2% absolute differences with ~80% power (approximate)."
+    ],
+    "recommended_scenario_id": "budget-recommended-002",
+    "minimum_detectable_effect_notes": "Under ICC=0.05 assumption, MDE ≈2.2% absolute difference; under lower ICC (0.01) MDE approaches ~1%. Report sensitivity across ICC∈{0.01,0.03,0.05,0.10}.",
+    "sensitivity_analyses": [
+      "Recompute MDEs under ICC 0.01,0.03,0.05,0.10.",
+      "Bootstrap cluster-level paired differences to validate normal-approximation assumptions.",
+      "Per-stratum power estimates for detecting a 5% absolute improvement within each topology-size bin."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Canonicalization (ordering/whitespace/token normalization).",
+      "Vendor-template parameterization (deterministic template engine producing vendor-like configs).",
+      "Simulator-psuedo-compilation mapping (text config → simulator inputs)."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip canonicalization: generated config canonicalized, parsed by deterministic parser, re-rendered; semantic checks compare interface addressing and ACL intent invariants.",
+      "Automated address overlap and subnet-consistency detectors (deterministic checks).",
+      "Small set (preregistered) of canonical examples used for programmatic equivalence verification."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generation outputs missing mandatory per-device blocks (interfaces/routing) deterministically; trigger automated re-generation up to one canonicalization cycle for LLM-only and one repair iteration for verifier pipeline.",
+      "Reject outputs with invalid IP addressing (overlaps violating addressing plan) and treat as verifier-detected issue rather than manual adjudication."
+    ],
+    "audit_sample_policy": "Automated deterministic selection of 5% of generated topologies per stratum for deep parser-level logging; selection via preregistered hash-based sampler ensures reproducible audit samples (no human review mandated).",
+    "mapping_validation": "Validate the topology→simulator mapping using a preregistered validation suite of public, small reference configurations; require deterministic pass threshold (≥95% of reference invariants) before main run.",
+    "residual_risks": [
+      "Semantic equivalence limited by simulator expressiveness and by abstractions in synthetic vendor templates; some vendor-specific runtime semantics may not be captured."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator fidelity vs production vendor runtime: the simulator models core control-plane and data-plane properties (reachability, ACL semantics) but cannot capture vendor firmware bugs, vendor-specific dynamic behaviors, or platform-specific implementation quirks. Conclusions are explicitly bounded to simulator-modeled operational correctness.",
+    "Deterministic verifier coverage: some semantic fault classes (e.g., vendor-specific implicit defaults or undocumented behaviors) may be undetectable; verifier-detection taxonomy and limitations are preregistered and will be reported.",
+    "External validity to private production networks is limited because the corpus uses synthetic templates derived from public artifacts; all claims are bounded to the declared synthetic benchmark scope."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4393065402",
+    "https://openalex.org/W4401857375",
+    "https://openalex.org/W4411113095",
+    "https://openalex.org/W4388629193"
+  ]
+}

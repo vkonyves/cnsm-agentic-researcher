@@ -1,0 +1,114 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-netops-scale-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator fidelity vs real vendor behavior may bias operational-failure labels.",
+        "Deterministic verifier may have vendor-specific blind spots, confounding method comparison.",
+        "Synthetic topology and vendor templates risk limited external validity and licensing/privacy issues."
+      ],
+      "required_design_repairs": [
+        "Validate simulator/emulator on small set of vendor reference configs and report gaps.",
+        "Specify verifier capabilities and limitations per vendor; log verifier detection taxonomy.",
+        "Sanitize vendor templates for licensing and document provenance; expand vendor diversity or justify selection.",
+        "Pre-register exact prompt templates, seeds, retry policy, and model-call budget; include paired-baseline enforcement."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-2026-netops-adversarial-002",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Adversarial payload creation raises ethical/security risks and reuse potential.",
+        "Definition and operationalization of 'poisoned retrieval' and sanitization heuristics are underspecified.",
+        "Containment and non-public release of adversarial artifacts required for safety/compliance."
+      ],
+      "required_design_repairs": [
+        "Add an ethics/containment plan; restrict distribution and label adversarial artifacts securely.",
+        "Precisely define retrieval pipeline, poisoning rules, and sanitization algorithms; preregister them.",
+        "Include a non-adversarial model-only baseline and measure retrieval contamination rates.",
+        "Report false-positive costs of sanitization and operational tradeoffs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-netops-metrics-003",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Simulator-derived safety labels may imperfectly map to operational impact (construct validity).",
+        "Benchmark sampling could bias metric comparisons toward verifier strengths.",
+        "Releasing artifacts may implicate vendor licensing or sensitive configuration fragments."
+      ],
+      "required_design_repairs": [
+        "Define and justify simulator safety-severity mapping and validate on held-out examples.",
+        "Prespecify sampling strategy to avoid selection bias; stratify by task type and topology size.",
+        "Sanitize released artifacts and include provenance/licensing metadata; consider synthetic alternatives.",
+        "Compare verifier-metrics against multiple surface metrics and across at least two LLMs for robustness."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-2026-netops-hil-004",
+      "novelty": 0.6,
+      "falsifiability": 0.7,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Human-in-the-loop results rest on simulated operator models whose realism is uncertain.",
+        "Policy recommendations risk misguidance if operator-model parameters are mis-specified.",
+        "No human-subject validation reduces external validity for operator workload and override behavior."
+      ],
+      "required_design_repairs": [
+        "Ground operator-simulator parameters in cited empirical studies or telemetry; preregister parameter ranges.",
+        "Run extensive sensitivity analyses and report regimes where conclusions reverse.",
+        "Be explicit that findings are conditional on simulator assumptions; avoid prescriptive guidance without human validation.",
+        "If possible, incorporate small real-operator calibration (public datasets or prior studies) to anchor simulator. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-netops-verifiergap-005",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Curating a reliable, balanced labeled fault corpus is labor-intensive and prone to label noise.",
+        "Some semantic faults may be inherently undecidable for deterministic verifiers; expectations must be bounded.",
+        "Augmentations may inflate false-positives and operational friction; tradeoffs must be quantified."
+      ],
+      "required_design_repairs": [
+        "Provide detailed taxonomy with labeling guidelines and inter-annotator agreement targets; preregister adjudication rules.",
+        "Quantify computational overhead of augmentations and measure precision/recall tradeoffs.",
+        "Report which fault classes are provably undecidable or practically undetectable and adjust claims accordingly.",
+        "Ensure reproducibility by publishing sanitized examples, verifier code, and annotation artifacts."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-netops-scale-001",
+      "title": "Scalability of Generate→Verify→Repair Pipelines for Multi-Device, Multi-Vendor Network Configurations",
+      "research_question": "Do generate→verify→repair pipelines materially improve operational-correctness rates relative to LLM-only generation as network topology size and device/vendor heterogeneity increase?",
+      "hypotheses": [
+        "Verifier-assisted generate→verify→repair pipelines yield a higher operational-correctness rate than LLM-only generation on multi-device, multi-vendor configuration tasks.",
+        "The absolute improvement provided by verifier-assisted pipelines decreases with increasing topology size and vendor heterogeneity, exhibiting a measurable inflection point beyond which per-device correctness gain falls below 10%."
+      ],
+      "proposed_design": "Construct a corpus of synthetic multi-device topologies (10–200 devices) and vendor-specific configuration templates (two major vendor families plus a third heterogeneous template). For each topology: (1) produce device configurations with an LLM-only prompt; (2) produce configs via the same LLM within a generate→verify→repair loop using a deterministic verifier that checks syntax, interface addressing, reachability, and ACL semantics; (3) allow up to three automated repair iterations. Validate generated configs with a network simulator/emulator that executes control-plane and data-plane checks (reachability, ACL enforcement, routing convergence). Record per-device and per-topology correctness. Use fixed random seeds, 100 topologies per size bin, and the same prompt templates across conditions. Pre-register inclusion/exclusion, stopping rules, and maximum model-call budget.",
+      "expected_data": "Per-task records including topology size, vendor mix, number of generated configurations, verifier-detected issues, number of repair iterations, simulator-detected operational failures (per-device reachability and policy violations), time per task, and number of model calls.",
+      "primary_outcome": "Difference in operational-correctness rate (proportion of devices without simulator-detected failures) between verifier-assisted pipeline and LLM-only generation, analyzed as a function of topology size and vendor heterogeneity.",
+      "analysis_outline": "Compute per-topology and aggregated correctness proportions with 95% CIs. Use paired comparisons (each topology seeded for both methods) and test differences with McNemar's or paired-proportion bootstrap depending on dependency structure. Fit logistic regression predicting device-level correctness with predictors: method (verifier vs LLM-only), topology size, vendor-heterogeneity index, and their interactions. Estimate the topology size at which incremental improvement falls below 10% via modeled marginal effects and bootstrap CIs. Report effect sizes, p-values, and power/post-hoc sensitivity analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4411113095"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411113095"
+      ],
+      "risks": [
+        "Simulator/emulator abstractions may not capture certain vendor-specific runtime behaviors, biasing operational-failure labels.",
+        "Deterministic verifier completeness may vary by vendor template, producing method-dependent detection differences rather than true generator quality differences.",
+        "Model-provider API rate limits or outages could bias sample selection if retries exceed preregistered policy."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "cand-2026-netops-adversarial-002",
+      "title": "Robustness of Verifier-Assisted NetOps Pipelines to Prompt-Injection and Poisoned Retrievals",
+      "research_question": "How do prompt-injection payloads embedded in retrieval augmentation or adversarial prompts affect the ability of generate→verify→repair pipelines to detect and prevent semantic configuration faults?",
+      "hypotheses": [
+        "Adversarially poisoned retrieval documents or injected prompt fragments increase the rate of undetected semantic configuration faults in verifier-assisted pipelines compared to clean retrievals.",
+        "Applying retrieval sanitization and verifier-input hardening reduces the undetected semantic-fault rate by a statistically significant margin (>25%) relative to the unmitigated adversarial condition."
+      ],
+      "proposed_design": "Assemble a retrieval datastore containing benign vendor docs and configuration examples. Create adversarial variants by inserting crafted prompt-injection payloads and malicious configuration snippets designed to steer LLM outputs toward unsafe changes (e.g., open ACLs, route leaks). For a fixed set of intent-driven tasks, run three conditions: (A) clean retrievals + verifier loop; (B) poisoned retrievals + verifier loop; (C) poisoned retrievals + retrieval-sanitization (pattern filters and provenance scoring) + verifier loop. Use the same LLM prompts and verifier. Measure verifier-detected issues, simulator-detected failures, and cases where verifier missed semantic faults. Pre-register adversary-generation rules, sanitization heuristics, and allowed repairs.",
+      "expected_data": "Per-task counts of adversarial documents retrieved, verifier alerts, undetected semantic faults (simulator-discovered), false-positive alerts from sanitization, repair iteration counts, and performance metrics (precision/recall) of verifier detection under each condition.",
+      "primary_outcome": "Undetected semantic-fault rate (fraction of simulator-detected faults not flagged by the verifier) under poisoned retrievals versus poisoned+sanitized retrievals; assess absolute and relative changes.",
+      "analysis_outline": "Compare undetected-fault rates across conditions using proportion tests with Bonferroni-adjusted pairwise comparisons. Compute 95% CIs via bootstrap. Fit logistic models predicting undetected faults with predictors: condition, task type, and retrieval similarity. Report detection precision/recall and estimate number-needed-to-review for human operators under each condition. Conduct adversary-sensitivity analysis varying adversarial payload strength.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4406152291"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411523078"
+      ],
+      "risks": [
+        "Constructing adversarial payloads risks producing exploit-like artifacts that could be reused; must store securely and label as adversarial.",
+        "Sanitization heuristics could introduce false positives that obscure true verifier performance.",
+        "Ethical considerations if adversarial examples resemble real attack vectors; require containment and non-public release."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "cand-2026-netops-metrics-003",
+      "title": "Operationally Meaningful Metrics and a Small Benchmark for LLM-Generated Network Configurations",
+      "research_question": "Do verifier-derived operational metrics (reachability, policy-violation counts, route-convergence checks) predict simulated operational failures better than surface-level similarity metrics (token overlap, edit distance) for LLM-generated configurations?",
+      "hypotheses": [
+        "Verifier-derived operational metrics correlate more strongly with simulator-observed operational failures than token-level similarity metrics.",
+        "A compact benchmark combining diverse task intents and verifier-metrics yields higher discrimination (AUC) for unsafe vs safe configurations than benchmarks built on surface-similarity alone."
+      ],
+      "proposed_design": "Design a benchmark of 200 NetOps tasks covering connectivity, ACLs, routing, and NAT across small to medium topologies. For each task, produce LLM-generated configurations from multiple prompts and variants. Compute a suite of metrics: token-level BLEU/normalized edit distance, verifier-derived metrics (reachability pass/fail, ACL violation count, policy-conflict score, required repair iterations), and simulator outcome (binary safe/unsafe and severity score). Evaluate metric correlations with simulator outcomes and compute ROC AUC for predicting unsafe configurations. Release the benchmark artifacts and verifier metric definitions as a reproducible dataset.",
+      "expected_data": "Per-sample metric vectors (surface and verifier metrics), simulator safety labels and severity scores, and aggregated performance numbers (correlations, AUCs, calibration curves) across task types.",
+      "primary_outcome": "Comparison of correlation strengths and AUC values: verifier-derived metric suite vs best surface-similarity metric in predicting simulator-detected unsafe configurations.",
+      "analysis_outline": "Compute Spearman and Pearson correlations between each metric and simulator safety severity. Use DeLong test to compare AUCs of logistic classifiers built on (a) surface metrics and (b) verifier metrics. Perform stratified analyses by task type. Provide calibration plots and decision-threshold tradeoffs. Use bootstrap resampling (1,000 iterations) to produce CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4411113095",
+        "https://openalex.org/W4393065402"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411523078"
+      ],
+      "risks": [
+        "Benchmark size and task selection may bias metric comparisons; careful sampling is required to avoid overfitting to verifier strengths.",
+        "Simulator labeling is an imperfect operational proxy and may misclassify nuanced policy semantics.",
+        "Releasing benchmark artifacts containing vendor-specific config fragments may have licensing or privacy implications and must be sanitized."
+      ],
+      "estimated_model_calls": 900
+    },
+    {
+      "candidate_id": "cand-2026-netops-hil-004",
+      "title": "Evaluating Simulated Human-in-the-Loop Gating Strategies for LLM-Driven NetOps Remediation",
+      "research_question": "What gating thresholds and auto-repair policies achieve best trade-offs between deployment safety and operator intervention rates in LLM-driven NetOps workflows when human operators are approximated by calibrated decision models?",
+      "hypotheses": [
+        "Conservative verifier thresholds reduce the fraction of unsafe deployments but increase operator intervention rates and mean time-to-deploy.",
+        "A calibrated hybrid policy (confidence-threshold auto-approve + auto-repair + human review on residual low-confidence cases) reduces operator interventions by >30% relative to always-human-gate while keeping unsafe-deployment rates within 5% of conservative gating."
+      ],
+      "proposed_design": "Because direct human-subject experiments are disallowed, construct calibrated human-decision simulators based on literature-derived operator response models (decision latency as a function of alert severity, probability of overriding verifier recommendations). Run a set of NetOps tasks under multiple gating policies: (1) always-human-gate; (2) conservative-verifier-with-human-fallback; (3) hybrid-calibrated policy; (4) automated-with-post-hoc-audit. For each policy, simulate operator decisions across 1,000 tasks using the calibrated model, record interventions, unsafe deployments, and time-to-deploy. Pre-register simulator parameters and conduct sensitivity analysis across plausible operator-model parameter ranges.",
+      "expected_data": "Per-policy aggregated measures: interventions per 100 tasks, unsafe-deployment rate, mean and median time-to-deploy, distribution of operator workload (alerts/hour), and sensitivity paths across operator-model parameter variations.",
+      "primary_outcome": "Pareto frontier of intervention rate versus unsafe-deployment rate across gating policies; identification of policies that dominate (lower interventions for equal or lower unsafe deployments).",
+      "analysis_outline": "Compute intervention and unsafe-deployment rates with 95% CIs under each policy. Use cost-function analysis combining operator-time cost and expected outage cost to rank policies. Conduct sensitivity analyses sweeping operator-model parameters and present robust-optimal policies under plausible human-response distributions. Report threshold values and estimated operator load reductions with uncertainty bounds.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W2041713059",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411113095",
+        "https://openalex.org/W4401857375"
+      ],
+      "risks": [
+        "Human decision simulators may not capture real-world cognitive biases and workload variability, limiting external validity.",
+        "Overreliance on simulated operators could lead to policy recommendations that perform poorly with actual operators.",
+        "Mis-specifying operator cost parameters may invert policy rankings; must report parameter ranges transparently."
+      ],
+      "estimated_model_calls": 650
+    },
+    {
+      "candidate_id": "cand-2026-netops-verifiergap-005",
+      "title": "Taxonomy and Coverage Gaps of Deterministic Verifiers for LLM-Generated NetOps Configurations",
+      "research_question": "Which classes of semantic and policy errors commonly produced by LLMs are missed by typical deterministic verifiers, and how much does targeted verifier augmentation reduce the miss rate?",
+      "hypotheses": [
+        "Typical deterministic verifiers detect syntactic and local-consistency errors reliably but miss higher-order semantic faults such as multi-hop policy conflicts, transient route-flap-induced reachability failures, and implicit state-machine misconfigurations.",
+        "Implementing a targeted set of verifier augmentations (multi-path reachability checks, policy-implication rules, and temporal convergence checks) reduces the miss rate of these semantic error classes by at least 30% relative to the baseline verifier."
+      ],
+      "proposed_design": "Curate a labeled corpus of 400 configuration artifacts containing intentionally injected faults spanning taxonomy categories: syntax, simple consistency, ACL misordering, multi-hop policy conflicts, routing-policy interactions, and temporal convergence issues. Run a baseline deterministic verifier that performs standard checks; record misses (simulator-labeled). Develop and implement three verifier augmentations aimed at the higher-order classes. Re-run augmented verifier and measure detection improvements per class. Pre-register taxonomy definitions and labeling rules; use two independent annotators for taxonomy assignment and adjudicate disagreements.",
+      "expected_data": "Per-sample labels (fault classes), baseline verifier detection results, augmented-verifier detection results, counts of misses by class, time/per-check computational costs, and inter-annotator agreement statistics.",
+      "primary_outcome": "Class-wise reduction in miss rate (percentage-point decrease) after verifier augmentation, with particular focus on higher-order semantic error classes.",
+      "analysis_outline": "Compute confusion matrices for baseline and augmented verifiers by fault class. Use paired-proportion tests (McNemar) to test detection improvements per class. Report absolute and relative reductions with 95% CIs using bootstrap. Evaluate computational overhead and report precision/recall tradeoffs introduced by augmentations. Provide qualitative exemplars of previously-missed faults and newly-detected ones.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4401857375"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4411113095"
+      ],
+      "risks": [
+        "Creating a comprehensive and balanced fault corpus is labor-intensive; mislabeled examples could bias detection estimates.",
+        "Augmentations may increase false positives and operational friction; tradeoffs must be quantified.",
+        "Some semantic faults may be inherently undecidable for deterministic verifiers, limiting detectability gains."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}
