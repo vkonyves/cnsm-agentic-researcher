@@ -1,0 +1,167 @@
+{
+  "selected_candidate_id": "cand-2026-netops-1",
+  "title": "Verifier-assisted evaluation of LLM-generated network configurations for deterministic reachability and isolation",
+  "research_question": "When asked to translate high-level network intent into device-level configurations, how reliably do current LLMs produce configurations that satisfy deterministic operational properties (reachability, isolation, ACL policy compliance) as measured by a formal network verifier, and how much does an explicit generate–validate–repair pipeline improve that reliability?",
+  "confirmatory_hypotheses": [
+    "LLM-generated configurations produced in a single-shot prompt will fail verifier-checked reachability/isolation properties on a substantial fraction (>20%) of tasks in the public synthetic topology/policy corpus.",
+    "A generate–validate–repair pipeline that uses a deterministic verifier to identify failures and requests targeted repairs from the LLM will significantly increase the fraction of verifier-passing configurations compared to single-shot generation (absolute increase >10 percentage points)."
+  ],
+  "exploratory_questions": [
+    "How much marginal utility (absolute pass-rate improvement) is obtained per repair iteration (up to three iterations)?",
+    "Which strata (topology size, policy class) show the largest/smallest repair success rates?",
+    "What is the median and distribution of model calls required per successful repair (cost-per-success)?",
+    "Do automated contamination-detection signals (n-gram overlap / exact-line matches) predict unusually high pass rates (possible leakage)?"
+  ],
+  "benchmark_scope": [
+    "Public synthetic corpus (published alongside study artifacts) pairing realistic topologies, device templates, and intent→policy pairs (see provenance & release plan below).",
+    "Reference to prior public evaluation corpora (NetConfEval-like public corpora) for scope alignment and comparison."
+  ],
+  "model_scope": [
+    "Single hosted LLM provider accessible via API (hosted_model_api_available). Exact model identifier and model-version will be recorded and frozen at experiment start and reported in the Disclosure Statement (execution-time record).",
+    "Use of a single model avoids multi-model generalization claims; results are explicitly bounded to the chosen hosted model."
+  ],
+  "transformation_scope": [
+    "Automated parsing and canonicalization of LLM textual outputs into verifier-input device configs using deterministic parsers and canonicalizers developed in the repo.",
+    "Verifier assertions: deterministic reachability, isolation, and ACL compliance checks executable on canonicalized configs."
+  ],
+  "primary_estimand": "Per-task difference in verifier pass indicator (pipeline-after-up-to-3-iterations) minus single-shot baseline pass indicator (paired proportion difference).",
+  "secondary_estimands": [
+    "Per-iteration marginal increase in pass probability (iteration 1, iteration 2, iteration 3).",
+    "Median model calls per successful repair.",
+    "Stratum-specific pass rates (small/medium/large topologies; policy classes)."
+  ],
+  "sampling_plan": "Confirmatory sample: N=240 tasks drawn from the public synthetic corpus, stratified equally across three topology-size strata (small/medium/large): 80 tasks per stratum. An additional exploratory holdout set of 60 tasks (same strata distribution) will be reserved for exploratory analyses and robustness checks. Inclusion: tasks with well-formed intent→policy pairs and canonical device templates. Exclusion: tasks whose synthetic topology or device templates fail automated schema validation (parser stage) prior to prompting; such exclusions are deterministic and logged. Total confirmatory tasks = 240; discovery (exploratory) tasks = 60. Rationale and derivation: see Power Plan below.",
+  "analysis_plan": "Primary analysis is paired: per-task baseline vs final-pipeline verifier pass. Use McNemar's test (binomial paired discordant test) to test the confirmatory hypothesis (alpha=0.05, two-sided). Report absolute difference, 95% CI (exact binomial or nonparametric bootstrap), p-value, and effect-size. Report marginal utility per iteration (paired difference after iteration k vs iteration k-1). Stratified descriptive statistics for pre-defined strata (80 tasks each). Exploratory subgroup comparisons are labeled exploratory; multiplicity correction (Bonferroni) applied when presenting secondary confirmatory-sounding claims; otherwise report uncorrected results with explicit exploratory labeling.",
+  "multiplicity_plan": "One pre-registered primary outcome (paired verifier pass-rate difference). All other analyses (iteration marginals, strata) are exploratory except pre-specified stratified descriptive reporting. When multiple hypothesis tests are reported beyond the primary test, apply Bonferroni correction across the named secondary tests or label them as exploratory with unadjusted p-values.",
+  "missingness_plan": "Technical model/API failures: automatically retry up to 2 technical retries (total 3 attempts per call) with exponential backoff. If still failing, mark the task-call as 'technical failure' and exclude from the primary paired analysis (primary analysis set requires both baseline and pipeline endpoints available). Sensitivity analyses: treat missing baseline or pipeline outputs conservatively as verifier-fail in an alternate ITT-style sensitivity analysis. All exclusions, counts, and reasons are logged deterministically and included in results tables.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public synthetic topology/policy corpus (this study; will be released with provenance)",
+      "NetConfEval-like public corpora (for comparison only)"
+    ],
+    "risk_factors": [
+      "Training-data leakage (model memorization of publicly shared config fragments).",
+      "High verbatim overlap between synthetic corpus templates and model pretraining data."
+    ],
+    "detection_procedures": [
+      "Automated exact-line matching: compute SHA256 hashes per canonical config line and detect exact-line reuse between synthetic corpus and model-generated configs.",
+      "N-gram overlap scoring: compute normalized n-gram (n=5) overlap between each generated config and every corpus config; record overlap score.",
+      "High-similarity fingerprinting: Jaccard on token-level shingles; flag items with overlap above pre-specified thresholds."
+    ],
+    "item_flagging_rules": [
+      "Flag as 'possible-contamination' when exact-line match count ≥ 2 lines or normalized 5-gram overlap > 0.30 (30%).",
+      "Flag as 'likely-contamination' when exact-line match count ≥ 5 lines or normalized 5-gram overlap > 0.60."
+    ],
+    "analysis_treatment": "Report pass rates separately for flagged vs non-flagged tasks. Primary confirmatory analysis excludes flagged items from contamination sensitivity analysis only if pre-registered threshold crossed; otherwise include all items and report contamination-stratified results. All flagged items are included in the public artifact with flags so readers can reproduce alternate treatments.",
+    "residual_uncertainty": [
+      "Automated overlap detection may miss semantic memorization where the model produces functionally equivalent but token-different configs.",
+      "Thresholds chosen are conservative but partially arbitrary; sensitivity across thresholds will be reported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-conservative-120-1",
+      "description": "Conservative / low-cost: confirmatory N=120 (40 per stratum), single-shot baseline + at most 1 repair iteration for failing cases, strict per-task call cap = 2. Intended when provider rate or cost constraints bind.",
+      "planned_model_calls": 200,
+      "models": [
+        "Single hosted LLM API (model id to be recorded at execution start)"
+      ],
+      "transformations": [
+        "Automated parser + canonicalizer; verifier runs"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task max calls 2 leads to per-task worst-case 240 calls; baseline 120 + estimated repair calls (assume 30% fail→36 repairs) = 156; add 20% overhead for retries/logging → ~187 → rounded to 200 planned calls. Well within the manifest model-call cap (10000)."
+    },
+    {
+      "scenario_id": "scenario-recommended-240-3",
+      "description": "Recommended balanced scenario: confirmatory N=240 (80 small / 80 medium / 80 large), baseline single-shot + up to 3 repair iterations for failing cases, per-task call cap = 4 (1 baseline + 3 repairs). Provides adequate power and stratified inference while remaining low-cost.",
+      "planned_model_calls": 500,
+      "models": [
+        "Single hosted LLM API (model id to be recorded at execution start)"
+      ],
+      "transformations": [
+        "Automated parser + canonicalizer; verifier runs"
+      ],
+      "discovery_items": 60,
+      "confirmatory_items": 240,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Worst-case per-task calls = 4 → max possible calls = 240*4 = 960. Empirically expected calls: baseline 240 + repair calls estimated from 30% baseline fail rate (72 failing tasks) × mean 2 repair iterations ≈ 144 → total ≈ 384; add 20% overhead for retries/logging → ≈ 461 → rounded to 500 planned calls. This is below the platform model-call cap (10000) and fits within the 7-day wall-clock execution window using CPU verifier runs and hosted-model latency assumptions."
+    },
+    {
+      "scenario_id": "scenario-generous-400-3",
+      "description": "Generous / high-powered: confirmatory N=400, baseline + up to 3 repair iterations, per-task cap = 4. For use if budget and rate-limits permit larger sample and more precise stratum estimates.",
+      "planned_model_calls": 800,
+      "models": [
+        "Single hosted LLM API (model id to be recorded at execution start)"
+      ],
+      "transformations": [
+        "Automated parser + canonicalizer; verifier runs"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 400,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Worst-case calls = 400*4 = 1600. Expected call estimate (30% fail rate × avg 2 repair iterations) gives ~640, overhead → ~800 planned calls. Still below platform cap (10000) but larger wall-clock/time cost; included as optional if sponsor resources permit."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in verifier pass probability (pipeline_after_repairs − single_shot_baseline).",
+    "target_effect": "Absolute increase of 10 percentage points (0.10) in pass probability (pipeline vs baseline).",
+    "clustering_unit": "Task (intent→topology instance); paired within-task comparison between baseline and pipeline outputs.",
+    "calculation_method": "McNemar-style paired binary outcome sample-size rationale: approximate sample size n = (Z_{alpha/2}+Z_{beta})^2 * (p01 + p10) / delta^2 where p01 and p10 are discordant proportions. With alpha=0.05 (Z=1.96), power 0.80 (Z_beta=0.84), assumed discordant sum (p01+p10) ≈ 0.20 (conservative for 10% absolute change), the formula yields n≈157. To allow stratified analyses, buffer for lower-than-expected discordance, and deterministic exclusions, we pre-register N=240 confirmatory tasks (80 per stratum).",
+    "assumptions": [
+      "Baseline pass rate ≈ 70% (baseline fail ≈ 30%) motivated by literature and pilot signals; actual rates may differ but the chosen N=240 provides margin.",
+      "Discordant-pair sum p01+p10 assumed ≈ 0.20 for sample-size calculation; sensitivity analysis will be reported for p01+p10 in [0.15,0.30].",
+      "Alpha=0.05 (two-sided), power=0.80.",
+      "Paired design maintained by evaluating baseline and pipeline for every task; missingness handled by deterministic retry policy and sensitivity analysis."
+    ],
+    "recommended_scenario_id": "scenario-recommended-240-3",
+    "minimum_detectable_effect_notes": "With N=240 and assumed discordant sum 0.20, the detectable absolute paired difference (two-sided, power 0.8) is ≈0.07–0.10 depending on actual discordant sum; we pre-register the 10-percentage-point target and will report achieved minimum detectable effect given observed discordant counts.",
+    "sensitivity_analyses": [
+      "Recompute achieved power and minimum detectable effect conditional on observed discordant counts (p01+p10).",
+      "Repeat primary analysis treating missing API outputs as failures (conservative ITT sensitivity).",
+      "Report results across reduced samples (per-stratum N=80) and pooled N."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Syntax parsing and canonicalization of textual device configs into verifier input format.",
+      "Line-level canonical whitespace/ordering normalization.",
+      "Deterministic template instantiation and variable binding."
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: parse(L->canonical)->pretty-print and re-parse to confirm idempotence; verifier-consistency check: run verifier on both original-L and canonicalized config to ensure identical assertions.",
+      "Unit tests with canonical examples (canonical positive/negative cases) to ensure verifier semantics match specification."
+    ],
+    "automatic_rejection_rules": [
+      "If parser fails deterministically for an LLM output, mark that output as 'parse-fail' and count as verifier-fail for that iteration; log exact parser error.",
+      "If canonicalization changes more than 10% of non-whitespace tokens relative to original output (indicative of major re-formatting), flag and count as parser-fail for that iteration."
+    ],
+    "audit_sample_policy": "Every 50th generated configuration (per scenario) is subjected to an expanded automated audit consisting of (a) line-hash comparison against corpus, (b) additional syntactic validators, (c) run-time verifier stress test. All audit checks are automated and deterministic; results are logged and published.",
+    "mapping_validation": "Canonicalizer and verifier come with a unit test suite (≥100 canonical positive/negative cases) executed before experiment run; tests are recorded with hashes. Any failing test halts execution until automated-fix or code update is applied and re-tested; such halts and fixes are logged and reported.",
+    "residual_risks": [
+      "Parser corner-cases that require human-intelligible repair cannot be addressed by the automated pipeline; those cases will be counted and reported as parse-failures.",
+      "Semantic-equivalence heuristics may not capture certain vendor-specific idiosyncrasies; these are discussed as noncritical external-validity limits."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: synthetic public corpora may not capture full production heterogeneity (multivendor idiosyncrasies); conclusions are explicitly bounded to the public synthetic corpus and the chosen hosted model.",
+    "Hosted-model nondeterminism: unavoidable variability in model outputs remains; handled via retries, per-task paired design, and sensitivity analyses but residual sampling noise is noncritical.",
+    "Contamination detection is automated (n-gram/line-match) but cannot prove absence of semantic memorization; treated as residual uncertainty and reported via sensitivity stratification.",
+    "Exact model identifier and any provider-side metadata (randomness seeds, temperature internals) will be recorded at execution start—until then some provider internals are unavailable but this does not block execution as the capability manifest permits hosted-model API use."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4403172155",
+    "https://openalex.org/W7167748939",
+    "https://openalex.org/W7134061324",
+    "https://openalex.org/W4409895145",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W7169633008",
+    "https://openalex.org/W7171902012"
+  ]
+}

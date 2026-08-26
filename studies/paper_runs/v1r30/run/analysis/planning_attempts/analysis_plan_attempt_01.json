@@ -1,0 +1,35 @@
+{
+  "study_id": "cand-2026-netops-1-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired binary analysis implemented on paired_binary_episode_v1 artifacts. For each preregistered task use verifier pass boolean from execution/scoring/task-000XXX-*.json to form paired indicators (baseline, guarded). Compute absolute paired difference (guarded − baseline), report McNemar test two-sided p-value (alpha=0.05), exact 95% CI for the absolute difference (exact/binomial or exact paired CI as implemented by the executor), and report discordant-pair counts and N used (after applying preregistered exclusion rules). All inputs are taken from execution/raw_results.jsonl and execution/scoring/*.json as recorded in the execution manifest.",
+  "secondary_analyses": [
+    "Per-stratum descriptive pass rates (small/medium/large; n=80 each) with 95% exact/binomial CIs (report counts and proportions).",
+    "Per-condition (baseline, guarded) overall pass rates and counts.",
+    "Median and IQR of model calls per successful repair (cost-per-success) computed from execution/provider_calls and execution/scoring artifacts.",
+    "Contamination-stratified pass rates: report pass rates separately for items flagged 'possible-contamination' and 'likely-contamination' by the repository contamination outputs."
+  ],
+  "sensitivity_analyses": [
+    "Missingness sensitivity: re-run primary estimand treating any task excluded for technical model/API failure as verifier-fail (complete_pair_primary_with_failure_as_zero_sensitivity).",
+    "Contamination exclusion sensitivity: alternate confirmatory primary analysis excluding tasks that meet 'possible-contamination' and an additional sensitivity excluding 'likely-contamination' (threshold sweep reported).",
+    "Parser-fail treatment: treat parser/canonicalizer parse-fail items as verifier-fail in an alternate sensitivity run and report differences.",
+    "Observed-discordance sensitivity: recompute achieved 95% CIs and minimum-detectable-effect conditional on observed discordant count per preregistered plan."
+  ],
+  "uncertainty_quantification": "Report exact 95% CIs for proportions (Clopper–Pearson) and for paired absolute difference use exact/binomial paired CI or nonparametric bootstrap implemented by executor. Report two-sided McNemar p-value and exact discordant counts. For medians (model-call cost) report median and IQR; bootstrap CIs for medians where implemented.",
+  "multiplicity_implementation": "One pre-registered primary test (paired difference) treated as confirmatory. All other tests presented as descriptive/exploratory except pre-specified stratified descriptive reporting. If any secondary hypothesis tests are promoted as confirmatory, apply Bonferroni correction across those named secondary tests per preregistration; otherwise present unadjusted p-values with explicit exploratory labeling.",
+  "contamination_analysis": "Use repository contamination outputs (line-hash exact-line matches, normalized 5-gram overlap, token-shingle Jaccard) and the preregistered thresholds: flag 'possible-contamination' if exact-line matches ≥2 or normalized 5-gram overlap >0.30; flag 'likely-contamination' if exact-line matches ≥5 or normalized 5-gram overlap >0.60. Primary confirmatory analysis includes all items; report contamination-stratified results and perform sensitivity analyses excluding flagged sets and threshold sweeps. Provide contamination-flag table and audit samples from execution artifacts.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Overall paired contingency table: counts of (baseline pass / guarded pass) cells and discordant-pair counts (sourced from execution/scoring/task-000***.json).",
+    "Table 2 — Per-stratum pass rates: for small/medium/large strata report baseline and guarded pass counts, proportions, and 95% CIs (derived from execution/scoring files and execution/task_manifest.jsonl).",
+    "Table 3 — Contamination flags: per-task contamination metrics (exact-line match count, normalized 5-gram overlap, shingle Jaccard) and assigned flag (none/possible/likely) pulled from transformation_manifest and scoring outputs.",
+    "Table 4 — Model-call cost: per-task model-call counts, distribution summary (median, IQR), and count of successful repairs with associated calls (from execution/provider_calls and execution/scoring).",
+    "Table 5 — Sensitivity-summary: primary result under main treatment, missing-as-fail sensitivity, contamination-excluded sensitivities, parser-fail-as-fail sensitivity with counts and effect estimates."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of pass rates (baseline vs guarded) overall and by stratum (three grouped bars per stratum). Data from execution/scoring/*.json aggregated by strata in execution/task_manifest.jsonl.",
+    "Figure 2 — CDF or empirical distribution plot of model calls required per successful repair (cost-per-success) computed from execution/provider_calls metadata and scoring files.",
+    "Figure 3 — Scatter/strip plot of contamination metric (normalized 5-gram overlap) vs verifier pass outcome with flag coloring (none/possible/likely), using contamination outputs in transformation_manifest and scoring JSONs.",
+    "Figure 4 — Discordant-pair mosaic or stacked bar showing counts of baseline-only-pass, guarded-only-pass, both-pass, neither-pass (to visualize McNemar discordance)."
+  ]
+}

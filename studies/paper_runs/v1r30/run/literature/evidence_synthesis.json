@@ -1,0 +1,209 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "LLMs have been applied to network-configuration and NetOps tasks (intent-to-configuration, config generation, and prototypes for automated configuration agents).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4403172155"
+      ],
+      "evidence_type": "literature synthesis / prototype studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Many sources are surveys or prototype demonstrations rather than large-scale production deployments.",
+        "Task scope and evaluation metrics vary across studies, limiting direct comparability."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Hallucination, overconfidence, and related failure modes in LLM outputs are widely documented; active research exists on detection, calibration, and mitigation methods (entropy-based detectors, ensemble/ensemble-judge, verification pipelines).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4409895145",
+        "https://openalex.org/W4399803256",
+        "doi:10.2139/ssrn.7200222",
+        "doi:10.21203/rs.3.rs-10303665/v1"
+      ],
+      "evidence_type": "empirical / survey / method papers",
+      "confidence": 0.95,
+      "limitations": [
+        "Most mitigation/detection results are reported on general-language or benchmark tasks; translation to NetOps-specific artifacts is not consistently evaluated.",
+        "Detection methods have varying true/false-positive trade-offs and may require task-specific tuning."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Generate–validate–repair (iterative generation with deterministic or heuristic validators and subsequent repairs) is a common workflow for improving LLM-produced artefacts; empirical work shows diminishing returns after a small number of repair iterations in related domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7134061324",
+        "https://openalex.org/W7125909708",
+        "https://openalex.org/W7127739514"
+      ],
+      "evidence_type": "empirical studies / method papers",
+      "confidence": 0.85,
+      "limitations": [
+        "The diminishing-return finding is demonstrated across software-engineering tasks; direct measurement for NetOps configuration repair loops is limited.",
+        "Effectiveness depends strongly on validator quality and feedback design."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Tool-augmented LLM agents and orchestrated function-calling / external-tool use (specialized tools, validators, simulators, runtime frameworks) are proposed and shown to improve grounding and practical reliability in multi-step tasks.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7317098",
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.2139/ssrn.6438169",
+        "doi:10.2139/ssrn.6438169"
+      ],
+      "evidence_type": "framework / empirical evaluation papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Improvements are shown in prototype settings; integration complexity and latency trade-offs exist in operational environments.",
+        "The exact benefit depends on tool design, exposure strategy, and failure-handling mechanisms."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Human-in-the-loop safety and operator-approval patterns are described as practical mitigations for risky automated actions (pausing gray-zone operations for reviewer approval, blocking destructive actions), with applied implementations in non-network operational contexts.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.175979372.21006002/v1",
+        "https://openalex.org/W4391399751",
+        "https://openalex.org/W4417081405"
+      ],
+      "evidence_type": "applied-system / survey papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Existing human-in-loop reports are from database, usability, and general-agent domains; direct NetOps operator studies are sparse.",
+        "Human approval workflows introduce latency and rely on appropriate reviewer tooling and training."
+      ]
+    },
+    {
+      "claim_id": "E6",
+      "statement": "Community and research efforts have produced benchmarks, evaluation frameworks, and task suites for assessing LLMs on configuration and NetOps-like tasks (e.g., NetConfEval) and more general LLM-evaluation platforms.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.3390/electronics14132577",
+        "https://openalex.org/W4391136507"
+      ],
+      "evidence_type": "benchmark / evaluation papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks differ in task definition, scope, and realism; many do not fully exercise operational safety properties like reachability, policy compliance, or staged rollout behavior."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How reliably do LLM-generated network configurations satisfy deterministic operational properties at production scale (reachability, isolation, policy compliance) when assessed by formal network verifiers or simulators?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W7171902012"
+      ],
+      "evidence_type": "limited-evidence / gap identified from benchmarks and prototype reports",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing work includes prototypes and benchmarks but lacks large-scale, verifier-driven empirical studies demonstrating end-to-end operational correctness.",
+        "Absence of evidence for large-scale production correctness should not be taken as evidence that LLMs cannot meet these properties under controlled tooling."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What repair-loop iteration budgets and feedback designs are optimal for NetOps configuration repair (i.e., how many generate-validate-repair rounds are cost-effective for network configs)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939"
+      ],
+      "evidence_type": "related-domain empirical finding; applicability to NetOps uncertain",
+      "confidence": 0.5,
+      "limitations": [
+        "Empirical result (diminishing returns around 3–4 iterations) comes from software-engineering tasks; NetOps artifacts may behave differently.",
+        "Network-operator cost, risk tolerance, and validator signal quality will affect optimal budgets."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "Which uncertainty- or calibration-based signals (e.g., semantic-entropy, log-likelihood variants, ensemble judges) best predict unsafe or incorrect network-change proposals in operational NetOps settings?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "doi:10.21203/rs.3.rs-7038601/v1",
+        "doi:10.2139/ssrn.7200222"
+      ],
+      "evidence_type": "methodological literature with limited NetOps-specific validation",
+      "confidence": 0.6,
+      "limitations": [
+        "Proposed signals are validated on general benchmarks; domain transfer to structured network artifacts and deterministic validators is not yet established.",
+        "Calibration methods trade off between accuracy and coverage; operational thresholds remain to be determined."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for reproducible, public datasets that pair realistic topologies, policies, and device-level configurations with verifier-oracle annotations (reachability, ACL semantics, isolation properties) to evaluate LLM-generated NetOps artifacts end-to-end.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7171902012",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "benchmark and evaluation gap (inferred from existing benchmark scope)",
+      "confidence": 0.7,
+      "limitations": [
+        "NetConfEval and prototype studies exist but do not fully cover verifier-annotated, production-like corpora for deterministic property evaluation.",
+        "Creating such datasets has practical privacy and representativeness challenges (multivendor configs, proprietary policies)."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Network-specific studies of tool-execution hallucination (LLM agents making incorrect tool choices, invoking wrong APIs, or misinterpreting verifier feedback) are limited; existing taxonomies are general and not NetOps-tailored.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.7317098",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "taxonomy papers and tool-framework reports indicating an application gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Taxonomies and mitigation techniques exist for tool agents generally, but targeted NetOps red-team or failure-mode studies are sparse.",
+        "Network tooling often has idiosyncratic schemas and side effects that may amplify tool-execution hallucinations."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Comparative empirical evaluations contrasting autonomous LLM-agent NetOps workflows with human-operator processes (efficiency, error modes, time-to-repair, safety) are scarce.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4417081405",
+        "https://openalex.org/W4391399751",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "usability / HITL literature showing need for domain-specific comparative studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Usability studies and HITL frameworks exist in general agent domains; direct controlled comparisons in NetOps contexts have limited published evidence.",
+        "Operator heterogeneity and organizational processes complicate generalization."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Operational decision rules for gating LLM-suggested network changes (combining verifier outputs, confidence/calibration signals, and human review policies) lack empirically validated standards.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "doi:10.36227/techrxiv.175979372.21006002/v1",
+        "https://openalex.org/W7167748939"
+      ],
+      "evidence_type": "method/mitigation literature indicating design gap",
+      "confidence": 0.65,
+      "limitations": [
+        "Individual components (uncertainty estimation, HITL gates, repair loops) are proposed; integrated, empirically validated gating policies for NetOps are not yet standardized.",
+        "Operational constraints (latency, staffing) will affect feasible policy design."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are currently demonstrated to be production-ready for fully autonomous NetOps without human oversight.",
+    "Any single paper in the supplied records proves that LLMs reliably produce verifier-correct configurations at scale.",
+    "This set of records contains evidence that LLM-generated NetOps agents eliminate the need for deterministic network verifiers."
+  ]
+}

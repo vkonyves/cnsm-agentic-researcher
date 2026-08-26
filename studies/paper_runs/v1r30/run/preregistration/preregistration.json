@@ -1,0 +1,88 @@
+{
+  "study_id": "cand-2026-netops-1-v1",
+  "title": "Verifier-assisted evaluation of LLM-generated network configurations for deterministic reachability and isolation",
+  "research_question": "When asked to translate high-level network intent into device-level configurations, how reliably do current LLMs produce configurations that satisfy deterministic operational properties (reachability, isolation, ACL policy compliance) as measured by a formal network verifier, and how much does an explicit generate–validate–repair pipeline improve that reliability?",
+  "confirmatory_hypotheses": [
+    "LLM-generated configurations produced in a single-shot prompt will fail verifier-checked reachability/isolation properties on a substantial fraction (>20%) of tasks in the public synthetic topology/policy corpus.",
+    "A generate–validate–repair pipeline that uses a deterministic verifier to identify failures and requests targeted repairs from the LLM will significantly increase the fraction of verifier-passing configurations compared to single-shot generation (absolute increase >10 percentage points)."
+  ],
+  "exploratory_questions": [
+    "How much marginal utility (absolute pass-rate improvement) is obtained per repair iteration (up to three iterations)?",
+    "Which strata (topology size, policy class) show the largest/smallest repair success rates?",
+    "What is the median and distribution of model calls required per successful repair (cost-per-success)?",
+    "Do automated contamination-detection signals (n-gram overlap / exact-line matches) predict unusually high pass rates (possible leakage)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4403172155",
+    "https://openalex.org/W7167748939",
+    "https://openalex.org/W7134061324",
+    "https://openalex.org/W4409895145",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W7169633008",
+    "https://openalex.org/W7171902012"
+  ],
+  "benchmark_scope": [
+    "Public synthetic topology/policy corpus (published alongside study artifacts) pairing realistic topologies, device templates, and intent→policy pairs (released with provenance).",
+    "Reference alignment to prior public evaluation corpora (NetConfEval-like public corpora) for scope comparison only."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 240,
+    "planned_episode_count": 480,
+    "maximum_model_calls": 480,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Per-task difference in verifier pass indicator (pipeline-after-up-to-1-repair) minus single-shot baseline pass indicator (paired proportion difference).",
+  "secondary_estimands": [
+    "Per-iteration marginal increase in pass probability (iteration 1).",
+    "Median model calls per successful repair.",
+    "Stratum-specific pass rates (small/medium/large topologies; policy classes)."
+  ],
+  "sampling_plan": "Confirmatory sample: N=240 tasks drawn from the public synthetic corpus, stratified equally across three topology-size strata (80 tasks per stratum). Exploratory holdout set: 60 tasks (same strata distribution) reserved for exploratory analyses. Inclusion: tasks with well-formed intent→policy pairs and canonical device templates. Exclusion: tasks whose synthetic topology or device templates fail deterministic schema validation prior to prompting; such exclusions are deterministic and logged.",
+  "power_and_precision_plan": "Primary estimand: paired difference in verifier pass probability (pipeline − baseline). Target effect: absolute increase of 0.10. Paired McNemar-style rationale: with alpha=0.05, power=0.80 and assumed discordant-pair sum ≈0.20, required n≈157; buffer and stratification lead to preregistered N=240. Will report achieved 95% CIs (exact/binomial or bootstrap), p-values, and observed minimum-detectable-effect conditional on observed discordant counts. Sensitivity analyses recompute power for observed discordance in [0.15,0.30].",
+  "exclusion_rules": [
+    "Exclude tasks failing deterministic schema/format validation prior to prompting; exclusions logged with reason.",
+    "Exclude tasks with unresolved technical model/API failures after automated retry policy from the primary paired analysis (see missingness_plan); those are included in sensitivity analyses."
+  ],
+  "missingness_plan": "Technical model/API failures: automatically retry up to 2 technical retries (total 3 attempts per call) with exponential backoff. If still failing, mark the task-call as 'technical failure' and exclude from the primary paired analysis (primary requires both baseline and pipeline endpoints available). Sensitivity analyses: treat missing baseline or pipeline outputs conservatively as verifier-fail in an ITT-style sensitivity analysis. All exclusions, counts, and reasons are deterministically logged and reported.",
+  "analysis_plan": "Primary analysis: paired binary outcome (baseline vs final-pipeline after up-to-1-repair) using McNemar's test (alpha=0.05, two-sided). Report absolute difference, 95% CI (exact binomial or nonparametric bootstrap), p-value, and effect size. Secondary: report per-stratum descriptive pass rates (80 per stratum). Exploratory analyses (iteration marginals, strata comparisons): label exploratory; when multiple secondary hypothesis tests are presented as confirmatory apply Bonferroni correction across those named secondary tests; otherwise report unadjusted p-values with explicit exploratory labeling. Provide model-call cost-per-success statistics (median, IQR). Include contamination-flagged vs non-flagged stratified reporting. Provide exact counts of discordant pairs and missingness, and sensitivity analyses treating missing as fails.",
+  "multiplicity_plan": "One pre-registered primary outcome (paired verifier pass-rate difference). All other analyses are exploratory except pre-specified stratified descriptive reporting. If reporting multiple secondary hypothesis tests as confirmatory, apply Bonferroni correction across those named secondary tests; otherwise present them as exploratory with unadjusted p-values.",
+  "contamination_plan": "Detection: automated exact-line matching (SHA256 per canonical config line), normalized 5-gram overlap scoring, and token-shingle Jaccard fingerprinting. Flags: 'possible-contamination' if exact-line matches ≥2 or normalized 5-gram overlap >0.30; 'likely-contamination' if exact-line matches ≥5 or normalized 5-gram overlap >0.60. Analysis treatment: report pass rates separately for flagged vs non-flagged tasks; primary confirmatory analysis will include all items but will present contamination-stratified sensitivity analyses and an alternate confirmatory analysis that excludes flagged items if pre-registered thresholds are crossed. Residual uncertainty: automated overlap detection may miss semantic memorization; sensitivity across thresholds will be reported.",
+  "stopping_rule": "Per-task stopping: perform one baseline generation; if verifier passes, stop for that task; if verifier fails, perform at most one repair generation (maximum_repair_calls_per_task=1). Stop per-task after verifier pass or after exhausting the per-task model-call cap (1 baseline + 1 repair). Global stopping: complete all 240 confirmatory tasks or halt only for deterministic infrastructure failures logged and reported.",
+  "planned_outputs": [
+    "Public synthetic topology/policy corpus and provenance metadata (released with study artifacts).",
+    "Repository with parser/canonicalizer/verifier code, unit tests, and canonical examples.",
+    "Full raw LLM outputs (baseline and repair), canonicalized configs, and verifier results per task.",
+    "Contamination-flag table, audit-sample logs, and line-hash indices.",
+    "Execution manifest (model id/version/time-stamps, per-call metadata, retries, errors).",
+    "Statistical-results file (counts, tests, CIs, p-values), failure-analysis record, and sensitivity analyses.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript and BibTeX bibliography (five pages or fewer) and mandatory Disclosure Statement.",
+    "Compiled PDF (≤5 pages), autonomous revision log, and final-output hash manifest.",
+    "Concise NotebookLM presentation brief (machine-readable) for post-acceptance use."
+  ],
+  "unresolved_critical_issues": []
+}

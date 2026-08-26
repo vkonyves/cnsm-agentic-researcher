@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-netops-1",
+      "novelty": 0.6,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "External validity of synthetic topologies vs production networks",
+        "Verifier correctness and specification bugs could bias labels",
+        "LLM nondeterminism and prompt sensitivity may inflate model-call budget or confound paired comparisons",
+        "Sample-size/power for McNemar paired test not pre-specified"
+      ],
+      "required_design_repairs": [
+        "Provide provenance and public release plan for corpus; include diverse topology/policy strata",
+        "Independent validation and test-suite for verifier correctness (unit tests, canonical cases)",
+        "Pre-register sample size / power analysis and retry policy for API nondeterminism",
+        "Record and freeze full prompt templates, seeds/versions and include at least one model/version identifier in disclosure"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-2026-netops-2",
+      "novelty": 0.55,
+      "falsifiability": 0.95,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "High estimated model-call budget (cost and provider limits) may impede full five-iteration sweep",
+        "Operational threshold choice (e.g., 1%) is arbitrary without stakeholder justification",
+        "Repair-prompt template sensitivity could confound iteration-effect estimates",
+        "Potential conflation of verifier-feedback quality with true iteration effectiveness"
+      ],
+      "required_design_repairs": [
+        "Justify and/or vary operational thresholds; include sensitivity analysis across thresholds",
+        "Add a capped-budget arm (e.g., stop-after-N) to bound costs and report cost-per-success",
+        "Control and document repair-prompt templates; pre-register template set",
+        "Run provider rate-limit and cost feasibility check; include fallback plan if budget/rates exceeded"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-netops-3",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Provider APIs may not expose required log-probabilities or sufficient internals",
+        "Ensemble/paraphrase strategies increase call cost and latency",
+        "Performance on synthetic/public corpora may not generalize to proprietary configs",
+        "Risk of overfitting classifier to artifact signals without held-out tasks"
+      ],
+      "required_design_repairs": [
+        "Specify fallback signal set if logprobs unavailable (e.g., sequence-likelihood proxies, sampling-based agreement)",
+        "Pre-register ensemble size and paraphrase generation method and cap calls",
+        "Use strict held-out split and cross-validation; report bootstrap CIs and calibration metrics",
+        "Include operating-point analysis tied to realistic false-positive constraints for gating policies"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-2026-netops-4",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.45,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Taxonomy labeling requires human annotation—subjectivity and resource needs",
+        "Simulated tool behavior may not capture production edge cases, biasing frequency estimates",
+        "Potential conflation of infrastructure/API errors with agent hallucinations",
+        "Inter-annotator agreement procedures not specified"
+      ],
+      "required_design_repairs": [
+        "Publish a detailed codebook and annotation protocol and collect multiple annotators; report inter-rater agreement",
+        "Design simulator tool-response corpus to mirror real-world formats and document generation method",
+        "Add explicit instrumentation to separate infrastructure/API failures from agent hallucinations",
+        "Pre-register taxonomy categories and example mappings; include qualitative exemplar cases in artifacts"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

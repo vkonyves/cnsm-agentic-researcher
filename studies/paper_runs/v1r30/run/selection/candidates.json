@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-netops-1",
+      "title": "Verifier-assisted evaluation of LLM-generated network configurations for deterministic reachability and isolation",
+      "research_question": "When asked to translate high-level network intent into device-level configurations, how reliably do current LLMs produce configurations that satisfy deterministic operational properties (reachability, isolation, ACL policy compliance) as measured by a formal network verifier, and how much does an explicit generate–validate–repair pipeline improve that reliability?",
+      "hypotheses": [
+        "LLM-generated configurations produced in a single-shot prompt will fail verifier-checked reachability/isolation properties on a substantial fraction (>20%) of tasks in a realistic public topology/policy corpus.",
+        "A generate–validate–repair pipeline that uses a deterministic verifier to identify failures and requests targeted repairs from the LLM will significantly increase the fraction of verifier-passing configurations compared to single-shot generation (absolute increase >10 percentage points)."
+      ],
+      "proposed_design": "Construct a public corpus of synthetic but realistic topologies, device templates, and access-control intent pairs (drawn from or modeled after public benchmarks cited in the literature leads). For each intent: (1) prompt a hosted LLM API to generate device-level configs (single-shot baseline); (2) run a deterministic network verifier/simulator against the baseline config to check reachability/isolation/ACL compliance; (3) for failing cases run a fixed generate–validate–repair loop up to three repair iterations where the verifier output is provided verbatim to the LLM; (4) record verifier pass/fail and repair trajectories. Use a fixed prompt template and seeds where provider allows; document all prompts and verifier assertions. Compare baseline vs pipeline on pass rate, call budget, and time-to-pass.",
+      "expected_data": "Per-task records including: intent description, topology metadata, baseline LLM-generated config, verifier pass/fail booleans for reachability/isolation/ACL, verifier error messages, successive repaired configs (up to 3), pass/fail after each iteration, model-call counts, and runtime metadata. Aggregate summary tables of pass rates and repair success trajectories.",
+      "primary_outcome": "Difference in verifier pass rate (proportion of tasks where all target deterministic properties hold) between single-shot baseline and the generate–validate–repair pipeline after up to three iterations.",
+      "analysis_outline": "Compute per-task paired outcomes (baseline vs final-pipeline pass). Use McNemar's test for paired binary outcomes or a paired proportion test to assess significance. Report absolute and relative improvements with 95% confidence intervals (bootstrap if needed). Report marginal utility per repair iteration (delta pass rate per iteration) and median model calls per successful repair. Analyze failure-mode subsets (policy type, topology size) with stratified descriptive statistics; correct for multiple comparisons in exploratory subgroup analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4403172155"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7134061324",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Public synthetic topologies may not capture production heterogeneity causing limited external validity.",
+        "Hosted-model nondeterminism may require retries that inflate model-call budgets.",
+        "Verifier implementation or specification errors could bias pass/fail labels if not carefully validated.",
+        "Privacy constraints prevent evaluation on proprietary real-world configs; results may under- or over-estimate field performance."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-2026-netops-2",
+      "title": "Empirical determination of cost-effective repair-iteration budgets for LLM-driven NetOps configuration repair",
+      "research_question": "What generate–validate–repair iteration budget yields the best trade-off between model-call cost and verifier-pass gains for correcting LLM-generated network configurations in NetOps tasks?",
+      "hypotheses": [
+        "The majority of verifier-pass improvements for failed LLM-generated configurations are achieved within the first three generate–validate–repair iterations (marginal gain beyond three iterations is negligible, e.g., <2 percentage points).",
+        "Per-success model-call cost increases sharply beyond the iteration budget where marginal verifier-pass gain falls below an operational threshold (e.g., 1% per additional iteration), making additional iterations economically inefficient under realistic API-cost constraints."
+      ],
+      "proposed_design": "Using the same public corpus and verifier as Candidate 1, run a controlled experiment that executes up to five repair iterations for every failing baseline config. For each iteration record pass/fail, cumulative model calls, and verifier error changes. Vary the LLM prompting strategy for repairs using a small, pre-specified set of repair-prompt templates (kept fixed). Compute per-iteration marginal gains, cumulative cost per newly-successful task, and diminishing-return curves. Predefine stopping criteria and measure sensitivity to the operational threshold parameter.",
+      "expected_data": "Per-task time series of iteration index, repaired config text, verifier pass/fail status, verifier error summaries, cumulative model calls, and computation time. Aggregated curves of pass-rate vs iterations, marginal gain per iteration, and cost-per-success statistics across task strata.",
+      "primary_outcome": "Iteration index at which marginal pass-rate gain falls below a predefined operational threshold (e.g., 1% absolute improvement) and corresponding per-success model-call cost curve.",
+      "analysis_outline": "Compute the mean and 95% CI of pass rates at each iteration. Estimate marginal gains (difference in pass rate between successive iterations) with bootstrap CIs. Compute cumulative model calls per additional successful repair and identify the iteration where cost-per-additional-success exceeds predefined operational thresholds. Perform sensitivity analysis across thresholds and stratify by task complexity (topology size, policy type). Test the hypothesis about diminishing returns using a trend test (e.g., monotone decreasing marginal gains) and report effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7125909708",
+        "https://openalex.org/W7134061324"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "High model-call budgets required for full five-iteration sweeps may approach provider rate limits or cost caps in the hosted API environment.",
+        "Repair effectiveness depends on verifier feedback quality; poor feedback could make iteration gains artificially low.",
+        "Operational thresholds (e.g., 1%) are institution-dependent; selecting a single threshold may not generalize.",
+        "Prompt-template sensitivity could confound iteration effects if not controlled."
+      ],
+      "estimated_model_calls": 5000
+    },
+    {
+      "candidate_id": "cand-2026-netops-3",
+      "title": "Predicting verifier failures from LLM uncertainty and calibration signals in NetOps proposals",
+      "research_question": "Which model-derived uncertainty or calibration signals (e.g., token-level log-likelihood, normalized sequence entropy, ensemble disagreement, calibration-adjusted confidence) best predict verifier-detected incorrect or unsafe network-change proposals produced by LLMs?",
+      "hypotheses": [
+        "Certain uncertainty signals (e.g., normalized negative log-likelihood and ensemble disagreement across prompt paraphrases) will predict verifier failure with discriminative performance (ROC AUC ≥ 0.75) on a public NetOps task corpus.",
+        "Combining multiple signals in a simple logistic meta-classifier will outperform any single signal by a meaningful margin (absolute AUC improvement ≥ 0.05)."
+      ],
+      "proposed_design": "Generate a labeled dataset of LLM proposals and verifier outcomes using the corpus and verifier from Candidate 1. For each proposal compute a set of candidate signals: sequence log-probability (where provider exposes logprobs), token-level entropy aggregates, prompt-paraphrase ensemble disagreement (generate K paraphrase-prompt outputs), and simple calibration-adjusted scores (temperature-scaled logprobs). Use held-out tasks to evaluate single-signal classifiers and a small logistic meta-classifier combining signals. Evaluate predictive performance (AUC, precision-recall) and select operating thresholds to examine true/false positive trade-offs relevant to gating policies.",
+      "expected_data": "Per-proposal signal vector, verifier pass/fail label, paraphrase-ensemble outputs, and metadata (topology, intent). Aggregated ROC and PR curves, per-signal AUCs, confusion matrices at chosen thresholds, and feature importance for the meta-classifier.",
+      "primary_outcome": "Best achievable AUC on verifier-failure prediction using single signals and the combined meta-classifier on held-out test data.",
+      "analysis_outline": "Compute AUC and average precision for each single signal and for the combined model with cross-validation and held-out test split. Use DeLong's test to compare AUCs where applicable and bootstrap CIs for stability. Report calibration metrics (Brier score) for top signals. Provide operating-point analyses with recall at fixed false-positive rates relevant to operational gating policies.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399803256",
+        "doi:10.21203/rs.3.rs-7038601/v1",
+        "https://openalex.org/W4409895145"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "Provider APIs may not expose sufficient log-probability information to compute some signals; fallback signal set may be required.",
+        "Ensemble approaches increase model-call budget and latency.",
+        "Signal performance measured on synthetic/public corpora may not generalize to proprietary production configs.",
+        "Classifier thresholds chosen from the study may not match operator risk tolerance."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cand-2026-netops-4",
+      "title": "Taxonomy and frequency analysis of tool-execution hallucinations in LLM-driven NetOps agents",
+      "research_question": "What are the common types, frequencies, and operational consequences of tool-execution hallucinations (incorrect API arguments, false success claims, misinterpreted verifier outputs) when LLM-based NetOps agents orchestrate verifiers and network tooling in a controlled simulation environment?",
+      "hypotheses": [
+        "When exposed to realistic verifier feedback formats, LLM agents will produce identifiable tool-execution hallucinations (e.g., incorrect argument construction, claiming verification success when verifier reports failure) at non-negligible rates (>5% of tool interactions).",
+        "Certain hallucination types (false success claims) will disproportionately lead to unsafe downstream outcomes (e.g., applying incomplete or incorrect config diffs) compared to other types (e.g., malformed argument which is rejected by the tool)."
+      ],
+      "proposed_design": "Implement a controlled agent orchestration harness that simulates typical NetOps tool interactions (verifier calls, config-applier calls) using deterministic stubbed tools and a hosted LLM as the decision engine. Seed the simulator with a corpus of intents and introduce a mixture of realistic verifier output formats and occasional edge-case messages. Log all agent-tool interactions and classify hallucinations via a pre-specified taxonomy (wrong API args, fabricated success messages, misparsed verifier errors, incorrect tool selection). Quantify frequencies, conditional probabilities of unsafe downstream outcomes, and analyze root causes. Provide red-team cases as exemplars.",
+      "expected_data": "Detailed interaction logs: agent prompts, tool-call arguments, tool responses, agent interpretations, taxonomy-coded hallucination labels, and downstream outcome labels (safe/unsafe). Aggregate counts and rates per hallucination type and per task complexity.",
+      "primary_outcome": "Incidence rates of each hallucination type per 1,000 tool interactions and the conditional probability that each type leads to an unsafe downstream outcome.",
+      "analysis_outline": "Compute per-type frequencies with 95% CIs (binomial). Estimate conditional probabilities of unsafe outcomes given hallucination types and compare them via proportion tests. Provide example cases and qualitative coding inter-rater agreement if human annotation is needed for taxonomy labeling. Discuss latency and model-call cost implications of mitigation options.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "https://openalex.org/W4403635865",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403172155",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Taxonomy labeling requires manual annotation for ground truth which introduces subjective bias and may need multiple annotators.",
+        "Simulation of tool behavior may not capture all production edge cases; frequency estimates may differ in field deployments.",
+        "Agent orchestration harness interacting with hosted APIs may trigger rate limits, and simulated failures must be carefully controlled to avoid conflating infrastructure errors with hallucinations."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}
