@@ -3523,7 +3523,7 @@ class FinalAutonomousResearchPipeline:
             / "final"
         )
 
-        maximum_format_revision_rounds = 10
+        maximum_format_revision_rounds = 16
         publication_validation: dict[str, Any] | None = None
 
         best_manuscript = revised_manuscript
@@ -3673,17 +3673,28 @@ class FinalAutonomousResearchPipeline:
 
                 if pages_missing >= 2:
                     substantive_expansion_target = (
-                        "Increase the substantive scientific content "
-                        "by approximately 45–60% relative to the "
-                        "current manuscript while preserving all "
-                        "supported content already present. "
+                        "Increase the substantive scientific content by at least "
+                        "70–90% relative to the supplied manuscript. Deliberate "
+                        "slight overfill is acceptable at this stage because a "
+                        "later compiled over-limit candidate can be compacted to "
+                        "the exact page budget. Add at least eight distinct new "
+                        "artifact-grounded paragraphs distributed across Methods, "
+                        "Results, Discussion/Limitations, reproducibility, and "
+                        "related work, plus one or more compact evidence-grounded "
+                        "tables where supported. Preserve all supported content "
+                        "already present. "
                     )
                 else:
                     substantive_expansion_target = (
-                        "Increase the substantive scientific content "
-                        "by approximately 20–30% relative to the "
-                        "current manuscript while preserving all "
-                        "supported content already present. "
+                        "Increase the substantive scientific content by at least "
+                        "35–50% relative to the supplied manuscript. Deliberate "
+                        "slight overfill is acceptable at this stage because a "
+                        "later compiled over-limit candidate can be compacted to "
+                        "the exact page budget. Add at least four distinct new "
+                        "artifact-grounded paragraphs across multiple scientific "
+                        "sections and at least one compact evidence-grounded table "
+                        "where supported. Preserve all supported content already "
+                        "present. "
                     )
 
                 revision_instruction = (
@@ -3766,7 +3777,16 @@ class FinalAutonomousResearchPipeline:
                 ),
             }
 
-            revision_base_manuscript = best_manuscript
+            # Underfill revisions grow from the best valid under-limit
+            # manuscript. If an expansion overshoots the page budget, compact
+            # the actual over-limit candidate rather than mistakenly compacting
+            # the older underfilled best candidate. This makes overshoot a useful
+            # convergence step toward the exact page count.
+            revision_base_manuscript = (
+                revised_manuscript
+                if page_count > maximum_pages
+                else best_manuscript
+            )
 
             revised_manuscript = await run_agent(
                 MANUSCRIPT_REVISER,
@@ -4097,7 +4117,7 @@ class FinalAutonomousResearchPipeline:
                     )
                 )
 
-            maximum_terminal_format_rounds = 5
+            maximum_terminal_format_rounds = 10
 
             for terminal_format_round in range(
                 1,
@@ -4160,8 +4180,12 @@ class FinalAutonomousResearchPipeline:
                             "supplied manuscript. Add new evidence-grounded "
                             "material to multiple scientific sections using "
                             "only the supplied archived evidence. "
-                            "Substantively expand Methods, Results, statistical "
-                            "interpretation, execution accounting, limitations, "
+                            "Substantively expand by roughly 70–90% and prefer a slight "
+                            "overfill over remaining underfilled; an over-limit "
+                            "candidate will be compacted in the next round. Add "
+                            "at least eight distinct new artifact-grounded paragraphs "
+                            "plus compact tables where supported. Expand Methods, "
+                            "Results, statistical interpretation, execution accounting, limitations, "
                             "reproducibility details, verified related work, "
                             "or artifact-grounded tables/figures. Do not trade "
                             "existing text for new text. Do not invent evidence, "
@@ -4172,7 +4196,10 @@ class FinalAutonomousResearchPipeline:
                             "The terminal-review revision is one compiled page "
                             "below the required IEEE length. Because one full compiled "
                             "page remains unused, make structural additions rather than "
-                            "stylistic rewriting. Add multiple new artifact-grounded "
+                            "stylistic rewriting. Increase substantive content by "
+                            "roughly 35–50%; slight overfill is preferable to another "
+                            "underfilled revision because the next round can compact "
+                            "an over-limit candidate. Add at least four new artifact-grounded "
                             "paragraphs across Methods, Results, and Discussion or "
                             "Limitations where supported. Add a compact artifact-grounded "
                             "table where the available evidence supports one. Each addition "
@@ -4209,14 +4236,18 @@ class FinalAutonomousResearchPipeline:
                         "Do not alter empirical findings or formatting rules."
                     )
 
-                # Always revise from the best valid candidate seen so far.
-                # This prevents a shorter same-page rewrite from becoming
-                # the base for the next expansion round.
-                terminal_revision_base_manuscript = (
-                    best_terminal_manuscript
-                    if best_terminal_manuscript is not None
-                    else revised_manuscript
-                )
+                # Underfill revisions grow from the best valid candidate seen
+                # so far. If an expansion overshoots the frozen page budget,
+                # compact the actual over-limit candidate; otherwise we would
+                # throw away the useful overshoot and compact an older short paper.
+                if terminal_page_count > terminal_maximum_pages:
+                    terminal_revision_base_manuscript = revised_manuscript
+                else:
+                    terminal_revision_base_manuscript = (
+                        best_terminal_manuscript
+                        if best_terminal_manuscript is not None
+                        else revised_manuscript
+                    )
 
                 revised_manuscript = await run_agent(
                     MANUSCRIPT_REVISER,

@@ -61,7 +61,7 @@ def test_final_pipeline_has_bounded_review_revision_loop():
 def test_final_pipeline_requires_full_five_page_budget():
     source = _final_pipeline_source()
 
-    assert "maximum_format_revision_rounds = 10" in source
+    assert "maximum_format_revision_rounds = 16" in source
 
     assert (
         'publication_validation.get(\n'
@@ -112,16 +112,16 @@ def test_underfill_revision_uses_page_gap_specific_expansion():
     assert "pages_missing >= 2" in source
 
     assert (
-        "45–60%"
+        "70–90%"
         in source
-        or "45-60%"
+        or "70-90%"
         in source
     )
 
     assert (
-        "20–30%"
+        "35–50%"
         in source
-        or "20-30%"
+        or "35-50%"
         in source
     )
 
@@ -249,7 +249,7 @@ def test_format_revision_performs_only_one_revision_per_round():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_format_revision_rounds = 10"
+        "maximum_format_revision_rounds = 16"
     )
 
     # Stop before the separate terminal-review/revision loop.
@@ -278,7 +278,7 @@ def test_format_revision_preserves_best_under_limit_candidate():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_format_revision_rounds = 10"
+        "maximum_format_revision_rounds = 16"
     )
     end = source.index(
         "maximum_terminal_revision_rounds = 2",
@@ -307,8 +307,18 @@ def test_format_revision_preserves_best_under_limit_candidate():
         "current_page_count <= current_maximum_pages"
         in format_section
     )
+    # When an expansion overshoots the page budget, the current
+    # overfull candidate must remain available as the next revision base
+    # so it can be compacted down toward exactly five pages.
     assert (
-        "revision_base_manuscript = best_manuscript"
+        "revision_base_manuscript"
+        in format_section
+    )
+    assert (
+        "revision_base_manuscript = revised_manuscript"
+        in format_section
+        or
+        "revision_base_manuscript = ("
         in format_section
     )
     assert (
@@ -408,7 +418,7 @@ def test_terminal_peer_review_runs_after_format_revision():
     source = _final_pipeline_source()
 
     format_pos = source.index(
-        "maximum_format_revision_rounds = 10"
+        "maximum_format_revision_rounds = 16"
     )
     terminal_pos = source.index(
         "maximum_terminal_revision_rounds = 2",
@@ -761,7 +771,7 @@ def test_terminal_revision_has_bounded_page_convergence_loop():
     )
 
     assert (
-        "maximum_terminal_format_rounds = 5"
+        "maximum_terminal_format_rounds = 10"
         in terminal_section
     )
 
@@ -868,7 +878,7 @@ def test_terminal_page_convergence_occurs_after_terminal_revision_render():
     )
 
     terminal_format_loop_pos = terminal_section.index(
-        "maximum_terminal_format_rounds = 5"
+        "maximum_terminal_format_rounds = 10"
     )
 
     assert (
@@ -879,7 +889,6 @@ def test_terminal_page_convergence_occurs_after_terminal_revision_render():
 
 def test_preregistration_blocks_unsupported_scientific_execution_stages():
     source = _final_pipeline_source()
-
     start = source.index(
         "def preregistration_execution_contract_issues("
     )
@@ -887,87 +896,40 @@ def test_preregistration_blocks_unsupported_scientific_execution_stages():
         "def canonicalize_preregistration_execution_contract(",
         start,
     )
-
     section = source[start:end]
-
     assert "supports_multi_model_consensus" in section
     assert "3-model consensus" in section
-
     assert "supports_simulated_human_gate" in section
-
-    assert (
-        "supports_prompt_family_stratification"
-        in section
-    )
-
+    assert "supports_prompt_family_stratification" in section
     assert "benign" in section
     assert "ambiguous" in section
     assert "adversarial" in section
-
-    # Source-level tests must tolerate adjacent Python
-    # string literals split across lines.
-    assert (
-        "execute multi-model consensus."
-        in section
-    )
-
-    assert (
-        "generate or record those strata."
-        in section
-    )
+    assert "execute multi-model consensus." in section
+    assert "generate or record those strata." in section
 
 
 def test_preregistration_repair_prompt_forbids_unsupported_stages():
     source = _final_pipeline_source()
-
-    assert (
-        "consensus stages, ensembles, multi-model "
-        in source
-    )
-
-    assert (
-        "voting, simulated-human gates, prompt-family strata"
-        in source
-    )
-
-    assert (
-        "and task strata that the selected adapter actually executes "
-        in source
-    )
-
-    assert (
-        "and records. Set task_count exactly to "
-        in source
-    )
+    assert "consensus stages, ensembles, multi-model " in source
+    assert "voting, simulated-human gates, prompt-family strata" in source
+    assert "and task strata that the selected adapter actually executes " in source
+    assert "and records. Set task_count exactly to " in source
 
 
 def test_underfill_prompts_require_structural_additions():
     source = _final_pipeline_source()
+    assert "Make structural additions rather than primarily rewriting" in source
+    assert "Because one full compiled " in source
+    assert "page remains unused, make structural additions" in source
+    assert "Make structural additions across every substantive" in source
+    assert "70–90% relative to the supplied manuscript" in source
+    assert "35–50% relative to the supplied manuscript" in source
 
-    assert (
-        "Make structural additions rather than primarily rewriting"
-        in source
-    )
 
-    assert (
-        "Because one full compiled "
-        in source
-    )
-
-    assert (
-        "page remains unused, make structural additions"
-        in source
-    )
-
-    assert (
-        "Make structural additions across every substantive"
-        in source
-    )
-
-    assert (
-        "compact artifact-grounded tables or figures"
-        in source
-        or
-        "compact artifact-grounded "
-        in source
-    )
+def test_overfill_compaction_uses_actual_overlimit_candidate():
+    source = _final_pipeline_source()
+    assert "if page_count > maximum_pages" in source
+    assert "revision_base_manuscript = (" in source
+    assert "revised_manuscript" in source
+    assert "if terminal_page_count > terminal_maximum_pages:" in source
+    assert "terminal_revision_base_manuscript = revised_manuscript" in source
