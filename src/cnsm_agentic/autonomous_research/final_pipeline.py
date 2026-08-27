@@ -4685,15 +4685,18 @@ class FinalAutonomousResearchPipeline:
             ):
                 break
 
+            # Terminal review remediation must be cumulative.
+            #
+            # The protected exact-page checkpoint is a rollback safety net,
+            # not the default scientific revision base. Starting every
+            # terminal round from the protected checkpoint discards review
+            # fixes made in earlier rounds and can cause closure reviews to
+            # request the same already-addressed changes repeatedly.
             terminal_review_revision_base_manuscript = (
-                protected_submission_manuscript
-                if protected_submission_manuscript is not None
-                else revised_manuscript
+                revised_manuscript
             )
             terminal_review_revision_base_validation = (
-                protected_submission_validation
-                if protected_submission_validation is not None
-                else publication_validation
+                publication_validation
             )
 
             revised_manuscript = await run_agent(
@@ -4888,14 +4891,14 @@ class FinalAutonomousResearchPipeline:
                     terminal_overshoot_target_pages = (
                         terminal_maximum_pages + 1
                     )
+                    # Preserve the current review-remediated manuscript
+                    # during page-format recovery. The protected exact-page
+                    # checkpoint is reserved for rollback only; preferring it
+                    # here would silently discard terminal-review fixes.
                     terminal_base = (
-                        protected_submission_manuscript
-                        if protected_submission_manuscript is not None
-                        else (
-                            best_terminal_manuscript
-                            if best_terminal_manuscript is not None
-                            else revised_manuscript
-                        )
+                        best_terminal_manuscript
+                        if best_terminal_manuscript is not None
+                        else revised_manuscript
                     )
                     terminal_current_words = (
                         manuscript_section_word_count(

@@ -24,17 +24,41 @@ def test_checkpoint_is_created_before_terminal_review():
     )
 
 
-def test_terminal_review_starts_from_checkpoint():
+def test_terminal_review_remediation_is_cumulative():
     text = source()
 
+    marker = (
+        "terminal_review_revision_base_manuscript = ("
+    )
+    start = text.index(marker)
+    section = text[start:start + 900]
+
+    # Each terminal revision must start from the manuscript
+    # produced by the immediately preceding review/revision
+    # round, not from the original protected checkpoint.
     assert (
         "terminal_review_revision_base_manuscript = ("
-        in text
+        in section
     )
+    assert "revised_manuscript" in section
+    assert (
+        "terminal_review_revision_base_validation = ("
+        in section
+    )
+    assert "publication_validation" in section
+
+    # The checkpoint must not be selected as the normal
+    # scientific revision base.
     assert (
         "protected_submission_manuscript"
-        in text
+        not in section
     )
+    assert (
+        "protected_submission_validation"
+        not in section
+    )
+
+    # Local-edit constraints remain part of the revision prompt.
     assert (
         "Make only the minimum scientific edits"
         in text
@@ -45,20 +69,29 @@ def test_terminal_review_starts_from_checkpoint():
     assert "condense" in text
 
 
-def test_underfilled_terminal_revision_restarts_from_checkpoint():
+def test_underfilled_terminal_formatting_preserves_reviewed_candidate():
     text = source()
+
+    marker = (
+        "if terminal_page_count < terminal_maximum_pages:"
+    )
+    start = text.index(marker)
+    section = text[start:start + 1400]
 
     assert (
         "terminal_page_count < terminal_maximum_pages"
-        in text
+        in section
     )
+
+    # Page-format recovery must continue from the best
+    # review-remediated candidate rather than silently rolling
+    # scientific content back to the protected checkpoint.
+    assert "terminal_base = (" in section
+    assert "best_terminal_manuscript" in section
+    assert "revised_manuscript" in section
     assert (
-        "and protected_submission_manuscript is not None"
-        in text
-    )
-    assert (
-        "terminal_revision_base_manuscript = ("
-        in text
+        "protected_submission_manuscript"
+        not in section
     )
 
 
