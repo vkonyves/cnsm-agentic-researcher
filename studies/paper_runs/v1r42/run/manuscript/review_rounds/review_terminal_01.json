@@ -1,0 +1,20 @@
+{
+  "summary": "Well‑executed, fully preregistered paired study with complete artifact archive; outcome is a reproducible ceiling/null result (200/200 valid applies in both arms). Execution, logging, and analysis appear internally consistent and verifiable from provided artifacts. The manuscript is scientifically honest about limitations and reproducibility but needs a few targeted clarifications and additional artifact‑grounded reporting to make interpretation and external reuse unambiguous.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add an explicit aggregated summary (counts and percentages) of task difficulty levels (e.g., medium/hard/very_hard) and validator coverage indicators across the K=200 tasks, derived from the archived execution/scoring/*.json artifacts, and place that summary in Results (or a compact table). This will support the manuscript’s claim that the sampled pool produced a ceiling regime.",
+    "Clarify in the Abstract and in the Conclusion (single sentence each) that the preregistered confirmatory hypothesis H1 was not supported (no detectable marginal effect) and that the observed outcome is a ceiling‑case null — i.e., the study provides no evidence that verifier+repair improves outcomes under the tested task/model/validator regime and therefore is inconclusive about verifier value in failure‑rich or production distributions.",
+    "Add a one‑paragraph clarification in Methods/Analysis explaining why the paired bootstrap CI is degenerate ([0.00,0.00]) and why an exact McNemar test yields p=1.00 when no discordant pairs are observed; explicitly state the statistical consequence that the preregistered power calculation (targeting a baseline failure rate ≈ 0.20) was rendered inapplicable by the observed baseline=0 failure rate.",
+    "Explicitly report (in Methods or Disclosure) that the shared_initial_generation design fixes the generator output for both arms and therefore prevented any generator adaptation or repair‑triggered regeneration; add a single sentence connecting this design choice to the observed absence of repair invocations (repair_applied=false for all guarded episodes)."
+  ],
+  "optional_revisions": [
+    "Consider adding a compact table or short appendix (one figure) that lists the top 10 representative task IDs with their difficulty metadata, parsed_command_count, and validator.violation_count to aid rapid external auditing (artifacts exist under execution/scoring/ and representative_tasks).",
+    "Discuss briefly (one short paragraph) how an alternative paired estimand or an interactive generator–verifier estimand would change the experimental contract and inference target; cite the existing preregistered artifacts to show how the current design isolates verifier marginality.",
+    "If space permits, add an explicit pointer (file path + SHA‑256) in the manuscript to the analysis/paired_contingency_table.csv and analysis/condition_summary.csv so readers can locate the exact CSV artifacts referenced in Tables/Figures."
+  ],
+  "accept_for_finalisation": false
+}

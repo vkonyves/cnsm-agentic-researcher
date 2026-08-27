@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-001-grammar-dsl",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Accurate vendor DSL grammars are hard to construct and may be incomplete—coverage bias can skew syntactic-failure measurements.",
+        "Grammar enforcement can mask semantic/regression errors (passes syntax but fails behavior).",
+        "Public vendor samples may not represent production complexity (external validity concern).",
+        "Constrained-decoding implementations differ across APIs; engineering portability risk."
+      ],
+      "required_design_repairs": [
+        "Provide explicit grammar-coverage metrics and methods for measuring grammar completeness per vendor.",
+        "Publish/share the exact grammars, parser versions, and grammar-construction protocol in artifacts to enable replication.",
+        "Include a semantic-regression test suite that runs on samples that pass parsing to quantify hidden semantic errors.",
+        "Specify constrained-decoding implementation details (API/algorithm, sampling interactions) and measure latency/compute overheads per arm.",
+        "Preregister per-vendor sampling quotas and a plan for tasks excluded due to unconstructible grammars (report exclusions)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-002-gvr-loop",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Verifier coverage/fidelity may confound attribution (improvement might reflect verifier detection rather than better generation).",
+        "Emulator fidelity may not capture production regressions leading to optimistic results.",
+        "Latency/cost tradeoffs may make the G→V→R approach impractical for some operational SLAs.",
+        "Potential selection bias in chosen change‑intent benchmark (easy vs edge cases)."
+      ],
+      "required_design_repairs": [
+        "Preregister and publish the verifier specification, rule/feature coverage matrix, and test-cases used to validate emulator fidelity.",
+        "Add ablation arms: (a) verifier-only (blocker) and (b) repair-without-verifier feedback to disentangle effects.",
+        "Include explicit latency and compute-cost measurement and report cost-per-successful-apply.",
+        "Provide sample-size/power calculation and stopping rules tied to the preregistered primary outcome.",
+        "Describe emulator validation: map emulator test failures to known production-failure classes or cite prior emulator validation work."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-003-adversarial-verifier-defenses",
+      "novelty": 0.75,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Adversarial corpus representativeness: curated attacks may not cover real-world adaptive attackers (overfitting risk).",
+        "Ethical and safety handling of harmful prompts/configs is required—storage and sharing constraints may impede reproducibility.",
+        "Defenses may trade reduced attack success for high false-positive rates harming operator throughput and trust.",
+        "Operational cost/latency of ensembles and independent judges may render top-performing defenses impractical."
+      ],
+      "required_design_repairs": [
+        "Preregister detailed ethical safeguards (IRB/ethics review, storage/encryption, access controls) and a safe-handling protocol for harmful artifacts.",
+        "Publish the adversarial corpus selection methodology and provide a version that redacts actionable payloads or provide a synthetic reproducible generator for attacks.",
+        "Include baseline defenses and ablations (e.g., single verifier vs ensemble vs judge) to attribute gains and costs.",
+        "Measure and preregister false-positive impact on benign tasks and operator-review overhead; report latency and resource costs.",
+        "Specify how ensemble diversity is constructed and validate that verifiers are independent with different failure modes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-004-operator-oversight",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.3,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Incompatible with the declared capability manifest: human_scientific_labour_allowed is false—planned human-subject recruitment and IRB procedures cannot be executed under the run constraints.",
+        "Human-subject variability and IRB limits threaten reproducibility and timeline feasibility.",
+        "Simulated tasks may not reflect real operator fatigue/workload despite counterbalancing (external validity).",
+        "Ethical risks exposing participants to adversarial/harmful suggestions require substantial mitigation and oversight."
+      ],
+      "required_design_repairs": [
+        "Cannot proceed under current run constraints. Either (A) remove human-subject component and replace with validated operator-behavior simulators or historic operator decision logs (public) to emulate supervision, or (B) postpone until human-subject work is permitted and IRB/consent processes are in place.",
+        "If converted to simulation, preregister the operator-model construction, validation against real operator logs (if available), and the process for mapping model outputs to accept/reject actions.",
+        "If human subjects become permitted, preregister sample-size/power, recruitment criteria, IRB approvals, and detailed debriefing/mitigation procedures."
+      ],
+      "verdict": "veto"
+    }
+  ]
+}

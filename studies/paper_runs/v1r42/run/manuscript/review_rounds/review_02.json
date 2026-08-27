@@ -1,0 +1,21 @@
+{
+  "summary": "Well‑executed preregistered paired confirmatory study comparing a generate→verify→repair pipeline to an LLM‑only suggestion pipeline on a deterministic synthetic NetOps task pool (K=200 pairs). The run, artifacts, and analysis are complete and internally consistent; the observed outcome is a degenerate null (baseline=200/200, guarded=200/200, paired difference=0.00, McNemar p=1.00). The manuscript transparently reports ceiling effects and archive locations/hashes.",
+  "novelty_score": 4,
+  "technical_depth_score": 5,
+  "soundness_score": 3,
+  "clarity_score": 4,
+  "critical_issues": [
+    "The manuscript does not explicitly state the verifier coverage (which fields/protocols the deterministic validator supports) in the Methods and does not point readers to the exact coverage/matrix artifact; construct validity depends on that coverage and tasks were limited to covered features per preregistration.",
+    "The preregistered power assumptions (target baseline failure rate and target effect size) are not explicitly reconciled with the observed data in the Methods/Results: the run produced baseline success=1.0, which invalidates the preregistered power calculation and requires an explicit statement of this discrepancy and its consequences for confirmatory inference."
+  ],
+  "required_revisions": [
+    "Add a concise Methods paragraph that explicitly lists the deterministic validator coverage (e.g., allowed fields: admin, mtu, vlan) and states that tasks were filtered to that coverage; reference the exact artifact path(s) and SHA‑256 hash(es) (e.g., execution/transformation_manifest.json or equivalent) where the verifier coverage matrix is archived so readers can verify the constraint set used in sampling.",
+    "Add a short explicit reconciliation statement (Results or Discussion) that quotes the preregistered power assumptions (baseline failure rate = 0.20, target absolute reduction = 0.08, alpha=0.05) and explains that the observed baseline success rate = 1.0 makes the preregistered power calculation inapplicable; state this as the reason the confirmatory test is degenerate and justify the interpretation offered in the Discussion (ceiling effect)."
+  ],
+  "optional_revisions": [
+    "Consider adding a brief table or sentence summarizing task difficulty distribution (e.g., counts by preregistered difficulty level: medium/hard/very_hard) drawn from the task manifest to help readers assess why baseline generation achieved 100% validator compliance.",
+    "Briefly discuss (in Limitations) whether the deterministic validator might be overly permissive on the included field set and point to a few representative validator_trace examples (you already archive these) to illustrate validator decision logic for readers.",
+    "State explicitly in Methods that model_calls_used=200 < planned maximum_model_calls=400 because the design used a single shared_initial_generation per paired task (independent_condition_generation=false), to avoid ambiguity for readers about model budget accounting."
+  ],
+  "accept_for_finalisation": false
+}

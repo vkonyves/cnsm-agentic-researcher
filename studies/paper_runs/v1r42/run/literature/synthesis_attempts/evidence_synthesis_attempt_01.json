@@ -1,0 +1,221 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "LLMs can assist NetOps tasks (configuration synthesis, repair, and root-cause analysis) but frequently produce incorrect or regression-causing outputs without external checks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W4404652946",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "empirical finding",
+      "confidence": 0.9,
+      "limitations": [
+        "Many evaluations use synthesized or limited task sets and a finite set of LLMs; results may vary with different models or real-world estates.",
+        "Degree of error depends on prompt design and surrounding toolchain, which varies across studies."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Integrating formal/deterministic verifiers, emulated routers, or iterative generate–validate–repair loops with LLMs materially improves correctness and reduces regressions compared to LLM-only proposals.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7202372419",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "architectural/empirical finding",
+      "confidence": 0.85,
+      "limitations": [
+        "Verifier coverage and fidelity limit gains; verifiers must model the relevant protocols/features to catch specific errors.",
+        "Some verifier-augmented systems are prototypes or early evaluations, not long-running production studies."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Tool-augmented, skill- or rule‑oriented agentic architectures (bounded tool use, orchestration, skills) and explicit governance/assurance contracts increase operational suitability versus unconstrained LLM agents.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7171749785",
+        "doi:10.21203/rs.3.rs-9323974/v1"
+      ],
+      "evidence_type": "design principle (empirical & conceptual)",
+      "confidence": 0.8,
+      "limitations": [
+        "Operational suitability claims are supported by architectural arguments and prototype deployments rather than broad multi-site trials.",
+        "Benefit magnitude depends on quality of the orchestration/framework and tool integrations."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Adversarial prompts, prompt-injection, and jailbreak techniques are effective threats against LLM-based systems and require dedicated defenses.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405181600",
+        "10.2139/ssrn.6956641",
+        "10.1145/3658644.3690291"
+      ],
+      "evidence_type": "security finding",
+      "confidence": 0.9,
+      "limitations": [
+        "Attack effectiveness varies across models, safety layers, and defense configurations.",
+        "Defensive evaluations sometimes use limited corpora; comprehensive red-team results are still emerging."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Self‑verification and consistency-based iterative checking (including use of runtime execution traces or multiple samples) can improve generated-output correctness for programmatic and structured tasks.",
+      "evidence_record_ids": [
+        "10.36227/techrxiv.176288195.52086234/v1",
+        "https://openalex.org/W4402670687",
+        "https://openalex.org/W4399354280"
+      ],
+      "evidence_type": "methodological finding",
+      "confidence": 0.8,
+      "limitations": [
+        "Self-verification reduces but does not eliminate errors; it may add computational and latency costs.",
+        "Effectiveness depends on verifier quality and the nature of the task (structured vs. free text)."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "Constrained/grammar‑guided decoding and template/grammar enforcement reduce invalid structured outputs and help enforce well‑formed configuration-like outputs.",
+      "evidence_record_ids": [
+        "10.3389/frai.2024.1406857",
+        "https://openalex.org/W4411119577"
+      ],
+      "evidence_type": "technical finding",
+      "confidence": 0.75,
+      "limitations": [
+        "Most demonstrations are in adjacent IE/program-synthesis domains; direct evaluations on router/switch DSLs are limited.",
+        "Grammar enforcement can limit flexibility and requires up-front grammar/spec maintenance."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How well do LLM‑assisted NetOps pipelines (even when verifier‑augmented) generalize to large, heterogeneous, multi‑vendor production estates over time?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "open empirical question",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing benchmarks and deployments show scale or coverage limits but stop short of long-term, cross-vendor production validation."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What operational thresholds (topology size, protocol diversity, feature coverage) determine when LLM‑centric approaches become unreliable or require heavier verifier investment?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "open empirical question",
+      "confidence": 0.5,
+      "limitations": [
+        "Cornetto documents scale-related degradation but does not define precise operational breakpoints for all settings."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "Under realistic operator workloads and failure modes (fatigue, partial observability), how effective are human‑in‑the‑loop oversight mechanisms in preventing harmful automated NetOps actions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171749785",
+        "https://openalex.org/W7127427083"
+      ],
+      "evidence_type": "human‑factors question",
+      "confidence": 0.5,
+      "limitations": [
+        "ORBIT and governance proposals articulate needs and prototypes but lack broad empirical HCI studies measuring human oversight under stressful, realistic conditions."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "Can autonomously evolved/verifier‑extension systems maintain safety and auditability at production scale without unacceptable maintenance or verification debt?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7202372419"
+      ],
+      "evidence_type": "systems‑safety question",
+      "confidence": 0.5,
+      "limitations": [
+        "Prototypes show feasibility for specific features but long‑term cost, governance, and trust implications remain underexplored."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Benchmarks that measure workflow‑centred reliability (generate→verify→repair loops, rollback success, canary/cross‑validation) for LLM‑driven NetOps are insufficiently standardized and reproduced; specialized, reproducible benchmark suites are needed.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6664738",
+        "10.20944/preprints202511.1572.v1",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "research gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Cornetto and methodological papers call for such benchmarks; nascent benchmark efforts exist but broader community adoption/reproducibility is limited."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Integrated end‑to‑end systems combining constrained generation, formal/verifier models, iterative repair, and operator workflows—and validated on public multi‑vendor topologies—are scarce.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118166844",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7202372419"
+      ],
+      "evidence_type": "engineering gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Related architectures and prototypes exist (GALR, TypoNet, self-evolving verifiers) but full public, multi-vendor end‑to‑end validations are limited."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Defenses against sophisticated LLM‑as‑judge and judge‑targeted injection attacks (which can subvert selection/scoring steps in automated NetOps pipelines) are underdeveloped for operational NetOps contexts.",
+      "evidence_record_ids": [
+        "10.1145/3658644.3690291",
+        "10.2139/ssrn.6956641"
+      ],
+      "evidence_type": "security gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Research demonstrates attack techniques and prototype defenses; translation to complex NetOps toolchains (multi-agent orchestration, verifiers, execution) needs further work."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Empirical, controlled studies measuring operator trust, decision latency, and oversight effectiveness when supervising agentic NetOps systems are limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171749785",
+        "doi:10.2139/ssrn.6732238"
+      ],
+      "evidence_type": "human‑factors gap",
+      "confidence": 0.6,
+      "limitations": [
+        "ORBIT and methodological papers highlight the need; few published controlled HCI experiments specific to operator supervision exist."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Targeted evaluations of constrained/grammar‑guided decoding techniques on real router/switch configuration languages (vendor DSLs) are limited and would strengthen practical adoption.",
+      "evidence_record_ids": [
+        "10.3389/frai.2024.1406857",
+        "https://openalex.org/W4404652946"
+      ],
+      "evidence_type": "technical gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Constrained decoding is validated in related IE/program-synthesis tasks; direct application and evaluation on vendor-specific configs is underreported."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are ready for fully autonomous, end-to-end production NetOps across arbitrary, large, multi‑vendor networks (unsupported by supplied records).",
+    "Any single LLM or agent design reliably outperforms verifier‑augmented or tool‑assisted architectures in production NetOps (no supplied record justifies such a broad superiority claim).",
+    "Claims of being the first system to achieve production-grade autonomous NetOps without human oversight (novelty not supported by supplied records)."
+  ]
+}

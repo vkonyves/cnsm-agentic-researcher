@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-001-grammar-dsl",
+      "title": "Effect of grammar‑guided decoding on vendor DSL syntactic validity",
+      "research_question": "Does grammar‑guided decoding reduce the syntactic invalidity rate of LLM‑generated vendor‑specific network configurations compared to unconstrained decoding, and what is its impact on downstream semantic/apply success and sample diversity?",
+      "hypotheses": [
+        "Grammar‑guided decoding reduces the proportion of samples that fail vendor DSL parsing compared to unconstrained decoding.",
+        "Grammar‑guided decoding reduces downstream apply failures in an emulator by eliminating syntactic errors that cause immediate rejection, but may not fully eliminate semantic regressions.",
+        "Grammar‑guided decoding reduces output diversity relative to unconstrained decoding, with some valid but novel variants suppressed."
+      ],
+      "proposed_design": "Within‑task paired experiment on a curated set of M intent->configuration tasks covering three vendors (vendor A/B/C) and topology patterns. For each intent and arm generate N=10 samples using the same LLM and fixed seeds: (1) unconstrained decoding, (2) grammar‑guided decoding with preregistered vendor grammars and parser. Parse each sample against the preregistered grammar; record parse result. Run semantic verifier checks and attempt emulator apply; collect verifier flags and emulator outcomes. When parsing succeeds, run functional tests (connectivity, ACL, route reachability) in the emulator. Preregister grammars, parser versions, prompt templates, temperature, sampling strategy, and batching. Limit model calls via batched sampling; log all raw outputs, seeds, prompts, parse traces, and hashes. Exclusion rules: tasks whose grammar cannot be constructed from public vendor config samples are excluded and reported.",
+      "expected_data": "Per sample: decoding trace, parse result (pass/fail), parser error type (if any), verifier flags, emulator apply result (apply success/failure), functional test pass/fail, edit distance to human reference when available, and per‑sample decoding diversity indicators. Aggregates: syntactic invalidity rate, semantic invalidity rate, apply success rate, sample diversity indices, and per‑vendor breakdowns.",
+      "primary_outcome": "Difference in syntactic invalidity rate (proportion of samples failing vendor DSL parse) between unconstrained and grammar‑guided decoding with 95% confidence intervals.",
+      "analysis_outline": "Compute per‑task paired binary outcomes (parse fail/pass) and analyze syntactic invalidity reduction with paired McNemar tests and bootstrap 95% CIs. For semantic invalidity and emulator apply outcomes use paired proportion tests with bootstrap CIs. Compare diversity metrics (normalized entropy) across arms using permutation tests. Report per‑vendor subgroup analyses with Bonferroni correction for multiple vendor comparisons. Provide qualitative examples of suppressed but valid variants and report engineering/latency overheads. Predefine alpha and multiple‑comparison familywise error controls.",
+      "novelty_evidence_ids": [
+        "10.3389/frai.2024.1406857",
+        "https://openalex.org/W4404652946",
+        "https://openalex.org/W7157506260"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411119577",
+        "10.36227/techrxiv.176288195.52086234/v1"
+      ],
+      "risks": [
+        "Constructing accurate vendor DSL grammars may be laborious and incomplete, biasing evaluation.",
+        "Grammar enforcement may hide semantic errors that pass syntactic checks but break behavior.",
+        "Public vendor samples may not represent full operational complexity; external validity limited.",
+        "Constrained decoding implementations may require engineering optimizations not available in some model APIs."
+      ],
+      "estimated_model_calls": 1300
+    },
+    {
+      "candidate_id": "cand-002-gvr-loop",
+      "title": "Quantifying regression reduction from iterative generate→verify→repair pipelines versus LLM‑only NetOps suggestions",
+      "research_question": "To what extent does an iterative generate→verify→repair pipeline reduce the rate of regression‑causing network changes compared to an LLM‑only suggestion pipeline, and what are the cost/latency tradeoffs?",
+      "hypotheses": [
+        "An iterative generate→verify→repair pipeline produces fewer regression‑causing changes (as measured by pre/post functional regression tests) than an LLM‑only pipeline.",
+        "The repair pipeline increases the median time to a deployable suggestion but yields a higher final apply success rate.",
+        "Most residual regressions after repair are due to verifier coverage gaps rather than generation noise, and are concentrated on less common protocol/feature combinations."
+      ],
+      "proposed_design": "Paired, within‑task comparison on a benchmark of K change‑intents (public topologies and change requests). For each intent, run two arms using the same LLM seeds: (A) LLM‑only: single suggested config change returned and attempted; (B) G‑V‑R: generate suggestion, run deterministic verifier and emulator tests, if verifier flags or emulator apply fails, allow up to 3 automatic repair iterations where the LLM receives verifier feedback and attempts a corrected patch. Record number of iterations, verifier flags, and final emulator apply and regression test outcomes. Use fixed prompts, verifier implementation, and emulator functional tests. Predefine inclusion/exclusion, stopping rules, and retry policy. Log all artifacts and hashes.",
+      "expected_data": "Per sample: initial suggestion, verifier flags per iteration, edits produced, count of repair iterations, emulator apply success/failure, regression test pass/fail, time stamps for each stage, and final applied config. Aggregates: regression‑causing change rate, apply success rate, average repair iterations, and time overhead distributions.",
+      "primary_outcome": "Reduction in regression‑causing change rate (proportion of tasks resulting in failed regression tests after apply) for G‑V‑R pipeline versus LLM‑only, with 95% CI.",
+      "analysis_outline": "Paired comparison of regression rates using McNemar or paired proportion tests; compute absolute and relative risk reductions with bootstrap CIs. Analyze time‑to‑success with Kaplan‑Meier survival curves and log‑rank tests (time measured until a successful apply without regression or until max iterations). Subgroup analyses by vendor and feature; report repair iteration distribution and correlation between verifier flags and final success. Correct for multiple comparisons and present qualitative failure-mode cases to illustrate verifier coverage gaps.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7202372419"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402670687",
+        "https://openalex.org/W4399354280"
+      ],
+      "risks": [
+        "Verifier coverage and fidelity may limit the ability to detect semantic regressions, biasing measured benefit.",
+        "Simulator/emulator functional tests may not capture all production failure modes, limiting external validity.",
+        "Repair loop may induce cost/latency unacceptable for some operational SLAs.",
+        "Retries beyond preregistered limits risk biasing results; all deviations must be logged."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-003-adversarial-verifier-defenses",
+      "title": "Defending verifier‑augmented NetOps pipelines against adversarial prompt and judge‑targeted attacks",
+      "research_question": "Which defense strategies (input sanitization, verifier ensembles, independent judge checks, and restricted skill interfaces) most reduce successful adversarial subversion of verifier‑augmented NetOps pipelines under realistic attack vectors?",
+      "hypotheses": [
+        "Input sanitization and canonicalization reduces naive prompt‑injection success but can be bypassed by crafted payloads; ensemble verifiers reduce single‑point vulnerabilities and lower overall attack success.",
+        "Independent judge checks (separate models/verifiers verifying claims) reduce successful subversion more than single‑judge pipelines but increase false positives and human review overhead.",
+        "Combining multiple defenses (sanitization + verifier ensemble + independent judge) yields synergistic reduction in attack success at the cost of increased latency and operational overhead."
+      ],
+      "proposed_design": "Construct a catalog of adversarial attack vectors drawn from verified literature and red‑team examples (prompt injection, jailbreaks, conditioning attacks targeting judge/scoring steps). For a set of T attack templates and U benign intents, run each attack against the same base pipeline under four defense arms: baseline (no defense), input sanitization, verifier ensemble (3 diverse verifiers), and combined defenses (sanitization + verifier ensemble + independent judge). For each trial, attempt to produce a harmful configuration and measure whether it would be applied by the pipeline (emulator apply) or blocked. Use fixed seeds and fixed LLM. Log attack success, defense triggers, false positives on benign inputs, and latency. Predefine attack corpus and success criteria and preregister defenses and parameters.",
+      "expected_data": "Per trial: attack vector, defense arm, model outputs, verifier/judge flags, whether harmful config was produced, whether emulator applied it, defense alerts triggered, false positive indicators on benign tasks, and timing metrics. Aggregates: attack success rate per arm, false positive rate, mean latency, and per‑attack type summaries.",
+      "primary_outcome": "Absolute reduction in attack success rate (proportion of adversarial trials that lead to harmful apply) for the best defense arm versus baseline, reported with 95% CI.",
+      "analysis_outline": "Compare attack success rates across arms using chi‑square or Fisher's exact tests with risk ratios and bootstrap CIs. Model defense effectiveness with logistic regression including attack type as covariate. Analyze false positive tradeoffs with equivalent proportion tests. Adjust for multiple comparisons across attack families. Provide qualitative forensic examples of successful bypasses and evaluate operational cost in latency and human‑review overhead.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405181600",
+        "10.2139/ssrn.6956641",
+        "10.1145/3658644.3690291"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7171749785"
+      ],
+      "risks": [
+        "Adversarial corpus may not represent all real‑world attacker ingenuity; measured defenses could be overfitted to tested vectors.",
+        "Defenses may increase false positives, degrading operator trust and throughput.",
+        "Some defense implementations (e.g., verifier ensembles) may be resource‑intensive and impractical at scale.",
+        "Ethical considerations when constructing and storing harmful prompts/configs require safe handling and disclosure controls."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand-004-operator-oversight",
+      "title": "Operator supervision effects: presentation styles, verifier evidence, and decision latency in preventing harmful NetOps actions",
+      "research_question": "How do different AI suggestion presentation styles (minimal suggestion, suggestion with verifier evidence, and suggestion with confidence calibration) affect operator intervention behavior, decision latency, and prevention of harmful automated NetOps actions in a simulated workload?",
+      "hypotheses": [
+        "Presenting verifier evidence alongside an LLM suggestion increases operator intervention on harmful suggestions and reduces harmful actions executed compared to minimal suggestion.",
+        "Overstated confidence increases operator acceptance and leads to higher rates of harmful‑action execution compared to well‑calibrated confidence.",
+        "Concise, structured verifier evidence (diff + failing test) reduces operator decision latency compared to verbose explanations while maintaining intervention accuracy."
+      ],
+      "proposed_design": "Within‑subject controlled study with recruited network professionals and advanced students. Each participant supervises a simulated NetOps console across three presentation styles: (A) minimal suggestion, (B) suggestion + verifier evidence (structured failing tests and diffs), (C) suggestion + confidence score (calibrated or miscalibrated). Tasks include benign, ambiguous, and adversarially crafted harmful suggestions. Randomize task order and presentation assignments with preregistered counterbalancing. Record accept/reject/modify actions, decision latency, emulator task outcome, and post‑task subjective trust ratings. Ethical review and informed consent to be obtained; adversarial stimuli confined to simulation.",
+      "expected_data": "Per participant/task: presentation style, LLM suggestion, verifier evidence displayed, participant action (accept/reject/modify), decision latency (ms), emulator outcome (harmful/benign), and trust Likert ratings. Aggregates: intervention rate on harmful suggestions, harmful action execution rate, mean decision latency, and subjective trust distributions.",
+      "primary_outcome": "Reduction in harmful action execution rate when verifier evidence is shown versus minimal suggestion (proportion difference) with 95% CI.",
+      "analysis_outline": "Use paired McNemar tests for harmful action execution comparisons across presentation styles. Apply paired t‑tests or Wilcoxon signed‑rank tests for latency and trust scores. Fit mixed‑effects logistic regression modelling acceptance probability with fixed effects for presentation style and task type and random intercepts for participants. Correct for multiple comparisons, report effect sizes, and conduct subgroup analyses by experience level. Provide thematic qualitative analysis of post‑task debriefs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7171749785",
+        "10.2139/ssrn.6732238",
+        "https://openalex.org/W7127427083"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Human‑subject recruitment and IRB constraints may limit sample diversity and size.",
+        "Simulated tasks may not fully capture real operational fatigue and workload; external validity limited.",
+        "Within‑subject design may exhibit learning effects despite counterbalancing.",
+        "Ethical considerations for exposing participants to adversarial harmful suggestions require mitigation and debriefing."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

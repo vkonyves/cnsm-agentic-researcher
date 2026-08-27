@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "cand-002-gvr-loop",
+  "title": "Preregistered paired evaluation of generate→verify→repair (G→V→R) vs LLM‑only NetOps suggestions",
+  "research_question": "To what extent does an iterative generate→verify→repair pipeline reduce regression‑causing network changes compared to an LLM‑only suggestion pipeline, and what are the cost/latency tradeoffs?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The G→V→R pipeline yields a lower regression‑causing change rate (proportion of tasks with failed post‑apply regression tests) than the LLM‑only pipeline (paired estimand: paired_success_rate_difference_guarded_minus_baseline)."
+  ],
+  "exploratory_questions": [
+    "Do verifier‑only blocking and repair‑without‑verifier ablations explain the mechanism of any observed improvement?",
+    "How does time‑to‑deploy and model‑call cost per successful apply trade off against regression reduction?",
+    "Are residual regressions concentrated on particular vendor/feature clusters?"
+  ],
+  "benchmark_scope": [
+    "Public topology + change‑intent corpus assembled deterministically from public datasets referenced in feasibility evidence (see evidence_record_ids).",
+    "Included tasks limited to intents where the preregistered verifier reports feature/protocol coverage (verifier coverage matrix preregistered)."
+  ],
+  "model_scope": [
+    "Hosted LLM API (hosted_llm_api_v1) used for all generation calls (same model and seeds across arms for each paired task).",
+    "No local GPU models; all model calls via hosted_model_api as permitted by capability manifest."
+  ],
+  "transformation_scope": [
+    "Intent normalization (text → canonical intent JSON)",
+    "Vendor template mapping (canonical intent → vendor‑specific config patch)",
+    "Stable hashing and canonicalization of change intents for deterministic sampling"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_apply_success_rate_guarded_minus_baseline",
+    "median_time_to_deploy_difference (seconds)",
+    "mean_model_calls_per_successful_apply_difference"
+  ],
+  "sampling_plan": "Deterministic, reproducible selection from a public pool assembled from the cited public corpora (references in evidence_record_ids). Pipeline: (1) construct candidate list of N_pool public change intents; (2) filter to intents where the preregistered verifier reports coverage for all required features; (3) compute SHA‑256(intent_string) and sort ascending; (4) select the first K tasks. K is scenario-dependent (recommended scenario K=200). Exclusion rules: any task excluded by the verifier coverage filter is logged with the exclusion reason and retained in an exclusions manifest; excluded tasks will not count toward confirmatory sample size but are reported. No human selection or manual annotation is used—selection is fully deterministic and logged.",
+  "analysis_plan": "Primary confirmatory analysis: paired analysis executed by the registered analysis executor 'paired_binary_analysis_v1' computing the estimand 'paired_success_rate_difference_guarded_minus_baseline' (G→V→R minus LLM‑only) on K paired tasks. Treatment of failed calls: primary treatment 'complete_pair_primary' (exclude pairs where both arms failed to produce an interpretable apply), plus a sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treating missing/failed arms conservatively as regression failures (worst‑case). Statistical tests: McNemar/paired proportion test for paired binary difference, with bootstrap (10,000 resamples) to compute 95% CIs for absolute and relative risk reduction. Secondary analyses: Kaplan‑Meier curves and log‑rank test for time‑to‑successful‑apply (right‑censor at max iterations), subgroup descriptive analyses by vendor/feature cluster with Holm correction for multiplicity. All analysis code and random seeds are preregistered and will be executed on CPU.",
+  "multiplicity_plan": "Primary hypothesis (H1) is single pre‑registered confirmatory test (alpha=0.05). Secondary and subgroup analyses are exploratory and adjusted for multiple comparisons using the Holm method. All planned comparisons are listed in the analysis code and will be reported with corrected p‑values. Any unplanned comparisons will be labeled exploratory.",
+  "missingness_plan": "Pairs where both arms fail to produce an apply (e.g., emulator fatal error) are recorded and excluded from the primary analysis per the analysis executor's 'complete_pair_primary' default; report count and reasons. Sensitivity analyses include treating any missing/failed arm as a regression failure (failed_call_treatment sensitivity) and reporting results. All exclusions and missingness reasons are fully logged in artifacts; no human adjudication is used.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "public_change_intent_pool (assembled from cited public corpora; see evidence_record_ids)"
+    ],
+    "risk_factors": [
+      "Duplicate or near‑duplicate intents across arms (model caching or leakage)",
+      "Training/overlap contamination if hosted model accessed has seen public corpus items (external to our control)",
+      "Stateful API behavior across batched calls leading to cross‑task leakage"
+    ],
+    "detection_procedures": [
+      "Deterministic hash comparison (SHA‑256) of intent and prompt texts to detect duplicates; duplicates automatically flagged and removed prior to sampling.",
+      "Per‑call prompt/response hash logging to detect and reject repeated responses across tasks (automated exclusion).",
+      "Per‑task API response header logging to detect non‑idempotent or stateful behavior and automatically rerun under cleared session conditions up to preregistered retry budget."
+    ],
+    "item_flagging_rules": [
+      "If a task's prompt or response hash matches another task, it is automatically flagged and excluded from confirmatory sample (flag reason recorded).",
+      "If API headers indicate stateful session reuse, the call is reissued under a cleared session once automatically; repeated stateful signatures cause task exclusion and logging."
+    ],
+    "analysis_treatment": "Primary analysis excludes automatically flagged items and reports sensitivity analyses including (a) treating flagged items as failures, and (b) including flagged items with deduplication via canonicalization. All decisions are deterministic and logged.",
+    "residual_uncertainty": [
+      "Uncontrolled model training overlap with public corpus items (cannot be fully detected) — reported as noncritical uncertainty.",
+      "Undetectable server‑side nondeterminism not reflected in headers — quantified via repeated sampled calls on a reserved N=10 verification subset and reported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_small_200",
+      "description": "Recommended balanced run: K=200 tasks. Four arms per task (LLM‑only, verifier‑only blocker, repair‑without‑verifier, full G→V→R). Confirmatory primary pair is LLM‑only vs full G→V→R (paired).",
+      "planned_model_calls": 2000,
+      "models": [
+        "hosted_llm_api_v1"
+      ],
+      "transformations": [
+        "intent_normalization",
+        "vendor_template_mapping"
+      ],
+      "discovery_items": 400,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Per‑task worst‑case model call budget: LLM‑only=1, verifier‑only=1 (generate + verify), repair‑without‑verifier up to 4 calls, full G→V→R up to 4 calls → total worst‑case 10 calls/task. For K=200, planned_model_calls = 200 * 10 = 2000 calls, which fits capability_manifest.maximum_planned_model_calls=10000 and is within the hosted_model_api budget. Confirmatory pairs = K = 200 (LLM‑only vs full G→V→R). Discovery/ablation trials = K * 2 = 400 (verifier‑only and repair‑no‑verifier arms). Task clusters: 4 vendor/feature clusters for planned subgroup analyses. All counts are deterministic and logged."
+    },
+    {
+      "scenario_id": "scenario_large_500",
+      "description": "Larger exploratory run: K=500 tasks; same arms and procedures as above for greater power and subgroup resolution.",
+      "planned_model_calls": 5000,
+      "models": [
+        "hosted_llm_api_v1"
+      ],
+      "transformations": [
+        "intent_normalization",
+        "vendor_template_mapping"
+      ],
+      "discovery_items": 1000,
+      "confirmatory_items": 500,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Worst‑case model calls per task = 10. For K=500, planned_model_calls = 500 * 10 = 5000, which remains <= capability manifest limit 10000. Chosen if improved subgroup power is required; higher wall‑clock and model‑call cost."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction in regression‑causing change rate of 0.08 (8 percentage points), e.g., from 0.20 baseline to 0.12 under G→V→R",
+    "clustering_unit": "task (paired within‑task comparison)",
+    "calculation_method": "Approximate paired‑proportion power calculation (normal approximation) cross‑checked by preregistered Monte‑Carlo bootstrap simulation (10,000 runs) executed on CPU using the analysis code. Simulations use paired binary outcomes with assumed discordance structure consistent with baseline and target effect; final reported CIs computed by bootstrap.",
+    "assumptions": [
+      "Two‑sided alpha = 0.05, power = 0.80 for primary calculation.",
+      "Baseline regression rate (LLM‑only) = 0.20 (20%).",
+      "Expected G→V→R regression rate = 0.12 (12%), absolute reduction = 0.08.",
+      "Discordant‑pair fraction consistent with these marginal rates (simulations vary discordance parameter in sensitivity analyses).",
+      "Max iterations per repair arm = 3 repairs (4 total generation calls including initial), as preregistered."
+    ],
+    "recommended_scenario_id": "scenario_small_200",
+    "minimum_detectable_effect_notes": "With K=200 paired tasks under the above assumptions, the preregistered simulation yields ~80% power to detect an absolute paired reduction ≈0.08. If baseline rate is lower (e.g., 0.15) or discordance smaller, detectable absolute effect increases; sensitivity analyses will report MDE across baseline 0.10–0.30.",
+    "sensitivity_analyses": [
+      "Vary baseline regression rate across {0.10,0.15,0.20,0.25,0.30} and recompute power via simulation.",
+      "Treat missing/failed arms as regressions (worst‑case) and recompute effect estimates.",
+      "Bootstrap CI stability checks with 5k and 20k resamples."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "intent_normalization",
+      "vendor_template_mapping",
+      "canonicalization/hashing"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated unit tests: given canonical intent and mapped vendor template, synthetic emulator applies must exhibit the intent's specified connectivity properties (reachability, ACL semantics) on a small reference topology.",
+      "Round‑trip check: vendor_template_mapping → reverse parser → canonical intent equality after canonicalization; failures are deterministically flagged."
+    ],
+    "automatic_rejection_rules": [
+      "If semantic_equivalence_checks fail, the mapping is automatically rejected and the task excluded from confirmatory sampling (flagged with automated reason).",
+      "If intent canonicalization yields ambiguous field values (multiple canonical forms), the task is rejected automatically."
+    ],
+    "audit_sample_policy": "Automated audit of 5% of successful mappings: re‑execute mapping and semantic equivalence checks under varied deterministic seeds to ensure reproducibility; failures are auto‑recorded and counted in residual risk metrics.",
+    "mapping_validation": "All mapping code is versioned; mapping validation consists of a deterministic test harness that applies vendor configs to the emulator and checks for expected observable properties (reachability, interface state). Mapping validation outputs are recorded in the artifact manifest.",
+    "residual_risks": [
+      "Some vendor features are out of verifier/emulator scope despite mapping unit tests; these are logged in the verifier coverage matrix.",
+      "Semantic equivalence checks rely on emulator fidelity; emulator coverage gaps are documented and treated as noncritical limitations."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Generalization to large heterogeneous production estates (evidence gap U1) — outside the preregistered experimental scope.",
+    "Emulator fidelity may not capture every production failure mode despite preregistered emulator validation — reported as external‑validity limitation.",
+    "Hosted model training overlap with public corpora cannot be fully excluded; this is recorded as residual uncertainty."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7171748677",
+    "https://openalex.org/W7202372419",
+    "https://openalex.org/W4402670687",
+    "https://openalex.org/W4399354280"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "study_id": "cand-002-gvr-loop",
+  "title": "Preregistered paired evaluation of generate→verify→repair (G→V→R) vs LLM‑only NetOps suggestions",
+  "research_question": "To what extent does an iterative generate→verify→repair pipeline reduce regression‑causing network changes compared to an LLM‑only suggestion pipeline, and what are the cost/latency tradeoffs?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The G→V→R pipeline yields a lower regression‑causing change rate (proportion of tasks with failed post‑apply regression tests) than the LLM‑only pipeline (paired estimand: paired_success_rate_difference_guarded_minus_baseline)."
+  ],
+  "exploratory_questions": [
+    "Do verifier‑only blocking and repair‑without‑verifier ablations explain the mechanism of any observed improvement?",
+    "How does time‑to‑deploy and model‑call cost per successful apply trade off against regression reduction?",
+    "Are residual regressions concentrated on particular vendor/feature clusters?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7171748677",
+    "https://openalex.org/W7202372419",
+    "https://openalex.org/W4402670687",
+    "https://openalex.org/W4399354280"
+  ],
+  "benchmark_scope": [
+    "Public topology + change‑intent corpus assembled deterministically from public datasets referenced in evidence_record_ids.",
+    "Included tasks limited to intents where the preregistered verifier reports feature/protocol coverage (verifier coverage matrix preregistered)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute difference in regression‑causing change rate: G→V→R minus LLM‑only, paired within task)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_apply_success_rate_guarded_minus_baseline",
+    "median_time_to_deploy_difference_seconds",
+    "mean_model_calls_per_successful_apply_difference"
+  ],
+  "sampling_plan": "Deterministic selection from the assembled public change‑intent pool: (1) assemble candidate list from cited public corpora; (2) filter to intents covered by preregistered verifier; (3) compute SHA‑256(intent_string) and sort ascending; (4) select first K=200 tasks. Excluded intents (verifier/validation failures or duplicate hashes) are logged with automated reasons and placed in an exclusions manifest. No human selection or annotation.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction 0.08 (from 0.20 to 0.12). Two‑sided alpha=0.05, power=0.80. Primary power check: approximate paired‑proportion normal calculation cross‑checked with preregistered Monte‑Carlo bootstrap simulation (10,000 runs) on CPU using the registered analysis executor. Sensitivity analyses vary baseline across {0.10,0.15,0.20,0.25,0.30} and recompute power; bootstrap CI stability checks at 5k and 20k resamples.",
+  "exclusion_rules": [
+    "Tasks excluded automatically if verifier coverage or transformation semantic_equivalence checks fail; reason logged.",
+    "Tasks excluded if deterministic hash duplicate detected between intents/prompts; reason logged.",
+    "Tasks excluded if API headers indicate irrecoverable stateful behavior after the preregistered automatic retry procedure; reason logged."
+  ],
+  "missingness_plan": "Primary treatment 'complete_pair_primary': pairs where both arms fail to produce an interpretable apply (e.g., emulator fatal error) are recorded and excluded from primary analysis; counts and reasons reported. Sensitivity analyses treat any missing/failed arm as a regression failure (complete_pair_primary_with_failure_as_zero_sensitivity). All missingness and exclusion reasons are fully logged; no human adjudication.",
+  "analysis_plan": "Primary confirmatory analysis executed by 'paired_binary_analysis_v1' computing paired_success_rate_difference_guarded_minus_baseline on K=200 paired tasks. Primary test: paired/paired‑proportion test (McNemar or equivalent) with bootstrap (10,000 resamples) for 95% CI. Secondary analyses: Kaplan‑Meier for time‑to‑successful‑apply with log‑rank test (right‑censor at max iterations), subgroup descriptive analyses by preregistered vendor/feature clusters with Holm correction. All analysis code, seeds, and executor identifiers preregistered and versioned; analyses executed on CPU.",
+  "multiplicity_plan": "Primary hypothesis H1 is the single preregistered confirmatory test (alpha=0.05). Secondary and subgroup analyses are exploratory; reported p‑values adjusted using Holm method. All planned comparisons enumerated in analysis code; unplanned comparisons labeled exploratory.",
+  "contamination_plan": "Risk factors: duplicate/near‑duplicate intents, hosted model training overlap with public corpora (residual uncertainty), and stateful API behavior. Detection: deterministic SHA‑256 hashing of intents/prompts and per‑call prompt/response hash logging; per‑call API header logging for stateful signatures. Rules: duplicates or matching response hashes automatically flagged and excluded from confirmatory sample; calls with stateful headers retried once under a cleared session, then excluded if repeated. Analysis treatment: automatically flagged items excluded from primary analysis; sensitivity analyses treat flagged items as failures and report deduplicated-inclusion results. Residual uncertainty (training overlap, nondetectable server nondeterminism) is documented and quantified via a reserved verification subset (N=10) with repeated calls.",
+  "stopping_rule": "Stop after processing and recording results for all K=200 confirmatory paired tasks or upon exceeding the preregistered maximum_model_calls=400, or upon an unrecoverable provider/infrastructure failure that aborts the run; automated per-task retry budget applied as preregistered (single automatic retry for stateful calls). Any early stop and reason are logged and reported.",
+  "planned_outputs": [
+    "IEEE two‑column LaTeX manuscript (≤5 pages) and compiled PDF",
+    "Preregistration JSON and execution manifest",
+    "Analysis code and paired_binary_analysis_v1 execution log",
+    "Raw model prompts/responses, hashes, and artifacts",
+    "Transformation and mapping validation logs",
+    "Exclusions and missingness manifest",
+    "Failure analysis record and evidence‑to‑claim table",
+    "NotebookLM presentation brief",
+    "Final output hash manifest"
+  ],
+  "unresolved_critical_issues": []
+}
