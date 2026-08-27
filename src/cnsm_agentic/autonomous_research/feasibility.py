@@ -16,7 +16,7 @@ HUMAN_DEPENDENCY_PATTERNS = {
         r"\bhuman imput(?:ation|e|ed|ing)\b"
     ),
     "manual adjudication": (
-        r"\bmanual adjudicat"
+        r"\bmanual adjudicat(?:ion|or|ors|e|ed|ing)\b"
     ),
     "third rater": (
         r"\bthird rater\b"
@@ -44,6 +44,18 @@ HUMAN_DEPENDENCY_PATTERNS = {
     ),
     "manual review": (
         r"\bmanual review\b"
+    ),
+    "human audit": (
+        r"\b(?:human|manual human) audit\b"
+    ),
+    "human scorer": (
+        r"\bhuman scor(?:er|ers|ing)\b"
+    ),
+    "domain expert": (
+        r"\bdomain experts?\b"
+    ),
+    "human evaluator": (
+        r"\bhuman evaluat(?:or|ors|ion)\b"
     ),
 }
 
@@ -495,6 +507,232 @@ def _prepare_human_dependency_scan_text(
     )
 
 
+
+def _human_dependency_occurrence_is_negated(
+    text: str,
+    *,
+    start: int,
+    end: int,
+) -> bool:
+    """
+    Return True when this particular human-dependency occurrence is
+    explicitly denied or contrasted away in its local clause.
+
+    Classification is occurrence-local: negating one dependency must
+    not suppress a positive dependency in another clause.
+    """
+    clause_breaks = ".;:\n"
+
+    left_boundary = max(
+        [
+            text.rfind(ch, 0, start)
+            for ch in clause_breaks
+        ]
+        + [-1]
+    )
+
+    right_candidates = [
+        position
+        for ch in clause_breaks
+        for position in [text.find(ch, end)]
+        if position != -1
+    ]
+
+    right_boundary = (
+        min(right_candidates)
+        if right_candidates
+        else len(text)
+    )
+
+    clause_start = left_boundary + 1
+    clause_end = right_boundary
+
+    clause = text[
+        clause_start:clause_end
+    ]
+
+    relative_start = start - clause_start
+    relative_end = end - clause_start
+
+    before = clause[:relative_start]
+    dependency_text = clause[
+        relative_start:relative_end
+    ]
+    after = clause[relative_end:]
+
+    before_window = before[-140:]
+    after_window = after[:140]
+
+    # --------------------------------------------------------
+    # 1. Direct pre-nominal negation.
+    #
+    # no human annotation
+    # without manual review
+    # no manual imputation or human annotation
+    # --------------------------------------------------------
+    if re.search(
+        r"\b(?:no|without)\b"
+        r"(?:(?!\b(?:but|however|whereas)\b).){0,120}$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # Direct local denial:
+    #   not manual adjudication
+    #   not human annotation
+    if re.search(
+        r"\bnot\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # --------------------------------------------------------
+    # 2. Contrastive replacement.
+    #
+    # deterministic resolution instead of manual adjudication
+    # verifier resolution rather than manual adjudication
+    # --------------------------------------------------------
+    if re.search(
+        r"\b(?:instead\s+of|rather\s+than)\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # --------------------------------------------------------
+    # 3. Negative action before dependency.
+    #
+    # does not require human annotation
+    # do not perform manual adjudication
+    # will not use human reviewers
+    # must not rely on manual review
+    # --------------------------------------------------------
+    if re.search(
+        r"\b(?:do|does|did|will|would|shall|should|"
+        r"must|can|could|may|might)\s+not\s+"
+        r"(?:require|requires|required|"
+        r"use|uses|used|"
+        r"perform|performs|performed|"
+        r"include|includes|included|"
+        r"involve|involves|involved|"
+        r"need|needs|needed|"
+        r"rely\s+on|depend\s+on)\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    if re.search(
+        r"\b(?:is|are|was|were)\s+not\s+"
+        r"(?:using|requiring|performing|including|"
+        r"involving|relying\s+on|depending\s+on)\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # --------------------------------------------------------
+    # 4. Negative predicate after dependency.
+    #
+    # human annotation is not required
+    # human annotation will not be used
+    # manual review must not be performed
+    # --------------------------------------------------------
+
+    # Ordinary copula:
+    #   annotation is not required
+    if re.match(
+        r"\s*(?:is|are|was|were)\s+not\s+"
+        r"(?:required|needed|used|performed|included|"
+        r"involved|permitted|necessary)\b",
+        after_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # Modal:
+    #   annotation will not be used
+    #   review must not be performed
+    if re.match(
+        r"\s*(?:will|would|shall|should|must|can|could|"
+        r"may|might)\s+not\s+be\s+"
+        r"(?:required|needed|used|performed|included|"
+        r"involved|permitted|necessary)\b",
+        after_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # Explicitly negative adjective:
+    #   manual review is unnecessary
+    if re.match(
+        r"\s*(?:is|are|was|were)\s+"
+        r"(?:unnecessary|unneeded|prohibited|forbidden)"
+        r"\b",
+        after_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # --------------------------------------------------------
+    # 5. Existing "manual review" ambiguity used only as
+    # deterministic flagging terminology.
+    #
+    # flagged for manual review
+    # (flagging only, not manual adjudication)
+    #
+    # In this explicitly qualified construction, "manual review"
+    # is not an executable human-scientific dependency.
+    # --------------------------------------------------------
+    if (
+        dependency_text.lower() == "manual review"
+        and re.search(
+            r"^\s*"
+            r"\(?"
+            r"(?:(?![.;]).){0,100}"
+            r"\bflagging\s+only\b"
+            r"(?:(?![.;]).){0,80}"
+            r"\bnot\s+manual\s+adjudicat\w*\b",
+            after_window,
+            flags=re.IGNORECASE,
+        )
+    ):
+        return True
+
+    return False
+
+def _find_positive_human_dependencies(
+    text: str,
+    patterns: dict[str, str],
+) -> list[str]:
+    """
+    Find human-scientific dependencies that are actually asserted,
+    rather than merely mentioned inside an explicit denial.
+
+    Each occurrence is classified independently so a sentence such as
+    "No human annotation is used, but manual review is required"
+    still correctly reports manual review.
+    """
+    found: set[str] = set()
+
+    for name, pattern in patterns.items():
+        for match in re.finditer(
+            pattern,
+            text,
+            flags=re.IGNORECASE,
+        ):
+            if not _human_dependency_occurrence_is_negated(
+                text,
+                start=match.start(),
+                end=match.end(),
+            ):
+                found.add(name)
+
+    return sorted(found)
+
+
 def _prepare_gpu_scan_text(
     text: str,
 ) -> str:
@@ -564,8 +802,8 @@ def validate_design_feasibility(
         "human_scientific_labour_allowed",
         False,
     ):
-        for dependency in _find_patterns(
-            human_scan_text,
+        for dependency in _find_positive_human_dependencies(
+            text,
             HUMAN_DEPENDENCY_PATTERNS,
         ):
             issues.append(
@@ -588,8 +826,8 @@ def validate_design_feasibility(
             )
         }
 
-        for dependency in _find_patterns(
-            human_scan_text,
+        for dependency in _find_positive_human_dependencies(
+            text,
             external_patterns,
         ):
             issues.append(
@@ -612,8 +850,8 @@ def validate_design_feasibility(
             )
         }
 
-        for dependency in _find_patterns(
-            human_scan_text,
+        for dependency in _find_positive_human_dependencies(
+            text,
             annotation_patterns,
         ):
             issues.append(
