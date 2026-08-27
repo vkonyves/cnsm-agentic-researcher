@@ -1,0 +1,101 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-01-netops-gvr-eval",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier expressivity and coverage not fully specified (may produce false negatives).",
+        "Task realism and selection criteria for 120 tasks need stronger justification to claim operational relevance.",
+        "Prompt and model-identification details are underspecified (affects replicateability).",
+        "Budget/pricing and API rate-limit contingencies not fully quantified.",
+        "Statistical power/sample-size rationale for paired tests not provided."
+      ],
+      "required_design_repairs": [
+        "Pin exact LLM model identifiers, API versions, and deterministic generation settings (temperature, top_p, etc.).",
+        "Specify verifier tool, version, supported properties, and known limitations (e.g., Batfish version and capabilities).",
+        "Provide explicit task sourcing protocol, complexity labeling criteria, and examples; include holdout/seed rules.",
+        "Add formal sample-size/power calculation for the primary outcome and justify 120-task choice or adjust accordingly.",
+        "Define retry policy, random-seed control, prompt templates, and full prompt text to be frozen in preregistration."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-02-netops-adversarial-robustness",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Ethical risk of publishing usable adversarial/prompt-injection payloads and operational exploit details.",
+        "Ambiguity in how 'malicious directives' are detected and labeled (risk of subjective labeling).",
+        "Threat model and retrieval-system specifics (vector DB, retriever, provenance) are underspecified.",
+        "Potential for overclaiming generality beyond the specific retrieval/LLM setups tested."
+      ],
+      "required_design_repairs": [
+        "Submit an explicit ethics/dual-use mitigation plan (redaction rules, high-level descriptions only, safe disclosure practices).",
+        "Define threat model precisely: attacker capabilities, access to retrieval index, example corruption methods, and limits.",
+        "Specify retrieval stack (vector DB, embedding model, FAISS/HNSW params) and how retrieval corruption is simulated.",
+        "Provide objective detection criteria for 'malicious directives' (e.g., pattern rules, validators) and inter-annotator agreement procedures.",
+        "Pin exact LLM identifiers, deterministic settings, and seeds; record API versions and any prompt-enrichment logic."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-03-netops-gvr-adaptive-cost",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Adaptive-policy value estimates may be sensitive to assumptions in the cost/latency model (simulated scenarios may not reflect live variability).",
+        "Design relies on accurate marginal-gain estimation which may be brittle with limited data.",
+        "Policy-family baselines and hyperparameter choices (thresholds) are underspecified.",
+        "Potential complexity/engineering bugs in decision logic could bias results if not unit-tested."
+      ],
+      "required_design_repairs": [
+        "Provide an explicit cost model with cited pricing sources, currency/date, and sensitivity ranges to be used in experiments.",
+        "Specify latency-measurement methodology used to parameterize simulations and include at least one real-measured latency regime.",
+        "Define adaptive-policy estimator details mathematically (features used, training procedure, if any) and baseline policy hyperparameters.",
+        "Add unit and integration test plans for policy orchestration and watchdog/timeouts; include reproducibility seeds and logging requirements.",
+        "Preregister decision thresholds and the stopping-rule family or provide a principled tuning protocol separate from primary outcome observation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-04-netops-gvr-bench-release",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Reproducibility claim is fragile because public LLM APIs are nondeterministic and can change; achieving artifact-hash matches may be infeasible without deterministic model snapshots.",
+        "Licensing and privacy concerns for real-world network configs are not resolved; synthetic vs real data trade-offs need documentation.",
+        "Maintenance and dependency-locking for containerized verifier and CI are nontrivial and must be planned.",
+        "Risk that released attackable artifacts or configuration templates could be misused."
+      ],
+      "required_design_repairs": [
+        "State explicit plan for achieving reproducibility given nondeterministic LLMs (e.g., store and publish generated outputs and hashes, use deterministic generation settings where possible, or provide offline model snapshots).",
+        "Document licensing for all dataset items and use synthetic augmentation where licensing forbids release; include privacy-preserving transformations and attestations.",
+        "Provide pinned container images with exact hashes for verifiers and CI scripts, and a maintenance/versioning plan for dependencies.",
+        "Include ethical-use guidance and acceptable-use terms; redact or abstract any sensitive configuration details that could enable misuse.",
+        "Define held-out subset reproduction protocol precisely (what will be matched, tolerance for nondeterminism, and how matching is measured)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

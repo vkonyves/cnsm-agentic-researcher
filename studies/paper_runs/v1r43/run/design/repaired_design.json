@@ -1,0 +1,148 @@
+{
+  "selected_candidate_id": "cnd-01-netops-gvr-eval",
+  "title": "Empirical evaluation of generate–verify–repair (GVR) for LLM-generated network configurations — repaired preregistration",
+  "research_question": "Does integrating a deterministic network verifier into a generate–verify–repair (GVR) pipeline materially reduce verifier-detected semantic-failure rates of LLM-generated device-level network configurations compared to an LLM-only pipeline under a matched per-task model-call budget?",
+  "confirmatory_hypotheses": [
+    "H1: An LLM-only pipeline will produce a nonzero verifier-detected semantic-failure rate on intent-to-configuration tasks.",
+    "H2 (primary): A GVR pipeline that iteratively invokes the LLM with deterministic verifier feedback (up to 3 repairs; 4 LLM calls max per pipeline attempt) will produce a higher verifier-pass rate than an LLM-only pipeline under a matched maximum model-call budget, tested on a paired task set using the paired_success_rate_difference_guarded_minus_baseline estimand.",
+    "H3: The absolute and relative reduction in semantic-failure rate from GVR will vary by task complexity (larger gains on low/medium complexity; diminishing returns on highest complexity)."
+  ],
+  "exploratory_questions": [
+    "Does the GVR effect replicate qualitatively on a second hosted LLM API (exploratory, not primary confirmatory analysis)?",
+    "How many repair iterations are actually used when GVR succeeds (distribution of iterations), and what is model-call cost per successful pass?"
+  ],
+  "benchmark_scope": [
+    "Public and synthetic intent-to-configuration tasks curated from public NetOps benchmarks and synthetic generators (see Sampling Plan provenance).",
+    "Verifiable properties limited to those expressible in the chosen deterministic verifier (reachability, ACL semantics, simple routing-invariant checks as documented below)."
+  ],
+  "model_scope": [
+    "Primary (confirmatory): OpenAI/gpt-4o-mini (hosted API) — generation settings: temperature=0.0, top_p=0.0, max_tokens=1500, deterministic-seed-protocol: fixed prompt + fixed per-attempt seed token where API supports explicit seeds; where explicit seeds unavailable, deterministic settings (temperature=0, top_p=0) are used and outputs archived.",
+    "Exploratory: Anthropic/claude-2.1 (hosted API) — generation settings: temperature=0.0, top_p=0.0, max_tokens=1500; used for exploratory replication only."
+  ],
+  "transformation_scope": [
+    "Config canonicalization: whitespace normalization, deterministic ordering of multi-line statements where semantically neutral, canonical interface and ACL name mapping.",
+    "Parsing into verifier input format (Batfish snapshot/harness) with deterministic, idempotent transformation rules.",
+    "No human annotation; all mapping/normalization rules implemented as deterministic code pipelines with unit tests."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-complexity paired success-rate differences (low / medium / high complexity strata)",
+    "Counts of tasks converted from fail→pass by GVR (per-task indicator)",
+    "Distribution of repair iterations for successful GVR cases",
+    "Model-call cost per successful verified pass (mean, median)"
+  ],
+  "sampling_plan": "Confirmatory sample: 132 paired tasks stratified equally by declared complexity into three strata (low=44, medium=44, high=44). Derivation: power calculation (see Power Plan) requires n=132 paired episodes to detect an absolute paired pass-rate difference of 0.15 with two-sided alpha=0.05 and 80% power under conservative variance assumptions; we therefore set confirmatory N=132. Tasks will be sourced deterministically from (1) public NetOps benchmark artifacts referenced in evidence (NetConfEval-like public datasets where licensing permits) and (2) synthetic generator scripts included in the artifact. Provenance rules: (a) select all publicly redistributable tasks matching the target domain (ACLs, reachability, routing invariants, mixed policies); (b) if public pool <132, generate synthetic tasks via seeded generator seeded with fixed RNG seed S_confirm=20260801 to reach 132; (c) label complexity by deterministic rule-based rubric (complexity score = ACL rule count + distinct-device-count + number-of-invariants; thresholds pre-registered: low<=5, medium 6-12, high>12); (d) held-out ordering: tasks shuffled with fixed RNG seed and split into confirmatory (first 132) and exploratory (next 40) sets; (e) store full task JSONs and content-addressable hashes in the artifact bundle. Each task yields one paired episode (LLM-only vs GVR) for the primary model.",
+  "analysis_plan": "Primary analysis executor: paired_binary_analysis_v1 implementing the paired_success_rate_difference_guarded_minus_baseline estimand. Primary test: paired binary comparison using McNemar-style exact test (or paired permutation test if assumptions unmet) to test difference in verifier-pass indicators between GVR and LLM-only across the 132 paired tasks (primary model only). Bootstrap (10000 replicates) 95% CI for paired pass-rate difference. Sensitivity analyses: (1) treat failed/timeout API calls per 'failed_call_treatment' (primary: 'complete_pair_primary' meaning pairs with unrecoverable API/infrastructure failures will be excluded from primary analysis and reported in a failure table; (2) robustness sensitivity: 'complete_pair_primary_with_failure_as_zero_sensitivity' — treat failed pipeline calls as failures (worst-case) and recompute). Exploratory analyses: per-complexity strata effects, per-model replication (exploratory model), repair-iteration distribution, model-call cost per successful pass. All code and raw outputs archived to enable re-execution; analysis seeds for bootstrap set to 20260802.",
+  "multiplicity_plan": "Primary confirmatory claim is the single estimand above. No alpha correction for the primary test. Stratum (complexity) and exploratory-model analyses are explicitly exploratory and will be reported with no confirmatory alpha claims; p-values reported for completeness with adjusted interpretation. All reported exploratory analyses will be labeled as exploratory.",
+  "missingness_plan": "API/model-call infrastructural failures: automatic retry policy up to 2 additional attempts spaced 30s apart for transient provider errors; if retries fail, mark that pipeline call as 'infrastructure failure' and apply primary analysis treatment (complete_pair_primary). If an LLM call returns malformed output that the transformation parser deterministically rejects, treat as 'parser-failure' and record as pipeline failure for that attempt; pipeline then proceeds to next allowed attempt until max attempts exhausted. No human adjudication is permitted; all rejections are deterministic (parsing exceptions, verifier input validation). Document counts of excluded pairs and include sensitivity analysis treating failures as zeros. Random seeds/Sampling reproducibility: task selection and per-attempt seeds are deterministic per the preregistered seeds list.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NetOps task pool (NetConfEval-like public items)",
+      "Synthetic generator v1 (seeded)"
+    ],
+    "risk_factors": [
+      "Prompt leakage across tasks (model memory, cached contexts)",
+      "Training-set overlap / memorized templates in hosted model",
+      "Cross-contamination via reused prompt artifacts or identical task descriptions"
+    ],
+    "detection_procedures": [
+      "Record and hash all prompts and full model outputs per call; flag identical outputs across distinct tasks via deterministic content-hash comparison.",
+      "Detect high-output similarity using string-similarity (normalized Levenshtein) thresholds; flag items above 0.95 similarity for exclusion or sensitivity analysis.",
+      "Compare generated configs to task templates; if exact matches to a training-like example (deterministic string match to known public examples), mark as possible memorization and report separately."
+    ],
+    "item_flagging_rules": [
+      "If output hash equals a known public-config hash from provenance list => flag and analyze separately (not excluded from primary analysis but reported).",
+      "If parser normalization fails deterministically => automatic rejection of that attempt; pipeline proceeds per retry policy."
+    ],
+    "analysis_treatment": "Primary analysis includes all unflagged pairs. Flagged memorized matches and high-similarity duplicates will be reported in a contamination table and excluded from a sensitivity re-analysis if their count exceeds 5% of the confirmatory sample.",
+    "residual_uncertainty": [
+      "Possible undiscovered memorization not detected by deterministic matching; documented and reported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "sc-1-confirmatory-only",
+      "description": "Confirmatory-only execution using primary model (OpenAI/gpt-4o-mini) on N=132 paired tasks (stratified). LLM-only and GVR pipelines each have matched per-task max model-call budget = 4 (initial generate + up to 3 repair/alternative attempts).",
+      "planned_model_calls": 1056,
+      "models": [
+        "OpenAI/gpt-4o-mini"
+      ],
+      "transformations": [
+        "canonicalize_config_v1",
+        "batfish_input_renderer_v1"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 132,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model-call accounting: per paired task, LLM-only may use up to 4 generation attempts and GVR up to 4 attempts; both pipelines executed per task => 4+4=8 calls per paired task. 132 paired tasks * 8 calls = 1056 total model calls. This is within the capability manifest model-call budget (maximum_planned_model_calls=10000) and comfortably feasible within the declared wall-clock constraints; verifier runs are CPU-only within containerized Batfish harness."
+    },
+    {
+      "scenario_id": "sc-2-expansive-with-exploratory",
+      "description": "Expansive run: confirmatory set (N=132) on primary model + exploratory replication on second hosted model (Anthropic/claude-2.1) on additional exploratory N=40 tasks (same per-task budgets).",
+      "planned_model_calls": 1376,
+      "models": [
+        "OpenAI/gpt-4o-mini",
+        "Anthropic/claude-2.1"
+      ],
+      "transformations": [
+        "canonicalize_config_v1",
+        "batfish_input_renderer_v1"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 132,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model-call accounting: primary confirmatory model: 132 tasks * 8 calls = 1056 calls. Exploratory replication: 40 tasks * 8 calls = 320 calls. Total = 1056+320 = 1376 model calls. Still within the manifest limit of 10000 model calls and CPU-executable verifier harness."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "absolute paired pass-rate difference = 0.15",
+    "clustering_unit": "task (paired episode: same task, two pipelines, same confirmatory model)",
+    "calculation_method": "Two-sided paired-proportions sample-size approximation (McNemar-style power approximation). Using alpha=0.05, power=0.80, target absolute paired difference=0.15, conservative baseline pass rate p0=0.30 (assumed) yields required paired N ≈ 132. Calculation details archived in power_calc.txt (artifact).",
+    "assumptions": [
+      "Baseline (LLM-only) pass rate p0 assumed 0.30 based on prior-domain evidence and conservative estimate; alternative baseline used in sensitivity scenarios.",
+      "Pairwise dependence assumed moderate; calculation used conservative variance approximations.",
+      "Alpha two-sided = 0.05; power target = 0.80; bootstrap CI will be used to check robustness."
+    ],
+    "recommended_scenario_id": "sc-1-confirmatory-only",
+    "minimum_detectable_effect_notes": "With N=132 and baseline p0=0.30, detectable absolute paired difference ≈ 0.15 at 80% power. If baseline is higher, detectable effect increases; sensitivity analyses will report detectable effect curves.",
+    "sensitivity_analyses": [
+      "Recompute power post-hoc for observed baseline pass rate and report post-hoc minimum detectable effect.",
+      "If observed missingness / excluded pairs >10%, recompute and report reduced effective N and corresponding detectable effect."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "config_canonicalization",
+      "verifier_input_rendering",
+      "syntax_parsing_and_rejection"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: canonicalized config -> verifier input -> parsed back to canonical form; require exact string match (deterministic).",
+      "Property-preservation tests: for a held-out set of 20 reference configs, verify that canonicalization does not change reachability outcomes under the verifier."
+    ],
+    "automatic_rejection_rules": [
+      "If parser raises deterministic exception or canonicalizer changes semantic tokens (detected by property-preservation test), mark attempt as 'parse-reject' and proceed per retry policy.",
+      "Reject outputs that fail schema validation (device names, interface format) deterministically; no human adjudication."
+    ],
+    "audit_sample_policy": "Automated audit: deterministically select 10% of successful passes per stratum using fixed RNG seed and re-run verifier end-to-end to confirm deterministic pass; any inconsistency triggers full re-execution of affected tasks.",
+    "mapping_validation": "All mapping (e.g., natural-language entity -> device/interface mapping) implemented as deterministic rule-based functions with unit tests; mapping tables and unit-test results archived.",
+    "residual_risks": [
+      "Edge-case parser bugs causing silent semantic changes (mitigated by round-trip and property-preservation tests but residual risk remains)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Verifier expressivity coverage: the chosen Batfish harness covers reachability, ACL semantics, and basic routing-invariant checks, but cannot model vendor-specific hardware quirks or every operational semantic; claims will be explicitly bounded to verifier-covered properties.",
+    "Representativeness of the curated 132-task set for all operational NetOps workloads; we mitigate by publishing selection protocol and synthetic generator and labeling complexity, but external generalization beyond the sampled task bank remains untested.",
+    "Hosted LLM API nondeterminism and unseen model updates: although generation settings are deterministic (temperature=0) and outputs are archived, hosted model behavior can change over time; replication will be time-stamped and artifacts archived for audit."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "doi:10.2139/ssrn.6754899",
+    "doi:10.2139/ssrn.7138608",
+    "https://openalex.org/W4402670687"
+  ]
+}

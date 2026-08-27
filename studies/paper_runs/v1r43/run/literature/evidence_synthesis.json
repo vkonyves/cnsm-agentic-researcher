@@ -1,0 +1,167 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Recent literature proposes and prototypes LLM-based systems to translate natural-language intents into low-level network configurations and to automate NetOps workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "empirical + systems proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Records report prototypes/benchmarks and architectural proposals rather than large-scale production deployments.",
+        "Task scope and realism vary across studies (benchmarks, controlled examples)."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Generate–verify–repair (GVR) or similar architectures that interpose deterministic verification and iterative repair have been proposed and evaluated for improving correctness of LLM-generated artifacts in code and engineering domains.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4402670687"
+      ],
+      "evidence_type": "architectural proposals and case studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations are largely in code, Simulink, or enterprise software contexts, not specifically on network-configuration verifiers in the supplied records.",
+        "Practical effectiveness depends on verifier coverage and repair strategy design."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Tool-augmented, agentic LLM systems (LLMs orchestrating external tools/datastores) have been demonstrated to improve domain-specific reliability and enable multi-step automation in several domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4396723768",
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4391221150",
+        "doi:10.2139/ssrn.6647800"
+      ],
+      "evidence_type": "systems demonstrations and surveys",
+      "confidence": 0.85,
+      "limitations": [
+        "Demonstrations are domain-specific (chemistry, drilling, clinical) and do not directly prove equivalent gains in NetOps.",
+        "Tool design and domain grounding are major drivers of effectiveness; outcomes do not transfer automatically across domains."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "LLMs exhibit known failure modes relevant to operational use: hallucination/faithfulness errors, adversarial and prompt-injection vulnerabilities, and poor fine-grained classification in security-sensitive tasks.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.5390586",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4388585881"
+      ],
+      "evidence_type": "surveys and attack studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Most vulnerability studies are general-purpose; a subset is domain- or modality-specific (e.g., visual adversarial attacks).",
+        "Implications for NetOps depend on workflow design, tooling, and safeguards that vary by implementation."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How effectively LLM-based NetOps systems achieve operational semantic correctness (reachability, ACL semantics, routing invariants) when evaluated under deterministic network-verification tools is not established in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.1002/nem.2313",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "empirical gap / open question",
+      "confidence": 0.7,
+      "limitations": [
+        "This statement reflects absence of direct evidence within the supplied records, not proof that such evaluations do not exist elsewhere.",
+        "Some supplied works perform NetOps benchmarking/prototyping but do not report integration with deterministic network verifiers in a way that demonstrates operational semantic guarantees."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "Whether generate–verify–repair architectures deliver high practical reliability when applied specifically to network-configuration generation (as opposed to code/Simulink) remains unproven in the supplied literature.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "method-transfer question",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing GVR evidence is from adjacent domains; domain differences (network semantics, verifier expressivity) may materially affect outcomes.",
+        "Empirical transferability requires studies integrating network-specific verifiers and fault models."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "The resilience of LLM-driven NetOps workflows to adversarial inputs or indirect prompt-injection (targeting retrieved/context data) is not evaluated in the NetOps-focused records supplied.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "security-evaluation gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Prompt-injection and retrieval-based attacks are documented in general studies, but supplied NetOps prototypes do not report dedicated adversarial robustness evaluations.",
+        "Absence in supplied records does not rule out unpublished or external evaluations."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Among the supplied records there is no published empirical study that demonstrates integrating LLM-generated network configurations with established deterministic network-verification tools (e.g., to close the loop with verifiers) and reports operational semantic-failure rates.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.1002/nem.2313",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "negative-evidence / candidate research gap",
+      "confidence": 0.6,
+      "limitations": [
+        "This is an absence-of-evidence statement constrained to the supplied record set; it does not prove such integrations do not exist outside these records.",
+        "Some works propose verification-aware architectures conceptually but do not report full empirical NetOps verifier integrations within the provided materials."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "There is limited evidence in the supplied records of systematic adversarial-testing or prompt-injection evaluations targeted at LLM-driven NetOps pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "evaluation-gap",
+      "confidence": 0.6,
+      "limitations": [
+        "General adversarial/prompt-injection work exists in supplied records, but NetOps-specific adversarial evaluations are not reported in the NetOps prototypes included here.",
+        "This observation may reflect publication timing or scope choices rather than absence of such tests in practice."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Public, reproducible benchmarks that measure operational semantic correctness (e.g., reachability, policy compliance) of LLM-generated network configurations under deterministic validators are not evident in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.175021940.06537275/v1"
+      ],
+      "evidence_type": "benchmarking-gap",
+      "confidence": 0.6,
+      "limitations": [
+        "NetConfEval and related works provide task-focused benchmarks but do not appear to provide standard reproducible suites that combine LLM generation with full deterministic verification metrics in the supplied records.",
+        "Absence here is limited to the provided record set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready for fully autonomous NetOps without human oversight (unsupported by supplied records).",
+    "Generate–verify–repair architectures have been empirically shown to eliminate all semantic errors in LLM-generated network configurations (unsupported by supplied records).",
+    "There is conclusive evidence in the supplied records that adversarial/prompt-injection attacks on LLMs cannot affect NetOps workflows (unsupported)."
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-01-netops-gvr-eval",
+      "title": "Empirical evaluation of generate–verify–repair (GVR) for LLM-generated network configurations",
+      "research_question": "Does integrating a deterministic network verifier into a generate–verify–repair (GVR) pipeline materially reduce semantic-failure rates (verifier-detected violations) of LLM-generated network configurations compared to an LLM-only pipeline across a curated set of NetOps tasks?",
+      "hypotheses": [
+        "An LLM-only pipeline will produce a nonzero semantic-failure rate (verifier-detected violations) across intent-to-configuration tasks.",
+        "A GVR pipeline that iteratively invokes the LLM with deterministic verifier feedback will produce a significantly lower semantic-failure rate than the LLM-only pipeline under matched model-call budgets.",
+        "The reduction in semantic-failure rate from GVR will be moderated by task complexity, with larger relative gains on low-to-moderate complexity tasks and diminishing returns on the highest-complexity tasks."
+      ],
+      "proposed_design": "Curate 120 machine-readable intent-to-configuration tasks covering ACLs, reachability, routing invariants, and mixed-policy scenarios; label tasks by complexity. Implement two pipelines: (1) LLM-only: single-shot prompt to generate device-level configs; (2) GVR: LLM generation followed by deterministic verifier (containerized Batfish-compatible harness) that returns counterexamples, with up to three repair iterations under a fixed model-call budget. Select two public LLM APIs (document exact model identifiers) and freeze prompts, seeds, and verifier version. Execute paired runs per task (same intent seed) for both pipelines, record verifier pass/fail, repair iterations, model-call counts, latency, and raw artifacts. Pre-register inclusion/exclusion rules, stopping rules, and retry policy.",
+      "expected_data": "Per-task records: verifier pass/fail, number of repair iterations, model-call count, generation latency, and raw generated configs and verifier counterexamples. Aggregated summaries: pass rate per pipeline, pass-rate difference by task complexity, distribution of repair iterations, and model-call cost per successful pass.",
+      "primary_outcome": "Difference in verifier pass rate (GVR pass rate minus LLM-only pass rate) across the paired task set, with 95% confidence intervals.",
+      "analysis_outline": "Use paired binary tests (McNemar or paired permutation test) to compare pass/fail across pipelines; compute bootstrap 95% CIs for pass-rate differences; perform subgroup analyses by task complexity and model; report per-task effect sizes and count of tasks where GVR converts failures into passes. Analyze repair-iteration distributions and model-call cost per successful pass; present representative failure/repair traces.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4402670687"
+      ],
+      "risks": [
+        "Verifier expressivity may not capture all operational semantics leading to false negatives (mitigation: document verifier capabilities and limit claims to covered properties).",
+        "API rate limits or pricing changes could constrain planned runs (mitigation: record pricing, enforce budget caps, and report sensitivity analyses).",
+        "Orchestration bugs in the repair loop may bias results (mitigation: unit-test harness and record execution logs/hashes)."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnd-02-netops-adversarial-robustness",
+      "title": "Adversarial and prompt-injection robustness of LLM-driven NetOps pipelines with verifier-based defenses",
+      "research_question": "To what extent do adversarial prompt-injection attacks (including retrieval/context manipulation) cause semantic or safety failures in LLM-driven NetOps pipelines, and can verifier-informed sanitization or counterexample-based context reduce attack success?",
+      "hypotheses": [
+        "Crafted prompt-injection inputs or malicious retrieved context will increase semantic-failure and unsafe-configuration rates in LLM-only NetOps pipelines.",
+        "A verifier-informed defense that injects deterministic counterexamples and sanitization instructions into the LLM context before regeneration will reduce, but not necessarily eliminate, attack success rates relative to the vulnerable baseline.",
+        "Certain attack vectors (contextual retrieval corruption vs direct prompt injection) will differ in effectiveness, with retrieval-based injections being more effective against pipelines that rely on external context without integrity checks."
+      ],
+      "proposed_design": "Define an adversarial attack library with (a) direct prompt-injection payloads embedded in user intents and (b) retrieval-based corrupted context items included in LLM context. Use a held set of 80 NetOps tasks. Implement three pipelines: Vulnerable LLM-only, LLM with verifier-sanitization (verifier generates counterexamples and context sanitation prompts), and GVR with sanitization. For each attack vector and pipeline, run multiple randomized seeds and two public LLM APIs. Measure verifier pass/fail, presence of explicitly malicious directives in generated configs, and whether verifier counterexamples are ignored by the model. Freeze attack corpus, prompts, and verifier. Pre-register acceptance/failure definitions and retry policy.",
+      "expected_data": "Per-task and per-attack records: verifier pass/fail, detection of malicious directives (binary), model-call counts, and examples of exploited vs defended outputs. Aggregated: attack success rates by vector and pipeline, reduction in success due to defenses, and latency/cost overhead of defenses.",
+      "primary_outcome": "Difference in attack success rate (vulnerable pipeline minus defender pipeline) aggregated across attack vectors, with uncertainty estimates.",
+      "analysis_outline": "Compare attack success rates between pipelines using Fisher's exact test or McNemar for paired tasks; compute risk ratios and 95% CIs; stratify analyses by attack vector and task complexity; analyze representative successful attacks to characterize failure modes; quantify added cost/latency of defenses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4391221150"
+      ],
+      "risks": [
+        "Attack corpus may not reflect all real-world injection strategies (mitigation: include diverse injection patterns and document limits).",
+        "Defenses may rely on verifier properties that are unavailable in other deployments (mitigation: clearly describe verifier assumptions).",
+        "Ethical risk of publishing attack payloads (mitigation: disclose ethical-use guidance and avoid details enabling automated large-scale abuse)."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cnd-03-netops-gvr-adaptive-cost",
+      "title": "Adaptive-budget policies for cost-effective verification: maximizing verifier passes per model-call in GVR pipelines",
+      "research_question": "Do adaptive stopping and decision policies for GVR-style NetOps pipelines achieve higher passes-per-cost (verifier passes normalized by model-call cost) than fixed-attempt policies across task complexities and pricing/latency regimes?",
+      "hypotheses": [
+        "Adaptive policies that stop repair iterations when marginal expected pass probability falls below a cost-informed threshold will achieve higher passes-per-cost than fixed-N-attempt policies under realistic cost and latency models.",
+        "Marginal returns (additional verifier passes per extra model call) will exhibit diminishing returns, with identifiable inflection points that justify practical budget caps.",
+        "Verifier latency and provider pricing materially influence which policy is optimal; higher latency/pricing favors fewer attempts and stronger early stopping criteria."
+      ],
+      "proposed_design": "Use a curated set of 150 tasks with complexity labels. Implement policy families: Fixed-N (N in {1,2,3,5}), Adaptive-threshold (stop when estimated marginal gain < threshold), and a simple value-of-information estimator that uses verifier feedback to predict next-iteration utility. For each policy and task, simulate costs using recorded public API pricing and measured verifier latency; run experiments across two public LLMs and multiple simulated pricing/latency scenarios. Record verifier pass/fail, model-call counts, cost, latency, and repair iterations. Pre-register cost model and thresholds.",
+      "expected_data": "Per-task, per-policy records: verifier pass/fail, total model-call count, estimated monetary cost, latency, and repair iterations. Aggregated outputs: passes-per-cost curves by policy, marginal returns curves, and recommended budget allocation rules with uncertainty estimates.",
+      "primary_outcome": "Passes-per-cost achieved by adaptive policies versus best fixed-N policy, reported as mean improvement with 95% bootstrap CIs across tasks.",
+      "analysis_outline": "Estimate passes-per-cost for each policy and compare using paired nonparametric tests (Wilcoxon) across tasks; model marginal-return curves with nonlinear regression to identify inflection points; use bootstrap resampling to estimate uncertainty; perform subgroup analysis by task complexity and by pricing/latency scenario; produce cost-effectiveness frontiers.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4402670687",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Provider pricing variability and API rate limits may affect cost estimates (mitigation: record exact pricing and provide sensitivity analysis).",
+        "Adaptive policies may be sensitive to verifier latency, affecting decision timeliness (mitigation: include latency in cost model and simulate higher-latency scenarios).",
+        "Complexity of adaptive policy implementation may introduce orchestration bugs (mitigation: unit-test decision logic and include watchdogs)."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-04-netops-gvr-bench-release",
+      "title": "NetOps-GVR-Bench: a reproducible benchmark pairing intent tasks with deterministic-verifier evaluations for LLM-driven NetOps",
+      "research_question": "Can a publicly released, containerized benchmark (NetOps-GVR-Bench) that pairs intent-to-configuration tasks with deterministic-verifier-based evaluation metrics expose baseline semantic-failure rates for contemporary LLMs and enable reproducible evaluation of GVR-style defenses?",
+      "hypotheses": [
+        "A curated benchmark combining intent tasks, topologies, and a containerized deterministic verifier will reveal nonzero, task-dependent semantic-failure rates across contemporary LLMs and pipeline variants.",
+        "Including verifier-based metrics and counterexample traces in the benchmark will enable reproducible measurement of repair-method efficacy across models and pipelines.",
+        "A released artifact bundle with frozen prompts, containerized verifier, baseline pipelines, and cryptographic hashes will produce reproducible baseline matches for a held-out subset of tasks under controlled reruns by independent researchers."
+      ],
+      "proposed_design": "Assemble 200 tasks across ACLs, reachability, and routing invariants with machine-readable metadata and difficulty labels. Provide a containerized verifier harness (Batfish-compatible or equivalent), canonical prompts, two baseline pipelines (LLM-only and GVR), CI-ready scripts, and a reproducibility README. Run baseline experiments with two public LLM APIs, publish per-task baseline results, and freeze artifacts, versions, and cryptographic hashes. Provide a held-out subset and CI job that reproduces baseline outputs for that subset; document exact reproduction steps and seeds.",
+      "expected_data": "Released dataset artifacts (200 tasks), per-task baseline results for two LLMs and two pipeline variants (verifier pass/fail, repair iterations, model-call accounting), reproducibility manifest with hashes, CI scripts that reproduce a held-out-subset run producing matching artifact hashes, and versioned container images.",
+      "primary_outcome": "Public availability of NetOps-GVR-Bench with baseline results demonstrating measurable semantic-failure rates and a reproducibility manifest showing matching rerun hashes for the held-out subset.",
+      "analysis_outline": "Report descriptive statistics of baseline semantic-failure rates overall and by task class; quantify inter-model variability using intraclass correlation and paired comparisons; demonstrate reproducibility by rerunning a held-out subset and reporting artifact-hash matches and a reproducibility score (proportion of matches). Provide guidance for future comparisons and ethical-use notes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.175021940.06537275/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4402670687",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Licensing constraints on real-world configuration data (mitigation: use license-permitted sources and synthetic augmentation).",
+        "Benchmark overfitting by early adopters (mitigation: include withheld holdout tasks and encourage blinded evaluations).",
+        "Maintenance burden and dependency on external verifier versions (mitigation: containerized verifier harness and versioned artifacts).",
+        "Potential community misuse of benchmark artifacts (mitigation: acceptable-use terms and ethical guidance)."
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}
