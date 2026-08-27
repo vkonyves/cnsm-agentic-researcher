@@ -1,0 +1,257 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs and agentic AI systems introduce concrete security and prompt-injection vulnerabilities (including tool-poisoning and credential exposure) that expand attack surface in operational pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W4414013482",
+        "https://openalex.org/W4415932290"
+      ],
+      "evidence_type": "systematic review / survey / analysis",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence is largely from reviews and incident summaries (2023–2026); incident prevalence and exact exploit rates vary by deployment.",
+        "Specific exploit vectors depend on system integration details not uniformly reported."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Operational reliability of agentic NetOps depends primarily on surrounding assurance machinery (verification, gating, audit/traces, rollback policies) rather than model fluency alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "position papers / review",
+      "confidence": 0.9,
+      "limitations": [
+        "Arguments are synthesis/positioning rather than large-scale field trials.",
+        "Effectiveness of specific assurance designs requires empirical validation per deployment."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–validate–repair workflows (LLM proposals + formal verification/tooling) materially reduce unsafe or incorrect network-change proposals; LLM-only repairs often introduce regressions at scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4386378087"
+      ],
+      "evidence_type": "empirical benchmark + tool papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Cornetto (benchmark) is synthetic/synthesized scenarios; real-world heterogeneity may differ.",
+        "Tool performance and integration complexity vary by network scale and vendor-specific configs."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Self-correction or iterative self-refinement by the same LLM without low-correlation external verification has theoretical and empirical limits due to correlated errors between generator and evaluator.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176834656.66652387/v2",
+        "doi:10.36227/techrxiv.176834656.66652387/v1",
+        "https://openalex.org/W4385681611"
+      ],
+      "evidence_type": "theoretical analysis + survey",
+      "confidence": 0.85,
+      "limitations": [
+        "Bounds are conceptual/theoretical and supported by limited empirical demonstrations; applicability depends on model/evaluator specifics.",
+        "Mitigations (e.g., external low-correlation evaluators) are proposed but need system-level evaluation in NetOps."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Retrieval-augmented generation (RAG) and verifier-grounding reduce hallucination risk but have heterogeneous effectiveness across tasks and setups; RAG is not a universal cure.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7118532765"
+      ],
+      "evidence_type": "systematic review",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness depends on retrieval freshness, retrieval poisoning risk, and how verifier feedback is integrated.",
+        "Empirical heterogeneity across datasets and models limits generality."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Benchmarking studies for LLM-driven NetOps (e.g., Cornetto) report promising LLM capabilities for configuration repair but also frequent regressions and performance degradation at larger topology scales.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "empirical benchmark",
+      "confidence": 0.85,
+      "limitations": [
+        "Dataset synthesis choices and evaluation specifications shape measured degradation; real production networks may differ.",
+        "Only a subset of modern LLMs and failure modes were evaluated in the cited benchmark."
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Practical network-verification tooling (Batfish, KATch/NetKAT, Tulkun) can perform fast, scalable checks of forwarding and policy properties and are appropriate validators for generated configs when integrated.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4386378087"
+      ],
+      "evidence_type": "tool/method papers with empirical evaluation",
+      "confidence": 0.9,
+      "limitations": [
+        "Verification fidelity depends on accurate device models and complete configuration context.",
+        "Scalability and latency trade-offs exist when used in closed-loop automated change pipelines."
+      ]
+    },
+    {
+      "claim_id": "F8",
+      "statement": "Current literature and surveys emphasize the need to move evaluation beyond static QA-style benchmarks toward workflow-centered, auditable, evidence-fidelity metrics for agentic NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7162496031",
+        "doi:10.20944/preprints202511.1572.v1"
+      ],
+      "evidence_type": "surveys / position papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Prescription consensus exists, but operationalizing workflow-centered metrics requires community tooling and common datasets."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do generate–verify–repair pipelines (with existing formal verifiers) scale to heterogeneous, vendor-specific multi-vendor production networks without excessive human intervention?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4386378087"
+      ],
+      "evidence_type": "empirical benchmark + tool papers",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing benchmarks and tools show promise but are evaluated on synthesized or curated corpora; generalization to full production heterogeneity is untested in cited records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How effectively can low-correlation external verifiers or diverse-evaluator ensembles be automated within latency and cost constraints appropriate for NetOps change windows?",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176834656.66652387/v2",
+        "https://openalex.org/W4385681611",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "theoretical analysis + surveys + benchmark",
+      "confidence": 0.45,
+      "limitations": [
+        "Trade-offs among verification thoroughness, runtime cost, and allowable change window are not empirically resolved in provided records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What are practicable, community-accepted workflow-centered evaluation metrics that reliably predict real-world safety/uptime impact of LLM-driven NetOps proposals?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7162496031",
+        "doi:10.20944/preprints202511.1572.v1"
+      ],
+      "evidence_type": "position papers / reviews",
+      "confidence": 0.5,
+      "limitations": [
+        "Several proposals exist, but no standard metric suite is established in the cited literature."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "Can cryptographically verifiable provenance and privacy-preserving audit trails (e.g., ExecMesh, zero-knowledge EAT) be integrated into live NetOps agents at acceptable performance and operator-privacy trade-offs?",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202511.1085.v2",
+        "doi:10.2139/ssrn.7046079",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "preprint / conceptual systems",
+      "confidence": 0.45,
+      "limitations": [
+        "Proposals exist; integration cost, runtime overhead, and operator-privacy implications require experimental validation beyond conceptual prototypes."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of publicly available, large-scale, vendor-diverse NetOps datasets and benchmarks that couple LLM tasks with formal verification labels and realistic change-execution constraints.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7170714602",
+        "doi:10.20944/preprints202511.1572.v1"
+      ],
+      "evidence_type": "benchmark paper + surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Cornetto provides a start but is synthesized and not fully vendor-diverse.",
+        "Community effort needed to curate production-like multi-vendor datasets."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient empirical studies measuring operational latency/cost trade-offs when adding layered verifiers, cryptographic audit, and low-correlation evaluators into closed-loop NetOps automation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162496031",
+        "doi:10.20944/preprints202511.1085.v2",
+        "doi:10.36227/techrxiv.176834656.66652387/v2"
+      ],
+      "evidence_type": "position papers / theoretical analysis",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing works argue for these components but do not provide detailed system-level cost/latency benchmarks in NetOps settings."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for standardized, workflow-centered evaluation protocols (trace quality, evidence fidelity, rollback-aware scoring) for agentic NetOps accepted by both research and operator communities.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7170714602",
+        "https://openalex.org/W7162496031",
+        "doi:10.20944/preprints202511.1572.v1"
+      ],
+      "evidence_type": "surveys / position papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Proposals exist but consensus and tooling to implement them are not yet established in cited records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Limited published evaluations on the effectiveness of constrained/grammar-constrained decoding and dual-phase neurosymbolic approaches specifically for vendor-specific network DSLs (device config languages).",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "preprint methods + benchmark",
+      "confidence": 0.7,
+      "limitations": [
+        "Neurosymbolic work demonstrates conceptually relevant techniques but lacks NetOps-specific, vendor-DSL empirical studies in supplied records."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Gap in empirical evidence on whether ensemble verifier architectures (heterogeneous verifiers) reduce correlated-evaluator failure in practice for NetOps tasks.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176834656.66652387/v2",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "theoretical analysis + benchmark",
+      "confidence": 0.6,
+      "limitations": [
+        "Theory motivates ensembles; empirical NetOps demonstrations are not present in provided records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous, unsupervised NetOps change execution without layered verification and operator oversight (no supplied record supports unconstrained production readiness).",
+    "Self-refinement by a single LLM reliably eliminates all configuration regressions in large-scale networks (excluded because theory and benchmarks show limits and regressions).",
+    "There exists a community-standard workflow-centered benchmark for agentic NetOps evaluation (no supplied record documents an accepted standard beyond proposals).",
+    "Cryptographic provenance and zero-knowledge audit trails are shown in production NetOps deployments at scale (supplied records are proposals/prototypes, not large-scale production evaluations)."
+  ]
+}

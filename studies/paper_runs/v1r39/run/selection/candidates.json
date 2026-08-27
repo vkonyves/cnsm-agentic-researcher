@@ -1,0 +1,119 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "ensemble-heterogeneous-verifiers-2026",
+      "title": "Do heterogeneous verifier ensembles reduce undetected faulty LLM-generated NetOps changes compared to single verifiers?",
+      "research_question": "Does using a heterogeneous ensemble of established network verifiers (diverse verification engines) materially reduce the rate of undetected faulty or unsafe LLM-generated configuration-change proposals versus a single verifier, within practical NetOps change-validation constraints?",
+      "hypotheses": [
+        "An ensemble of heterogeneous verifiers will produce a lower false-accept (undetected-fault) rate on LLM-generated configuration proposals than any single verifier alone.",
+        "The marginal reduction in false-accept rate from adding additional heterogeneous verifiers will exhibit diminishing returns and measurable latency/cost trade-offs that can be quantified for operational decision-making."
+      ],
+      "proposed_design": "Construct a benchmark of 500 configuration-change tasks (drawn from Cornetto-style synthesized scenarios plus curated vendor-specific snippets) and use a fixed LLM prompt to generate proposed device-config changes. Integrate three heterogeneous verifiers (e.g., Batfish-like forwarding checks, NetKAT-style policy checks, and a semantics-based analyzer) as independent evaluators. For each generated proposal: (a) record each verifier verdict, (b) apply ensemble decision rules (majority, conservative veto, and intersection), (c) execute ground-truth simulation/emulation to label whether the proposal causes a regression or safety violation. Measure false-accept rates (verifier accepts but ground-truth fails), false-rejects, end-to-end latency, and per-task verifier CPU/time cost. Repeat with randomized seeds and LLM temperature settings to characterize variance. Predefine stopping rules, seeds, and retry policy in preregistration.",
+      "expected_data": "Per-task records with: LLM-generated proposal, three verifier binary verdicts, ensemble verdicts (majority/veto/intersection), ground-truth pass/fail label from simulation, end-to-end latency (ms), CPU-time per verifier, and per-task metadata (vendor-DSL features). Aggregated metrics: false-accept rate, false-reject rate, ROC-like curves for ensembles vs single verifiers, latency and cost distributions.",
+      "primary_outcome": "Quantified reduction in false-accept rate (undetected faulty proposals) of heterogeneous verifier ensembles relative to the best single verifier, with associated latency and cost trade-offs (mean and 95% CI).",
+      "analysis_outline": "Compute per-method false-accept and false-reject rates with 95% confidence intervals; compare ensemble rules vs best single verifier using paired McNemar test (binary pass/fail per task) and bootstrap CIs for difference in proportions. Model latency/cost trade-off via mixed-effects regression (task as random effect) to estimate marginal cost per percentage-point reduction in false-accept rate. Report effect sizes, p-values, and pragmatic thresholds (e.g., reductions needed to justify added latency). Perform subgroup analysis by vendor-DSL complexity and topological size; treat those as predefined strata.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.176834656.66652387/v2",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4385681611"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4386378087"
+      ],
+      "risks": [
+        "Synthetic benchmark may not fully capture production heterogeneity; results may overstate ensemble benefit.",
+        "Integration mismatches between verifier input formats and LLM outputs could require engineering that affects measured latency.",
+        "Correlated failure modes across verifiers may limit ensemble gains, producing null results."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "layered-verification-provenance-latency-eval-2026",
+      "title": "Latency and cost of layered verifiers plus lightweight provenance for closed-loop NetOps change windows",
+      "research_question": "Can a layered verification pipeline combined with lightweight cryptographic provenance/audit capture be executed within operational NetOps change-window latency and cost constraints while materially reducing unsafe change acceptance?",
+      "hypotheses": [
+        "A two-stage layered verification pipeline (fast syntactic/forwarding checks followed by selective deeper semantic checks) with lightweight cryptographic provenance capture will fit within typical NetOps change-window latencies for the majority (>70%) of tasks in the benchmark.",
+        "Adding lightweight provenance increases end-to-end latency but provides measurable improvements in traceability and post-hoc auditability without exceeding predefined operational cost budgets for typical NetOps tasks."
+      ],
+      "proposed_design": "Define operational change-window targets (e.g., <= 10s for fast automated suggestions, <= 5min for gated changes). Prepare 300 NetOps change tasks of varying complexity. Implement a layered pipeline: (1) fast syntax/forwarding checker (Batfish-like), (2) selective deep semantic verifier triggered by risky findings or by random sampling, and (3) lightweight provenance capture (signed evidence bundle, hashed artifacts). Use the same LLM to propose changes. Measure end-to-end latency, verifier stage latencies, provenance capture overhead, CPU/runtime cost, and safety outcome (simulation ground-truth). Evaluate different selective-trigger policies (always deep-check, risk-triggered, sampled) and quantify % tasks meeting each latency target and audit completeness. Predefine cost budget thresholds and stopping criteria in preregistration.",
+      "expected_data": "Per-task timestamps for each pipeline stage, provenance bundle sizes, verification outcomes, ground-truth pass/fail labels, cost metrics (CPU-sec, estimated cloud $), and auditability metrics (completeness of evidence for post-hoc repro). Aggregates: proportion of tasks meeting latency budgets, mean/median provenance overhead, and safety improvement vs no-provenance baseline.",
+      "primary_outcome": "Fraction of tasks that meet the defined operational latency targets under each pipeline policy, with associated safety improvement (reduction in unsafe accepted proposals) and measured provenance overhead (latency and data size).",
+      "analysis_outline": "Report proportions meeting latency budgets with 95% CIs; compare pipeline policies using paired comparisons (McNemar or paired proportion tests). Model latency as function of task complexity and policy using regression; estimate cost per unit safety improvement. Perform sensitivity analysis on provenance bundle size vs capture fidelity. Report worst-case latencies and distribution tails and test whether provenance overhead significantly affects budget compliance (Chi-square or logistic regression).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162496031",
+        "doi:10.20944/preprints202511.1085.v2",
+        "doi:10.2139/ssrn.7046079"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162496031"
+      ],
+      "risks": [
+        "Provenance capture integration may require access to systems or metadata not available in public/simulated datasets, reducing ecological validity.",
+        "Selective deep-check triggers may be difficult to tune, causing either excessive latency or missed faults.",
+        "Measured latency may be sensitive to simulator performance and not reflect production hardware variability."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "grammar-constrained-neurosymbolic-ddl-2026",
+      "title": "Do grammar-constrained decoding and neurosymbolic repair reduce syntactic and semantic regressions in vendor-specific device-DSL generation?",
+      "research_question": "Does applying grammar-constrained decoding (DSL grammar enforcement) combined with a neurosymbolic repair stage reduce syntactic errors and downstream semantic regressions in LLM-generated, vendor-specific device-DSL configurations compared to unconstrained LLM generation?",
+      "hypotheses": [
+        "Applying grammar-constrained decoding during generation will substantially reduce syntactic/parse errors in vendor-DSL outputs relative to unconstrained decoding.",
+        "A neurosymbolic repair stage (symbolic parse+constraint repair guided by LLM suggestions) combined with formal verification will reduce semantic regressions more than either constrained decoding or verifier-alone approaches."
+      ],
+      "proposed_design": "Collect a dataset of 400 vendor-DSL configuration-change prompts spanning two representative vendor syntaxes (synthesized from public corpora and Cornetto-style examples). Run three pipelines: (A) unconstrained LLM generation, (B) grammar-constrained decoding (LLM with decoding constrained to DSL grammar), (C) constrained decoding + neurosymbolic repair (parse, local symbolic fixes suggested by small repair module guided by LLM). For each output, run a verifier for semantic regression checks and record syntactic parse success, verifier pass/fail, and whether neurosymbolic repair changed the proposal. Measure rates of syntactic error, semantic regression, and verifier-detected violations. Predefine repair heuristics, seeds, and evaluation metrics in preregistration.",
+      "expected_data": "Per-output records including syntactic-parse success/failure, number and type of repair edits, verifier pass/fail, final simulation ground-truth safety label, and latency for decoding+repair. Aggregated metrics: syntactic error rates, semantic regression rates, repair success rate, and latency distributions per pipeline.",
+      "primary_outcome": "Reduction in combined syntactic+semantic regression rate of pipeline (C) relative to (A) and (B), reported as absolute and relative differences with 95% CIs.",
+      "analysis_outline": "Compare pipelines using paired proportion tests (McNemar) on parse success and semantic regression labels. Use logistic regression to estimate odds of regression controlling for vendor-DSL complexity and task length. Report median latency and compute trade-off curves of regression reduction vs added latency. Perform ablation showing contribution of constrained decoding vs neurosymbolic repair.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162496031"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "DSL grammars may be incomplete or underspecified for real vendors, causing over-rejection of valid outputs.",
+        "Neurosymbolic repair engineering may introduce biases and require per-vendor heuristics limiting generality.",
+        "Evaluation on synthesized vendor snippets may not fully capture production config complexity."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "external-low-correlation-verifier-vs-self-refine-2026",
+      "title": "Do low-correlation external verifiers plus retrievers outperform LLM self-refinement for NetOps change safety?",
+      "research_question": "Does augmenting generate–verify–repair workflows with low-correlation external verifiers or retrieval sources yield superior safety (fewer regressions) compared to iterative self-refinement by the same LLM acting as both generator and evaluator on NetOps configuration-change tasks?",
+      "hypotheses": [
+        "Using an external low-correlation verifier or retrieval-grounding will detect and prevent a subset of correlated LLM-generator/evaluator errors that iterative self-refinement fails to correct.",
+        "Iterative self-refinement by the same LLM will show diminishing returns and correlated failures, such that external low-correlation signals provide statistically significant safety improvements when integrated under the same cost budget."
+      ],
+      "proposed_design": "Prepare 600 NetOps change tasks. For each task, produce an initial LLM proposal. Compare three workflows: (1) LLM-only iterative self-refinement (up to N rounds), (2) LLM + internally correlated evaluator (same-model evaluator) plus repair, (3) LLM + low-correlation external verifier(s) and retrieval-grounding (RAG) feeding selective repairs. Use ground-truth simulation to label safety. Record rounds to convergence, final safety label, and total model/verifier calls and latency. Predefine iteration cap, retrieval source freshness constraints, and low-correlation verifier choices. Randomize task assignment across workflows to control for order effects.",
+      "expected_data": "Per-task: initial proposal, iteration traces, evaluator/verifier verdicts per round, retrieval evidence items, final proposal, ground-truth safety label, total model calls, and end-to-end latency. Aggregates: final safety rates per workflow, convergence rounds, correlated-failure incidence (cases where both generator and evaluator agree incorrectly), and cost metrics.",
+      "primary_outcome": "Difference in final safety (proportion of safe proposals) between external low-correlation verifier workflow and LLM-only self-refinement, with associated model-call and latency cost per task.",
+      "analysis_outline": "Use paired comparisons and difference-in-proportions tests (McNemar where paired) to compare final safety rates; quantify correlated-failure incidence and compare across workflows using contingency tables. Model cost-effectiveness as safety improvement per 1000 model calls. Conduct survival analysis for rounds-to-convergence. Report bootstrap CIs and correct for multiple comparisons where applicable.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.176834656.66652387/v2",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7157506260"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4385681611"
+      ],
+      "risks": [
+        "External retrieval sources may be poisoned or stale, reducing verifier effectiveness.",
+        "Defining and measuring 'low-correlation' in practice is nontrivial and may require additional instrumentation.",
+        "LLM cost and latency of multiple rounds may exceed operational budgets causing incomplete comparisons."
+      ],
+      "estimated_model_calls": 1400
+    }
+  ]
+}
