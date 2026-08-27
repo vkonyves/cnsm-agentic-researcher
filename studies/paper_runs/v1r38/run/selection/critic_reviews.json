@@ -1,0 +1,92 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-adversarial-robustness-001",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Single frozen LLM limits generality — results may not transfer across model families.",
+        "Simulator simplifications may overstate vulnerability vs real networks (external validity).",
+        "Adversary construction risks producing unrealistic/degenerate intents if not carefully constrained."
+      ],
+      "required_design_repairs": [
+        "Add at least one secondary LLM family or lightweight model-ensemble check to assess transferability or clearly justify single-model choice.",
+        "Specify and publish complete adversary-generation procedures, seeds, and constraints; include human-review step to avoid degenerate/unrealistic adversaries.",
+        "Document simulator fidelity and include sensitivity tests (e.g., vary topology size/vendor commands) to bound external-validity claims.",
+        "Pre-register exact verifier rules and taxonomy mapping from verifier diagnostics to safety violations."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-localized-feedback-002",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Error-seeding procedure may not reflect natural LLM error distributions (construct validity).",
+        "Feedback formats may inadvertently train to verifier idiosyncrasies rather than generalize.",
+        "Evaluation budget (max iterations) must be justified for power and practical operator workflows."
+      ],
+      "required_design_repairs": [
+        "Pre-register and justify error-seeding distribution; include example tasks drawn from public datasets or prior benchmarks.",
+        "Define precise feedback-format schemas (message templates, fields) and publish examples so others can reproduce.",
+        "Include subgroup analyses and power/sample-size calculations; justify max-iteration budget and stopping rules.",
+        "Add a small generalization holdout: tasks not seen during prompt/template tuning to test overfitting to verifier hints."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-provenance-rollback-003",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Privacy/retention implications of provenance-rich logs are noted but insufficiently operationalized (legal/PII concerns).",
+        "Simulated incidents may simplify reconstruction; production rollback complexity (stateful systems, external dependencies) underrepresented.",
+        "Storage/compute cost normalization lacks real-world calibration; results may be sensitive to normalization constants."
+      ],
+      "required_design_repairs": [
+        "Explicitly define provenance schema fields and justify minimal vs rich sets; include privacy-preserving synthetic-data design and redaction policies.",
+        "Provide sensitivity analyses for storage/compute normalization constants and include raw resource metrics (bytes, CPU-seconds) in addition to normalized cost.",
+        "Augment incident simulations with higher-fidelity state (multiple dependent devices, timed cascading effects) or clearly delimit external-validity limitations.",
+        "Pre-register reconstruction algorithm pseudocode and failure definitions; publish artifacts and hashes to enable reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-cost-correctness-tradeoff-004",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Cost normalization and verifier-strength definitions are subjective and will drive conclusions if not transparently parameterized.",
+        "Simulated arrival processes and contention effects may not reflect operational burstiness or multi-tenant effects.",
+        "Interaction effects (arrival_rate × verifier_strength) may require larger runs for stable estimation than planned."
+      ],
+      "required_design_repairs": [
+        "Pre-register and justify normalization constants; report raw CPU-seconds and model-call counts alongside normalized costs and run sensitivity sweeps.",
+        "Define verifier-strength concretely (exact checks run, time/CPU profiles) and publish verifier implementations/configurations.",
+        "Increase planned run counts or include bootstrap/CIs to ensure stability of Pareto front estimation; precompute power/sample targets for key comparisons.",
+        "Include at least one realistic burstiness arrival pattern and a sensitivity analysis for different workload shapes."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can translate high-level operator intent into candidate network configurations or configuration-relevant artifacts, and multiple prototype systems and benchmarks demonstrate feasibility.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "empirical/prototyping studies and benchmark release",
+      "confidence": 0.8,
+      "limitations": [
+        "Demonstrations are prototypical (papers/prototypes), not production deployments.",
+        "Reported accuracy/coverage depends on task subset, prompting/fine-tuning, and limited testbeds."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "State-of-the-art LLMs produce useful draft network configurations but commonly exhibit egregious syntax, semantic, topology, and policy errors when used without deterministic verification.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "controlled empirical evaluation / failure analysis",
+      "confidence": 0.9,
+      "limitations": [
+        "Evaluation focused on specific use cases (router translation, policy implementation) and particular LLMs; error modes may vary by model and prompt.",
+        "Does not quantify every possible error class or all vendor CLIs."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Coupling LLM generation with deterministic network-verification tools (e.g., Batfish) or localized verifiers and using verifier-provided localized feedback substantially reduces errors and increases human automation leverage in configuration tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "integration experiments and tool evolution reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Reported gains (e.g., 6×–10× leverage) are task-specific and based on narrow case studies.",
+        "Scalability and multi-vendor generality are not fully demonstrated in these artifacts."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Iterative refinement/self-feedback and verifier-gate architectures (generate→verify→refine loops) are effective architectural patterns to improve correctness of LLM outputs in practice.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4362508231",
+        "doi:10.36227/techrxiv.177205043.39321579/v1"
+      ],
+      "evidence_type": "methodological/architectural studies with empirical support",
+      "confidence": 0.8,
+      "limitations": [
+        "Effect sizes vary by task and verifier strength; some designs trade latency/cost for reliability.",
+        "Empirical evidence comes from dated/smaller-scale evaluations and simulated tasks."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Recent surveys and reviews identify safety, trustworthiness, verification-and-validation (V&V), provenance, and human oversight as central challenges when applying LLMs or agentic LLM systems to operational domains including networking.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "systematic surveys / reviews",
+      "confidence": 0.88,
+      "limitations": [
+        "Surveys summarize literature and open challenges but do not themselves provide new experimental evidence for specific NetOps interventions.",
+        "Operational prescriptions vary and often remain high-level."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Provenance-rich validation schemas, auditable logging, and verifier-triggered retry policies are proposed and shown useful to catch characteristic LLM extraction/generation errors in domain applications.",
+      "evidence_record_ids": [
+        "doi:10.64898/2026.03.05.709623",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "method proposals with domain demonstrations",
+      "confidence": 0.78,
+      "limitations": [
+        "MAPLE-style validators were demonstrated in biomedical model calibration; direct NetOps-scale deployments and performance-cost tradeoffs require further study.",
+        "Audit architectures vary and require integration with enterprise change-control systems."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "How well LLM+verifier pipelines maintain correctness and safety at production scale across heterogeneous, multi-vendor real-world networks remains unresolved.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "absence/limited-scope empirical evidence in supplied records",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing studies demonstrate prototypes and case studies but do not provide broad production-scale evaluations across diverse vendor ecosystems."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "The robustness of LLM-driven NetOps pipelines to adversarial or correlated failure modes (malicious or accidental input perturbations that induce unsafe config changes) is not yet characterized in the supplied literature for NetOps-specific tasks.",
+      "evidence_record_ids": [
+        "10.1007/s10994-025-06862-6",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "general LLM robustness studies exist; NetOps-specific adversarial evaluations are absent in supplied records",
+      "confidence": 0.6,
+      "limitations": [
+        "Adversarial benchmarking work exists for LLMs in other domains, but direct NetOps adversarial evaluations are not present among the supplied records."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "Operator trust, human–in–the–loop governance, and practical change-management integration strategies for LLM/agentic NetOps systems lack mature, empirically-validated models in the supplied set.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "framework/proposal papers and surveys; limited empirical validation",
+      "confidence": 0.72,
+      "limitations": [
+        "Several proposals include human oversight in architecture, but operational studies measuring operator workload, failure-detection latency, and trust metrics in real NetOps teams are not present."
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "The performance–cost tradeoffs (latency, verifier runtime, audit overhead) for closed-loop verify→refine NetOps pipelines across realistic change volumes remain incompletely quantified in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4362508231",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "architectural proposals and small-scale experiments; lacking system-level cost studies",
+      "confidence": 0.7,
+      "limitations": [
+        "Architectures describe metrics and tradeoffs; empirical end-to-end cost/latency studies at operator scale are not reported in the provided records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A standardized, operationally-oriented benchmark suite that measures functional correctness (reachability, policy compliance, connectivity), not just surface fluency, for LLM-generated network configurations is needed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "benchmark/proposal papers and surveys indicating current evaluation limits",
+      "confidence": 0.82,
+      "limitations": [
+        "NetConfEval and related benchmarks exist but vary in scope; gap refers to broad community-standard operational correctness metrics and stress suites."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Verifiers that produce actionable, localized correction feedback (not merely pass/fail) and automated repair APIs remain an area needing engineering and comparative evaluation for NetOps tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "empirical study and tool evolution lessons",
+      "confidence": 0.8,
+      "limitations": [
+        "Verified Prompt Programming highlights need for localized feedback; large-scale comparative studies of verifier-feedback formats and automated repair workflows are lacking."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Provenance, auditable change logs, and integration with enterprise change-control are underdeveloped for LLM-driven NetOps; reproducible validators and immutable audit trails need adaptation to NetOps workflows.",
+      "evidence_record_ids": [
+        "doi:10.64898/2026.03.05.709623",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "methodological proposals and survey literature",
+      "confidence": 0.78,
+      "limitations": [
+        "MAPLE and verifiable-audit proposals demonstrate principles in other domains; engineering and usability studies for network change-control integration are required."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Empirical studies evaluating adversarial and correlated failure modes specific to NetOps (e.g., crafted intents that induce unsafe routing/firewall rules) are missing and would help quantify risk.",
+      "evidence_record_ids": [
+        "10.1007/s10994-025-06862-6",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "indirect evidence from LLM robustness literature and NetOps failure analyses",
+      "confidence": 0.66,
+      "limitations": [
+        "Existing adversarial LLM assessments focus on bias/security in general tasks; NetOps-targeted adversarial frameworks are not documented in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-only systems (without deterministic verification) are production-ready and safe for autonomous network configuration deployment.",
+    "There is conclusive evidence in the supplied records that LLM-based NetOps systems scale to heterogeneous, multi-vendor production networks without additional engineering.",
+    "The supplied records prove that LLMs eliminate the need for human oversight in all NetOps change-management workflows."
+  ]
+}

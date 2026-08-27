@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-adversarial-robustness-001",
+      "title": "Adversarial Robustness of LLM+Verifier NetOps Pipelines",
+      "research_question": "How susceptible are closed-loop LLM-driven NetOps pipelines (generate→verify→refine) to adversarially crafted intents or input perturbations that induce unsafe or incorrect network configurations, and which mitigation strategies measurably reduce that susceptibility?",
+      "hypotheses": [
+        "Adversarially perturbed intents will produce a significantly higher rate of safety violations (e.g., open firewall, unintended route leak) in LLM-generated configs compared with benign intents under the same pipeline.",
+        "Adding verifier-gated rejection plus localized repair prompts will reduce the adversarially induced safety-violation rate relative to an unchecked LLM baseline by a statistically significant margin.",
+        "Certain classes of perturbation (semantic intent inversion vs. lexical noise) will be more likely to bypass shallow verifiers, producing distinguishable failure-mode profiles."
+      ],
+      "proposed_design": "Controlled adversarial evaluation on a curated public NetOps task set (routing, ACLs, NAT, VLAN) using simulated multi-vendor CLIs. Construct adversarial families: (A) semantic intent inversion, (B) selective omission, (C) lexical/format perturbations. For each intent (benign and adversarial variants), run three pipelines: (1) LLM-only generation, (2) LLM + binary verifier gate, (3) LLM + verifier with localized-feedback repair loop. Use a fixed LLM model id (frozen) and deterministic seeds where applicable. Verification uses deterministic network checks (reachability, policy compliance, loop detection) instrumented by Batfish-like tools. Measure final verification pass/fail, safety-violation taxonomy, number of repair iterations, and model calls. Pre-register adversary catalogs, seeds, model id, and verifier rules.",
+      "expected_data": "Per-intent records: pipeline type, adversary class, verification pass/fail, number and type of safety violations, repair iterations, total model calls, time-to-verified-correct, and exemplar generated configs and verifier diagnostics. Aggregated: pass rates by pipeline×adversary-class, confusion matrix of failure types, and iteration distributions.",
+      "primary_outcome": "Difference in safety-violation rate between LLM-only and defended pipeline (LLM + verifier+repair) averaged across adversary classes.",
+      "analysis_outline": "Compute per-pipeline pass/fail proportions and compare pipelines with two-sided proportion tests (e.g., Fisher exact or chi-square) and report risk difference with 95% CIs. Use stratified analyses by adversary class; model counts compared using negative-binomial regression for iterations. Report effect sizes, Bonferroni-adjusted p-values for planned comparisons, and qualitative failure-mode coding frequencies.",
+      "novelty_evidence_ids": [
+        "10.1007/s10994-025-06862-6",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4362508231"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Adversarial inputs may exploit simulator simplifications, inflating apparent vulnerability compared to production networks (external validity).",
+        "Freezing a single LLM model limits generality; results may not transfer to other model families.",
+        "Creating adversarial intents could incidentally produce configurations that are unsafe in real networks; experiments run on simulated/synthetic topologies only to avoid real-world impact."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-localized-feedback-002",
+      "title": "Effectiveness of Localized Verifier Feedback Formats for Automated Repair",
+      "research_question": "Which verifier feedback formats (binary pass/fail, localized error annotations, or synthesized patch suggestions) most effectively enable LLM-driven automated repair to reach verification-correct configurations with minimal iterations and model calls?",
+      "hypotheses": [
+        "Localized error-annotation feedback will produce higher final verification pass rates within fewer repair iterations than binary pass/fail feedback.",
+        "Synthesized patch suggestions will reduce the number of model calls required for successful repair compared with localized annotations, but may increase the risk of incorrect fixes when verifier diagnostics are ambiguous.",
+        "Improvements from richer feedback formats will be larger for semantic and policy errors than for simple syntax errors."
+      ],
+      "proposed_design": "Within-subjects experiment on a diverse public task set (ACL rules, route redistribution, NAT translations, VRF isolation) where each task is paired across three verifier-feedback conditions: (A) binary pass/fail, (B) localized error annotations pointing to failing statements and semantic reason, (C) synthesized patch suggestion including minimal phrasing and example correction. For each task, start from an LLM-generated draft config with pre-seeded errors (synthetic error seeding ensuring controlled error types). Run a fixed repair budget (max 5 iterations) and record iterations until verification pass or budget exhaustion. Freeze model id, prompting templates, and verifier diagnostic formats. Pre-register error-seeding distribution and stopping rules.",
+      "expected_data": "Per-task records: initial error types, feedback condition, number of repair iterations, verification pass/fail, total model calls, time per iteration, and exemplar feedback–response pairs. Aggregates: distribution of iterations to success by feedback type, pass rates, model-call counts, and conditional performance by error class (syntax vs semantic vs policy).",
+      "primary_outcome": "Median number of repair iterations to verification success under each feedback format.",
+      "analysis_outline": "Compare iterations-to-success distributions across feedback conditions using paired nonparametric tests (Wilcoxon signed-rank). Compare pass rates with McNemar tests for paired binary outcomes. Model-call totals analyzed with paired t-tests or Wilcoxon depending on distribution; report per-error-class subgroup analyses and survival curves (Kaplan–Meier) for time-to-success with log-rank tests.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4402742293"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Feedback formats designed here may bias LLMs toward overfitting to verifier hints and underperform on unanticipated real-world diagnostics (construct validity).",
+        "Seeding initial errors could mismodel natural error distributions; pre-registration of seeding mitigates selective reporting.",
+        "Integration of synthesized patches risks producing subtly incorrect corrections; all outputs are validated by deterministic verification to avoid unsafe outputs in experiments."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnd-provenance-rollback-003",
+      "title": "Provenance-rich Traceability and Automated Rollback for LLM-driven Network Changes",
+      "research_question": "Does a provenance-rich logging and reconstruction schema materially improve automated traceability and rollback success for simulated NetOps incidents compared with a minimal logging baseline, and what are the associated storage and compute costs?",
+      "hypotheses": [
+        "Provenance-rich logs (including prompt/response hashes, verifier diagnostics, and execution metadata) will yield higher automated reconstruction success rates than minimal logs by a measurable margin.",
+        "Rollback using provenance-rich reconstruction will achieve higher success rates and lower median time-to-rollback than rollback attempts using minimal logs.",
+        "The storage and compute overhead of provenance-rich logging will be non-negligible but will provide diminishing returns beyond a compact set of essential provenance fields."
+      ],
+      "proposed_design": "Simulated incident corpus generation: create N=200 incident scenarios (misconfigurations, unintended policy changes, cascading faults) on synthetic multi-vendor topologies. For each incident, record two logging schemas during the original change: (1) minimal logs (change id, timestamp, final config), (2) provenance-rich logs (full prompts, LLM responses, verifier outputs, tooling calls, hashes, change rationale). Freeze reconstruction and rollback algorithms prior to execution. For each incident, attempt automated reconstruction and rollback from each log schema in randomized order. Measure reconstruction success, rollback success, time-to-reconstruction, time-to-rollback, storage bytes per-incident, and CPU-seconds consumed. Pre-register incident generation seeds, reconstruction algorithm, and success criteria.",
+      "expected_data": "Per-incident outcomes for both schemas: reconstruction success/failure, steps required for reconstruction, rollback success/failure, time metrics (seconds), storage bytes, CPU-seconds consumed, and qualitative failure-mode taxonomy when rollback fails. Aggregates: mean traceability scores, success-rate differences, Kaplan–Meier curves for time-to-rollback, and cost curves (storage/compute vs traceability gain).",
+      "primary_outcome": "Mean automated traceability score difference (provenance-rich − minimal) across simulated incidents.",
+      "analysis_outline": "Paired comparisons of traceability scores using Wilcoxon signed-rank test (or paired t-test if normal). Compute rollback success-rate differences with exact binomial confidence intervals. Conduct survival analysis (Kaplan–Meier) on time-to-rollback; compare curves with log-rank tests. Plot storage/compute overhead vs traceability gain and identify diminishing-return knee points via piecewise regression.",
+      "novelty_evidence_ids": [
+        "doi:10.64898/2026.03.05.709623",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4393065402"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.64898/2026.03.05.709623",
+        "https://openalex.org/W4399750638"
+      ],
+      "risks": [
+        "Automated reconstruction and rollback may perform artificially well on simulated incidents relative to operator contexts (external validity).",
+        "Provenance logging raises privacy and data-retention concerns; experiments use synthetic intents and simulated topologies to avoid real-data exposure.",
+        "Storage and compute overhead estimates rely on simulated normalization factors and may not map precisely to production costs."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cnd-cost-correctness-tradeoff-004",
+      "title": "Performance–Cost Tradeoffs of Closed-loop Verify→Refine LLM NetOps Pipelines Under Varying Change Volumes",
+      "research_question": "How do end-to-end latency, verifier runtime, and model-call costs of closed-loop verify→refine NetOps pipelines scale with change-request volume and verifier strength, and where are cost-effective operating points for verified-correct changes?",
+      "hypotheses": [
+        "As change-request volume increases, average end-to-end latency will increase nonlinearly for deep verifier configurations while shallow verifiers maintain lower latency at the cost of lower final correctness.",
+        "There exists a Pareto frontier where increasing verifier strength yields diminishing correctness returns per incremental verifier cost (CPU time + model calls).",
+        "A moderate verifier strength will often yield the best cost-effectiveness (cost-per-verified-correct-change) under typical operational volumes compared with extremes of very shallow or very deep verification."
+      ],
+      "proposed_design": "Throughput and scaling simulation using a fixed public task set and three arrival-rate scenarios (low:1/min, medium:5/min, high:20/min). For each arrival rate, evaluate multiple verifier configurations (shallow checks, medium diagnostic + local checks, deep exhaustive verification) with the closed-loop pipeline. For each request, measure end-to-end latency, verifier CPU-seconds, total model calls, verification pass/fail, and throughput (verified changes per minute). Normalize verifier CPU time to a pre-registered cost proxy and add per-model-call cost to compute cost-per-verified-correct-change. Pre-register arrival processes, verifier strength definitions, normalization constants, seeds, and retry policies.",
+      "expected_data": "Matrices indexed by arrival_rate × verifier_strength listing mean/median latency, latency distribution, verifier CPU-seconds per request, model calls per request, final pass rate, throughput, and computed normalized cost-per-verified-correct-change; Pareto frontier points across configurations and sensitivity analyses for normalization constants.",
+      "primary_outcome": "Normalized cost-per-verified-correct-change as a function of change-request volume and verifier strength, with identification of Pareto-efficient operating points.",
+      "analysis_outline": "Fit two-way ANOVA or generalized linear models with factors arrival_rate and verifier_strength on cost-per-correct-change and latency; use regression with interaction terms (cost ~ arrival_rate * verifier_strength) to estimate effects. Compute Pareto frontier and identify knee points via curvature analysis; conduct sensitivity analyses across normalization constants and report raw resource metrics (CPU-seconds, model calls) alongside normalized costs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4362508231",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4388629193"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4362508231",
+        "doi:10.36227/techrxiv.177205043.39321579/v1",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Normalization of CPU-seconds to cost is an approximation and may not reflect vendor pricing variability; conclusions constrained accordingly.",
+        "Simulated arrival processes and resource contention may differ from operational environments (external validity).",
+        "API/model-version drift during runs can affect measured model-call counts—mitigated by freezing model identifiers pre-execution and recording all raw artifacts."
+      ],
+      "estimated_model_calls": 1800
+    }
+  ]
+}

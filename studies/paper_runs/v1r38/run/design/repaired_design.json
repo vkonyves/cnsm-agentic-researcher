@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "cnd-adversarial-robustness-001",
+  "title": "Adversarial Robustness of LLM+Verifier NetOps Pipelines (repaired preregistration)",
+  "research_question": "How susceptible are closed-loop LLM-driven NetOps pipelines (generate→verify→refine) to adversarially crafted intents or input perturbations that induce unsafe or incorrect network configurations, and which automated mitigation strategies measurably reduce that susceptibility?",
+  "confirmatory_hypotheses": [
+    "H1: Adversarially perturbed intents produce a higher safety-violation rate in LLM-only generated configs than in configs produced by a guarded pipeline (LLM + deterministic verifier gate + automated localized repair).",
+    "H2: The guarded pipeline (verifier + localized automated repair loop) yields a statistically significant reduction in safety-violation rate (guarded minus baseline < 0) compared with LLM-only generation, averaged across adversary classes."
+  ],
+  "exploratory_questions": [
+    "Which adversary classes (semantic inversion, selective omission, lexical/format perturbation) produce distinct failure profiles against shallow verifiers?",
+    "Does a secondary, lightweight hosted LLM produce similar relative guarded-vs-baseline differences on a held subset (transferability check)?"
+  ],
+  "benchmark_scope": [
+    "Public/synthetic NetOps task set limited to: routing intent (simple static routes), ACL/firewall intent, NAT intent, VLAN/segmentation intent.",
+    "Simulated multi-vendor CLIs implemented via deterministic vendor-mapping layer (synthetic topologies only)."
+  ],
+  "model_scope": [
+    "Primary: one frozen hosted LLM (hosted-model API available). Exact model identifier will be recorded in the execution manifest and Disclosure Statement.",
+    "Secondary (exploratory): one lightweight hosted LLM family (cost-limited) used only on a held subset to assess transferability."
+  ],
+  "transformation_scope": [
+    "CLI canonicalization (whitespace/ordering normalization), vendor command mapping, and parse normalization.",
+    "Adversary-generation transforms applied to benign intents to produce adversarial variants (semantic inversion, selective omission, lexical/format perturbation) — deterministic, seedable procedures."
+  ],
+  "primary_estimand": "paired difference in safety-violation proportion per intent pair: P(violation | guarded pipeline) - P(violation | baseline LLM-only), computed by paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline)",
+  "secondary_estimands": [
+    "Exploratory transferability: same paired estimand on held subset comparing secondary LLM guarded vs secondary LLM baseline (descriptive).",
+    "Failure-mode distribution: proportion of violation types by adversary class (exploratory frequency summaries)."
+  ],
+  "sampling_plan": "Paired episodes. Create a curated set of 80 distinct benign intents distributed across 4 task clusters (routing, ACL, NAT, VLAN). For each benign intent generate 3 adversarial variants (one per adversary class) deterministically using published seed list -> total intent episodes = 80 benign + 240 adversarial = 320 intents. For each intent run two paired conditions (baseline LLM-only, guarded pipeline) yielding 320 confirmatory pairs. Secondary-transfer exploratory sample: select 40 adversarial intents (stratified across classes) for the secondary hosted LLM runs (paired on that subset). Deterministic seeds and generator RNG state will be recorded in the execution manifest. Inclusion: intents drawn from the curated public/synthetic task set; exclusion: any generated adversary flagged by deterministic realism-failure filters (see contamination_plan) will be logged and excluded with automated exclusion rules; exclusions and counts will be reported. Task cluster count: 4 (routing, ACL, NAT, VLAN).",
+  "analysis_plan": "Confirmatory: use paired_binary_analysis_v1 executor to compute paired_success_rate_difference_guarded_minus_baseline. Primary test: two-sided paired-proportion test (McNemar-like) implemented by the registered executor; report risk difference, 95% CI, and Bonferroni-adjusted p-value for the single planned confirmatory comparison. Treat failed model calls per executor contract using 'complete_pair_primary' and run sensitivity using 'complete_pair_primary_with_failure_as_zero_sensitivity' (treating failed guarded attempts as failures). Stratified (confirmatory secondary) analyses by adversary class (three strata) will be reported with effect sizes and CIs but are exploratory if multiple comparisons exceed preregistered family. Iteration counts modeled with negative-binomial regression (exploratory). All analyses automated via the registered executor; random seeds and raw pair-level outcomes preserved.",
+  "multiplicity_plan": "Primary confirmatory comparison is single paired contrast (guarded vs baseline across all adversarial+benign episodes). Planned stratified descriptive summaries by adversary class are exploratory; when formal hypothesis tests are applied to strata we will apply Bonferroni correction across the three classes. Transferability checks are explicitly exploratory (no confirmatory claim).",
+  "missingness_plan": "Every intent-pair is expected to yield outputs from both pipelines. If a model/API technical failure causes a missing generation for a pair, follow the analysis contract's 'failed_call_treatment' policies: primary complete-pair analysis drops pairs with technical failures in both arms; sensitivity analysis treats missing/failed guarded outputs as failures (zero success). All failures and retry attempts will be logged and counts reported.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic-NetOps-4task-v1 (internal curated public/synthetic set)"
+    ],
+    "risk_factors": [
+      "Degenerate/unrealistic adversaries produced by unconstrained adversary generators",
+      "Simulator simplifications vs production networks (external-validity contamination)",
+      "Adversarial intents that trivially break verifier assumptions (e.g., requests to change undefined objects)"
+    ],
+    "detection_procedures": [
+      "Deterministic realism filter: parse generated adversary intent and validate that required fields (source/destination/objects) exist and map to the simulated topology; reject if fields missing.",
+      "Syntactic CLI validity check: canonical parser ensures generated config commands parse under vendor-mapping grammar; flag if parse fails.",
+      "Semantic intent alignment check: automated comparator computes normalized semantic fingerprint of adversary vs benign intent; if distance exceeds a preset seedable threshold, flag as implausible.",
+      "Outlier rule: compute per-intent command-count and sequence-length z-score within task-cluster; flag extreme outliers (|z|>4)."
+    ],
+    "item_flagging_rules": [
+      "Automatically exclude any adversarial variant that fails syntactic CLI validity or semantic-alignment thresholds (deterministic exclusion).",
+      "Log and publish all excluded-adversary hashes and deterministic reason codes in the execution manifest."
+    ],
+    "analysis_treatment": "Primary analysis excludes deterministically flagged degenerate adversaries; sensitivity analysis re-runs the paired analysis including flagged items and reports effect differences. All exclusion counts and deterministic rejection codes are reported.",
+    "residual_uncertainty": [
+      "Automated filters may not perfectly emulate human plausibility judgments; residual unrealistic adversaries may remain.",
+      "Simulator-induced vulnerabilities (false positives) may still inflate measured risk; sensitivity sweeps over simulator fidelity will be used to bound this (see preregistration)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scn-recommended-balanced-1200calls",
+      "description": "Balanced confirmatory run with modest exploratory transfer checks; targeted to the capability manifest and candidate estimate.",
+      "planned_model_calls": 1200,
+      "models": [
+        "primary_hosted_llm (frozen; exact id recorded in manifest)",
+        "secondary_hosted_lightweight_llm (exploratory; id recorded in manifest)"
+      ],
+      "transformations": [
+        "CLI canonicalization; vendor mapping; adversary deterministic transforms (semantic inversion, selective omission, lexical perturbation)"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 320,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Call accounting: confirmatory pairs = 320. Baseline LLM-only: 1 call per episode -> 320 calls. Guarded pipeline: average 2 model calls per episode (initial + average 1 repair iteration) -> 640 calls. Secondary LLM exploratory subset (40 intents): baseline 40 + guarded 80 = 120 calls. Total estimated calls = 320 + 640 + 120 = 1,080. Add 120-call slack for logging, deterministic retries per frozen retry policy, and small prompt-engineering calibration -> planned 1,200 calls. This fits the candidate's estimated_model_calls (1,500) and the manifest maximum_planned_model_calls (10,000). All execution uses hosted_model_api and CPU-executable deterministic verifiers; no human annotation or manual adjudication is required."
+    },
+    {
+      "scenario_id": "scn-expanded-2000calls",
+      "description": "Expanded confirmatory run to reduce statistical uncertainty and better characterize adversary-class effects.",
+      "planned_model_calls": 2000,
+      "models": [
+        "primary_hosted_llm (frozen; exact id recorded in manifest)",
+        "secondary_hosted_lightweight_llm (exploratory; id recorded in manifest)"
+      ],
+      "transformations": [
+        "as above; larger adversary seed bank and additional topology variations"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 500,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Call accounting: confirmatory pairs = 500. Baseline calls = 500. Guarded calls (avg 2) = 1,000. Secondary exploratory sample 100 intents => baseline 100 + guarded 200 = 300. Total = 500 + 1,000 + 300 = 1,800. Add 200-call slack for retries, calibration, and extra logging -> 2,000 planned calls. Feasible within manifest limits and remains fully automated."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired difference in safety-violation proportion per intent pair)",
+    "target_effect": "Detect an absolute risk reduction of 10 percentage points (e.g., from 40% to 30% safety-violation rate) with ~80% power at two-sided alpha=0.05 under plausible discordance assumptions",
+    "clustering_unit": "intent pair (same intent run under baseline and guarded pipeline)",
+    "calculation_method": "Use the registered paired_binary_analysis_v1 executor to compute required effective sample size; approximate sample-size reasoning: with anticipated discordant proportion ~0.30 and target risk difference 0.10, a paired sample of ~300–350 pairs yields ~80% power. Recommended confirmatory sample (320 pairs) sits within this target. Exact sample-size calculations will be computed by the executor prior to final execution and recorded in the manifest.",
+    "assumptions": [
+      "Baseline (LLM-only) safety-violation rate under adversarial variants ~30%–50% (uncertain; sensitivity sweep planned).",
+      "Average guarded pipeline model calls per episode ~2 (initial + one repair attempt); repair attempts bounded by max_iterations=3 (preregistered).",
+      "Discordant-pair proportion (pairs where baseline and guarded disagree) will be reasonably large (>0.2) for meaningful paired tests."
+    ],
+    "recommended_scenario_id": "scn-recommended-balanced-1200calls",
+    "minimum_detectable_effect_notes": "With 320 paired episodes and assumed discordant rate ~0.30, the design is expected to detect ~10 percentage-point paired differences with ~80% power. Sensitivity analyses will show required n if baseline rates are lower/higher.",
+    "sensitivity_analyses": [
+      "Power recalculation for baseline violation rates of 20%, 30%, 40%, and discordant proportions of 0.15–0.45.",
+      "Bootstrap CIs on paired risk differences and exact (Clopper–Pearson-like) intervals for proportions.",
+      "Analysis repeated under 'failure-as-zero' sensitivity to handle technical-model-call failures per executor contract."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "CLI canonicalization and vendor mapping",
+      "Adversary deterministic transforms (semantic inversion, selective omission, lexical perturbation)",
+      "Intent normalization and fingerprinting"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic parser-based equivalence: parse generated config and compare reachability graph to canonical intended reachability; require that benign intents preserve specified reachability constraints.",
+      "Normalized semantic fingerprint comparator: compute canonical intent vector; thresholded-distance checks ensure adversarial variants remain within designed perturbation family parameters (except when intentionally semantic-inverting)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated config failing vendor grammar parse.",
+      "Reject adversary variants failing the semantic-alignment plausibility thresholds unless the variant is explicitly in the 'semantic inversion' family (which is allowed to invert intent by design).",
+      "Reject any config attempting actions on undefined topology objects (automated)."
+    ],
+    "audit_sample_policy": "Automatically sample 5% of accepted config+verifier-diagnostic pairs per task cluster for additional deterministic static checks (extended parser, command semantics) and publish samples and hashes in execution manifest. Audit checks are automated, deterministic, and recorded.",
+    "mapping_validation": "Vendor-mapping tables and canonicalizer unit tests are published with the code artifacts; mapping validation includes deterministic round-trip tests (canonicalize->render->parse equivalence) across supported vendor command subsets.",
+    "residual_risks": [
+      "Parser coverage may not include all vendor command variants; residual syntax gaps may exist.",
+      "Automated realism filters cannot fully substitute for human operational judgment; some unrealistic adversaries may pass filters or realistic adversaries be excluded."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: simulator fidelity vs production, including device-specific vendor quirks and stateful interactions not modeled.",
+    "Limited model generality: confirmatory design freezes a single primary hosted LLM; exploratory secondary LLM subset provides partial transferability evidence but does not fully resolve cross-family generality.",
+    "Residual adversary realism uncertainty: deterministic filters mitigate but cannot eliminate divergence from real-world malicious intent distributions.",
+    "Cost/latency tradeoffs at operator scale remain outside this short-run evaluation (not a blocker for the confirmatory paired estimand)."
+  ],
+  "evidence_record_ids": [
+    "10.1007/s10994-025-06862-6",
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4362508231",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4399629579",
+    "doi:10.36227/techrxiv.177004277.71795055/v1"
+  ]
+}
