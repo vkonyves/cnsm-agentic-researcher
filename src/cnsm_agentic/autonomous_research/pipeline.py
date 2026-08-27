@@ -485,6 +485,176 @@ def _validate_review_coverage(
         )
 
 
+async def _run_candidate_critic_with_coverage_repair(
+    *,
+    programme: dict[str, Any],
+    synthesis: Any,
+    candidates: CandidateSet,
+    selection_dir: Path,
+    maximum_attempts: int = 3,
+) -> ReviewSet:
+    """
+    Generate candidate reviews while enforcing immutable candidate identity.
+
+    Candidate IDs are foreign keys supplied by the validated CandidateSet.
+    Coverage/identity defects may be repaired through bounded model retries,
+    but the framework never maps, renames, or guesses candidate IDs itself.
+    Every attempt and its deterministic coverage result is archived.
+    """
+    attempt_dir = (
+        selection_dir
+        / "critic_review_attempts"
+    )
+    attempt_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    allowed_candidate_ids = [
+        candidate.candidate_id
+        for candidate in candidates.candidates
+    ]
+
+    repair_feedback: dict[str, Any] | None = None
+    last_error: Exception | None = None
+
+    for attempt in range(
+        1,
+        maximum_attempts + 1,
+    ):
+        payload: dict[str, Any] = {
+            "programme": programme,
+            "evidence_synthesis": (
+                synthesis.model_dump()
+            ),
+            "candidates": (
+                candidates.model_dump()
+            ),
+            "allowed_candidate_ids": (
+                allowed_candidate_ids
+            ),
+        }
+
+        if repair_feedback is not None:
+            payload[
+                "candidate_criticism_repair"
+            ] = repair_feedback
+
+        reviews = (
+            await _run_agent_with_retry(
+                CANDIDATE_CRITIC,
+                payload,
+                expected_type=ReviewSet,
+                stage_name=(
+                    "Candidate criticism"
+                ),
+            )
+        )
+
+        _write_json(
+            attempt_dir
+            / f"critic_reviews_attempt_{attempt:02d}.json",
+            reviews,
+        )
+
+        generated_ids = {
+            candidate.candidate_id
+            for candidate in candidates.candidates
+        }
+
+        reviewed_ids = {
+            review.candidate_id
+            for review in reviews.reviews
+        }
+
+        missing_reviews = sorted(
+            generated_ids - reviewed_ids
+        )
+        unknown_reviews = sorted(
+            reviewed_ids - generated_ids
+        )
+
+        coverage_report = {
+            "attempt": attempt,
+            "allowed_candidate_ids": (
+                allowed_candidate_ids
+            ),
+            "reviewed_candidate_ids": sorted(
+                reviewed_ids
+            ),
+            "missing_review_ids": (
+                missing_reviews
+            ),
+            "unknown_review_ids": (
+                unknown_reviews
+            ),
+            "exact_coverage": (
+                reviewed_ids == generated_ids
+            ),
+        }
+
+        _write_json(
+            attempt_dir
+            / f"coverage_attempt_{attempt:02d}.json",
+            coverage_report,
+        )
+
+        try:
+            _validate_review_coverage(
+                candidates=candidates,
+                reviews=reviews,
+            )
+            return reviews
+
+        except ValueError as exc:
+            last_error = exc
+
+            if attempt >= maximum_attempts:
+                break
+
+            repair_feedback = {
+                "repair_type": (
+                    "candidate_review_identity_coverage"
+                ),
+                "validation_error": str(exc),
+                "allowed_candidate_ids": (
+                    allowed_candidate_ids
+                ),
+                "missing_review_ids": (
+                    missing_reviews
+                ),
+                "unknown_review_ids": (
+                    unknown_reviews
+                ),
+                "instructions": (
+                    "Regenerate the complete ReviewSet. "
+                    "candidate_id is an immutable foreign key. "
+                    "Return exactly one review for each allowed "
+                    "candidate_id and no other candidate IDs. "
+                    "Copy candidate_id values verbatim. Do not "
+                    "rename, suffix, normalize, clone, infer, or "
+                    "invent IDs. Preserve independent scientific "
+                    "criticism; this feedback repairs identity "
+                    "and coverage only."
+                ),
+            }
+
+            print(
+                "Candidate critic coverage failed on "
+                f"attempt {attempt}/{maximum_attempts}: "
+                f"{exc}"
+            )
+            print(
+                "Retrying candidate criticism with "
+                "deterministic identity-repair feedback."
+            )
+
+    raise ValueError(
+        "Candidate criticism failed immutable candidate-ID "
+        f"coverage after {maximum_attempts} attempts."
+    ) from last_error
+
+
 class AutonomousDiscoveryPipeline:
     def __init__(
         self,
@@ -1075,33 +1245,12 @@ class AutonomousDiscoveryPipeline:
                 )
 
                 reviews = (
-                    await _run_agent_with_retry(
-                        CANDIDATE_CRITIC,
-                        {
-                            "programme": (
-                                programme
-                            ),
-                            "evidence_synthesis": (
-                                synthesis
-                                .model_dump()
-                            ),
-                            "candidates": (
-                                candidates
-                                .model_dump()
-                            ),
-                        },
-                        expected_type=(
-                            ReviewSet
-                        ),
-                        stage_name=(
-                            "Candidate criticism"
-                        ),
+                    await _run_candidate_critic_with_coverage_repair(
+                        programme=programme,
+                        synthesis=synthesis,
+                        candidates=candidates,
+                        selection_dir=selection_dir,
                     )
-                )
-
-                _validate_review_coverage(
-                    candidates=candidates,
-                    reviews=reviews,
                 )
 
                 _write_json(
@@ -1111,29 +1260,12 @@ class AutonomousDiscoveryPipeline:
 
         else:
             reviews = (
-                await _run_agent_with_retry(
-                    CANDIDATE_CRITIC,
-                    {
-                        "programme": programme,
-                        "evidence_synthesis": (
-                            synthesis
-                            .model_dump()
-                        ),
-                        "candidates": (
-                            candidates
-                            .model_dump()
-                        ),
-                    },
-                    expected_type=ReviewSet,
-                    stage_name=(
-                        "Candidate criticism"
-                    ),
+                await _run_candidate_critic_with_coverage_repair(
+                    programme=programme,
+                    synthesis=synthesis,
+                    candidates=candidates,
+                    selection_dir=selection_dir,
                 )
-            )
-
-            _validate_review_coverage(
-                candidates=candidates,
-                reviews=reviews,
             )
 
             _write_json(

@@ -45,7 +45,19 @@ CANDIDATE_CRITIC = Agent(
     name="Research Candidate Critic",
     model="gpt-5-mini",
     output_type=ReviewSet,
-    instructions="Critically review every candidate for novelty, falsifiability, evidence support, causal interpretability, reproducibility, compute feasibility, and venue relevance. Use pass, repair, or veto.",
+    instructions=(
+        "Critically review every candidate for novelty, falsifiability, "
+        "evidence support, causal interpretability, reproducibility, "
+        "compute feasibility, and venue relevance. Use pass, repair, or "
+        "veto. Every review.candidate_id is an immutable foreign key: copy "
+        "it exactly from one supplied candidate. Produce exactly one review "
+        "for every supplied candidate and no reviews for any other ID. "
+        "Never rename, normalize, suffix, clone, duplicate, abbreviate, or "
+        "invent a candidate_id. If candidate_criticism_repair is supplied, "
+        "use it only to repair review-set identity/coverage defects; do not "
+        "change the candidate set or treat the repair feedback as scientific "
+        "steering."
+    ),
 )
 
 SELECTION_JUDGE = Agent(
