@@ -1,0 +1,24 @@
+{
+  "selected_candidate_id": "CNSM26-03-grounding-metrics",
+  "selection_rationale": "CNSM26-03 best balances novelty, falsifiability, computational feasibility, and reproducibility for a five-page CNSM short paper. The critic review marked it as “pass” with high reproducibility and feasibility scores, and its proposed grounding metrics map directly to operational correctness (RAG/tool confirmation → sandbox pass) supported by prior work on tool-augmented agents and grounding (e.g. W4404782868, preprint 202604.1820.v1). This candidate enables a compact, machine-verifiable experiment with clear primary outcomes suitable for the track and fewer unresolved ethical/dual-use concerns than the adversarial-poisoning and high-fidelity-sandbox benchmark proposals.",
+  "runner_up_candidate_id": "CNSM26-02-poisoning-defenses",
+  "unresolved_uncertainties": [
+    "Metric generalization: to what extent do grounding metrics (source-coverage, provenance-diversity, tool-confirmation-score, conflict-score) generalize across different retrieval backends and LLM families?",
+    "Normalization: how to normalize provenance signals and token-level source support across heterogeneous retrieval systems and tokenizers to allow comparable metric computation?",
+    "Tool-confirmation circularity: do tool-confirmation signals introduce circular evidence when tools and retrieval share underlying data, biasing correlation with sandbox-correctness?",
+    "Holdout/selection leakage: how to ensure holdout/threshold-selection procedures avoid leakage and produce calibrated early-warning thresholds in practice?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404782868",
+    "10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4400377739",
+    "https://openalex.org/W4413757586",
+    "https://openalex.org/W4408167800"
+  ],
+  "required_repairs_before_preregistration": [
+    "Provide precise, implementation-level definitions and reference implementations for each grounding metric including edge cases and tokenization choices (public code and examples).",
+    "Specify normalization procedures to make provenance and token-support signals comparable across heterogeneous retrieval backends and document the normalization math and defaults.",
+    "Include at least one additional pipeline/model variant (or explicitly bound conclusions to the evaluated pipeline) to test metric generalization; document model identifiers, prompt templates, and seeds.",
+    "Pre-register holdout split generation, nested cross-validation and threshold-selection procedures (including random seeds and stratification rules) to prevent leakage and ensure valid holdout performance estimates."
+  ]
+}

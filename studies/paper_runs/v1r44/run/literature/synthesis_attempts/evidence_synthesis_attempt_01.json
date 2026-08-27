@@ -1,0 +1,194 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Operational reliability of LLM-based NetOps systems depends principally on the surrounding orchestration, tool integrations, and verification machinery rather than the base LLM alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7126281064",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "survey/architectural",
+      "confidence": 0.9,
+      "limitations": [
+        "High-level surveys and system reports; empirical effect sizes vary by deployment and are task-dependent",
+        "Generality across all models/vendors is not established"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Generate–Verify–Repair (GVR) pipelines that interpose deterministic verifiers before accepting LLM outputs reliably detect many mechanically checkable defects and can drive automated repairs.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6576157"
+      ],
+      "evidence_type": "methodological/case-study",
+      "confidence": 0.88,
+      "limitations": [
+        "Evidence focuses on mechanically verifiable failure classes (compilation, schema, test-executable); semantic or policy-level errors may remain",
+        "Single-case and early evaluations; production-scale robustness not fully demonstrated"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Tool-augmented agents and retrieval/RAG integration improve grounding and task-specific performance in operational NetOps workflows when they provide evidence traces and domain tools.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404782868",
+        "10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "empirical/framework reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Improvements depend on tool design and integration quality",
+        "Reported systems vary in scale and evaluation rigor (some are production reports, others are prototypes)"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "LLM hallucinations and adversarially crafted context (prompt/document poisoning or malicious remote tool descriptions) can induce unsafe or incorrect outputs, including actionable misconfigurations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404534210",
+        "10.20944/preprints202512.0913.v1",
+        "10.3390/electronics15102214"
+      ],
+      "evidence_type": "survey/attack studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Attack success rates vary by model, retrieval/top-k behavior, and pipeline defenses",
+        "Quantitative impact on deployed NetOps remains under-explored in public literature"
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Translating natural-language operator intent into device-level network configuration using LLMs is feasible but currently attains only partial semantic correctness; common solutions combine fine-tuning, in-context examples, and iterative validation/repair.",
+      "evidence_record_ids": [
+        "10.1002/nem.2313",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4412445328"
+      ],
+      "evidence_type": "empirical/method",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported accuracy and semantic completeness vary by task scope and dataset",
+        "Many evaluations use synthetic or constrained intents rather than heterogeneous production intents"
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Existing benchmarks and datasets for NetOps/AIOps and related LLM tasks exist but face issues (contamination, limited coverage, and limited workflow-centered safety evaluation).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044063",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "benchmark critique/survey",
+      "confidence": 0.82,
+      "limitations": [
+        "Scope and severity of contamination or coverage gaps differ across benchmarks",
+        "Some domain-specific benchmarks (logs, CTI) are mature for sub-tasks but not for end-to-end agentic evaluation"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "What precise assurance conditions (evidence types, verifier coverage, sandboxing/replay protocols, and human oversight modalities) are sufficient to grant agentic LLM workflows authority to perform autonomous production network changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7126281064"
+      ],
+      "evidence_type": "position/review",
+      "confidence": 0.6,
+      "limitations": [
+        "Question motivated by reviews and frameworks; empirical thresholds and acceptance criteria remain undetermined"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "To what extent do current deterministic verifiers and validators cover semantic policy-level failure modes (policy compliance, cross-device invariants, end-to-end reachability) of LLM-generated configurations?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7126281064"
+      ],
+      "evidence_type": "methodological review",
+      "confidence": 0.6,
+      "limitations": [
+        "Available literature documents verifier utility for mechanical errors but provides limited measurement for higher-order semantic guarantees"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "Which standardized, reproducible evaluation protocols can reliably separate a model’s generative capability from operational authority and assurance in agentic NetOps?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7162044063"
+      ],
+      "evidence_type": "framework/critique",
+      "confidence": 0.65,
+      "limitations": [
+        "Several proposals exist but no community-agreed protocol for end-to-end agentic operational evaluation is established in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A reproducible, contamination-resistant, workflow-centered benchmark that evaluates end-to-end agentic NetOps actions (generation, deterministic verification, high-fidelity sandbox replay, and rollback-aware scoring) is lacking in public literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044063",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "gap identification",
+      "confidence": 0.78,
+      "limitations": [
+        "COHORT (W7166901862) demonstrates replay-based evaluation but broader, canonical benchmarks are not yet available or standardized"
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Empirical studies measuring the effectiveness of human oversight under realistic NetOps cognitive and organizational constraints (time pressure, automation bias, multi-tasking) are limited.",
+      "evidence_record_ids": [
+        "10.59324/ejsmt.2026.2(3).12",
+        "10.2139/ssrn.6685078"
+      ],
+      "evidence_type": "empirical gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing work analyzes governance and theoretical limits; controlled NetOps-specific experiments are sparse in the supplied set"
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Few publicly reproducible architectures combine high-fidelity emulation (real firmware), multi-agent generation, and paired offensive replay for validating generated mitigations or configurations at scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7164234446"
+      ],
+      "evidence_type": "infrastructure gap",
+      "confidence": 0.7,
+      "limitations": [
+        "COHORT and COHORT-like systems exist as prototypes; generalizability and public reproducibility remain limited"
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "Systematic metrics that quantify grounding/evidence trace quality for RAG/tool-augmented NetOps agents (beyond token-level provenance) are underdeveloped.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404782868",
+        "10.20944/preprints202604.1820.v1"
+      ],
+      "evidence_type": "measurement gap",
+      "confidence": 0.72,
+      "limitations": [
+        "Surveys and tool papers propose notions of grounding; few standardized, quantitative metrics for operational assurance are present in the supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs alone (without orchestration, tool integration, verification, and constrained authority) are sufficient to safely perform production network configuration changes.",
+    "There is no risk of hallucination, prompt poisoning, or malicious tool-description attacks affecting NetOps outputs.",
+    "Existing public benchmarks for LLM NetOps evaluation are contamination-free and fully reflect production operational safety."
+  ]
+}

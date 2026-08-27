@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CNSM26-01-benchmark",
+      "title": "End-to-end, contamination-resistant benchmark for agentic NetOps workflows",
+      "research_question": "Can a reproducible benchmark that combines intent-to-configuration generation, deterministic verification, high-fidelity sandbox replay, and rollback-aware scoring reliably discriminate the operational safety and authority of agentic NetOps pipelines while resisting data-contamination risks?",
+      "hypotheses": [
+        "An end-to-end benchmark that includes deterministic verification and sandbox replay will rank agentic NetOps pipelines by operational unsafe-output rate with sufficient resolution to distinguish meaningful design differences (minimum detectable difference ≥5 percentage points with 80% power).",
+        "Contamination-resistance procedures (document provenance filtering, synthetic intent partitioning, held-out device firmware instances) will materially reduce apparent performance inflation relative to naively constructed benchmarks (observed unsafe-rate decrease vs uncontrolled benchmark >10%)."
+      ],
+      "proposed_design": "Construct a public benchmark corpus of 600 diverse operator intents mapped to device/topology families. For each intent provide: (a) clean contextual documents (manpages, configs), (b) synthetic out-of-distribution intents, and (c) held-out firmware/config variants for sandbox replay. Define an evaluation pipeline: fixed LLM prompt templates + optional RAG/tool integration variants, deterministic verifiers (syntax/schema/ACL checks), containerized high-fidelity sandbox replay (emulated device images or constrained network simulator), and rollback-aware scoring (unsafe if sandbox fails or causes invariant violations). Publish dataset split (train/dev/test), contamination filters, provenance metadata, scoring code, and a baseline suite of 4 pipelines (LLM-only, LLM+RAG, LLM+verifier, LLM+verifier+RAG+tool). Freeze prompts, seeds, and evaluation procedures in a preregistration.",
+      "expected_data": "Per-sample records: intent id, context variant, pipeline id, LLM output, verifier results, sandbox execution trace, rollback outcome, unsafe boolean, provenance metadata, and timestamps. Aggregate benchmark metrics: unsafe-rate per pipeline, verifier false-positive/false-negative rates, sandbox failure modes, and contamination-delta metrics comparing naive vs filtered evaluations.",
+      "primary_outcome": "Benchmark discriminative ability measured as between-pipeline differences in unsafe rates with 95% CIs and statistical power analysis showing minimum detectable effect; contamination-resistance effect size (difference in unsafe-rate between naive and filtered evaluations).",
+      "analysis_outline": "Compute per-pipeline unsafe rates with Wilson 95% CIs. Use pairwise comparisons (paired-proportion z-test or McNemar per intent where paired) to evaluate pipeline ranking and report adjusted p-values (Benjamini–Hochberg). Estimate benchmark reliability (Cronbach’s alpha across intents) and minimum detectable difference for given sample size. Report contamination-delta with bootstrap CIs. Provide qualitative failure-mode taxonomy from sandbox traces.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162044063",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W7166901862"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W4413757586",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "High resource cost for high-fidelity sandbox replay limits scale and reproducibility.",
+        "Residual contamination may remain despite filters, biasing results.",
+        "Publishing exemplar artifacts could enable misuse; ethical release policy needed."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CNSM26-02-poisoning-defenses",
+      "title": "Adversarial context poisoning against NetOps RAG/tool pipelines and efficacy of provenance+verifier defenses",
+      "research_question": "How effectively can adversarially poisoned retrieval contexts and malicious tool-descriptions induce unsafe device configurations from agentic NetOps pipelines, and to what extent do provenance-based source-trust filtering and verifier-enforced rejection reduce attack success?",
+      "hypotheses": [
+        "Adversarially inserted malicious retrieval chunks or poisoned tool-descriptions will increase the proportion of unsafe configurations relative to clean contexts (absolute increase >15 percentage points).",
+        "A provenance-threshold filter combined with verifier-enforced rejection will significantly reduce attack success rate compared to an undefended pipeline (relative reduction >50%), but residual unsafe outputs will remain measurable (>5%)."
+      ],
+      "proposed_design": "Controlled adversarial experiment using 240 intent+context pairs across device/topology families. For each intent create three context conditions: clean, poisoned-RAG (malicious retrieved document chunk advocating unsafe change), and poisoned-tool (simulated tool returning malicious guidance). Use frozen prompt templates and fixed seeds for LLM calls. Evaluate raw outputs with deterministic verifiers then run sandbox replay; label outputs unsafe if verifier fails or sandbox violates invariants. Implement two defenses: (1) provenance-trust filtering that drops low-trust retrieved chunks prior to generation, and (2) verifier-enforced rejection that prevents auto-apply and flags for manual review. Publicly archive abstracted poisoning artifacts and defense code with ethical redaction. Pre-register attack generation, defense thresholds, and retry policy.",
+      "expected_data": "Per-sample records: intent id, condition (clean/poison-RAG/poison-tool), LLM output, provenance sources, verifier-pass boolean, sandbox-pass boolean, unsafe class label, defense-applied boolean, detection/rejection events, and timestamps. Aggregate metrics: attack success rates per condition, defense absolute and relative reduction, false positives induced by defenses, and taxonomy of successful poison vectors.",
+      "primary_outcome": "Attack success rate (proportion of unsafe/sandbox-failing configurations) under poisoned vs clean contexts, and absolute and relative reduction in attack success rate when defenses are applied.",
+      "analysis_outline": "Estimate conditional attack success rates with 95% CIs. Use paired-proportion tests (McNemar) comparing clean vs poisoned for the same intent and comparing defended vs undefended within poisoned conditions. Compute ROC-style curves for provenance-trust thresholds vs detection of poisoned-induced unsafe outputs. Report qualitative analysis of successful poisoning modes and any model-specific artifacts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404534210",
+        "10.20944/preprints202512.0913.v1",
+        "10.3390/electronics15102214"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404782868",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4413757586"
+      ],
+      "risks": [
+        "Adversarial artifacts may overfit to the tested LLM and not generalize to other models.",
+        "Ethical concerns: publishing poisoning examples could enable misuse—mitigate via abstraction/redaction and responsible-disclosure controls.",
+        "Hosted-model API rate limits or content policies may block adversarial payloads and affect reproducibility."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "CNSM26-03-grounding-metrics",
+      "title": "Operational grounding metrics for RAG/tool-augmented NetOps agents and their predictive value for sandbox-correctness",
+      "research_question": "Which quantitative grounding and evidence-trace metrics for RAG and tool-augmented NetOps agents correlate most strongly with end-to-end operational correctness (sandbox-passed configurations), and can simple metric-based rules provide reliable early-warning signals?",
+      "hypotheses": [
+        "Composite grounding metrics (source-coverage, provenance-diversity, tool-confirmation-score) will show statistically significant positive correlation (Pearson r > 0.4) with sandbox-determined operational correctness.",
+        "A provenance-threshold rule derived from grounding metrics will achieve useful early-warning capability (precision > 0.75 for predicting sandbox failure) on a holdout set, enabling prioritized verification workflows."
+      ],
+      "proposed_design": "Define and preregister grounding metrics: (1) source-coverage (fraction of generated tokens supported by at least one retrieved source), (2) provenance-diversity (distinct trusted-source count), (3) tool-confirmation-score (count of independent tool outputs corroborating the change), and (4) conflict-score (count of contradictory evidence). Generate 500 LLM-produced configurations for diverse intents using a standardized RAG+tool pipeline. For each sample compute grounding metrics and run deterministic verifier plus sandbox replay to produce binary correctness labels. Reserve a 20% holdout to derive threshold-based predictors. Publish metric definitions, computation code, and thresholds.",
+      "expected_data": "Per-sample grounding metrics, verifier status, sandbox pass/fail label, provenance traces, tool outputs, timestamps, and holdout predictions. Aggregates: correlation matrices, logistic model coefficients, AUC and precision-recall curves, threshold performance on holdout, and qualitative failure cases.",
+      "primary_outcome": "Correlation coefficients (Pearson and Spearman with 95% CIs) between each grounding metric and sandbox pass/fail; AUC and precision/recall of grounding-metric-based early-warning predictor on holdout.",
+      "analysis_outline": "Compute Pearson and Spearman correlations with 95% CIs between grounding metrics and binary correctness. Fit logistic regression and tree-based models; report AUC, precision@k, recall, and calibration. Use nested cross-validation to select thresholds and report holdout precision/recall. Provide SHAP or analogous importance measures and analyze failure cases qualitatively.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404782868",
+        "10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4400377739"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404782868",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4408167800"
+      ],
+      "risks": [
+        "Observed correlations may be pipeline- and model-specific, limiting external validity.",
+        "Tool outputs used for confirmation may be noisy and introduce spurious correlations.",
+        "Normalization of provenance signals across heterogeneous sources is nontrivial and may bias metrics."
+      ],
+      "estimated_model_calls": 1400
+    },
+    {
+      "candidate_id": "CNSM26-04-verifier-coverage-semantic",
+      "title": "Measuring deterministic verifier coverage for semantic and policy-level failures in LLM-generated network configurations",
+      "research_question": "To what extent do deterministic verifiers (syntax/schema/ACL checks) detect semantic and policy-level failures (policy compliance violations, cross-device invariants, reachability/loop conditions) in LLM-generated configurations, and does augmenting verifiers with semantic analyses materially increase detection coverage?",
+      "hypotheses": [
+        "Deterministic verifiers will detect the majority of mechanical errors but will have low coverage (<40%) for injected semantic/policy-level failures such as cross-device invariants and reachability violations.",
+        "Augmenting deterministic verifiers with semantic analyses (model-based policy checker + reachability solver) will increase detection coverage of semantic/policy failures by at least 25 percentage points relative to deterministic verifiers alone, at an acceptable false-positive cost (<10 percentage points increase)."
+      ],
+      "proposed_design": "Create a labeled dataset of 300 generated configurations with manually and automatically injected semantic/policy violations (routing loops, access-control conflicts, cross-device ACL inconsistencies, VLAN/segmentation breach). Run baseline deterministic verifiers (syntax, schema, ACL-format checks) to measure detection. Build augmented verifier pipeline that adds formal reachability checks (network-model-based simulation), cross-device invariant checks, and a lightweight model-based policy analyzer. Compare detection rates, false positives, and time/resource costs. Pre-register injection patterns, verifier thresholds, and evaluation metrics.",
+      "expected_data": "Per-sample records: original config, injected-violation-type, deterministic-verifier-result, augmented-verifier-result, sandbox replay outcome, false-positive/false-negative annotations, and execution timestamps. Aggregates: detection coverage by violation type, confusion matrices, resource/time overheads, and example failure traces.",
+      "primary_outcome": "Difference in detection coverage (proportion of semantic/policy violations detected) between augmented verifiers and deterministic verifiers, with 95% CIs, plus false-positive rate delta.",
+      "analysis_outline": "Report detection rates with Wilson 95% CIs per violation class. Use paired-proportion tests (McNemar) to test augmentation effect. Compute precision/recall/F1 per verifier and per violation class. Analyze false-positive sources and categorize undetected failures. Report cost (wall-time, compute) trade-offs for augmentation.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7126281064",
+        "https://openalex.org/W4404782868"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7164234446"
+      ],
+      "risks": [
+        "High-fidelity semantic checks (reachability/formal analysis) may be computationally expensive, limiting throughput.",
+        "Creating representative semantic/policy violation injections that reflect real-world mistakes is challenging and may skew results.",
+        "Augmented verifiers may increase false positives, imposing operational burden if used live."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

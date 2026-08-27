@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CNSM26-01-benchmark",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.4,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "High resource and engineering cost for high-fidelity sandbox replay threatens practical reproducibility and may limit community adoption.",
+        "Residual dataset contamination risks are underestimated; provenance filtering is necessary but may not eliminate leakage.",
+        "Ethical and misuse risk from publishing exemplar artifacts (poisoning, firmware) requires stronger redaction and release controls.",
+        "Power/sample-size claims (minimum detectable difference ≥5 pp with 80% power) are optimistic without explicit effect-size assumptions and pilot data."
+      ],
+      "required_design_repairs": [
+        "Provide explicit, reproducible modular sandbox options (low-, mid-, high-fidelity) and quantify trade-offs so others can reproduce at smaller scale.",
+        "Add a formal power analysis with assumed baseline unsafe-rate and intra-intent correlation to justify N=600; include pilot results or justify effect-size.",
+        "Specify detailed contamination-detection algorithms and evaluation of residual contamination (automated provenance checks + manual audit protocol).",
+        "Include an ethical release policy (redaction rules, responsible-disclosure timeline) and limit public release of artifacts that enable misuse.",
+        "Define constrained baseline pipelines (model versions, exact prompts, seeds) and containerized evaluation images with hashes to improve reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM26-02-poisoning-defenses",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Serious ethical/dual-use risk: publishing poisoning examples can enable attackers unless responsibly redacted and gated.",
+        "Hosted-model APIs and safety filters may block adversarial payloads or change behavior, hindering reproducibility.",
+        "Attack artifacts and defenses may overfit to the tested LLM and retrieval/tool designs, limiting generalizability.",
+        "Claimed effect sizes (>15 pp increase, >50% relative reduction) need clearer baseline assumptions and pre-registered thresholds."
+      ],
+      "required_design_repairs": [
+        "Define and document a strict ethical-risk mitigation plan (abstraction/redaction rules, limited disclosure, coordinated disclosure to vendors).",
+        "Pre-register a clear threat model (attacker capabilities, constraints), poisoning generation algorithm, and labeling criteria.",
+        "Plan for API/content-filter interference: include offline/simulated LLM baseline or describe how to handle provider blocking in reproducibility notes.",
+        "Widen experimental diversity (at least two model families or a synthetic offline model) or explicitly bound claims to the tested model(s).",
+        "Specify provenance-threshold selection procedure and incorporate ROC-style analysis into preregistration."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM26-03-grounding-metrics",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Metric definitions (e.g., source-coverage) risk inconsistent computation across heterogeneous retrieval systems unless normalized.",
+        "Correlations may be pipeline- or dataset-specific; holdout performance must be carefully guarded against leakage.",
+        "Tool-confirmation signals may introduce circularity if tools share data with retrieval sources."
+      ],
+      "required_design_repairs": [
+        "Provide precise, implementation-level definitions and reference implementations for each grounding metric (including edge cases and tokenization choices).",
+        "Prescribe normalization procedures to make provenance signals comparable across retrieval backends and document them.",
+        "Include at least one alternative pipeline or model to test metric generalization, or bound conclusions explicitly to the evaluated pipeline.",
+        "Pre-register holdout split generation to avoid leakage and specify nested CV/threshold-selection details."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "CNSM26-04-verifier-coverage-semantic",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.5,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Constructing realistic semantic/policy-level injection corpus is difficult; synthetic injections may not reflect real operator mistakes.",
+        "Formal reachability and semantic checks can be computationally intensive, which may make the proposed scale infeasible.",
+        "Potentially high false-positive rates for augmented verifiers could be operationally harmful and are insufficiently bounded in the current design.",
+        "Evaluation may be sensitive to device-model fidelity and topology selection; limited device families will reduce external validity."
+      ],
+      "required_design_repairs": [
+        "Describe the injection methodology in detail and justify that injected violations reflect real operational errors (include sourcing from change logs or operator interviews if possible).",
+        "Provide runtime and resource-cost estimates for the augmented verifier; include a pilot-scale profiling step and adjustable resource knobs.",
+        "Specify the formal reachability tool(s) (versions, encodings), provide containerized solver images and example network models to ensure reproducibility.",
+        "Define acceptable false-positive trade-offs a priori and include human-review workload estimates; pre-register thresholds and decision rules.",
+        "Broaden device/topology sampling or clearly bound conclusions to the evaluated families and discuss external validity limitations."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

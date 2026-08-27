@@ -1,0 +1,152 @@
+{
+  "selected_candidate_id": "CNSM26-03-grounding-metrics",
+  "title": "Operational grounding metrics for RAG/tool-augmented NetOps agents and their predictive value for sandbox-correctness (repaired preregistration)",
+  "research_question": "For a RAG + tool-augmented NetOps pipeline, does an automated metric-based guarded workflow using pre-specified grounding/evidence metrics improve sandbox pass-rate (operational correctness) compared with an unguarded baseline, and which grounding signals provide the strongest paired predictive value?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory, paired): Under a paired evaluation (same intent executed under both conditions), the guarded workflow that applies a pre-registered provenance-threshold + automated mitigation policy will produce a higher sandbox pass-rate than the unguarded baseline. The primary estimand is the paired_success_rate_difference_guarded_minus_baseline; the confirmatory test is one-sided (guarded > baseline) with alpha=0.05 and pre-registered minimum meaningful effect = 0.10 (10 percentage points)."
+  ],
+  "exploratory_questions": [
+    "EQ1 (exploratory): Which individual grounding metrics (source_coverage, provenance_diversity, tool_confirmation_score, conflict_score) correlate most strongly with sandbox pass/fail (Pearson and Spearman); report effect sizes and rank-order importance via SHAP-like feature importance derived from a tree model.",
+    "EQ2 (exploratory): On the 20% holdout used for threshold derivation, does a simple provenance-threshold rule achieve precision >= 0.75 for predicting sandbox failure? (Exploratory: used only to report operational alarm precision; not part of the confirmatory paired estimator.)"
+  ],
+  "benchmark_scope": [
+    "Public synthetic NetOps intents and device models constructed from openly licensed configuration examples and operational intent templates (bounded to these synthetic/benchmarked environments; no claim of production generalization)."
+  ],
+  "model_scope": [
+    "A single hosted-model pipeline will be used for the preregistered primary evaluation (provider-hosted chat-style LLM API available at runtime). The exact model identifier (provider+model id) used in each experimental run will be recorded in the execution manifest and reported verbatim in the manuscript/manifest. Conclusions are explicitly bounded to the evaluated pipeline (RAG + tool set + hosted model as recorded)."
+  ],
+  "transformation_scope": [
+    "Deterministic mapping from LLM text to device-level configuration via a token-level provenance extractor and a verifier-friendly canonicalizer (see TransformationValidationPlan). All transformations are deterministic code run under CPU/docker."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (as defined by the available analysis contract paired_binary_analysis_v1)",
+  "secondary_estimands": [
+    "per-metric Pearson and Spearman correlation with sandbox pass/fail (reported as exploratory descriptive statistics)",
+    "precision@k and recall of holdout-derived threshold rule on the holdout set (exploratory)"
+  ],
+  "sampling_plan": "Total generated intent-config episodes: 500 episodes. Split: 80% confirmatory paired set (400 episodes) + 20% threshold-derivation holdout (100 episodes). For each of the 400 confirmatory episodes, both the baseline and guarded pipelines are executed (paired). Confirmatory-pair count derivation: 400 episodes × 1 pair per episode = 400 paired observations. Holdout derivation: 100 episodes used only for nested threshold selection; these are not used in primary paired estimator. All random splits use RNG seed 20260801 and stratify by intent-category to preserve intent-class balance. The total confirmatory paired count (400) + holdout (100) = 500 episodes total.",
+  "analysis_plan": "Primary confirmatory analysis: execute the supplied paired_binary_analysis_v1 executor computing paired_success_rate_difference_guarded_minus_baseline with the pre-registered one-sided test (alpha=0.05). Missing or failed model calls in a pair are handled per the contract's failed_call_treatment: 'complete_pair_primary' (pairs with infrastructure failures are excluded from primary but listed) and sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' (treating failed guarded outcome as failure). Secondary analyses: compute Pearson and Spearman correlations (95% CIs via bootstrap) between each grounding metric and sandbox pass/fail over the pooled dataset (excluding holdout for threshold selection where appropriate). Threshold selection: nested cross-validation on the 80% training portion of holdout derivation set (see pre-registered nested-CV procedure below) with fixed seeds. All code uses deterministic RNG seeds and records hashes. All exploratory modelling (logistic / tree models) reported as descriptive and not used to alter confirmatory claims.",
+  "multiplicity_plan": "Primary multiplicity control: single primary confirmatory hypothesis (H1) tested per the paired_binary_analysis_v1 contract. Secondary/exploratory correlations and threshold precision results are reported with Benjamini-Hochberg FDR correction when multiple metric tests are reported; these are explicitly labeled exploratory.",
+  "missingness_plan": "Automated failures (API/network error, verifier crash) are logged and the pair is categorized per failed_call_treatment. Pairs with transient infrastructure failure (e.g., provider timeout) will be retried once (fixed retry policy). If both attempts fail, the pair is excluded from the primary analysis and included in a pre-registered sensitivity analysis treating the guarded outcome as failure. No manual imputation or human annotation will be performed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public synthetic NetOps intent corpus (constructed from publicly-licensed configuration examples)"
+    ],
+    "risk_factors": [
+      "Document duplication across retrieval indexes",
+      "Template leakage between training-generation prompts and retrieval documents",
+      "Tool and retrieval sharing underlying public data leading to circular confirmation"
+    ],
+    "detection_procedures": [
+      "Automated exact-string and shingled-overlap checks between retrieval documents and prompt/templates for each episode (Jaccard shingle overlap > 0.8 flagged as potential contamination)",
+      "Fingerprint-based retrieval duplication detection (document content hash matches across indexes) to flag reused sources",
+      "Automatic provenance circularity detection: mark a tool-confirmation as circular when tool output provenance hashes are present among the retrieval documents supporting the LLM output"
+    ],
+    "item_flagging_rules": [
+      "If any episode has prompt-to-retrieval overlap Jaccard(shingles) > 0.8, the episode is flagged and excluded from primary analysis; such exclusions and counts are reported.",
+      "If circularity is detected for a tool-confirmation (see detection_procedures), the tool-confirmation component is zeroed for metric computation for that episode and flagged for sensitivity reporting."
+    ],
+    "analysis_treatment": "Episodes flagged for contamination are excluded from the primary confirmatory analysis. Sensitivity analysis will report results including flagged episodes and with circular confirmations zeroed.",
+    "residual_uncertainty": [
+      "Residual contamination due to semantic paraphrase leakage below the shingle threshold may remain and is reported in remaining_noncritical_uncertainties."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "low",
+      "description": "Low budget, exploratory replication: total episodes = 200 (160 confirmatory paired, 40 holdout). Lowered model-call budget and fewer intents for rapid prototyping and public reproducibility.",
+      "planned_model_calls": 460,
+      "models": [
+        "single hosted LLM API (identifier recorded at execution)"
+      ],
+      "transformations": [
+        "provenance extraction, canonicalizer, deterministic verifier"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 160,
+      "task_cluster_count": 10,
+      "feasibility_rationale": "Model calls estimate: baseline+guarded generation = 2 calls/episode × 200 = 400 calls; conservative mitigation retries expected for ~15% of guarded runs = 30 extra calls; 30 calls buffer for logging/tool interactions = 460. Within the capability_manifest maximum_planned_model_calls and achievable within 1-2 wall-clock days on hosted APIs."
+    },
+    {
+      "scenario_id": "recommended",
+      "description": "Recommended (primary) scenario balancing power, cost, and reproducibility: total episodes = 500 (400 confirmatory paired, 100 holdout).",
+      "planned_model_calls": 1265,
+      "models": [
+        "single hosted LLM API (identifier recorded at execution)"
+      ],
+      "transformations": [
+        "provenance extraction, canonicalizer, deterministic verifier"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 400,
+      "task_cluster_count": 25,
+      "feasibility_rationale": "Model-call accounting: baseline+guarded = 2 generation calls/episode × 500 = 1000 calls. Mitigation conservative re-generation expected to trigger for ~30% of guarded runs => 0.3 × 500 = 150 mitigation calls. Additional 5% buffer for retries/instrumentation = 115 calls. Total planned_model_calls = 1000+150+115 = 1265. This is below the selected_candidate.estimated_model_calls (1400) and the manifest maximum_planned_model_calls (10000). Execution fits within docker-enabled CPU execution and hosted-model APIs within the 7-day wall-clock limit."
+    },
+    {
+      "scenario_id": "high",
+      "description": "High-budget, higher-power exploratory: total episodes = 800 (640 confirmatory paired, 160 holdout) for more precise estimation and stronger exploratory modelling.",
+      "planned_model_calls": 2020,
+      "models": [
+        "single hosted LLM API (identifier recorded at execution)"
+      ],
+      "transformations": [
+        "provenance extraction, canonicalizer, deterministic verifier"
+      ],
+      "discovery_items": 160,
+      "confirmatory_items": 640,
+      "task_cluster_count": 40,
+      "feasibility_rationale": "Model-call accounting: 2 generation calls/episode × 800 = 1600; mitigation retries expected (~30%) => 240; buffer/retries/tool calls = 180; total = 2020 model calls. Still within manifest limits; higher power but greater API cost and runtime."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired_binary_analysis_v1)",
+    "target_effect": "Absolute paired increase of 0.10 (10 percentage points) in sandbox pass-rate (guarded > baseline)",
+    "clustering_unit": "episode (intent-config pair); paired within-episode comparison (guarded vs baseline)",
+    "calculation_method": "Approximate paired-proportion power reasoning based on expected discordant rate: assuming baseline success p_b=0.60, guarded success p_g=0.70 (discordant mass assumed ~0.30), with two-sided alpha=0.05 (we use one-sided test in confirmatory), 400 paired observations yields approximate power >= 0.8. Sensitivity analyses will present achieved confidence intervals and exact p-values computed by paired_binary_analysis_v1.",
+    "assumptions": [
+      "Baseline sandbox pass-rate ≈ 0.60 (plausible for synthetic NetOps intents given literature EF5); guarded expected to improve to ≈0.70 under mitigation assumptions.",
+      "Discordant-pair proportion (episodes where baseline and guarded disagree) ≈ 0.30; this drives paired-sample power.",
+      "One-sided test alpha = 0.05; analysis contract provides exact paired test implementation."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With 400 paired observations, under the above assumptions the design is expected to detect ≈10 percentage-point paired differences with ~80% power. If discordant proportion is substantially smaller, power reduces; this is reported and sensitivity analyses are included.",
+    "sensitivity_analyses": [
+      "Recompute achieved power and minimum detectable effect by varying discordant proportion from 0.15 to 0.45.",
+      "Primary sensitivity analysis treats pairs with infrastructure/model-call failure as guarded failures (conservative)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Token-level provenance extractor (maps each generated token to supporting retrieved-doc ids or empty),",
+      "Provenance normalizer (normalizes counts to per-token fraction using deterministic tokenizer),",
+      "Canonicalizer (deterministic mapping of LLM output to verifier-acceptable configuration format),",
+      "Deterministic verifier (stateless rule-based executor that returns pass/fail and failure class)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip canonicalization check: after canonicalizer, re-render configuration to text and check syntactic equivalence to canonical format; mismatches flagged and automatically rejected.",
+      "Token-support reification: for any token marked as supported, verify supporting document contains the literal token sequence; if only paraphrase support exists below the shingle threshold, mark as unsupported for source_coverage."
+    ],
+    "automatic_rejection_rules": [
+      "Reject transformations that produce malformed verifier input (deterministic syntax check fails) — the episode is marked 'transformation_failure' and handled per missingness_plan.",
+      "If provenance normalization division-by-zero or undefined mapping occurs, the episode is auto-excluded from primary analysis and counted in logs."
+    ],
+    "audit_sample_policy": "Automated deterministic audit: 5% sample of episodes are re-processed using alternative tokenizer and provenance shingle size to detect sensitivity; all audit runs are automated and results are reported. No manual human audit is performed.",
+    "mapping_validation": "Provide reference implementation tests (unit tests) that assert expected provenance mapping on 10 canonical examples. All tests run in CI (docker) with recorded hashes and test outputs stored in execution manifest.",
+    "residual_risks": [
+      "Tokenization mismatch across provider tokenizers may slightly change token counts; audit-sample policy and normalization math mitigate but do not eliminate this risk."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Generalisability: conclusions are explicitly bounded to the evaluated pipeline (hosted-model + RAG + tool set) and synthetic intent distribution; extension to other models or production intent distributions is noncritical but uncertain.",
+    "Residual normalization bias: despite normalization math, subtle provider tokenizer differences may bias source_coverage estimates; this is addressed via audit-sample sensitivity checks but remains a noncritical uncertainty.",
+    "Tool-confirmation circularity: automated circularity detection zeroes potentially circular confirmations, but residual circular correlations below detection thresholds may remain."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404782868",
+    "10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4400377739",
+    "https://openalex.org/W4413757586",
+    "https://openalex.org/W4408167800"
+  ]
+}
