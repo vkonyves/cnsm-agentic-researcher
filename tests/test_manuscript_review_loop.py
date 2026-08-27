@@ -556,7 +556,7 @@ def test_terminal_revision_receives_latest_peer_review():
 
     assert (
         '"publication_validation": (\n'
-        "                        publication_validation"
+        "                        terminal_review_revision_base_validation"
         in terminal_section
     )
 
@@ -933,7 +933,16 @@ def test_overfill_compaction_uses_actual_overlimit_candidate():
     assert "revision_base_manuscript = (" in source
     assert "revised_manuscript" in source
     assert "if terminal_page_count > terminal_maximum_pages:" in source
-    assert "terminal_revision_base_manuscript = revised_manuscript" in source
+    terminal_overfill_start = source.index(
+        "if terminal_page_count > terminal_maximum_pages:"
+    )
+    terminal_overfill_section = source[
+        terminal_overfill_start:
+        terminal_overfill_start + 900
+    ]
+
+    assert "terminal_revision_base_manuscript = (" in terminal_overfill_section
+    assert "revised_manuscript" in terminal_overfill_section
 
 
 def test_page_convergence_counts_scientific_section_words():

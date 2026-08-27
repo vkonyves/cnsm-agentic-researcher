@@ -3931,6 +3931,45 @@ class FinalAutonomousResearchPipeline:
                 revised_manuscript,
             )
 
+        # -------------------------------------------------
+        # Protected exact-page submission checkpoint
+        # -------------------------------------------------
+        #
+        # Once deterministic publication validation has produced
+        # an exact-page manuscript, preserve it across terminal
+        # peer review. Later revisions may replace this checkpoint
+        # only after they themselves compile to the exact frozen
+        # page budget.
+        protected_submission_manuscript: (
+            ManuscriptPackage | None
+        ) = None
+        protected_submission_validation: (
+            dict[str, Any] | None
+        ) = None
+
+        if (
+            publication_validation is not None
+            and publication_validation.get("passed") is True
+            and publication_validation.get("page_count")
+            == publication_validation.get("maximum_pages")
+        ):
+            protected_submission_manuscript = revised_manuscript
+            protected_submission_validation = dict(
+                publication_validation
+            )
+
+            write_json(
+                revision_rounds_dir
+                / "protected_exact_page_checkpoint.json",
+                protected_submission_manuscript,
+            )
+
+            write_json(
+                publication_dir
+                / "publication_validation_protected_checkpoint.json",
+                protected_submission_validation,
+            )
+
         previous_terminal_review: PeerReviewReport | None = None
         maximum_terminal_revision_rounds = 2
 
@@ -4016,6 +4055,17 @@ class FinalAutonomousResearchPipeline:
             ):
                 break
 
+            terminal_review_revision_base_manuscript = (
+                protected_submission_manuscript
+                if protected_submission_manuscript is not None
+                else revised_manuscript
+            )
+            terminal_review_revision_base_validation = (
+                protected_submission_validation
+                if protected_submission_validation is not None
+                else publication_validation
+            )
+
             revised_manuscript = await run_agent(
                 MANUSCRIPT_REVISER,
                 {
@@ -4040,13 +4090,14 @@ class FinalAutonomousResearchPipeline:
                         manuscript_evidence_bundle
                     ),
                     "manuscript": (
-                        revised_manuscript.model_dump()
+                        terminal_review_revision_base_manuscript
+                        .model_dump()
                     ),
                     "peer_review": (
                         latest_peer_review.model_dump()
                     ),
                     "publication_validation": (
-                        publication_validation
+                        terminal_review_revision_base_validation
                     ),
                     "revision_round": (
                         "terminal_"
@@ -4058,6 +4109,13 @@ class FinalAutonomousResearchPipeline:
                         "archived evidence and completed analysis artifacts. "
                         "Address the listed required revisions explicitly and "
                         "preserve previously resolved reviewer requirements. "
+                        "Treat the supplied manuscript as the authoritative "
+                        "revision base. Make only the minimum scientific edits "
+                        "needed to resolve the enumerated review issues. Preserve "
+                        "all unaffected sections, paragraphs, tables, references, "
+                        "results, limitations, and disclosure. Do not globally "
+                        "rewrite, summarize, condense, or restructure material "
+                        "that the review does not require you to change. "
                         "Raw execution artifacts may support factual accounting "
                         "such as call counts, episode identifiers, repair flags, "
                         "validator reuse, missingness, and provenance, but do "
@@ -4201,9 +4259,13 @@ class FinalAutonomousResearchPipeline:
                         terminal_maximum_pages + 1
                     )
                     terminal_base = (
-                        best_terminal_manuscript
-                        if best_terminal_manuscript is not None
-                        else revised_manuscript
+                        protected_submission_manuscript
+                        if protected_submission_manuscript is not None
+                        else (
+                            best_terminal_manuscript
+                            if best_terminal_manuscript is not None
+                            else revised_manuscript
+                        )
                     )
                     terminal_current_words = (
                         manuscript_section_word_count(
@@ -4255,17 +4317,46 @@ class FinalAutonomousResearchPipeline:
                         "Do not alter empirical findings or formatting rules."
                     )
 
-                # Underfill revisions grow from the best valid candidate seen
-                # so far. If an expansion overshoots the frozen page budget,
-                # compact the actual over-limit candidate; otherwise we would
-                # throw away the useful overshoot and compact an older short paper.
+                # Monotonic terminal revision-base selection:
+                #
+                # * If a reviewer-resolved candidate is overfull, compact
+                #   that actual overfull candidate.
+                # * If a reviewer rewrite is underfull and an exact-page
+                #   checkpoint exists, restart from the checkpoint and
+                #   reapply the review requirements.
+                # * Otherwise preserve the ordinary best-candidate
+                #   convergence behaviour.
                 if terminal_page_count > terminal_maximum_pages:
-                    terminal_revision_base_manuscript = revised_manuscript
+                    terminal_revision_base_manuscript = (
+                        revised_manuscript
+                    )
+                    terminal_revision_base_publication_validation = (
+                        publication_validation
+                    )
+
+                elif (
+                    terminal_page_count < terminal_maximum_pages
+                    and protected_submission_manuscript is not None
+                    and protected_submission_validation is not None
+                ):
+                    terminal_revision_base_manuscript = (
+                        protected_submission_manuscript
+                    )
+                    terminal_revision_base_publication_validation = (
+                        protected_submission_validation
+                    )
+
                 else:
                     terminal_revision_base_manuscript = (
                         best_terminal_manuscript
                         if best_terminal_manuscript is not None
                         else revised_manuscript
+                    )
+                    terminal_revision_base_publication_validation = (
+                        best_terminal_publication_validation
+                        if best_terminal_publication_validation
+                        is not None
+                        else publication_validation
                     )
 
                 revised_manuscript = await run_agent(
@@ -4298,6 +4389,9 @@ class FinalAutonomousResearchPipeline:
                             latest_peer_review.model_dump()
                         ),
                         "publication_validation": (
+                            terminal_revision_base_publication_validation
+                        ),
+                        "previous_revision_publication_validation": (
                             publication_validation
                         ),
                         "revision_round": (
@@ -4429,45 +4523,115 @@ class FinalAutonomousResearchPipeline:
                 ):
                     break
 
-            # Carry forward the best valid terminal-format manuscript,
-            # not merely whichever model response happened to be last.
-            if (
+            # -------------------------------------------------
+            # Monotonic exact-page terminal selection
+            # -------------------------------------------------
+            selected_exact_terminal_candidate = (
                 best_terminal_manuscript is not None
                 and best_terminal_publication_validation is not None
-            ):
-                revised_manuscript = best_terminal_manuscript
+                and best_terminal_publication_validation.get(
+                    "compile_status"
+                )
+                == "passed"
+                and best_terminal_publication_validation.get(
+                    "page_count"
+                )
+                == best_terminal_publication_validation.get(
+                    "maximum_pages"
+                )
+            )
 
-                write_json(
-                    run_dir
-                    / "manuscript"
-                    / "revised_package.json",
-                    revised_manuscript,
+            if selected_exact_terminal_candidate:
+                # A reviewer-revised manuscript reached exact-page
+                # validity. Promote it to the new protected checkpoint.
+                revised_manuscript = best_terminal_manuscript
+                publication_validation = dict(
+                    best_terminal_publication_validation
                 )
 
-                # Re-render the selected candidate so the authoritative
-                # PDF/TeX artifacts correspond to the manuscript actually
-                # passed to the next closure review and final judge.
-                publication_validation = (
-                    build_publication_artifacts(
-                        manuscript=(
-                            revised_manuscript.model_dump()
-                        ),
-                        verified_records=records,
-                        output_dir=publication_dir,
-                        paper_run_constraints=(
-                            paper_run_constraints
-                        ),
-                    )
+                protected_submission_manuscript = revised_manuscript
+                protected_submission_validation = dict(
+                    publication_validation
+                )
+
+                write_json(
+                    revision_rounds_dir
+                    / (
+                        "protected_exact_page_checkpoint_"
+                        f"terminal_{terminal_round:02d}.json"
+                    ),
+                    protected_submission_manuscript,
                 )
 
                 write_json(
                     publication_dir
                     / (
-                        "publication_validation_terminal_best_"
-                        f"{terminal_round:02d}.json"
+                        "publication_validation_protected_checkpoint_"
+                        f"terminal_{terminal_round:02d}.json"
                     ),
-                    publication_validation,
+                    protected_submission_validation,
                 )
+
+            elif (
+                protected_submission_manuscript is not None
+                and protected_submission_validation is not None
+            ):
+                # The terminal rewrite/convergence did not preserve the
+                # exact page budget. Restore the last submission-valid
+                # manuscript rather than regressing to a shorter paper.
+                #
+                # The current peer-review report remains unchanged, so
+                # unresolved scientific requirements remain visible to
+                # the next closure review/final judge.
+                revised_manuscript = (
+                    protected_submission_manuscript
+                )
+                publication_validation = dict(
+                    protected_submission_validation
+                )
+
+            elif (
+                best_terminal_manuscript is not None
+                and best_terminal_publication_validation is not None
+            ):
+                # No pre-existing exact-page checkpoint: retain the
+                # legacy best-candidate behaviour.
+                revised_manuscript = best_terminal_manuscript
+                publication_validation = dict(
+                    best_terminal_publication_validation
+                )
+
+            write_json(
+                run_dir
+                / "manuscript"
+                / "revised_package.json",
+                revised_manuscript,
+            )
+
+            # Re-render exactly the manuscript that is actually carried
+            # forward. Authoritative PDF/TeX artifacts can therefore
+            # never correspond to a discarded terminal candidate.
+            publication_validation = (
+                build_publication_artifacts(
+                    manuscript=(
+                        revised_manuscript.model_dump()
+                    ),
+                    verified_records=records,
+                    output_dir=publication_dir,
+                    paper_run_constraints=(
+                        paper_run_constraints
+                    ),
+                )
+            )
+
+            write_json(
+                publication_dir
+                / (
+                    "publication_validation_terminal_best_"
+                    f"{terminal_round:02d}.json"
+                ),
+                publication_validation,
+            )
 
         # Compatibility/latest-terminal-review alias.
         write_json(
