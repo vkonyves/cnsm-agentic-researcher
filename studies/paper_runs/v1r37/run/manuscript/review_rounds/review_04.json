@@ -1,0 +1,24 @@
+{
+  "summary": "Carefully preregistered, well‑logged paired emulation study that executed exactly as planned and produced an auditable, design‑bound null result: under the preregistered shared_initial_candidate generation semantics the guarded repair stage was never exercised and both conditions passed the deterministic oracle for all 200 pairs. The work is reproducible and transparently disclosed, but the paper needs modest, artifact‑resolvable clarifications to avoid misinterpretation of generality and statistical degeneracy.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The preregistered choice of shared_initial_candidate generation semantics makes the treatment comparison uninformative about repair efficacy because both conditions received the identical single candidate per pair; the guarded pipeline could not act (repair calls invoked = 0). This design decision must be highlighted and justified in the main Methods and Abstract (currently noted but not sufficiently emphasized as the cause of the null result).",
+    "The manuscript asserts vendor/protocol stratification and task complexity buckets but does not include a compact, auditable summary (table or brief breakdown) of the actual task counts by vendor, protocol, and complexity in the paper text; readers cannot verify the claimed 'vendor‑diverse' coverage without a short summary table (the data exist in the supplied task manifest).",
+    "The primary inferential reporting (paired bootstrap CI = [0.00,0.00] and McNemar p=1.00) is degenerate in the all‑successes case; the manuscript must explicitly explain the statistical degeneracy, how the bootstrap and McNemar behave in this boundary case, and the interpretational limits that follow (i.e., a ceiling effect driven by design, not evidence of equivalence across broader designs)."
+  ],
+  "required_revisions": [
+    "Add a concise table (≤1 small table) in Methods or Results that gives the preregistered and executed task counts by protocol (BGP/OSPF/ACL/VLAN), vendor (Cisco/Juniper/Arista), and complexity (simple/complex), with a short sentence confirming these numbers are drawn from execution/task_manifest.jsonl (include the manifest path and its SHA‑256 already archived).",
+    "Explicitly justify in Methods (briefly) why shared_initial_candidate semantics were preregistered (intended trade‑offs) and add a clear, prominent statement in the Abstract and Introduction that this semantics produced one model call per pair and therefore identical candidates were evaluated by both conditions, preventing repair invocation (repair calls invoked = 0).",
+    "Add a short paragraph in Results or Threats that explains the statistical degeneracy arising from 0 discordant pairs: why the bootstrap CI is point‑mass [0,0], why McNemar is uninformative here, and that the confirmatory inference is design‑bound (ceiling effect). Cite the analysis artifact files (analysis/paired_contingency_table.csv and analysis/condition_summary.csv) by path and SHA‑256 when making this explanation so readers can verify.",
+    "Where the manuscript currently claims 'vendor‑diverse' or generalizability, amend wording to make clear these claims are limited to the exact preregistered synthetic/emulation pool and the shared_initial semantics; remove or qualify any phrasing that could be interpreted as broader evidence that verifier‑assisted pipelines are ineffective in general."
+  ],
+  "optional_revisions": [
+    "Consider including a one‑paragraph worked example (one representative pair) annotated with exact artifact paths and SHA‑256s (e.g., execution/responses/task-000001-shared-initial.txt and execution/scoring/task-000001-baseline.json) to help reviewers/readers follow the audit trail quickly (artifacts already present).",
+    "Add a brief note recommending that future preregistrations explicitly consider independent vs shared generation as a primary axis and suggest a simple sensitivity analysis (independent generation variant) — label this as future work (do not require new runs).",
+    "If space permits, include the paired_difference_figure.svg as a small inset figure (pointing out all-zero differences) to visually reinforce the ceiling effect."
+  ],
+  "accept_for_finalisation": false
+}

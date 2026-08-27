@@ -1,0 +1,152 @@
+{
+  "selected_candidate_id": "cnd-2026-001",
+  "title": "Verifier-assisted generate→validate→repair to reduce LLM misconfiguration in vendor-diverse emulated NetOps tasks",
+  "research_question": "Does an automated verifier-assisted generate→validate→repair pipeline significantly increase the oracle pass rate (reduce misconfiguration) relative to unconstrained LLM generation across vendor-diverse emulated NetOps intent→configuration tasks?",
+  "confirmatory_hypotheses": [
+    "The verifier-assisted generate→validate→repair pipeline increases the oracle pass rate (paired_success_rate_difference_guarded_minus_baseline) by at least 30% relative (approx. ≥10 percentage-point absolute increase under typical baseline rates) compared to unconstrained LLM generation across the preregistered 200 tasks."
+  ],
+  "exploratory_questions": [
+    "How do improvements vary by vendor (Cisco/Juniper/Arista), protocol (BGP/OSPF/ACL/VLAN), and task complexity (simple/complex)?",
+    "What is the distribution of repair iterations required and wall-clock latency under the repair policy?",
+    "How sensitive are results to validator strictness and repair-prompt phrasing?"
+  ],
+  "benchmark_scope": [
+    "Emulated vendor images and deterministic network simulator (containerized device images) limited to Cisco, Juniper, Arista emulations used in the testbed",
+    "Protocols: BGP, OSPF, ACL, VLAN",
+    "Scope explicitly limited to emulation-based oracle pass/fail; no production-device claims"
+  ],
+  "model_scope": [
+    "Hosted LLM API (single-provider endpoint); exact model identifier will be frozen at experiment start and recorded in the execution manifest (model id, timestamp, provider endpoint, and cryptographic hashes of prompts and outputs)."
+  ],
+  "transformation_scope": [
+    "Deterministic syntactic validator (parser) for vendor configuration syntax",
+    "Deterministic semantic policy-checker (predicate-based rules) for declared policies",
+    "Repair-prompt families (automated constrained prompts that attempt fix suggestions; up to 3 repair iterations)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute and relative improvement in oracle pass rate by vendor and protocol",
+    "Distribution of repair iterations per successful repair",
+    "Latency (median, 95th percentile) to final-passing config"
+  ],
+  "sampling_plan": "Confirmatory sample: 200 paired tasks (each task executed under both conditions: baseline unconstrained generation and verifier-assisted generate→validate→repair). Task stratification and arithmetic: total tasks = 200 broken down by protocol and vendor as follows. Protocol buckets (equal-sized): BGP 50, OSPF 50, ACL 50, VLAN 50 (50*4=200). Within each protocol, vendor allocation is balanced as evenly as possible: Cisco 17, Juniper 17, Arista 16 per protocol (sum per protocol = 50). Summing across protocols yields vendor totals: Cisco 68, Juniper 68, Arista 64 (68+68+64=200). Within each protocol each task is labeled simple (25) or complex (25); therefore total complexity counts = 100 simple, 100 complex. Task_cluster_count (unique vendor×protocol×complexity combinations) = 3 vendors * 4 protocols * 2 complexities = 24 clusters. All 200 tasks are confirmatory paired units.",
+  "analysis_plan": "Primary confirmatory analysis uses the registered analysis executor paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary treatment of failed model calls: 'complete_pair_primary' (primary analysis uses only tasks where both condition calls completed); secondary sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats missing/failed guarded outcomes as failures for conservative estimation. Primary inferential method: paired-proportion (McNemar-style / paired bootstrap implemented inside paired_binary_analysis_v1) to estimate absolute and relative improvement with 95% bootstrap CIs. Mixed-effects logistic regression (exploratory) with fixed effect for condition and random intercepts for task and vendor will be reported but is exploratory (not required by available executor). Subgroup analyses (vendor, protocol, complexity) will be corrected for multiple comparisons using Benjamini–Hochberg FDR.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired estimand (paired_success_rate_difference_guarded_minus_baseline). All subgroup analyses are exploratory and will be reported with FDR correction (Benjamini–Hochberg).",
+  "missingness_plan": "Primary policy: require complete pairs (both condition calls returned an output); tasks where one or both calls failed due to provider/infrastructure failure are excluded from the primary analysis and logged; secondary sensitivity analysis imputes failed guarded outputs as failures (zero pass). All failed calls, API errors, and retries will be recorded in the execution manifest with timestamps and will be reported in result artifacts.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Emulated NetOps generate→validate→repair testbed v1 (preregistered task list and deterministic oracle)"
+    ],
+    "risk_factors": [
+      "Provider/model drift during runs",
+      "Oracle incompleteness (deterministic oracle may not capture every semantic failure mode)",
+      "Validator/repair prompt overfitting to the task set",
+      "Unintended leakage between task prompt variants"
+    ],
+    "detection_procedures": [
+      "Freeze and record model identifier, provider endpoint, API-version, and cryptographic hashes (SHA-256) of each prompt and each model output at call-time to detect drift or repeated-results patterns.",
+      "Automated string-similarity and exact-match checks between outputs and a repository of known training-corpus-replicas (where available) to flag potential verbatim contamination.",
+      "Validator coverage flags: the validator reports which semantic predicate(s) were exercised for each task; tasks for which no semantic predicate triggered are flagged as 'oracle-coverage-ambiguous'."
+    ],
+    "item_flagging_rules": [
+      "If model identifier changes mid-execution, automatically mark affected pairs as 'provider-drift-affected' and exclude from the primary analysis.",
+      "If validator reports 'oracle-coverage-ambiguous' for a task in >10% of runs in a scenario, mark that cluster as low-coverage and report results only in exploratory analyses.",
+      "If identical model outputs are repeated across unrelated tasks (exact match) more than N=3 times, flag for contamination analysis (automated hashing and frequency report)."
+    ],
+    "analysis_treatment": "Pairs flagged as provider-drift-affected are excluded from the primary confirmatory analysis and reported in a separate drift artifact; sensitivity analyses will include them with model-change covariates. Oracle-coverage-ambiguous clusters are retained in exploratory results but annotated; no human adjudication is required—treatment is deterministic flagging and sensitivity reporting.",
+    "residual_uncertainty": [
+      "Oracle blind spots may remain; these are recorded as 'oracle-coverage-ambiguous' and discussed as noncritical external-validity limits",
+      "Model training-corpus contamination inference is probabilistic; definitive provenance cannot be established solely from public artifacts"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended",
+      "description": "Planned, cost-conscious run: 200 paired tasks, expected average 1 repair iteration in guarded condition (empirical expectation), single-provider hosted LLM API, model id frozen at start and recorded. Deterministic validator (no model calls).",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted LLM API (single provider; exact model identifier to be frozen and recorded at run start)"
+      ],
+      "transformations": [
+        "deterministic_syntax_validator_v1",
+        "deterministic_policy_checker_v1",
+        "repair_prompt_family_A_v1 (automated constrained repair prompts; up to 3 iterations allowed)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 24,
+      "feasibility_rationale": "Computation: vanilla condition = 200 calls (one call per task); guarded condition expected calls = 200 * 2 calls average (initial + ~1 repair) = 400; total = 600 model calls. 600 calls fit the capability manifest limit (max planned model calls 10000). Dockerized emulation and deterministic validators run on CPU; hosted API calls are within allowed hosted_model_api_available. No human labor required."
+    },
+    {
+      "scenario_id": "conservative_worstcase",
+      "description": "Worst-case repair iteration scenario: 200 paired tasks, all guarded condition tasks require maximum 3 repair iterations (initial + 3 repairs = 4 calls per guarded task).",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted LLM API (single provider; exact model identifier to be frozen and recorded at run start)"
+      ],
+      "transformations": [
+        "deterministic_syntax_validator_v1",
+        "deterministic_policy_checker_v1",
+        "repair_prompt_family_A_v1 (max 3 repair iterations)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 24,
+      "feasibility_rationale": "Computation: vanilla = 200 calls; guarded worst-case = 200 * 4 = 800 calls; total = 1000 calls. This worst-case remains within capability manifest limits (≤10000 model calls). Wall-clock budget and API rate limits must be respected; run will include automatic backoff and retry logging."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired_binary_analysis_v1)",
+    "target_effect": "Detect relative improvement ≥30% (approx. ≥10 percentage-point absolute increase under plausible baseline range).",
+    "clustering_unit": "task (paired: same task under both conditions).",
+    "calculation_method": "Paired binary analysis implemented by paired_binary_analysis_v1 executor (paired-proportion test via paired bootstrap). Sensitivity computed by simulation/bootstrap inside executor under baseline pass-rate assumptions.",
+    "assumptions": [
+      "Two-sided alpha = 0.05; desired power ≥ 0.8 for primary confirmatory test.",
+      "Baseline (unconstrained) oracle pass rate plausibly in range 30%–60% based on prior prototypes; absolute MDE depends on baseline but simulations indicate n=200 paired units provides >80% power to detect absolute paired increases ≈10 percentage points for baselines in the midpoint of that range.",
+      "Primary analysis uses complete pairs (both calls complete)."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With n=200 paired tasks, the paired_binary_analysis_v1 executor's bootstrap sensitivity analysis indicates an approximate minimum detectable absolute paired increase of ~0.10 (10 percentage points) at 80% power for baseline pass rates near 40%–50%. Exact MDE will be reported by the executor's pre-execution simulation artifact.",
+    "sensitivity_analyses": [
+      "Vary baseline pass rate across 30%/40%/50% in pre-execution simulation to report MDEs.",
+      "Secondary analysis treating failed guarded calls as failures (conservative) to evaluate robustness to API/infrastructure missingness."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "repair_prompt_family_A_v1 (constrained guided repair prompts)",
+      "repair_prompt_family_B_v1 (alternate phrasing for sensitivity)",
+      "deterministic_syntax_validator_v1",
+      "deterministic_policy_checker_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated diff: compare semantic predicates triggered by the policy-checker before and after repair; require that any repaired config that claims to satisfy a predicate actually does so as determined by the deterministic policy-checker.",
+      "Canonicalization: normalize vendor-specific ordering/whitespace and compare normalized ASTs for syntactic equivalence checks where applicable."
+    ],
+    "automatic_rejection_rules": [
+      "If validator still reports syntax or semantic violations after max 3 repair iterations, mark the task as 'repair-failed' and record final output as the guarded-condition outcome (no manual adjudication).",
+      "If repair introduces new validation-flagged predicates not present in the initial output, record and report as 'repair-regression' (automated flagging)."
+    ],
+    "audit_sample_policy": "Automated deterministic sampling: 10% of tasks per protocol×vendor cluster will be revalidated via an independent deterministic checker variant (alternate parser/policy-implementation) to detect validator blind spots. All checks are deterministic; no human audit is required.",
+    "mapping_validation": "All validator rule-sets and repair prompts are published as part of the artifacts and recorded with cryptographic hashes. Mappings from intent templates to expected predicates are preregistered.",
+    "residual_risks": [
+      "Validator/predicate blind spots (oracle coverage) remain possible; flagged clusters will be reported as 'oracle-coverage-ambiguous'.",
+      "Automated audit-checker is not a human oracle and may not capture some real-world semantic consequences; this is a bounded limitation."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator-to-hardware fidelity: emulated vendor images may not capture all production-device behaviors; conclusions are explicitly bounded to the emulated testbed.",
+    "Oracle blind spots: deterministic oracle may not capture every semantic operational failure (flagged tasks will be annotated).",
+    "Provider/model nondeterminism: although model id and hashes will be recorded, hosted-provider internals and training-corpus provenance remain external uncertainties."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4399750638",
+    "https://openalex.org/W4413358480",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "doi:10.31224/7995"
+  ]
+}

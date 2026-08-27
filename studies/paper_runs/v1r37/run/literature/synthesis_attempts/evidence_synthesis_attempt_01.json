@@ -1,0 +1,163 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models (LLMs) can be used to generate or synthesize network configuration templates and to translate high-level natural-language intent into low-level network configurations in prototype/benchmark systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "empirical/prototype (benchmarks, emulation, proof-of-concept)",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are primarily on prototypes, benchmarks or emulators rather than production deployments",
+        "Task scope, dataset size, and vendor/device diversity are limited in reported studies",
+        "Reported success varies by task difficulty and prompt/specification quality"
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Constraint-, validator-, or verifier-guided generate→validate→repair workflows measurably improve the correctness or reliability of model-generated artifacts compared to unconstrained generation in reported prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4366835679",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "empirical + methodological (prototype experiments and surveys on verification/validation)",
+      "confidence": 0.75,
+      "limitations": [
+        "Cross-domain evidence includes domains outside networking (e.g., music, SQL) where verifier designs differ",
+        "Scale and heterogeneity of network scenarios tested are limited",
+        "Improvement magnitude depends on validator fidelity and repair-loop design"
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "LLM-driven and agentic systems exhibit recurring failure modes (hallucination, prompt sensitivity, overconfidence/sycophancy, affective misgrounding) that affect operational trustworthiness; mitigation techniques such as secure prompt frameworks and grounding (RAG/validators) are active remedies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388585881",
+        "doi:10.32388/be0zbc",
+        "doi:10.2139/ssrn.7121598",
+        "doi:10.2139/ssrn.6687098",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4403749567",
+        "doi:10.2139/ssrn.6956641"
+      ],
+      "evidence_type": "survey + empirical/observational studies + mitigation framework",
+      "confidence": 0.85,
+      "limitations": [
+        "Failure-mode characterizations span multiple application domains and may differ in operational NetOps contexts",
+        "Mitigation effectiveness depends on implementation details and evaluation rigor"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Whether LLM-generated configurations and intent-translation pipelines are safe, correct, and robust enough for direct deployment across heterogeneous, vendor-diverse production networks remains unresolved.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "inconclusive/prototype-based evidence",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing studies report prototypes, emulation or limited deployments; none present broad production-scale vendor-diverse validation",
+        "Safety and rollback/impact-on-live-traffic evaluations are not comprehensively reported"
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "The effectiveness and operational cost (latency, compute, human oversight burden) of verifier-assisted repair loops when scaled to continuous, real-time NetOps workflows is not established.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4413358480"
+      ],
+      "evidence_type": "partial empirical evidence + surveys (limited-scale prototypes)",
+      "confidence": 0.45,
+      "limitations": [
+        "Existing evaluations show correctness improvements but do not fully quantify runtime/resource costs or human-in-the-loop requirements at operation scale",
+        "Cross-domain verifier evidence may not transfer cleanly to NetOps constraints"
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "There is no consensus on standardized benchmarks, metrics, and evaluation protocols that fully capture operational correctness, safety, and rollback behaviors for agentic LLMs in NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413358480",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4391136507"
+      ],
+      "evidence_type": "survey + position/proposal papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Several proposals and preliminary frameworks exist, but comprehensive, widely adopted benchmarks and shared datasets are not yet established"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A gap exists for open, standardized, reproducible NetOps agent benchmarks and emulation-enabled testbeds that combine failure injection, telemetry, and verifiable oracles for configuration correctness and policy compliance.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413358480",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "community proposal + benchmark/prototype work",
+      "confidence": 0.8,
+      "limitations": [
+        "Prototypes and frameworks have been published, but no single comprehensive benchmark/testbed has emerged as a standard",
+        "Creating full oracles for complex operational correctness (e.g., performance impact, multi-hop safety) is challenging"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Methodological gaps remain in reproducible LLM-for-NetOps experimentation: preregistration, prompt/version tracking, multi-run sensitivity analyses, and artifact release are unevenly practiced.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4410496075",
+        "https://openalex.org/W4403749567",
+        "doi:10.32388/be0zbc"
+      ],
+      "evidence_type": "methodology and reproducibility studies",
+      "confidence": 0.7,
+      "limitations": [
+        "Awareness papers and audits document the issues; adoption of rigorous preregistration and artifact-sharing in NetOps-specific studies is still nascent"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "There is limited cross-disciplinary empirical evidence evaluating bounded/contained agentic architectures (runtime assurance, explicit autonomy boundaries) applied to NetOps with measurable safety guarantees.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6970382",
+        "doi:10.2139/ssrn.6584998",
+        "https://openalex.org/W3203074617",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "conceptual frameworks + prototype analyses + safety surveys",
+      "confidence": 0.6,
+      "limitations": [
+        "Frameworks and architectural proposals exist, but end-to-end empirical validations in operational NetOps settings with quantified safety guarantees are sparse"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready and safe for fully autonomous, unsupervised deployment across heterogeneous enterprise networks (no supplied record reports broad production deployments or comprehensive production-scale safety validation).",
+    "Verifier-assisted repair definitively eliminates hallucination/misconfiguration risk in NetOps (supplied evidence shows improvements in prototypes or other domains but not elimination of risk at production scale).",
+    "Published NetOps LLM studies universally follow rigorous preregistration, multi-run sensitivity analysis, and artifact release best practices (evidence shows uneven adoption and explicit prompt-sensitivity/reproducibility concerns)."
+  ]
+}

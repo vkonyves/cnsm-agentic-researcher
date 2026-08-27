@@ -1,0 +1,149 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-2026-001",
+      "title": "Effectiveness of verifier-assisted generate→validate→repair for reducing misconfiguration across vendor-diverse emulated NetOps tasks",
+      "research_question": "Does an automated verifier-assisted generate→validate→repair pipeline significantly reduce the rate of syntactic and semantic misconfigurations produced by an LLM compared to unconstrained LLM generation in vendor-diverse emulated network scenarios?",
+      "hypotheses": [
+        "A verifier-assisted generate→validate→repair pipeline will reduce the combined syntactic+semantic misconfiguration rate by at least 30% relative to unconstrained LLM generation across a heterogeneous set of vendor-emulation tasks."
+      ],
+      "proposed_design": "Paired, within-task experiment using a curated set of 200 intent-to-configuration tasks stratified by vendor (emulated Cisco/Juniper/Arista), protocol (BGP/OSPF/ACL/VLAN), and complexity. For each task run the same LLM prompt seed under two conditions (1) vanilla generation and (2) generate→validator→repair loop where a deterministic validator flags syntactic errors and semantic policy violations and a constrained repair prompt attempts automated fixes. Emulation executed in an isolated testbed (containerized device images + deterministic network simulator). Record final configuration, validator flags, repair iterations, wall-clock latency, and whether the resulting config passes a ground-truth oracle (emulator-applied verification script and policy-checker). Preregister task list, validator rules, stopping rules (max 3 repair iterations), random seeds, and retry policy.",
+      "expected_data": "Per-task records: initial LLM output, validator-detected faults (syntactic, semantic), number of repair iterations, final configuration, oracle pass/fail (binary), time-to-final, compute usage (API calls), and per-vendor breakdown. Aggregated misconfiguration rates by condition, per-task complexity, and per-vendor.",
+      "primary_outcome": "Difference in oracle pass rate (proportion of tasks whose final configuration passes the oracle) between verifier-assisted and unconstrained conditions; target detectability: ≥30% relative improvement.",
+      "analysis_outline": "Compute paired differences in oracle pass (paired proportion test / McNemar or paired bootstrap for proportions). Estimate absolute and relative improvements with 95% bootstrap confidence intervals. Fit mixed-effects logistic regression predicting oracle pass with fixed effect for condition and random intercepts for task and vendor; report p-values and effect sizes. Perform subgroup analyses by vendor and task complexity; correct for multiple comparisons using Benjamini–Hochberg FDR.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4413358480"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Validator oracle incompleteness (oracle may not capture all semantic failure modes)",
+        "Emulator-device mismatch to production vendor behavior",
+        "LLM repair loops introducing subtle policy-compliant but unsafe configs",
+        "Resource/latency escalation causing impractical operational cost",
+        "Overfitting experiment-specific validator rules"
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "cnd-2026-002",
+      "title": "Runtime cost and latency trade-offs of verifier-assisted repair loops for near-real-time NetOps workflows",
+      "research_question": "What are the latency, API-call, and compute cost implications of adding verifier-assisted repair loops to LLM-driven configuration generation when applied to near-real-time NetOps tasks, and do these costs permit practical deployment under bounded latency budgets?",
+      "hypotheses": [
+        "Verifier-assisted repair loops increase median per-task latency and API-call counts by more than 2× compared to single-shot generation, potentially exceeding typical near-real-time NetOps latency budgets (e.g., 2s–10s) for a nontrivial fraction of tasks."
+      ],
+      "proposed_design": "Controlled measurement experiment using the same curated task set as Candidate 1 but focused on latency-sensitive tasks (n=150) such as ACL updates and route announcements. For each task evaluate: single-shot LLM generation, generate→validate (single verification, no repair), and generate→validate→repair (up to 3 repairs). Use identical model endpoints, measure wall-clock latency end-to-end (prompt+model+validator+repair loops), number of model calls per task, and compute cost estimates (provider-priced cost per token/call). Define deployment viability thresholds (e.g., median latency <5s and 95th percentile <15s). Preregister measurement scripts, seeds, and cost-calculation method.",
+      "expected_data": "Per-task timing traces (timestamps for each model call and validator action), total model calls, token counts, total estimated operational cost per task, distribution of latencies for each condition, and proportion of tasks exceeding viability thresholds.",
+      "primary_outcome": "Proportion of tasks meeting predefined latency viability thresholds under verifier-assisted repair versus single-shot generation; quantified median and 95th percentile latency and cost multipliers.",
+      "analysis_outline": "Report descriptive latency/cost distributions and compute median ratios. Use paired Wilcoxon signed-rank tests for latency and cost comparisons. Bootstrap 95% CIs for median and 95th percentile. Model predictors of high-latency runs via logistic regression (features: task complexity, vendor, number of repair iterations). Sensitivity analysis varying max repair iterations and validator budget limits.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "doi:10.31224/7995",
+        "https://openalex.org/W4413358480"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Provider API variability and rate limits affecting latency estimates",
+        "Cost estimates depend on provider pricing changes",
+        "Emulated timing may differ from integrated deployment latencies",
+        "Repair loops may have highly skewed tail latency from rare multi-iteration cases"
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cnd-2026-003",
+      "title": "Design and validation of an open emulation-enabled NetOps benchmark with verifiable oracles for configuration correctness and rollback (NetOps-Oracle prototype)",
+      "research_question": "Can a reproducible, open benchmark combining emulated devices, failure injection, telemetry, and machine-verifiable oracles be constructed that exposes meaningful differences in operational correctness and rollback behaviors among LLM-driven NetOps interventions?",
+      "hypotheses": [
+        "An emulation-enabled benchmark with deterministic oracles and injected failure modes will produce measurable, reproducible differences in oracle pass rates and rollback success across LLM pipeline variants, and will be shareable as an artifact enabling independent verification by third parties."
+      ],
+      "proposed_design": "Develop a reference benchmark artifact (NetOps-Oracle) composed of: containerized device images for three vendor families, a suite of 100 intent tasks, deterministic failure-injection scenarios (e.g., link flaps, route leaks), telemetry collectors, and a set of machine-verifiable oracles for syntactic correctness, policy compliance, and rollback safety. Run baseline experiments comparing three pipeline variants: unconstrained LLM, verifier-assisted repair, and guarded agent with explicit rollback check. Verify reproducibility via 10 repeated runs per task with fixed seeds. Package dataset, emulator scripts, validator rules, and evaluation harness; publish artifact and run reproducibility checks (hashes, seed logs).",
+      "expected_data": "Benchmark artifact files, emulator run logs, oracle pass/fail traces, rollback success/failure counts under injected faults, reproducibility verification hashes, and example baseline result tables comparing pipeline variants.",
+      "primary_outcome": "Release of a validated benchmark artifact accompanied by reproducibility verification (hashes) and demonstration results that show statistically significant differences among pipeline variants on oracle pass and rollback metrics.",
+      "analysis_outline": "Validate reproducibility by computing run-to-run variance and intraclass correlation coefficients (ICC) for oracle pass rates. Compare pipeline variants with chi-squared tests for independence and estimate effect sizes. Document failure modes where oracles disagree with human inspection. Provide artifact integrity checksums and a machine-readable manifest of seeds and configs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4413358480",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Creating fully comprehensive oracles is infeasible for all failure modes",
+        "Artifact may omit vendor behaviors present in real hardware",
+        "Publishing emulation images may have licensing constraints",
+        "Benchmark could be gamed by overfitting to oracle specifics"
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnd-2026-004",
+      "title": "Prompt sensitivity and reproducibility study for intent-to-configuration translation with preregistered prompts and multi-run analysis",
+      "research_question": "How sensitive are LLM-generated network configurations to prompt phrasing, prompt-length constraints, and random seed variability, and can preregistration plus standardized prompt templates materially reduce output variance and improve reproducibility?",
+      "hypotheses": [
+        "Standardized, preregistered prompt templates will reduce inter-run variance in configuration outputs and increase oracle pass reproducibility (measured by ICC) compared to ad-hoc prompt formulations; however, some prompt-sensitive failures will persist across templates for complex tasks."
+      ],
+      "proposed_design": "Multi-factor experiment with 120 tasks covering low/medium/high complexity. Factors: (A) prompt style (free-form intent vs. structured template vs. constrained template), (B) temperature/random-seed settings (3 levels), and (C) model size/interface held constant. For each cell run 10 independent seeds to measure variability. Preregister all templates, seeds, selection rules, and scoring procedures. Evaluate outputs with the same emulation oracle used in other candidates and measure configurational edit-distance, semantic violation counts, and oracle pass rates. Compute reproducibility metrics across runs and templates.",
+      "expected_data": "Per-run outputs for each seed and condition, edit-distance matrices, oracle pass rates, variance components (between-template, within-template), ICCs, and examples of prompt-induced failure modes.",
+      "primary_outcome": "Quantified reduction in inter-run variance (ICC increase) and improvement in oracle pass reproducibility attributable to preregistered structured prompts versus free-form prompts.",
+      "analysis_outline": "Use variance-component analysis (random-effects ANOVA) to partition variance attributable to prompt style, seed, and task. Compute ICCs per condition and compare with bootstrap CIs. Use paired comparisons to test whether structured templates significantly reduce variance (permutation tests). Report representative failure-case exemplars and compute effect sizes for practical significance.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4410496075",
+        "https://openalex.org/W4403749567",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4388585881"
+      ],
+      "risks": [
+        "Templates may bias model outputs and obscure generalizability",
+        "Measured reductions in variance may not translate to production settings",
+        "Multiple comparisons across factors may inflate false positives if not corrected",
+        "Some prompt sensitivities may depend on model updates beyond experiment control"
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "cnd-2026-005",
+      "title": "Evaluating bounded agentic NetOps workflows: effectiveness of explicit autonomy boundaries and rollback controls in preventing unsafe changes",
+      "research_question": "Do bounded agentic workflows that enforce explicit autonomy constraints (action whitelists, mandatory validator checkpoints, and automated rollback hooks) reduce the incidence of unsafe or irreversible network changes produced by LLM-driven agents compared to unconstrained agentic workflows?",
+      "hypotheses": [
+        "Agentic NetOps workflows that enforce explicit autonomy boundaries and mandatory validator checkpoints will produce a lower rate of unsafe or irreversible changes (measured by rollback need and rollback failure rate) than unconstrained agentic workflows, with a statistically significant reduction in unsafe-change incidence. "
+      ],
+      "proposed_design": "Simulated agentic workflow experiment using an agent orchestration harness that issues multi-step change plans (discovery→plan→execute). Implement two agent variants: (A) unconstrained agentic planner that can propose and apply multi-step changes, and (B) bounded agent enforcing action whitelists, stepwise validator approvals, and automated rollback hooks. Run 150 scenarios including injected edge failures and change conflicts. Track proposed plans, applied steps, detected unsafe states, rollback triggers, and rollback success. Preregister autonomy-boundary rules, whitelist policies, and rollback semantics.",
+      "expected_data": "Per-scenario logs of plan proposals, applied actions, validator approvals, safety violations detected, rollback occurrences, rollback success/failure, time-to-restore, and human-intervention flag (simulated). Aggregated unsafe-change incidence and rollback effectiveness metrics by condition.",
+      "primary_outcome": "Incidence rate of unsafe or irreversible changes (defined by scenarios requiring rollback where rollback fails or causes additional failures) in bounded vs. unconstrained agentic workflows; expected reduction in unsafe incidence for bounded agents.",
+      "analysis_outline": "Compare unsafe-change incidence rates with Fisher's exact test or chi-squared test depending on counts. Estimate relative risk reduction and 95% CIs. Time-to-restore compared using survival analysis (Kaplan–Meier) if appropriate. Analyze root causes of rollback failures with qualitative coding and report frequencies. Sensitivity analyses varying whitelist strictness and validator strictness.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6970382",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4403749567",
+        "https://openalex.org/W4388585881"
+      ],
+      "risks": [
+        "Simulated safety may not capture real-world irreversible failure modes",
+        "Whitelist and rollback rules may be overconservative and block safe operations",
+        "Agent orchestration implementation bugs could confound safety measurements",
+        "Ethical considerations if transferring findings to live networks without further validation"
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

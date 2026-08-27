@@ -1,0 +1,120 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-2026-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Oracle incompleteness for semantic failures may bias results",
+        "Emulator-device fidelity vs. real hardware not fully addressed",
+        "Validator design is a major intervention and may confound attribution to the LLM",
+        "Risk of overfitting validator/repair prompts to the task set",
+        "Potential for LLM/provider drift across runs"
+      ],
+      "required_design_repairs": [
+        "Precisely specify oracle coverage and include human spot-checks for oracle disagreements",
+        "Publish validator rule-set and repair prompts; preregister them",
+        "Include sensitivity analysis varying validator strictness and repair prompt phrasing",
+        "Log model-version, timestamps, and hashes to detect provider drift; freeze model identifier if possible",
+        "Define and report exclusions and retry-policy clearly"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Latency/cost estimates are highly sensitive to provider variability and rate limits",
+        "Single-provider measurement risks non-generalizable conclusions",
+        "Tail latency from rare multi-iteration repairs can dominate viability metrics",
+        "Timing measured in emulation may not reflect integrated deployment latencies"
+      ],
+      "required_design_repairs": [
+        "Measure across multiple providers/endpoints or simulate provider variability",
+        "Include rate-limit/backoff modeling and document API variability handling",
+        "Report full latency distributions, emphasize tail behavior, and perform sensitivity to max repair iterations",
+        "Preregister cost-calculation method and provider pricing snapshot; snapshot model versions"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-003",
+      "novelty": 1.0,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.9,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Licensing and redistribution of vendor images may block artifact release",
+        "Defining comprehensive machine-verifiable oracles for complex behaviors is hard and may miss important failure modes",
+        "Risk of benchmark being gamed / overfitting to oracle specifics",
+        "Engineering effort to produce and validate reproducible emulation may exceed available runtime budget"
+      ],
+      "required_design_repairs": [
+        "Specify licensing plan and provide minimal, fully open-device images or synthetic models to avoid IP issues",
+        "Define oracle scope explicitly and include a documented human-audit protocol for oracle disagreements",
+        "Provide artifact integrity checks, simple reproduction quickstart, and CI-style reproducibility tests",
+        "Document known oracle blind spots and recommend how third parties can extend or verify them"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-004",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Multiple comparisons risk across prompt templates, seeds, and complexity levels",
+        "Template design may bias outputs and reduce generalizability",
+        "Choice of reproducibility metrics (e.g., edit-distance vs. oracle pass) may affect conclusions"
+      ],
+      "required_design_repairs": [
+        "Preregister templates and justify their design; include examples",
+        "Apply multiple-comparison corrections and report effect sizes with CIs",
+        "Report both syntactic/semantic metrics and illustrative failure exemplars to contextualize numeric results",
+        "Include model-version locking and seed logs to ensure reproducibility"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cnd-2026-005",
+      "novelty": 0.9,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Defining 'unsafe' and 'irreversible' states requires careful operationalization to avoid subjective labeling",
+        "Agent orchestration bugs could masquerade as safety failures if not instrumented",
+        "Simulated rollback behavior may not reflect complexities of real systems (state, side-effects)",
+        "Bounded-agent policies (whitelists) may be overconservative and reduce utility"
+      ],
+      "required_design_repairs": [
+        "Provide precise, operational definitions and checklists for unsafe/irreversible outcomes",
+        "Instrument agent harness heavily and include unit tests to separate orchestration bugs from agent logic failures",
+        "Simulate a variety of rollback semantics and include human-reviewed ground truth for ambiguous cases",
+        "Report utility trade-offs (blocked safe actions) alongside safety metrics and preregister whitelist/validator rules"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

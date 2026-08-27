@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, fully artifact-backed preregistered paired emulation study that transparently reports a design-bound null result: because generation semantics were preregistered as shared_initial_candidate, the same generated candidate was used for both conditions in every pair and the guarded (repair) path was never invoked. Execution, scoring, and analysis artifacts (with hashes) are complete and reproducible. The manuscript is generally sound and clear but needs a small set of artifact-resolvable clarifications and stronger, explicit framing to avoid overinterpretation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The preregistered generation semantics (shared_initial_candidate) make the preregistered primary confirmatory contrast effectively untestable in this run because the guarded repair stage was never exercised; the manuscript must more explicitly acknowledge that the primary hypothesis could not be evaluated as originally intended and must avoid language that could be read as a general negative assessment of verifier-assisted pipelines beyond this design-bound outcome.",
+    "The paper's title and abstract risk being interpreted as a broader negative result about verifier-assisted repair; they must be edited to emphasize the design-bound/ceiling-effect nature of the null outcome (resolvable by manuscript revision using supplied artifacts).",
+    "The Methods currently do not provide a clear, artifact-backed rationale for choosing shared_initial_candidate semantics for generation; the manuscript must add an explicit justification and discuss why that choice was preregistered and how it constrained observable effects."
+  ],
+  "required_revisions": [
+    "Add a concise, unambiguous statement in the abstract and the Introduction that the preregistered generation semantics (shared_initial_candidate) prevented independent sampling and therefore made the guarded repair path untestable in this run (reference the execution manifest and the analysis/paired_contingency_table.csv artifact and its hash). This must explicitly frame the result as a design-bound null outcome rather than a general failure of verifier-assisted pipelines (textual change only; no new experiments).",
+    "In Methods, add a short, artifact-referenced justification for selecting shared_initial_candidate generation semantics (cite the preregistration SHA-256) and explicitly state the expected consequences for detectability of repair benefits. Point readers to execution/model_configuration.json and the provider-call traces demonstrating one shared generation per pair (sha256 references already in the artifact bundle).",
+    "In Results and Threats-to-Validity, add a clear statement that the preregistered primary estimand (paired_success_rate_difference_guarded_minus_baseline) cannot detect improvement when baseline and guarded outcomes are identical for every pair; cite the exact artifacts (analysis/paired_contingency_table.csv and analysis/condition_summary.csv with their hashes) and report that repair calls invoked = 0 with supporting scorer/validator traces (execution/scoring/*). This should include an explicit sentence noting the planned effect-size threshold in the preregistration and why it was not testable given the ceiling effect (no new analysis required—refer to existing analysis artifacts)."
+  ],
+  "optional_revisions": [
+    "Include a short exploratory table or paragraph (artifact-referenced) summarizing per-protocol and per-vendor outcomes from the existing scoring artifacts to enrich interpretation (these files appear to exist in the bundle).",
+    "Discuss more concretely how an independent-generation variant (reusing existing artifacts to show the practical difference in generation call counts and where someone should change only the generation semantics) could be run by others using the released artifacts—i.e., provide precise directions for re-execution using the provided manifests (textual guidance only).",
+    "Soften any remaining language in Discussion and Conclusion that could be read as implying general ineffectiveness of guarded pipelines; instead emphasize methodological lesson and next-step recommendations already present."
+  ],
+  "accept_for_finalisation": false
+}

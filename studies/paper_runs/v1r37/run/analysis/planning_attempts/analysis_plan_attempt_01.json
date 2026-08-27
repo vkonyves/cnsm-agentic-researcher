@@ -1,0 +1,28 @@
+{
+  "study_id": "study-cnd-2026-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Run paired_binary_analysis_v1 on the completed paired episodes (result schema paired_binary_episode_v1) using the preregistered complete-pair policy: include only tasks for which both baseline and guarded episodes completed and are not flagged provider-drift-affected. Compute the confirmatory estimand paired_success_rate_difference_guarded_minus_baseline (guarded_rate − baseline_rate). Inferential method: executor-implemented paired bootstrap (95% bootstrap CI) and two-sided test as implemented in paired_binary_analysis_v1. Report N_pairs, baseline_rate, guarded_rate, absolute_difference, 95% CI, and p-value. All inputs taken from execution/raw_results.jsonl and execution/scoring/*.json per the execution manifest.",
+  "secondary_analyses": [
+    "Absolute and relative improvement in oracle pass rate by vendor (Cisco/Juniper/Arista) and by protocol (BGP/OSPF/ACL/VLAN) using the preregistered subgroup allocations (report subgroup N, baseline_rate, guarded_rate, absolute_difference).",
+    "Distribution of repair iterations per task (counts, median, IQR) and fraction of successful repairs (guarded condition) using validator/repair fields in paired episodes.",
+    "Latency summaries: median and 95th-percentile wall-clock latency to final-passing configuration per condition (baseline vs guarded) and per protocol, computed from per-call timestamps in the execution manifest."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (per preregistration): repeat primary analysis treating missing/failed guarded outcomes as failures (zero pass) and report impact on estimand and CI)."
+  ],
+  "uncertainty_quantification": "95% paired bootstrap confidence intervals produced by paired_binary_analysis_v1 (executor-implemented paired bootstrap per preregistration). Report exact bootstrap CI bounds and two-sided p-value for the primary estimand; report CIs or quantiles for secondary summaries (median, IQR, 95th pct).",
+  "multiplicity_implementation": "Primary confirmatory inference is the single paired estimand (paired_success_rate_difference_guarded_minus_baseline). All subgroup and secondary analyses are exploratory and will be reported as such; exploratory subgroup p-values will be annotated and adjusted using Benjamini–Hochberg FDR per the preregistration.",
+  "contamination_analysis": "Follow preregistered contamination_plan: (1) Detection procedures: freeze and record model identifier/provider/API-version and record SHA-256 hashes of each prompt and model output (already in execution manifest); automated exact-match/hash-frequency checks across outputs to detect repeated verbatim outputs; automated string-similarity checks versus known public-corpus replicas where available; record validator coverage flags (validator predicates exercised) and mark oracle-coverage-ambiguous when no semantic predicate triggered. (2) Item-flagging rules: if model identifier changes mid-run mark affected pairs 'provider-drift-affected' (exclude from primary); if oracle-coverage-ambiguous >10% in a cluster mark cluster low-coverage and restrict to exploratory reporting; if identical outputs occur >3 times across unrelated tasks flag for contamination. (3) Analysis treatment: exclude provider-drift-affected pairs from primary analysis and report them separately; include them in sensitivity analyses with model-change covariate if reported. (4) Residual uncertainty: record and report oracle blind spots (oracle-coverage-ambiguous) and probabilistic contamination indicators; no definitive provenance claims will be made.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory summary: N_complete_pairs, baseline pass rate, guarded pass rate, absolute paired difference (guarded−baseline), 95% bootstrap CI, two-sided p-value (paired bootstrap). Source: execution/scoring/task-*.json and execution/raw_results.jsonl.",
+    "Table 2 — Subgroup summary: per vendor and per protocol (and protocol×vendor small table): N, baseline_rate, guarded_rate, absolute_difference, unadjusted p-value, BH-FDR-adjusted q-value. Source: execution/scoring/*.json.",
+    "Table 3 — Repair outcomes and iterations: counts of initial-pass (no repair needed), repaired-to-pass (1 repair), failed-after-repair; distribution (median, IQR) of repair-iteration counts for successful repairs. Source: validator and repair fields in paired_binary_episode_v1 scoring JSONs."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Grouped bar chart: pass rates by condition (baseline, guarded) stratified by vendor and protocol (bars grouped by vendor, colored by condition). Data from execution/scoring/*.json.",
+    "Figure 2 — Histogram/CDF of repair-iteration counts (guarded condition) and inset table: fraction repaired vs initial-pass vs failed-after-repair. Data from repair-iteration fields in scoring JSONs.",
+    "Figure 3 — Task-level paired differences waterfall (sorted per-task paired outcome: guarded_pass−baseline_pass binary difference aggregated across tasks) annotated by protocol and vendor to visualize heterogeneity. Source: paired episodes from execution/raw_results.jsonl and scoring JSONs."
+  ]
+}

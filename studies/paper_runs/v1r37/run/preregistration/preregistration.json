@@ -1,0 +1,81 @@
+{
+  "study_id": "study-cnd-2026-001",
+  "title": "Verifier-assisted generate→validate→repair to reduce LLM misconfiguration in vendor-diverse emulated NetOps tasks",
+  "research_question": "Does an automated verifier-assisted generate→validate→repair pipeline significantly increase the oracle pass rate (reduce misconfiguration) relative to unconstrained LLM generation across vendor-diverse emulated NetOps intent→configuration tasks?",
+  "confirmatory_hypotheses": [
+    "The verifier-assisted generate→validate→repair pipeline increases the oracle pass rate (paired_success_rate_difference_guarded_minus_baseline) by at least 30% relative (approx. ≥10 percentage-point absolute increase under typical baseline rates) compared to unconstrained LLM generation across the preregistered 200 tasks."
+  ],
+  "exploratory_questions": [
+    "How do improvements vary by vendor (Cisco/Juniper/Arista), protocol (BGP/OSPF/ACL/VLAN), and task complexity (simple/complex)?",
+    "What is the distribution of repair iterations required and wall-clock latency under the repair policy?",
+    "How sensitive are results to validator strictness and repair-prompt phrasing?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4399750638",
+    "https://openalex.org/W4413358480",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "doi:10.31224/7995"
+  ],
+  "benchmark_scope": [
+    "Emulated vendor images and deterministic network simulator (containerized device images) limited to Cisco, Juniper, Arista emulations used in the testbed",
+    "Protocols: BGP, OSPF, ACL, VLAN",
+    "Scope explicitly limited to emulation-based oracle pass/fail; no production-device claims"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute paired success-rate difference: guarded minus baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute and relative improvement in oracle pass rate by vendor and protocol",
+    "Distribution of repair iterations per successful repair",
+    "Latency (median, 95th percentile) to final-passing config"
+  ],
+  "sampling_plan": "Confirmatory sample: 200 paired tasks (each task executed under both conditions: baseline unconstrained generation and verifier-assisted generate→validate→repair). Protocol buckets (equal-sized): BGP 50, OSPF 50, ACL 50, VLAN 50. Within each protocol vendor allocation: Cisco 17, Juniper 17, Arista 16 per protocol. Complexity: within each protocol 25 simple, 25 complex. Total clusters: 3 vendors × 4 protocols × 2 complexities = 24. All 200 tasks are confirmatory paired units.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect relative improvement ≥30% (approx. ≥10 percentage-point absolute increase under plausible baselines). Two-sided alpha = 0.05; desired power ≥0.8. Baseline pass rate assumed plausibly 30%–60%; pre-execution paired_binary_analysis_v1 bootstrap simulation will report MDEs. Recommended scenario: 200 paired tasks (planned model calls ≈600 expected; adapter-constrained maximum_model_calls=400 given selected adapter limits; actual adapter-executed maximum is task_count*2=400). Sensitivity analyses: vary baseline pass rate across 30%/40%/50% and treat failed guarded calls as failures.",
+  "exclusion_rules": [
+    "Pairs where one or both condition calls fail due to provider/infrastructure failure are excluded from the primary analysis (complete-pair primary policy) and logged in the execution manifest.",
+    "Pairs flagged as 'provider-drift-affected' (model identifier change mid-run) are excluded from the primary confirmatory analysis."
+  ],
+  "missingness_plan": "Primary policy: require complete pairs (both condition calls returned an output); tasks where one or both calls failed due to provider/infrastructure failure are excluded from the primary analysis and logged. Secondary sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats missing/failed guarded outcomes as failures (zero pass). All failed calls, API errors, and retries will be recorded with timestamps in the execution manifest.",
+  "analysis_plan": "Primary confirmatory analysis uses the registered analysis executor paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary treatment of failed model calls: 'complete_pair_primary' (primary analysis uses only tasks where both condition calls completed); secondary sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats missing/failed guarded outcomes as failures. Primary inferential method: paired-proportion via paired bootstrap (95% bootstrap CIs) implemented inside paired_binary_analysis_v1. Exploratory mixed-effects logistic regression (condition fixed effect, random intercepts for task/vendor) may be reported as exploratory. Subgroup analyses (vendor, protocol, complexity) are exploratory and corrected using Benjamini–Hochberg FDR.",
+  "multiplicity_plan": "Primary confirmatory test is the single paired estimand (paired_success_rate_difference_guarded_minus_baseline). All subgroup analyses are exploratory and will be reported with Benjamini–Hochberg FDR correction.",
+  "contamination_plan": "{\"benchmark_names\": [\"Emulated NetOps generate→validate→repair testbed v1 (preregistered task list and deterministic oracle)\"], \"risk_factors\": [\"Provider/model drift during runs\", \"Oracle incompleteness (deterministic oracle may not capture every semantic failure mode)\", \"Validator/repair prompt overfitting to the task set\", \"Unintended leakage between task prompt variants\"], \"detection_procedures\": [\"Freeze and record model identifier, provider endpoint, API-version, and SHA-256 hashes of each prompt and model output at call-time to detect drift or repeated-results patterns.\", \"Automated string-similarity and exact-match checks between outputs and a repository of known public training-corpus replicas (where available) to flag potential verbatim contamination.\", \"Validator coverage flags: validator reports which semantic predicate(s) were exercised for each task; tasks with no semantic predicate triggered are flagged 'oracle-coverage-ambiguous'.\"], \"item_flagging_rules\": [\"If model identifier changes mid-execution, mark affected pairs as 'provider-drift-affected' and exclude from primary analysis.\", \"If validator reports 'oracle-coverage-ambiguous' for >10% of runs in a cluster, mark that cluster low-coverage and report only in exploratory analyses.\", \"If identical model outputs are repeated across unrelated tasks (exact match) >3 times, flag for contamination analysis (automated hashing and frequency report).\"], \"analysis_treatment\": \"Pairs flagged as provider-drift-affected are excluded from primary confirmatory analysis and reported separately; sensitivity analyses will include them with model-change covariates. Oracle-coverage-ambiguous clusters are retained in exploratory results but annotated.\", \"residual_uncertainty\": [\"Oracle blind spots may remain and are recorded as 'oracle-coverage-ambiguous'.\", \"Model training-corpus contamination inference is probabilistic; definitive provenance cannot be established solely from public artifacts.\"]}",
+  "stopping_rule": "Execute all planned calls for the 200 paired tasks. If the frozen model identifier (provider/model id/API-version) changes mid-execution, mark affected pairs as 'provider-drift-affected', exclude those pairs from the primary analysis, and do not continue executing remaining planned pairs with a different model identifier; instead pause and record drift events. Otherwise, complete the full preregistered task list.",
+  "planned_outputs": [
+    "Preregistered experiment manifest and frozen prompts",
+    "Execution manifest with per-call hashes and timestamps",
+    "Raw model outputs and validator logs",
+    "Paired_binary_analysis_v1 results and bootstrap CIs",
+    "Manuscript (IEEE CNSM 2026 Agentic AI Researcher short-paper), BibTeX, and five-page PDF",
+    "Public artifact bundle: validators, repair prompts, task list, and hashes"
+  ],
+  "unresolved_critical_issues": []
+}
