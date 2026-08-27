@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from itertools import product
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypeVar
@@ -3930,6 +3931,559 @@ class FinalAutonomousResearchPipeline:
                 / "revised_package.json",
                 revised_manuscript,
             )
+
+        # -------------------------------------------------
+        # Modular evidence-grounded exact-page convergence
+        # -------------------------------------------------
+        #
+        # Whole-manuscript rewriting is an unreliable way to hit a
+        # discrete LaTeX page boundary. If the scientifically complete
+        # manuscript is still underfilled here, generate independent
+        # evidence-grounded expansion variants for selected scientific
+        # sections. Only the requested section is extracted from each
+        # model response. Deterministic code then compiles combinations
+        # and selects the richest publication-valid exact-page result.
+        #
+        # This is a presentation/convergence operation only:
+        # - no new experiments;
+        # - no new analyses;
+        # - no invented evidence/statistics/references;
+        # - no IEEE template manipulation.
+        modular_maximum_pages = (
+            publication_validation.get("maximum_pages")
+            if publication_validation is not None
+            else None
+        )
+        modular_page_count = (
+            publication_validation.get("page_count")
+            if publication_validation is not None
+            else None
+        )
+
+        if (
+            publication_validation is not None
+            and publication_validation.get("compile_status")
+            == "passed"
+            and isinstance(modular_page_count, int)
+            and isinstance(modular_maximum_pages, int)
+            and modular_page_count < modular_maximum_pages
+        ):
+            modular_dir = (
+                run_dir
+                / "manuscript"
+                / "modular_page_search"
+            )
+            modular_dir.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            # Use the strongest under-limit manuscript already selected
+            # by the ordinary format loop as the immutable base.
+            modular_base_manuscript = revised_manuscript
+            modular_base_dump = (
+                modular_base_manuscript.model_dump()
+            )
+
+            modular_sections = (
+                "methodology",
+                "results",
+                "discussion",
+                "related_work",
+            )
+
+            # 0 means retain the base section.
+            # 1 and 2 are independently generated medium/full variants.
+            modular_variants: dict[
+                str,
+                dict[int, str],
+            ] = {}
+
+            modular_generation_report: dict[str, Any] = {
+                "base_page_count": modular_page_count,
+                "maximum_pages": modular_maximum_pages,
+                "sections": {},
+            }
+
+            for modular_section in modular_sections:
+                base_section_text = str(
+                    modular_base_dump[
+                        "sections"
+                    ][modular_section]
+                )
+                base_section_words = len(
+                    base_section_text.split()
+                )
+
+                modular_variants[modular_section] = {
+                    0: base_section_text,
+                }
+
+                modular_generation_report[
+                    "sections"
+                ][modular_section] = {
+                    "base_words": base_section_words,
+                    "variants": {},
+                }
+
+                for modular_variant_level in (1, 2):
+                    if modular_variant_level == 1:
+                        modular_variant_instruction = (
+                            "Expand ONLY the "
+                            f"{modular_section} section with a moderate "
+                            "amount of distinct, substantive scientific "
+                            "detail supported by the supplied archived "
+                            "evidence and completed analysis. Preserve the "
+                            "scientific meaning and all existing supported "
+                            "content in that section. Aim for roughly "
+                            "1.35 to 1.55 times the current section's "
+                            "substantive content. Do not modify the abstract, "
+                            "other sections, references, disclosure, title, "
+                            "figures, tables, empirical findings, or claims. "
+                            "Do not add filler or repetition. Do not invent "
+                            "experiments, data, statistics, citations, "
+                            "implementation facts, or examples."
+                        )
+                    else:
+                        modular_variant_instruction = (
+                            "Expand ONLY the "
+                            f"{modular_section} section substantially with "
+                            "distinct technical material supported by the "
+                            "supplied archived evidence and completed "
+                            "analysis. Preserve all existing supported "
+                            "content in that section. Aim for roughly "
+                            "1.65 to 1.90 times the current section's "
+                            "substantive content. Prefer concrete methodology, "
+                            "execution semantics, quantitative interpretation, "
+                            "artifact-grounded diagnostics, reproducibility "
+                            "details, threats to validity, operational "
+                            "implications, or verified related-work detail "
+                            "appropriate specifically to this section. "
+                            "Do not modify the abstract, other sections, "
+                            "references, disclosure, title, figures, tables, "
+                            "empirical findings, or claims. Do not add filler "
+                            "or repetition and do not invent evidence."
+                        )
+
+                    generated_variant = await run_agent(
+                        MANUSCRIPT_REVISER,
+                        {
+                            "master_prompt": master_prompt,
+                            "verified_records": records,
+                            "evidence_verification": (
+                                evidence_report
+                            ),
+                            "preregistration": (
+                                preregistration.model_dump()
+                            ),
+                            "execution_manifest": (
+                                execution_manifest
+                            ),
+                            "analysis_results": (
+                                analysis_results
+                            ),
+                            "deterministic_reconciliation": (
+                                deterministic_reconciliation
+                            ),
+                            "manuscript_evidence_bundle": (
+                                manuscript_evidence_bundle
+                            ),
+                            "manuscript": (
+                                modular_base_manuscript
+                                .model_dump()
+                            ),
+                            "peer_review": (
+                                latest_peer_review.model_dump()
+                            ),
+                            "publication_validation": (
+                                publication_validation
+                            ),
+                            "revision_round": (
+                                "modular_page_search_"
+                                f"{modular_section}_"
+                                f"{modular_variant_level}"
+                            ),
+                            "revision_instruction": (
+                                modular_variant_instruction
+                            ),
+                        },
+                        expected_type=ManuscriptPackage,
+                        stage_name=(
+                            "Modular manuscript expansion "
+                            f"{modular_section} "
+                            f"variant {modular_variant_level}"
+                        ),
+                    )
+
+                    write_json(
+                        modular_dir
+                        / (
+                            f"{modular_section}_"
+                            f"variant_{modular_variant_level}.json"
+                        ),
+                        generated_variant,
+                    )
+
+                    generated_dump = (
+                        generated_variant.model_dump()
+                    )
+                    candidate_section_text = str(
+                        generated_dump[
+                            "sections"
+                        ][modular_section]
+                    )
+                    candidate_section_words = len(
+                        candidate_section_text.split()
+                    )
+
+                    accepted_variant = (
+                        candidate_section_words
+                        > base_section_words
+                    )
+
+                    modular_generation_report[
+                        "sections"
+                    ][modular_section][
+                        "variants"
+                    ][
+                        str(modular_variant_level)
+                    ] = {
+                        "words": candidate_section_words,
+                        "accepted": accepted_variant,
+                    }
+
+                    # Critically, ignore every other field from the
+                    # model response. Only the requested section may
+                    # enter the deterministic reservoir.
+                    if accepted_variant:
+                        modular_variants[
+                            modular_section
+                        ][
+                            modular_variant_level
+                        ] = candidate_section_text
+
+            write_json(
+                modular_dir
+                / "generation_report.json",
+                modular_generation_report,
+            )
+
+            # ------------------------------------------------
+            # Deterministic combination search.
+            #
+            # With 4 sections and at most {base, medium, full},
+            # this is <= 3^4 = 81 inexpensive LaTeX compilations.
+            # ------------------------------------------------
+            modular_level_options = [
+                tuple(
+                    sorted(
+                        modular_variants[
+                            section_name
+                        ].keys()
+                    )
+                )
+                for section_name in modular_sections
+            ]
+
+            modular_exact_candidates: list[
+                tuple[
+                    int,
+                    ManuscriptPackage,
+                    dict[str, Any],
+                    tuple[int, ...],
+                ]
+            ] = []
+
+            modular_best_under_manuscript = (
+                modular_base_manuscript
+            )
+            modular_best_under_validation = dict(
+                publication_validation
+            )
+            modular_best_under_pages = modular_page_count
+            modular_best_under_words = (
+                manuscript_section_word_count(
+                    modular_base_manuscript
+                )
+            )
+
+            modular_search_report: list[
+                dict[str, Any]
+            ] = []
+
+            modular_candidate_index = 0
+
+            for modular_levels in product(
+                *modular_level_options
+            ):
+                # Skip the all-base combination; already compiled.
+                if all(
+                    level == 0
+                    for level in modular_levels
+                ):
+                    continue
+
+                modular_candidate_index += 1
+
+                candidate_dump = json.loads(
+                    json.dumps(
+                        modular_base_dump,
+                        ensure_ascii=False,
+                    )
+                )
+
+                for (
+                    section_name,
+                    level,
+                ) in zip(
+                    modular_sections,
+                    modular_levels,
+                    strict=True,
+                ):
+                    candidate_dump[
+                        "sections"
+                    ][section_name] = (
+                        modular_variants[
+                            section_name
+                        ][level]
+                    )
+
+                modular_candidate = (
+                    ManuscriptPackage.model_validate(
+                        candidate_dump
+                    )
+                )
+
+                candidate_output_dir = (
+                    modular_dir
+                    / "compiled_candidates"
+                    / (
+                        f"candidate_"
+                        f"{modular_candidate_index:03d}"
+                    )
+                )
+
+                candidate_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            modular_candidate.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=candidate_output_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                candidate_pages = (
+                    candidate_validation.get(
+                        "page_count"
+                    )
+                )
+                candidate_words = (
+                    manuscript_section_word_count(
+                        modular_candidate
+                    )
+                )
+
+                modular_search_report.append(
+                    {
+                        "candidate_index": (
+                            modular_candidate_index
+                        ),
+                        "levels": {
+                            section_name: level
+                            for section_name, level in zip(
+                                modular_sections,
+                                modular_levels,
+                                strict=True,
+                            )
+                        },
+                        "page_count": candidate_pages,
+                        "section_words": candidate_words,
+                        "passed": (
+                            candidate_validation.get(
+                                "passed",
+                                False,
+                            )
+                        ),
+                    }
+                )
+
+                if (
+                    candidate_validation.get(
+                        "passed"
+                    )
+                    is True
+                    and candidate_pages
+                    == modular_maximum_pages
+                ):
+                    modular_exact_candidates.append(
+                        (
+                            candidate_words,
+                            modular_candidate,
+                            dict(
+                                candidate_validation
+                            ),
+                            modular_levels,
+                        )
+                    )
+
+                elif (
+                    isinstance(candidate_pages, int)
+                    and candidate_pages
+                    <= modular_maximum_pages
+                    and (
+                        candidate_pages
+                        > modular_best_under_pages
+                        or (
+                            candidate_pages
+                            == modular_best_under_pages
+                            and candidate_words
+                            > modular_best_under_words
+                        )
+                    )
+                ):
+                    modular_best_under_manuscript = (
+                        modular_candidate
+                    )
+                    modular_best_under_validation = dict(
+                        candidate_validation
+                    )
+                    modular_best_under_pages = (
+                        candidate_pages
+                    )
+                    modular_best_under_words = (
+                        candidate_words
+                    )
+
+            write_json(
+                modular_dir
+                / "combination_search_report.json",
+                modular_search_report,
+            )
+
+            if modular_exact_candidates:
+                # Among exact-page publication-valid combinations,
+                # select the scientifically richest by substantive
+                # section word count. The LLM does not decide which
+                # combination wins.
+                modular_exact_candidates.sort(
+                    key=lambda item: item[0],
+                    reverse=True,
+                )
+
+                (
+                    modular_selected_words,
+                    modular_selected_manuscript,
+                    modular_selected_validation,
+                    modular_selected_levels,
+                ) = modular_exact_candidates[0]
+
+                revised_manuscript = (
+                    modular_selected_manuscript
+                )
+
+                write_json(
+                    modular_dir
+                    / "selected_exact_candidate.json",
+                    revised_manuscript,
+                )
+
+                write_json(
+                    modular_dir
+                    / "selected_exact_candidate_metadata.json",
+                    {
+                        "levels": {
+                            section_name: level
+                            for section_name, level in zip(
+                                modular_sections,
+                                modular_selected_levels,
+                                strict=True,
+                            )
+                        },
+                        "section_words": (
+                            modular_selected_words
+                        ),
+                        "exact_candidate_count": len(
+                            modular_exact_candidates
+                        ),
+                    },
+                )
+
+                # Re-render selected candidate into the authoritative
+                # publication directory.
+                publication_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            revised_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / "publication_validation_modular_exact.json",
+                    publication_validation,
+                )
+
+                write_json(
+                    run_dir
+                    / "manuscript"
+                    / "revised_package.json",
+                    revised_manuscript,
+                )
+
+            elif (
+                modular_best_under_pages
+                > modular_page_count
+                or (
+                    modular_best_under_pages
+                    == modular_page_count
+                    and modular_best_under_words
+                    > manuscript_section_word_count(
+                        modular_base_manuscript
+                    )
+                )
+            ):
+                # No exact-five combination was found, but never lose
+                # a demonstrably stronger under-limit candidate.
+                revised_manuscript = (
+                    modular_best_under_manuscript
+                )
+
+                publication_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            revised_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / "publication_validation_modular_best_under.json",
+                    publication_validation,
+                )
+
+                write_json(
+                    run_dir
+                    / "manuscript"
+                    / "revised_package.json",
+                    revised_manuscript,
+                )
+
 
         # -------------------------------------------------
         # Protected exact-page submission checkpoint
