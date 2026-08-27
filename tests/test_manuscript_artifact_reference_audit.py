@@ -256,3 +256,40 @@ def test_all_structured_provider_records_are_checked(
     assert "task-000041-repair.json" in text
     assert "task-000127-repair.json" in text
     assert "task-000159-repair.json" in text
+
+
+def test_input_results_hash_is_not_file_hash_claim(
+    tmp_path,
+):
+    results = tmp_path / "analysis" / "results.json"
+    results.parent.mkdir(parents=True)
+    results.write_text(
+        '{"input_results_sha256": "placeholder"}',
+        encoding="utf-8",
+    )
+
+    raw = tmp_path / "execution" / "raw_results.jsonl"
+    raw.parent.mkdir(parents=True)
+    raw.write_text(
+        "{}\n",
+        encoding="utf-8",
+    )
+
+    import hashlib
+
+    raw_sha = hashlib.sha256(
+        raw.read_bytes()
+    ).hexdigest()
+
+    manuscript = manuscript_with_results(
+        "Analysis executor inputs: "
+        "analysis/results.json "
+        f"(input results SHA-256 = {raw_sha})."
+    )
+
+    audit = audit_manuscript_artifact_references(
+        manuscript=manuscript,
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is True

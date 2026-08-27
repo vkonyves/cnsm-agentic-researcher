@@ -1,0 +1,182 @@
+from pathlib import Path
+
+from cnsm_agentic.autonomous_research.final_pipeline import (
+    audit_manuscript_publication_sanity,
+)
+
+
+def _write_final(
+    root: Path,
+    *,
+    tex: str,
+    log: str,
+) -> None:
+    final = root / "manuscript" / "final"
+    final.mkdir(parents=True)
+    (final / "manuscript.tex").write_text(
+        tex,
+        encoding="utf-8",
+    )
+    (final / "manuscript.log").write_text(
+        log,
+        encoding="utf-8",
+    )
+
+
+def test_clean_publication_sanity_passes(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=r"""
+Scientific prose.
+
+\section*{Disclosure Statement}
+Master prompt SHA-256 =
+1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba
+
+\begin{thebibliography}{1}
+\bibitem{x} A verified paper.
+\end{thebibliography}
+""",
+        log="Output written on manuscript.pdf (5 pages).\n",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is True
+
+
+def test_multiple_full_hashes_fail(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=(
+            "a" * 64
+            + "\n"
+            + "b" * 64
+        ),
+        log="",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert audit["metrics"]["full_sha256_count"] == 2
+
+
+def test_large_overfull_hbox_fails(tmp_path):
+    _write_final(
+        tmp_path,
+        tex="Scientific prose.",
+        log=(
+            "Overfull \\hbox "
+            "(56.7887pt too wide) in paragraph\n"
+        ),
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert (
+        audit["metrics"]["significant_overfull_count"]
+        == 1
+    )
+
+
+def test_small_overfull_hbox_is_tolerated(tmp_path):
+    _write_final(
+        tmp_path,
+        tex="Scientific prose.",
+        log=(
+            "Overfull \\hbox "
+            "(1.5pt too wide) in paragraph\n"
+        ),
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is True
+
+
+def test_reviewer_meta_language_fails(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=(
+            "If reviewers require these values, "
+            "we will insert them."
+        ),
+        log="",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert (
+        audit["metrics"]["reviewer_meta_phrase_count"]
+        >= 1
+    )
+
+
+def test_inline_doi_label_fails(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=(
+            "Prior work [1] (DOI:10.1000/example).\n"
+            r"\begin{thebibliography}{1}"
+            "\nReference\n"
+        ),
+        log="",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert audit["metrics"]["inline_doi_label_count"] == 1
+
+
+def test_raw_reproduction_command_fails(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=(
+            "Reproduce with python3 execution/tools/run.py "
+            "--input analysis/results.json\n"
+        ),
+        log="",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert audit["metrics"]["raw_command_count"] >= 1
+
+
+def test_excessive_artifact_paths_fail(tmp_path):
+    paths = " ".join(
+        f"analysis/file_{i}.json"
+        for i in range(9)
+    )
+
+    _write_final(
+        tmp_path,
+        tex=paths,
+        log="",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert audit["metrics"]["artifact_path_count"] == 9

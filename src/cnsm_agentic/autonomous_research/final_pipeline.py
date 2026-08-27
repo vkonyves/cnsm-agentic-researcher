@@ -289,53 +289,42 @@ def audit_manuscript_artifact_references(
         )
 
     # ---------------------------------------------------------
-    # C. Explicit path + SHA-256 assertion.
+    # C. Explicit file-path + SHA-256 assertions.
     #
-    # Resolve each explicit SHA-256 label to the NEAREST
-    # preceding run-relative artifact path in its local context.
-    # This prevents a hash belonging to a later path from being
-    # accidentally associated with an earlier path in the same
-    # sentence or paragraph.
+    # Only interpret a digest as belonging to a file when the
+    # syntax directly attaches "SHA-256" to that exact path.
+    #
+    # Valid examples:
+    #   analysis/results.json SHA-256 = <digest>
+    #   analysis/results.json (SHA-256 = <digest>)
+    #
+    # Deliberately NOT matched:
+    #   analysis/results.json (input results SHA-256 = <digest>)
+    #
+    # The latter describes a digest stored/mentioned inside the
+    # artifact rather than necessarily the artifact's own digest.
     # ---------------------------------------------------------
-    explicit_sha = re.compile(
+    explicit_file_hash_claim = re.compile(
         rf"(?is)"
-        rf"\bSHA[\-\u2010-\u2015 ]*256\b"
+        rf"(?P<path>{path_token})"
+        rf"\s*"
+        rf"(?:"
+        rf"\(\s*"
+        rf"|"
+        rf"[,;:]?\s*"
+        rf")"
+        rf"SHA[\-\u2010-\u2015 ]*256"
         rf"\s*(?:=|:)?\s*"
         rf"(?P<sha>{sha_token})"
     )
 
-    path_finder = re.compile(
-        path_token,
-        flags=re.IGNORECASE,
-    )
-
     seen_hash_pairs: set[tuple[str, str]] = set()
 
-    for sha_match in explicit_sha.finditer(text):
-        # A deliberately short local window. We then use only the
-        # final path occurrence before the SHA label.
-        context_start = max(
-            0,
-            sha_match.start() - 220,
-        )
-        context = text[
-            context_start:sha_match.start()
-        ]
-
-        path_matches = list(
-            path_finder.finditer(context)
-        )
-
-        if not path_matches:
-            continue
-
-        nearest = path_matches[-1]
+    for match in explicit_file_hash_claim.finditer(text):
         relative = normalise_path(
-            nearest.group(0)
+            match.group("path")
         )
 
-        # Do not interpret a directory or wildcard reference as a
-        # one-file/one-hash assertion.
         if (
             relative.endswith("/")
             or "*" in relative
@@ -344,10 +333,11 @@ def audit_manuscript_artifact_references(
             continue
 
         claimed_sha = (
-            sha_match.group("sha").lower()
+            match.group("sha").lower()
         )
 
         key = (relative, claimed_sha)
+
         if key in seen_hash_pairs:
             continue
 
@@ -437,6 +427,252 @@ def audit_manuscript_artifact_references(
         ),
         "checked_hash_claims": checked_hash_claims,
     }
+
+
+
+def audit_manuscript_publication_sanity(
+    *,
+    run_dir: Path,
+    overfull_tolerance_pt: float = 5.0,
+) -> dict[str, Any]:
+    """Deterministic non-scientific publication-quality audit.
+
+    This audit checks final typesetting and manuscript hygiene only.
+    It does not evaluate or alter scientific claims or outcomes.
+    """
+    import re
+
+    final_dir = run_dir / "manuscript" / "final"
+    tex_path = final_dir / "manuscript.tex"
+    log_path = final_dir / "manuscript.log"
+
+    issues: list[str] = []
+    metrics: dict[str, Any] = {
+        "overfull_tolerance_pt": overfull_tolerance_pt,
+        "significant_overfull_count": 0,
+        "maximum_overfull_pt": 0.0,
+        "full_sha256_count": 0,
+        "inline_doi_label_count": 0,
+        "raw_command_count": 0,
+        "artifact_path_count": 0,
+        "reviewer_meta_phrase_count": 0,
+    }
+
+    tex = (
+        tex_path.read_text(encoding="utf-8", errors="replace")
+        if tex_path.exists()
+        else ""
+    )
+    log = (
+        log_path.read_text(encoding="utf-8", errors="replace")
+        if log_path.exists()
+        else ""
+    )
+
+    if not tex_path.exists():
+        issues.append(
+            "Final manuscript TeX source is missing."
+        )
+
+    if not log_path.exists():
+        issues.append(
+            "Final manuscript LaTeX compilation log is missing."
+        )
+
+    # ---------------------------------------------------------
+    # A. Significant column/margin overflow.
+    # ---------------------------------------------------------
+    overfull_pattern = re.compile(
+        r"Overfull \\hbox "
+        r"\((?P<pt>[0-9]+(?:\.[0-9]+)?)pt too wide\)"
+    )
+
+    overfull_values = [
+        float(match.group("pt"))
+        for match in overfull_pattern.finditer(log)
+    ]
+
+    significant = [
+        value
+        for value in overfull_values
+        if value > overfull_tolerance_pt
+    ]
+
+    metrics["significant_overfull_count"] = len(
+        significant
+    )
+    metrics["maximum_overfull_pt"] = (
+        max(overfull_values)
+        if overfull_values
+        else 0.0
+    )
+
+    if significant:
+        issues.append(
+            "Final IEEE manuscript contains "
+            f"{len(significant)} Overfull \\\\hbox warnings "
+            f"greater than {overfull_tolerance_pt:.1f} pt "
+            f"(maximum {max(significant):.3f} pt); "
+            "text may cross column or page margins."
+        )
+
+    # ---------------------------------------------------------
+    # B. Full cryptographic digest pollution.
+    #
+    # One full SHA-256 is allowed for the immutable master
+    # prompt in the mandatory Disclosure Statement. Additional
+    # full digests belong in machine-readable provenance.
+    # ---------------------------------------------------------
+    full_hashes = re.findall(
+        r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])",
+        tex,
+    )
+
+    metrics["full_sha256_count"] = len(full_hashes)
+
+    if len(full_hashes) > 1:
+        issues.append(
+            "Final manuscript contains "
+            f"{len(full_hashes)} full 64-character SHA-256 "
+            "digests; at most the mandatory immutable "
+            "master-prompt disclosure digest is permitted."
+        )
+
+    # ---------------------------------------------------------
+    # C. DOI labels dumped into prose.
+    #
+    # DOI bibliography fields are fine; literal 'DOI:' labels
+    # in manuscript prose are publication metadata pollution.
+    # ---------------------------------------------------------
+    body_before_bibliography = tex.split(
+        r"\begin{thebibliography}",
+        1,
+    )[0]
+
+    inline_doi_labels = re.findall(
+        r"(?i)\bDOI\s*:",
+        body_before_bibliography,
+    )
+
+    metrics["inline_doi_label_count"] = len(
+        inline_doi_labels
+    )
+
+    if inline_doi_labels:
+        issues.append(
+            "Final manuscript contains "
+            f"{len(inline_doi_labels)} inline DOI: label(s) "
+            "before the bibliography; cite literature normally "
+            "and keep DOI metadata in references."
+        )
+
+    # ---------------------------------------------------------
+    # D. Raw command / artifact-path pollution.
+    #
+    # Reproducibility infrastructure belongs in the archived
+    # run, not as shell-command or file-inventory prose in the
+    # scientific manuscript.
+    # ---------------------------------------------------------
+    # Detect command signatures conservatively. We do not
+    # require the entire command to be on one unmodified TeX
+    # source line because rendering may escape punctuation or
+    # insert formatting commands.
+    raw_command_patterns = [
+        r"(?i)\bpython(?:3)?\s+(?:execution|analysis|provenance|manuscript)/",
+        r"(?i)\bjq\s+-[A-Za-z]",
+        r"(?i)\bsha256sum\s+",
+        r"(?i)\bgrep\s+-?[A-Za-z]",
+        r"(?i)\bcurl\s+-?[A-Za-z]",
+    ]
+
+    raw_command_hits: list[str] = []
+
+    for pattern in raw_command_patterns:
+        raw_command_hits.extend(
+            match.group(0)
+            for match in re.finditer(
+                pattern,
+                body_before_bibliography,
+            )
+        )
+
+    metrics["raw_command_count"] = len(
+        raw_command_hits
+    )
+
+    if raw_command_hits:
+        issues.append(
+            "Final manuscript contains raw reproduction "
+            f"command(s) in scientific prose: "
+            f"{len(raw_command_hits)} occurrence(s)."
+        )
+
+    artifact_path_pattern = re.compile(
+        r"(?i)\b(?:execution|analysis|provenance|manuscript)"
+        r"/[A-Za-z0-9_.*/-]+"
+    )
+
+    artifact_paths = artifact_path_pattern.findall(
+        body_before_bibliography
+    )
+
+    metrics["artifact_path_count"] = len(
+        artifact_paths
+    )
+
+    # A few concise artifact references are acceptable.
+    # Large inventories are publication-metadata pollution.
+    if len(artifact_paths) > 8:
+        issues.append(
+            "Final manuscript contains excessive run-relative "
+            f"artifact-path references ({len(artifact_paths)}); "
+            "keep detailed provenance in the archived manifest."
+        )
+
+    # ---------------------------------------------------------
+    # E. Reviewer-response / future-review meta-language.
+    # ---------------------------------------------------------
+    reviewer_meta_patterns = [
+        r"(?i)\breviewers?\s+requested\b",
+        r"(?i)\bif\s+reviewers?\s+(?:require|request|insist)\b",
+        r"(?i)\bwe\s+will\s+(?:insert|add|provide)\b",
+        r"(?i)\berratum[- ]style\b",
+        r"(?i)\bbrief\s+addendum\b",
+    ]
+
+    reviewer_meta_hits: list[str] = []
+
+    for pattern in reviewer_meta_patterns:
+        reviewer_meta_hits.extend(
+            match.group(0)
+            for match in re.finditer(pattern, tex)
+        )
+
+    metrics["reviewer_meta_phrase_count"] = len(
+        reviewer_meta_hits
+    )
+
+    if reviewer_meta_hits:
+        issues.append(
+            "Final manuscript contains reviewer-response or "
+            "future-review meta-language: "
+            + ", ".join(
+                sorted(set(reviewer_meta_hits))
+            )
+        )
+
+    issues = sorted(set(issues))
+
+    return {
+        "status": "passed" if not issues else "failed",
+        "passed": not issues,
+        "issue_count": len(issues),
+        "issues": issues,
+        "metrics": metrics,
+        "tex_path": str(tex_path),
+        "log_path": str(log_path),
+    }
+
 
 
 def _compact_execution_manifest_for_manuscript(
@@ -5861,6 +6097,82 @@ class FinalAutonomousResearchPipeline:
         # -------------------------------------------------
         # 15. Final autonomous readiness judgement
         # -------------------------------------------------
+
+        # -----------------------------------------------------
+        # Deterministic final publication-sanity gate.
+        #
+        # This is deliberately non-scientific: it checks only
+        # typesetting/layout and machine-generated manuscript
+        # hygiene. Scientific outcomes are never modified here.
+        # -----------------------------------------------------
+        publication_sanity_audit = (
+            audit_manuscript_publication_sanity(
+                run_dir=run_dir,
+            )
+        )
+
+        write_json(
+            run_dir
+            / "manuscript"
+            / "final"
+            / "publication_sanity_audit.json",
+            publication_sanity_audit,
+        )
+
+        if publication_sanity_audit.get(
+            "passed"
+        ) is not True:
+            publication_sanity_issues = list(
+                publication_sanity_audit.get(
+                    "issues",
+                    [],
+                )
+            )
+
+            final_report = FinalReadinessReport(
+                ready=False,
+                passed_gates=[
+                    "Autonomous research execution completed",
+                    "Final manuscript compilation completed",
+                ],
+                failed_gates=[
+                    (
+                        "Deterministic manuscript "
+                        "publication-sanity audit failed."
+                    )
+                ],
+                warnings=publication_sanity_issues,
+                final_state=(
+                    "MANUSCRIPT_PUBLICATION_SANITY_AUDIT_FAILED"
+                ),
+            )
+
+            write_json(
+                run_dir
+                / "final_readiness_report.json",
+                final_report.model_dump(
+                    mode="json"
+                ),
+            )
+
+            write_json(
+                run_dir / "state.json",
+                {
+                    "ready": False,
+                    "final_state": (
+                        "MANUSCRIPT_PUBLICATION_SANITY_AUDIT_FAILED"
+                    ),
+                    "failed_gates": [
+                        (
+                            "Deterministic manuscript "
+                            "publication-sanity audit failed."
+                        )
+                    ],
+                    "warnings": publication_sanity_issues,
+                },
+            )
+
+            return final_report
 
         artifact_reference_audit = (
             audit_manuscript_artifact_references(

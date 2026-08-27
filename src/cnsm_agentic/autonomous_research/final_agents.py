@@ -224,6 +224,46 @@ MANUSCRIPT_AUTHOR = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
+        Write a scientific conference paper, not an audit log, provenance
+        report, repository README, reviewer-response letter, or forensic
+        artifact inventory.
+
+        Artifact provenance must remain machine-verifiable in the archived
+        run, but ordinary manuscript prose should report scientific facts
+        rather than cryptographic metadata. Do not print full 64-character
+        SHA-256 digests in the abstract, introduction, related work,
+        methodology, results, discussion, limitations, conclusion, or
+        references. Do not enumerate checksums for result files merely to
+        demonstrate reproducibility. Refer concisely to the archived
+        execution/provenance manifest instead.
+
+        The sole exception is an immutable master-prompt SHA-256 explicitly
+        required by the mandatory Disclosure Statement. Keep that one
+        disclosure hash only when supplied by the evidence bundle.
+
+        Do not place raw reproduction shell commands, jq commands, Python
+        commands, long filesystem paths, JSON field dumps, or provider-call
+        filenames in ordinary scientific prose. Describe the reproducibility
+        procedure scientifically and point to the archived artifact bundle
+        when detailed machine instructions already exist there.
+
+        Do not write DOI identifiers inline in scientific prose merely as
+        provenance. Cite verified literature using normal citation markers;
+        DOI metadata belongs in the bibliography when supplied by the
+        verified reference record.
+
+        Never address future reviewers or auditors in the final manuscript.
+        Remove phrases such as "reviewers requested", "if reviewers require",
+        "if reviewers insist", "auditors can", "we will insert", "addendum",
+        or other response-letter/meta-review language. Resolve the supported
+        issue directly in the paper, or state a scientific limitation.
+
+        Do not claim artifact traceability, forensic provenance, checksums,
+        or cryptographic auditing as scientific novelty unless those are
+        themselves the preregistered research object. Reproducibility
+        infrastructure is supporting material, not a substitute for a
+        scientific contribution.
+
         The final compiled IEEE manuscript should occupy exactly five pages.
         Place the mandatory Disclosure Statement at the end of the manuscript
         body, immediately before the references. The Disclosure Statement and
@@ -280,6 +320,12 @@ PEER_REVIEWER = Agent(
         analyses, statistics, or experiments. Existing artifact hashes and
         archived run paths should be treated as the available reproducibility
         evidence unless a public repository URL is actually supplied.
+        Do not require full hashes, raw artifact paths, shell commands,
+        provider-call filenames, or machine-readable provenance to be copied
+        into the paper body when the archived artifacts already preserve
+        them. Ask for the supported scientific fact or limitation instead.
+        Never require response-letter language such as "reviewers requested"
+        or "if reviewers require" to appear in the final manuscript.
 
         A missing preregistered analysis that cannot be reconstructed from
         existing results should be reported transparently as unexecuted or
@@ -377,6 +423,46 @@ MANUSCRIPT_REVISER = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
+        Write a scientific conference paper, not an audit log, provenance
+        report, repository README, reviewer-response letter, or forensic
+        artifact inventory.
+
+        Artifact provenance must remain machine-verifiable in the archived
+        run, but ordinary manuscript prose should report scientific facts
+        rather than cryptographic metadata. Do not print full 64-character
+        SHA-256 digests in the abstract, introduction, related work,
+        methodology, results, discussion, limitations, conclusion, or
+        references. Do not enumerate checksums for result files merely to
+        demonstrate reproducibility. Refer concisely to the archived
+        execution/provenance manifest instead.
+
+        The sole exception is an immutable master-prompt SHA-256 explicitly
+        required by the mandatory Disclosure Statement. Keep that one
+        disclosure hash only when supplied by the evidence bundle.
+
+        Do not place raw reproduction shell commands, jq commands, Python
+        commands, long filesystem paths, JSON field dumps, or provider-call
+        filenames in ordinary scientific prose. Describe the reproducibility
+        procedure scientifically and point to the archived artifact bundle
+        when detailed machine instructions already exist there.
+
+        Do not write DOI identifiers inline in scientific prose merely as
+        provenance. Cite verified literature using normal citation markers;
+        DOI metadata belongs in the bibliography when supplied by the
+        verified reference record.
+
+        Never address future reviewers or auditors in the final manuscript.
+        Remove phrases such as "reviewers requested", "if reviewers require",
+        "if reviewers insist", "auditors can", "we will insert", "addendum",
+        or other response-letter/meta-review language. Resolve the supported
+        issue directly in the paper, or state a scientific limitation.
+
+        Do not claim artifact traceability, forensic provenance, checksums,
+        or cryptographic auditing as scientific novelty unless those are
+        themselves the preregistered research object. Reproducibility
+        infrastructure is supporting material, not a substitute for a
+        scientific contribution.
+
         The final compiled IEEE manuscript should occupy exactly five pages.
         Place the mandatory Disclosure Statement at the end of the manuscript
         body, immediately before the references. The Disclosure Statement and
@@ -390,10 +476,13 @@ MANUSCRIPT_REVISER = Agent(
         prompt when the immutable archived reference is sufficient.
 
         Address every substantive required revision from peer review that can
-        be supported by the archived artifacts. Do not merely refer reviewers
-        to an artifact when the requested scientific clarification, result,
-        example, diagnostic, or reproducibility information can reasonably be
-        included in the manuscript itself.
+        be supported by the archived artifacts. Incorporate the verified
+        scientific fact itself when it is useful to the paper. Do not turn
+        reviewer requests into manuscript prose and do not add artifact
+        inventories, hashes, commands, paths, or reviewer-response language
+        merely because a reviewer requested more evidence. If the requested
+        detail is only provenance metadata, keep it in the archived artifacts
+        and state the supported scientific fact concisely.
         """
     ),
 )
