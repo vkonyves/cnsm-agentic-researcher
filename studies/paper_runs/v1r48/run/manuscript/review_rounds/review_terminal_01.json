@@ -1,0 +1,21 @@
+{
+  "summary": "Well-executed preregistered paired study with full forensic artifact traceability. Execution and analysis appear reproducible and correctly follow the preregistered plan. The observed baseline error rate was extremely low (1/200), making the preregistered large-effect confirmatory claim inapplicable; the manuscript correctly reports and interprets this. Major reproducibility artifacts (raw results, per-episode scoring JSONs, provider-call audit, hashes) are present. Required changes are editorial/clarifying and resolvable from archived artifacts.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The manuscript omits the deterministically recoverable per-vendor stratified outcome counts and the explicit identifier (episode id and scoring-JSON SHA-256) of the single discordant episode; reviewers requested these values and they are available in the archived artifacts. This omission reduces immediate interpretability and forces auditors to re-derive simple aggregates despite the archive being available."
+  ],
+  "required_revisions": [
+    "Insert an inline, machine-verifiable table (or concise paragraph) that reports per‑vendor observed counts (baseline successes/failures and guarded successes/failures) computed from execution/task_manifest.jsonl + execution/scoring/*.json and include the episode identifier and the scoring-JSON SHA-256 for the single discordant pair so readers can locate the record deterministically (artifacts exist; no new experiment required).",
+    "Explicitly mark preregistered secondary hypothesis H2 as untestable (not merely \"exploratory\") in the Results and Limitations: state that reserved confirmatory testing for H2 could not be executed because guarded residual failures = 0 and therefore H2 remains unexecuted/unassessable in this run. This must be an explicit, unambiguous disclosure in the manuscript text.",
+    "Clarify the Header-Space/verification citation(s) in Related Work so each foundational claim names and cites a specific verified primary source (replace vague parenthetical phrasing with the concrete bibliographic entry present in the evidence bundle or remove the vague phrase)."
+  ],
+  "optional_revisions": [
+    "Add an inline short table listing the repair_applied flag and repair_prompt/provider-trace SHA-256 for any episodes where repair_applied=true (this provides immediate visibility into the single repair without requiring auditors to open JSON files).",
+    "Briefly include a one-paragraph worked example (pointing to the archived scoring JSON) that walks readers through the validator_trace fields (validation_before, validation_after) for the discordant episode to illustrate the artifact format and how semantic violations are encoded.",
+    "Add a short statement recommending a concrete N (or sampling strategy) for future runs aimed specifically at rare-failure regimes, derived from the observed baseline_error=0.005 to aid readers designing follow-up studies."
+  ],
+  "accept_for_finalisation": false
+}

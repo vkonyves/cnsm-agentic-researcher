@@ -1,0 +1,147 @@
+{
+  "selected_candidate_id": "c1_generate_verify_repair_empirical",
+  "title": "Empirical evaluation of generate→verify→repair loops with deterministic network validators (repaired preregistration)",
+  "research_question": "How much does integrating a deterministic network validator into an LLM-driven generate→verify→repair pipeline reduce actionable misconfiguration rates (paired comparison) on a 200-task synthetic multi-vendor NetOps task bank, and what are the dominant residual error types after automated repairs?",
+  "confirmatory_hypotheses": [
+    "H1: Integrating a deterministic validator with automated repair reduces the final actionable misconfiguration rate (proportion) by at least 50% relative to the LLM-only initial output on the same paired task set (primary confirmatory hypothesis; paired estimand).",
+    "H2: Residual actionable errors after automated repair are more likely to be semantic/policy-mismatch errors than syntactic/parse errors (secondary confirmatory hypothesis; descriptive contingency test)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Diminishing returns of up to 3 automated repair attempts (ablation): does additional automated repair beyond the first attempt materially reduce residual actionable errors?",
+    "EQ2: Per-vendor heterogeneity in repair success rates (Cisco-like vs Juniper-like vs RFC-neutral)."
+  ],
+  "benchmark_scope": [
+    "Synthetic multi-vendor task bank (publicly reproducible templates and synthetic topologies)",
+    "Intent-to-configuration tasks only (no on-device execution against production equipment)",
+    "Deterministic validator + simulator checks applied to generated configs"
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) available via the capability manifest (referenced as hosted-llm-api-v1 in execution configs); single-model run for internal consistency (no multi-model generalization claims)."
+  ],
+  "transformation_scope": [
+    "Prompt-to-configuration generation and automated LLM repair prompts derived deterministically from validator output",
+    "Deterministic parsing and vendor-templating transformations for three synthetic vendor families"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion point difference: final-actionable-error_rate_after_repair − initial_actionable_error_rate)",
+  "secondary_estimands": [
+    "Proportion of residual errors by error-type (semantic/policy vs syntactic/parse)",
+    "Repair-success conditional odds ratios by vendor family"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N=200 independent intent-to-configuration tasks sampled from a reproducible synthetic task bank. Tasks are stratified across 3 vendor families: Cisco-like (N=66), Juniper-like (N=67), RFC-neutral (N=67) for balanced per-vendor analysis. Each task yields one paired observation: initial LLM-generated config (baseline) and final config after automated generate→verify→repair loop. No tasks will be removed post-hoc except deterministic exclusions triggered by the automatic exclusion rules (see contamination_plan and transformation_validation). The task bank sources and templates are public/synthetic and will be published with provenance manifest (URLs/DOIs in execution manifest).",
+  "analysis_plan": "Primary analysis: paired binary analysis (paired_binary_analysis_v1 executor). Compare baseline (initial LLM config) vs post-first-repair final actionable-error binary label using the registered paired test (McNemar-style paired proportion test implemented by the executor), report absolute reduction, 95% CI, and p-value. Primary contrast uses the final config after the first automated repair. Secondary analyses: (a) contingency tests (Chi-square) of error-type distribution; (b) logistic regression predicting repair success (features: vendor family, task complexity score, initial error-type) implemented as exploratory analysis; (c) ablation: compare final-actionable-error after 1 vs up-to-3 repairs (within-task comparison). All tests report exact counts, effect sizes, and executor-provided paired estimates. Multiple comparisons handled by prespecified familywise focus: primary test is the paired reduction; secondary tests are exploratory and reported as such.",
+  "multiplicity_plan": "Single primary confirmatory hypothesis (H1). Secondary/comparative tests declared exploratory and reported without claiming confirmatory status. No multiple-testing correction applied to exploratory analyses; explicit labeling of exploratory results in reports.",
+  "missingness_plan": "If a model call fails (API error or timeout), follow the registered failed_call_treatment: attempt up to two automatic retries (same seed); if still failing, complete_pair_primary rule: treat the pair as complete and mark the affected generation as a technical failure and exclude that task from the primary confirmatory paired analysis (executor will report excluded-pair counts). A sensitivity analysis using complete_pair_primary_with_failure_as_zero_sensitivity will treat technical failures conservatively as actionable errors and report results alongside the primary analysis. All failures, retries, and exclusions are logged and hashed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic_multivendor_taskbank_v1"
+    ],
+    "risk_factors": [
+      "R1: Validator coverage gaps (deterministic checks may not capture some semantic/policy violations).",
+      "R2: LLM overfitting to validator messages producing superficially valid but semantically incorrect configs.",
+      "R3: Hosted-model API nondeterminism and rate limits."
+    ],
+    "detection_procedures": [
+      "D1: Deterministic flagging of any config that passes syntactic and vendor-specific checks but triggers any simulator-based semantic-policy test (reachability, ACL blocking of declared intent) — these are flagged as potential semantic misses.",
+      "D2: Automatic loop-detection: flag attempts where repair_count > 3 and auto-exclude from primary confirmatory analysis (retained for exploratory failure-mode analysis).",
+      "D3: Statistical anomaly detection on validator failure-message patterns (automated clustering); extremely rare/novel failure-message clusters are flagged and recorded for sensitivity reporting."
+    ],
+    "item_flagging_rules": [
+      "F1: If validator reports syntactic parse failure → label as 'syntax' error and allow repair attempts.",
+      "F2: If validator reports deterministic semantic/policy violation (explicit check triggered) → label as 'semantic/policy' error and allow repair.",
+      "F3: If a config passes deterministic checks but simulator-based policy tests (reachability/ACL semantics) fail → automatically relabel as 'semantic/policy' and record as validator false-negative.",
+      "F4: If repair_count > 3 → automatic exclusion from primary confirmatory analysis (but included in exploratory analyses)."
+    ],
+    "analysis_treatment": "Primary analysis excludes tasks auto-excluded under F4. All flagged items (validator false-negatives, looped repairs) are retained in exploratory failure analyses; mitigation sensitivity analyses treat flagged false-negatives as actionable errors and report conservative estimates.",
+    "residual_uncertainty": [
+      "Residual detection gaps remain for semantic errors outside simulator capability (e.g., policy intent nuance not encoded in templates). These are reported as noncritical uncertainties bounded to synthetic benchmark scope."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended_full_ablation",
+      "description": "Recommended: N=200 tasks; up to 3 automated repair attempts per task (initial generation + up to 3 repairs). Primary confirmatory contrast uses final config after first repair; ablation compares 1 vs up to 3 repairs. Uses hosted LLM API (hosted-llm-api-v1).",
+      "planned_model_calls": 800,
+      "models": [
+        "hosted-llm-api-v1"
+      ],
+      "transformations": [
+        "initial_prompt_generation",
+        "validator_feedback_to_repair_prompt",
+        "vendor_template_insertion",
+        "config_parsing_and_normalization"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned_model_calls = 200 tasks * (1 initial call + up to 3 repair calls) = 200 * 4 = 800 calls (under capability manifest limit of 10000). Deterministic validator and simulator run on CPU; docker available for deterministic validator containerization. Public synthetic datasets only."
+    },
+    {
+      "scenario_id": "conservative_single_repair",
+      "description": "Conservative (cost-limited): N=200 paired tasks; single automated repair attempt allowed (initial generation + one repair). Primary confirmatory contrast uses final config after the single repair.",
+      "planned_model_calls": 400,
+      "models": [
+        "hosted-llm-api-v1"
+      ],
+      "transformations": [
+        "initial_prompt_generation",
+        "validator_feedback_to_repair_prompt",
+        "vendor_template_insertion",
+        "config_parsing_and_normalization"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned_model_calls = 200 * (1 initial + 1 repair) = 200 * 2 = 400 calls. Lower-cost but still permits paired primary test; recommended if API quotas/costs require lower call count."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute reduction of 0.15 (15 percentage points) in actionable-error rate (e.g., from 0.30 to 0.15), which corresponds to a 50% relative reduction when baseline = 30%.",
+    "clustering_unit": "Single independent intent-to-configuration task (paired within task).",
+    "calculation_method": "Analytic paired-proportion sensitivity / approximate sample-size reasoning using expected discordant-pair proportions; primary confirmatory analysis will be executed with paired_binary_analysis_v1. With N=200 paired tasks and an assumed discordant-pair mass ~0.20, power to detect a 0.15 absolute reduction is approximately 0.8 at alpha=0.05 (approximate; executor will compute exact paired test CI and p-value).",
+    "assumptions": [
+      "Assumed baseline actionable-error rate in planning scenarios between 0.20 and 0.40; the target absolute reduction (0.15) represents a 50% relative reduction when baseline=0.30.",
+      "Discordant-pair mass (p01+p10) ≈ 0.20 used for approximate power reasoning; actual discordance will be reported and sensitivity analyses provided.",
+      "Paired design reuses the same initial LLM output for baseline and pipeline-initial generation to avoid between-seed variance."
+    ],
+    "recommended_scenario_id": "recommended_full_ablation",
+    "minimum_detectable_effect_notes": "Primary preregistered target is the 15 percentage-point absolute reduction; sensitivity analyses will report minimum detectable absolute reductions for baseline rates 0.20, 0.30, and 0.40 under N=200.",
+    "sensitivity_analyses": [
+      "Report paired-test results under alternative assumptions and under conservative treatment of technical failures (treating failures as actionable errors).",
+      "Report MDE curves (absolute difference detectable at 80% power) across baseline rates [0.20,0.30,0.40]."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor-specific template insertion and normalization (Cisco-like, Juniper-like, RFC-neutral).",
+      "Syntactic parsing and token-level canonicalization.",
+      "Validator-feedback-to-repair-prompt transformation (deterministic templating)."
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic parse-check: vendor-grammar parse must succeed.",
+      "Template-consistency check: canonicalized config must match vendor template placeholders.",
+      "Simulator-based semantic policy checks: reachability test for declared intent, ACL semantics tests, route propagation spot-checks on a deterministic simulator."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (exclude from primary analysis) any task where repair_count > 3 (automatic exclusion rule).",
+      "Reject any config that cannot be parsed into canonical vendor AST after 2 repair attempts (automated exclusion for primary analysis; retained for exploratory analysis)."
+    ],
+    "audit_sample_policy": "Automated deeper-audit on 10% randomly sampled tasks (deterministic seed) where full simulator rollouts run additional semantic checks; results included in validation manifest and used to estimate validator false-negative rate.",
+    "mapping_validation": "Mapping between intent fields and template placeholders is validated via deterministic unit tests included in the execution repository (rule-based, not manual). Mapping unit tests are part of the preregistered code bundle.",
+    "residual_risks": [
+      "Some semantic/policy nuances not encoded in simulator checks may remain undetected; these are reported as residual uncertainties bounded to the synthetic task bank."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Synthetic-to-production generalization: results apply to the declared synthetic multi-vendor task bank; extrapolation to heterogeneous production devices is noncritical and explicitly out of scope.",
+    "Validator coverage: despite simulator fallbacks and 10% deeper audits, validators may still miss semantic intent nuances outside templates.",
+    "Hosted-model API nondeterminism: repeated runs may vary due to API nondeterminism; we record seeds and logs and report variability but cannot guarantee exact replication on a different hosted-model configuration."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399629579"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "summary": "Well-executed, artifact-rich preregistered paired study that reports a near-null confirmatory result: adding a deterministic validator + single automated repair to an LLM intent→configuration pipeline produced an absolute actionable-misconfiguration reduction of 0.005 (1/200→0/200). Artifacts, hashes, and analysis outputs are comprehensive and reproducible. Main weaknesses are presentation/labeling ambiguities (discordant-cell notation and the meaning of condition_counts vs. pairing/accounting) and a few disclosure wording truncations that should be corrected for audit clarity. No new experiments are required.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly and unambiguously define the contingency-cell notation (n_11,n_10,n_01,n_00) used throughout the manuscript and analysis outputs, and confirm that the narrative interpretation (\"the single discordant observation is baseline-invalid→guarded-valid\") is consistent with the CSV column ordering (analysis/paired_contingency_table.csv has header 'guarded,baseline,count') and with the analysis JSON field 'discordant_ordering'. Update any inconsistent labels in the manuscript and in the archived textual metadata so a forensic auditor can map cells to outcomes without ambiguity (resolvable by inspecting existing artifacts).",
+    "Clarify the meaning of the reconciliation/provider-call accounting fields 'condition_counts' and 'stage_counts' in the Methods and Disclosure: state that the adapter used a shared_initial candidate per task (independent_condition_generation = false), that baseline and guarded scoring both reference that shared candidate except when the adapter invoked an automated repair, and explain why model_calls_used = 201 while complete_pair_count = 200 (i.e., 200 shared_initial calls + 1 repair call). Make this explanation explicit and point readers to the exact reconciliation JSON and provider_call traces (already archived).",
+    "Replace or expand any truncated SHA-256 values in the Disclosure (e.g., occurrences shown as '5cb8a30815ea...' or '9eeaa0c8...') with either the full hex digest or an explicit pointer (file path and full digest) to the archived manifest entry containing the full hash so that each referenced artifact is unambiguously identifiable from the manuscript alone. This is a documentation/wording fix using existing artifacts."
+  ],
+  "optional_revisions": [
+    "Briefly expand Related Work to cite and contrast any very recent empirical studies (if available) that evaluate validator+repair ROI in practice, but do not claim uniqueness without explicit verification.",
+    "Add one short paragraph in Discussion enumerating operational regimes (baseline error prevalence, repair budget, validator coverage) where larger absolute or relative gains would be expected, to help practitioners judge applicability.",
+    "Include an explicit one-sentence pointer in Methods that H2 became untestable and therefore any subsequent failure-mode analysis is exploratory (the manuscript already states this, but a short boxed note would help readers)."
+  ],
+  "accept_for_finalisation": false
+}

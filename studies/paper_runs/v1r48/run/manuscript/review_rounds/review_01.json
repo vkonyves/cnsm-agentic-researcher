@@ -1,0 +1,24 @@
+{
+  "summary": "Well-designed, preregistered paired confirmatory study with extensive machine-readable artifacts and full reproducibility traces. The experimental execution appears complete and the paired analysis is appropriate. However the manuscript contains an internal inconsistency about which discordant cell contained the single corrected task, and several presentation/clarity items tied to provider-call accounting and the untestable preregistered secondary hypothesis require explicit, artifact-resolvable fixes before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Inconsistent reporting of the discordant pair. The analysis/manifest shows n_10=1 and n_01=0 (i.e., one baseline-invalid→guarded-valid improvement interpreted as guarded-only success), but the manuscript text and a figure caption state the opposite (\"baseline-invalid/guarded-valid (n_01 = 1)\"). This contradiction must be corrected (counts, text, figure/table captions) to match the archived analysis artifacts.",
+    "Manuscript does not explicitly identify the discordant episode task id and the exact scoring JSON path for the single discordant pair (the forensic artifact is archived). Failing to point readers to the concrete artifact impedes auditability of the lone nontrivial outcome.",
+    "The provider_call_audit summary fields are ambiguous in the paper (e.g., condition_counts: {\"shared\":200,\"guarded\":1} and stage_counts showing a single repair). The manuscript must clearly explain the accounting semantics (shared initial candidate reused across conditions, baseline vs guarded implementation, why model_calls_used=201, and that only a single repair call was invoked across all tasks)."
+  ],
+  "required_revisions": [
+    "Correct the discordant-pair labeling throughout the manuscript so all counts and captions match the archived analysis (use analysis/paired_contingency_table.csv and analysis/deterministic_reconciliation.json as ground truth).",
+    "Add an explicit reference to the discordant task: report the episode id and the path/hash of its scoring JSON (e.g., execution/scoring/task-000XXX-baseline.json and execution/scoring/task-000XXX-guarded.json; include SHA-256) so auditors can inspect the single corrected case.",
+    "Clarify provider_call_audit and model-call accounting in the Methods/Execution paragraphs: state that initial generation used a single shared candidate per task (independent_condition_generation=false), that baseline and guarded used the same shared candidate unless a repair was invoked, that the adapter performed exactly one repair call across the run (hence model_calls_used=201 = 200 shared_initial + 1 repair), and explain the meaning of the condition_counts/stage_counts fields in execution manifest.",
+    "Explicitly label the preregistered secondary hypothesis (H2) as untestable given zero residual guarded failures and record that the confirmatory test for H2 could not be executed; move any remaining discussion about residual error-type prevalence into an explicitly exploratory note referencing the absence of guarded failures (use analysis/missingness_summary.csv and analysis/paired_contingency_table.csv as evidence)."
+  ],
+  "optional_revisions": [
+    "Add a short table or appendix row identifying the single discordant pair's validator trace summary (already archived) to help readers understand the failure mode without exposing unnecessary low-level data.",
+    "Expand the discussion of power/sensitivity by reporting the realized detectable effect-size given the observed baseline prevalence (a small addition referencing the preregistered power plan would help readers interpret the null/near-null result).",
+    "Clarify in the Discussion the operational interpretation of shared-initial generation (i.e., when baseline==guarded for no-repair cases) to avoid readers inferring an independent generation per condition."
+  ],
+  "accept_for_finalisation": false
+}

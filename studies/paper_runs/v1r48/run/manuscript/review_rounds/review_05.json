@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, artifact-rich preregistered confirmatory run with full archival hashes. Main scientific outcome: very small absolute change (0.5 percentage points) between baseline and guarded conditions on N=200 paired tasks; pre-registered large-effect hypothesis not supported given the study's statistical uncertainty. Major strengths: complete preregistration, extensive hashed artifact corpus, deterministic validator traces, and reproducible analysis. Major weaknesses: ambiguous/misaligned estimand and hypothesis wording in the manuscript, missing in‑manuscript per‑vendor stratified counts and explicit discordant episode id (both computable from supplied artifacts), and insufficiently clear interpretation of the preregistered decision rule vs. the reported CI/p-value.",
+  "novelty_score": 5,
+  "technical_depth_score": 2,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Ambiguous/misaligned estimand and hypothesis reporting: the preregistration language refers to reduction in actionable-error rate while the archived primary_estimand and reported statistics use success-rate differences; the manuscript contains contradictory statements about whether H1 is supported. This is a substantive reporting/interpretation defect that must be corrected.",
+    "Missing explicit per-vendor stratified numeric summary (Cisco-like / Juniper-like / RFC-neutral) in the manuscript text: reviewers requested it and the values are computable from the supplied artifacts but are not currently presented.",
+    "Missing explicit identifier for the discordant episode(s) (the single baseline-invalid → guarded-valid pair) in the manuscript: the reviewer requested it; the episode id is available in the archived results but is not printed verbatim in the manuscript evidence bundle. The omission must be corrected or an explicit justification provided in‑manuscript."
+  ],
+  "required_revisions": [
+    "Clarify and correct the primary estimand and hypothesis language throughout: explicitly state whether the confirmatory estimand is change in actionable-error rate or change in success rate, show the algebraic mapping between the two (with numbers), and resolve the apparent contradiction that led the manuscript to assert 'H1 not supported' despite an observed drop from 1/200 errors to 0/200. Use the archived counts/CI to justify the confirmatory conclusion per the preregistered decision rule (no new experiments required).",
+    "Add a concise per-vendor stratified table (Cisco-like, Juniper-like, RFC-neutral) reporting baseline and guarded successes/failures and counts (N per stratum) computed from execution/task_manifest.jsonl and execution/scoring/*.json (cite artifact paths and SHA‑256 hashes). Include this table within the five pages (can be compact).",
+    "Insert the explicit discordant episode identifier(s) (the episode id string for the single discordant pair) into the manuscript text or a short boxed forensic note, with direct pointer(s) to the archived file(s) and SHA‑256 digest(s) where auditors can retrieve full traces (these values are derivable from execution/raw_results.jsonl and execution/scoring/*.json)."
+  ],
+  "optional_revisions": [
+    "Add a short post‑hoc power/precision calculation using the observed baseline error rate to illustrate the study's sensitivity to the preregistered relative‑reduction target (this can be a one‑paragraph addition referencing archived numbers).",
+    "Report a one‑sided exact test or a formal decision-rule check addressing the directional preregistered hypothesis (if consistent with the preregistration), and briefly explain why the two‑sided McNemar p‑value is uninformative in the very‑rare‑failure regime.",
+    "Tighten the language distinguishing provider-call event accounting from per‑task guarded outputs (a single clarifying sentence or small paragraph would suffice; artifact hashes already provided)."
+  ],
+  "accept_for_finalisation": false
+}

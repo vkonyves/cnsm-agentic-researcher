@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, preregistered paired confirmatory study with comprehensive archived artifacts showing a near-null absolute reduction (0.005) in actionable misconfigurations when adding a deterministic validator+single-repair adapter to gpt-5-mini outputs on a 200-task synthetic NetOps bank. Major strength: rigorous preregistration, transparent artifact hashes, and reproducible execution/analysis. Manuscript needs minor but substantive clarifications (vendor-stratified reporting, explicit discordant-episode identifier, and clearer repair-invocation description) before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The manuscript omits a vendor-stratified summary (counts and success/failure rates per preregistered vendor strata). Preregistration specified stratified sampling; the paper must report per-vendor contingency or condition-summary counts so readers can verify stratification and assess heterogeneity.",
+    "The paper does not explicitly identify the single discordant episode (the one pair with baseline=0, guarded=1). The archived artifacts permit direct identification; the manuscript must state the episode id and provide the exact execution/scoring file paths for forensic inspection.",
+    "The Methods should state exactly when and how the adapter invoked automated repair (repair-invocation rule), and explicitly explain why only one repair call occurred in the run (adapter-enforced max-repair-per-task = 1). This is central to interpreting the guarded condition and is verifiable from the supplied execution manifest and provider-call audit."
+  ],
+  "required_revisions": [
+    "Add a short table (or paragraph) reporting per-vendor sample sizes and success/failure counts (baseline and guarded) using the archived scoring JSONs (execution/scoring/) and reference the artifact SHA-256s.",
+    "Explicitly state the episode identifier (task-XXXX or pair-XXXX) for the single discordant pair and include the paths to its archived scoring JSONs (execution/scoring/<episode>-baseline.json and execution/scoring/<episode>-guarded.json) so auditors can inspect validator traces.",
+    "In Methods, add a concise, exact description of the repair-invocation policy used by the adapter (decision rule that triggers a repair call, the enforced maximum repair attempts per task, and confirmation that the adapter enforced that limit) and cite the provider_call_audit fields in the execution manifest to justify the observed model_calls_used = 201."
+  ],
+  "optional_revisions": [
+    "Add a brief table summarizing task difficulty strata or workflow-policy types (from task_manifest) to help readers assess where residual errors might concentrate.",
+    "Expand the discussion of power/preregistration assumptions to quantify how the observed baseline error rate (1/200) affects detectable relative-effect thresholds compared with the preregistered power calculation (which assumed higher baseline rates).",
+    "Consider including a one-line pointer in Results to the exact analysis artifact (analysis/paired_contingency_table.csv SHA-256) with the CSV excerpt embedded for quick reader inspection."
+  ],
+  "accept_for_finalisation": false
+}

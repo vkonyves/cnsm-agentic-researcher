@@ -1,0 +1,30 @@
+{
+  "study_id": "cnsmspec2026_gvr_v1_prereg_001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Use paired_binary_analysis_v1 to read execution/raw_results.jsonl (result_schema paired_binary_episode_v1) and per-task scoring files under execution/scoring/*.json. For each task extract baseline_actionable_error and guarded_actionable_error (0/1). Apply the preregistered paired estimand paired_success_rate_difference_guarded_minus_baseline (final_actionable_error_rate_after_repair − initial_actionable_error_rate) using the executor's paired McNemar-style paired_binary_analysis_v1 routine. Report: N pairs included (after applying failed_call_treatment = complete_pair_primary), counts (both success/failure cells and discordant pairs), absolute proportion-point reduction, two-sided p-value, and 95% confidence interval produced by the executor. All inputs, intermediate aggregates, and exact executor outputs (counts, test statistic, CI, p-value) are archived with hashes referenced in the execution manifest.",
+  "secondary_analyses": [
+    "H2 (confirmatory-secondary labeled exploratory per preregistration): contingency test comparing residual error-type distribution (semantic/policy vs syntactic/parse) computed from execution/scoring/task-*.json validator_traces and simulator flags (Chi-square / Fisher as provided by the executor).",
+    "Per-vendor descriptive stratification (exploratory): compute per-vendor baseline and guarded actionable-error rates and estimate repair-success odds ratios with 95% CIs using aggregated counts from execution/scoring/task-*.json (vendor family mapping from execution/task_manifest.json). Note: these are explicitly exploratory per preregistration."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: rerun paired_binary_analysis_v1 treating any technical/failed model call pairs (logged in execution/execution_log.jsonl and provider_calls) as actionable errors for conservative bounds, report effect, CI, and p-value alongside primary results.",
+    "Validator-conservative relabeling sensitivity: relabel any task where validator passed but simulator semantic/policy test failed as semantic error and recompute secondary contingency summaries (exploratory)."
+  ],
+  "uncertainty_quantification": "Primary uncertainty reported as the paired_binary_analysis_v1 95% confidence interval for the absolute paired proportion difference and two-sided p-value from the paired McNemar-style test. Per-vendor odds ratios include 95% CIs computed from aggregated contingency counts. No additional bootstrap or permutation outside executor outputs is used.",
+  "multiplicity_implementation": "One preregistered primary confirmatory hypothesis (H1) mapped to the single primary estimand. All other tests (H2 and exploratory EQs) are labeled exploratory; no multiplicity correction applied to exploratory tests. Primary result reported with confirmatory language only.",
+  "contamination_analysis": "Detect contamination and validator/ simulator mismatches by automated inspection of execution/scoring/task-*.json fields: (1) label syntax errors when parser/AST parse step failed in scoring JSON; (2) label semantic/policy errors when deterministic simulator traces indicate policy/semantic violation; (3) if validator fields indicate pass but simulator trace indicates semantic failure, mark as validator false-negative and flag for conservative sensitivity relabeling. Produce per-task flag list (execution/scoring/*.json → contamination flags) and cluster frequent validator messages by exact-string grouping to surface novel failure clusters. All flagged items retained for exploratory failure-mode reporting; primary analysis excludes items per preregistered deterministic exclusion and missingness_plan.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired summary: N_pairs_included, baseline_actionable_errors (count, proportion), guarded_actionable_errors (count, proportion), discordant counts (baseline=1/guarded=0 and baseline=0/guarded=1), absolute proportion-point difference, 95% CI, two-sided p-value (source: execution/raw_results.jsonl and execution/scoring/task-*.json; produced by paired_binary_analysis_v1).",
+    "Table 2 — Execution manifest and call summary: planned_episode_count, completed_episode_count, failed_episode_count, model_calls_used, list of retried calls and timestamps (source: execution/execution_log.jsonl, execution/provider_calls/, execution/model_configuration.json).",
+    "Table 3 — Residual error-type breakdown: counts and proportions of residual actionable errors by error-type (semantic/policy vs syntax/parse) overall and by vendor family (source: execution/scoring/task-*.json parsed validator_traces and simulator flags).",
+    "Table 4 — Per-vendor contingency and odds ratios: per-vendor baseline vs guarded actionable-error counts, repair-success odds ratios with 95% CI and counts used (source: execution/scoring/task-*.json and execution/task_manifest.json).",
+    "Table 5 — Flagged contamination list (exploratory): tasks where validator passed but simulator failed, grouped by message cluster, with hashes and pointers to scoring JSONs (source: execution/scoring/*.json)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of actionable-error rate: baseline vs guarded (paired proportions) with 95% CI bars (data source: aggregated execution/scoring/task-*.json; figure reproducible from paired_binary_analysis_v1 outputs).",
+    "Figure 2 — Stacked bar chart: residual error-type composition (semantic/policy vs syntax/parse) overall and faceted by vendor family (Cisco-like, Juniper-like, RFC-neutral) (data source: execution/scoring/task-*.json).",
+    "Figure 3 — Concordance mosaic / paired discordant counts: visualizing discordant pair counts (baseline-only errors vs guarded-only errors) with N annotated (source: paired_binary_analysis_v1 counts)."
+  ]
+}

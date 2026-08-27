@@ -1,0 +1,78 @@
+{
+  "study_id": "cnsmspec2026_gvr_v1_prereg_001",
+  "title": "Empirical evaluation of generate→verify→repair loops with deterministic network validators (repaired preregistration)",
+  "research_question": "How much does integrating a deterministic network validator into an LLM-driven generate→verify→repair pipeline reduce actionable misconfiguration rates (paired comparison) on a 200-task synthetic multi-vendor NetOps task bank, and what are the dominant residual error types after automated repairs?",
+  "confirmatory_hypotheses": [
+    "H1: Integrating a deterministic validator with automated repair reduces the final actionable misconfiguration rate (proportion) by at least 50% relative to the LLM-only initial output on the same paired task set (primary confirmatory hypothesis; paired estimand).",
+    "H2: Residual actionable errors after automated repair are more likely to be semantic/policy-mismatch errors than syntactic/parse errors (secondary confirmatory hypothesis; descriptive contingency test)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Diminishing returns of up to 3 automated repair attempts (ablation): does additional automated repair beyond the first attempt materially reduce residual actionable errors?",
+    "EQ2: Per-vendor heterogeneity in repair success rates (Cisco-like vs Juniper-like vs RFC-neutral)."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399629579"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi-vendor task bank (publicly reproducible templates and synthetic topologies)",
+    "Intent-to-configuration tasks only (no on-device execution against production equipment)",
+    "Deterministic validator + simulator checks applied to generated configs"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion point difference: final-actionable-error_rate_after_repair − initial_actionable_error_rate)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Proportion of residual errors by error-type (semantic/policy vs syntactic/parse)",
+    "Repair-success conditional odds ratios by vendor family"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N=200 independent intent-to-configuration tasks sampled from a reproducible synthetic task bank. Tasks are stratified across 3 vendor families: Cisco-like (N=66), Juniper-like (N=67), RFC-neutral (N=67). Each task yields one paired observation: shared initial LLM-generated config (baseline) and final config after the guarded generate→validate→repair loop (at most one repair call per registered adapter). No tasks will be removed post-hoc except deterministic exclusions triggered by the registered exclusion rules. Task bank templates, seeds, and provenance will be published with the execution manifest.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect an absolute reduction of 0.15 (15 percentage points) in actionable-error rate (e.g., from 0.30 to 0.15). With N=200 paired tasks and assumed discordant-pair mass ~0.20, approximate power ≈0.8 at alpha=0.05; exact paired McNemar-style test, 95% CI, and p-value computed by paired_binary_analysis_v1 executor. Sensitivity analyses: MDE curves for baseline rates 0.20, 0.30, 0.40 and conservative treatment of technical failures (treat technical failures as actionable errors).",
+  "exclusion_rules": [
+    "Exclude from primary confirmatory analysis tasks auto-excluded under registered adapter rules: repair_count > 3 (adapter-level loop detection rule retained as a general exclusion; adapter in use permits max 1 repair so this will not normally trigger).",
+    "Exclude from primary analysis any task where the generated config cannot be parsed into canonical vendor AST after 2 repair attempts (such items retained for exploratory analysis).",
+    "Deterministic exclusions due to model-call technical failure follow the missingness_plan (see below)."
+  ],
+  "missingness_plan": "If a model call fails (API error or timeout), follow failed_call_treatment: attempt up to two automatic retries (same seed). If still failing, apply complete_pair_primary: mark the affected generation as a technical failure and exclude that task from the primary confirmatory paired analysis. A sensitivity analysis will apply complete_pair_primary_with_failure_as_zero_sensitivity, treating technical failures conservatively as actionable errors and reporting results alongside the primary analysis. All failures, retries, and exclusions are logged, time-stamped, and hashed in the execution manifest.",
+  "analysis_plan": "Primary analysis: paired binary analysis using paired_binary_analysis_v1 executor. For each task, label baseline (initial LLM config) and guarded (final config after the single registered repair attempt) as actionable-error = {0,1} via deterministic validator+simulator. Apply a paired McNemar-style test (executor) to the binary pairs, report absolute reduction, 95% CI, and p-value. Secondary analyses (exploratory): (a) contingency test (Chi-square) comparing residual error-type distributions (semantic/policy vs syntax/parse); (b) logistic regression (exploratory) predicting repair success with features: vendor family, task complexity score, initial error-type; (c) ablation: compare actionable-error after baseline vs after guarded repair (within-task) and report exploratory results on up-to-3-repair ablation only insofar as adapter logs permit (primary confirmatory uses single repair). All counts, effect sizes, and exact test outputs are recorded. The primary_estimand_id for executor is paired_success_rate_difference_guarded_minus_baseline and must be used unmodified by the paired_binary_analysis_v1 executor.",
+  "multiplicity_plan": "One preregistered primary confirmatory hypothesis (H1) mapped to the primary estimand. Secondary and exploratory tests (H2 and EQs) are explicitly labeled exploratory; no familywise correction is applied to exploratory tests. Report exploratory p-values and effect sizes but do not claim confirmatory status for them.",
+  "contamination_plan": "Benchmark: synthetic_multivendor_taskbank_v1. Risk factors: (R1) validator coverage gaps; (R2) LLM overfitting to validator messages producing superficially valid but semantically incorrect configs; (R3) hosted-model API nondeterminism and rate limits. Detection procedures: deterministic flagging when syntactic/vendor checks pass but simulator-based semantic-policy tests fail; loop-detection for repair_count > 3; automated clustering of validator failure messages to surface novel failure clusters. Item flagging rules: label syntactic parse failures as 'syntax' errors; deterministic semantic/policy violations as 'semantic/policy' errors; if config passes deterministic checks but simulator semantic tests fail, relabel as 'semantic/policy' (validator false-negative). Analysis treatment: primary analysis excludes items auto-excluded under the rules; all flagged items retained for exploratory failure-mode analyses and conservative sensitivity treatments. Residual uncertainty: some semantic/policy nuances outside simulator capability may remain undetected and are reported as bounded to the synthetic benchmark.",
+  "stopping_rule": "Execution uses the registered adapter limit of at most one automated repair call per task. The confirmatory run completes when all 200 tasks have been processed under the registered adapter contract or when a deterministic infrastructure failure halts execution; technical restarts allowed per capability manifest and are logged. Tasks with repair_count > 3 (loop detection) would be auto-excluded from primary analysis (retained for exploratory analysis), but the chosen adapter's contract enforces maximum_repair_calls_per_task = 1 so no additional repair loops are permitted in confirmatory execution.",
+  "planned_outputs": [
+    "IEEE-format short paper (≤5 pages) including Disclosure Statement",
+    "Preregistration document and execution manifest (this file and hashed artifacts)",
+    "Execution repository with reproducible synthetic task bank, templates, prompts, and unit tests",
+    "Raw model-call logs, validator outputs, parsed ASTs, and deterministic simulator traces",
+    "Paired_binary_analysis_v1 results file (counts, CI, p-value), exploratory analysis files, and failure-mode report",
+    "NotebookLM presentation brief (concise) and autonomy/revision log"
+  ],
+  "unresolved_critical_issues": []
+}

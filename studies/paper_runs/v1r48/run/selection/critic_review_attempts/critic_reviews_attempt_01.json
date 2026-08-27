@@ -1,0 +1,88 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1_generate_verify_repair_empirical",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Validator coverage and oracle assumptions: deterministic validator may miss semantic/policy errors (false negatives).",
+        "Ground-truth for ‘actionable’ label is underspecified — risk of inconsistent semantic judgments across tasks.",
+        "Single automated repair attempt may be insufficient to characterize iterative repair dynamics; potential overfitting to validator messages."
+      ],
+      "required_design_repairs": [
+        "Define and publish a precise actionable-error annotation protocol (who/what labels semantic vs policy failures) and inter-annotator check for a labeled subset.",
+        "Extend validator specification: list checks, known coverage gaps, and fallback semantic checks (e.g., simulator-based policy tests) and log validator uncertainty.",
+        "Clarify stopping rule rationale for single repair; either justify single-repair hypothesis or add a small multi-repair ablation to quantify diminishing returns."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2_rag_poisoning_netops",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk: producing adversarial/poison texts that could be repurposed; current mitigation text is cursory.",
+        "Realism of retrieval/index: small synthetic index may not reflect enterprise heterogeneity, biasing attack success estimates.",
+        "Measurement of attack success relies on validator that itself may be vulnerable to poisoning (confounding)."
+      ],
+      "required_design_repairs": [
+        "Add a formal ethics/dual-use mitigation appendix: non-deployable phrasing rules, internal red-team review, retention/access controls, and explicit denial of publishable poison payloads.",
+        "Improve retrieval realism: document corpus construction rules, diversity metrics, and include ablations over multiple index sizes and retrieval parameters.",
+        "Instrument validator robustness: include checks that validator decisions do not directly mirror poisoned-content cues (e.g., verify with an alternate validator or simulator) and report validator susceptibility to poison."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3_confidence_calibration_gating",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.7,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Reliance on proxy scores (sequence log-prob) may poorly reflect true epistemic uncertainty, producing misleading calibration results.",
+        "Hosted-model APIs may not expose per-token logits or deterministic scores needed for some calibration methods.",
+        "Claimed operating targets (e.g., ≤5% false-accept at ≥40% coverage) may be unattainable without clearer policy trade-offs or multiple models."
+      ],
+      "required_design_repairs": [
+        "Explicitly state which APIs/models provide logit/prob signals; if unavailable, justify and validate chosen proxy with a pilot study.",
+        "Predefine calibration robustness tests for distribution shift (vendor, task type) and plan to report transfer failure.",
+        "Prespecify threshold-selection policy and decision-cost model (why 5%/40% are chosen) and include sensitivity analysis across thresholds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4_operational_benchmark_corpus_multivendor",
+      "novelty": 0.9,
+      "falsifiability": 0.8,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ambitious scope: full multi-vendor realism, deterministic validators, and 250 tasks risks scope creep and licensing/provenance complications.",
+        "Ensuring validators for every vendor/protocol and covering semantic/policy checks is nontrivial — may leave significant blind spots.",
+        "Publishing artifacts raises licensing and redistribution concerns for vendor-derived templates or real runbooks."
+      ],
+      "required_design_repairs": [
+        "Narrow initial benchmark scope to a well-justified subset (e.g., 2 vendor families + 4 common task types) with plan to expand; document rationale.",
+        "Perform a provenance and license audit for all included artifacts and include only clearly redistributable or synthetic items; publish a manifest with sources and licenses.",
+        "Provide a validator-coverage report mapping which checks exist per task/vendor and an explicit plan for cases lacking deterministic checks (e.g., simulator tests or human-verified gold set)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

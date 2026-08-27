@@ -1,0 +1,118 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1_generate_verify_repair_empirical",
+      "title": "Empirical evaluation of generate→verify→repair loops with deterministic network validators",
+      "research_question": "How much does integrating a deterministic network validator into an LLM-driven generate→verify→repair pipeline reduce actionable misconfiguration rates across diverse synthetic vendor/topology tasks compared to LLM-only outputs?",
+      "hypotheses": [
+        "Integrating a deterministic validator into the LLM generate→verify→repair loop reduces final actionable misconfiguration rate by at least 50% relative to unchecked LLM outputs on the same task set.",
+        "Residual errors after automated repair will be disproportionately policy- or intent-mismatch errors (semantic) rather than syntactic/parse errors."
+      ],
+      "proposed_design": "Preregistered paired experiment using a fixed task bank of 200 NetOps intent-to-configuration tasks across three vendor families (Cisco-like, Juniper-like, neutral RFC-style). For each task: (1) call an LLM prompt to produce a configuration change; (2) run validator (Batfish-style deterministic checks) to report failures; (3) allow the LLM a single automated repair attempt using validator feedback; (4) record syntactic/semantic error labels. Compare LLM-only (no validator/repair) vs LLM+validator+repair on same seed tasks. Use public synthetic topologies and configuration templates; run all calls via hosted-model API with fixed seeds and store full logs. Stopping rules and retry policy frozen in preregistration.",
+      "expected_data": "Per-task records: raw LLM config, validator failure messages, repaired config, binary final-actionable-error label, error-type taxonomy (syntax/semantic/policy), repair success flag, timestamps, model-call counts. Aggregated counts: initial error rate, post-repair error rate, repair-success rate, distribution of error types, per-vendor breakdown.",
+      "primary_outcome": "Absolute and relative reduction in actionable misconfiguration rate (proportion) after one validator-guided repair attempt (paired comparison).",
+      "analysis_outline": "Primary analysis: paired proportion test (McNemar or paired bootstrap) comparing initial vs post-repair actionable-error proportions; report absolute reduction, 95% CI, and p-value. Secondary: per-vendor stratified comparisons, error-type contingency tables (Chi-square), repair-success predictors via logistic regression (features: task complexity, vendor, initial error type). Report effect sizes, sample-size power calculation, and failure-mode qualitative synthesis with example cases.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "risks": [
+        "Validator coverage gaps leading to false negatives (undetected unsafe configs)",
+        "LLM repair may overfit to validator messages producing superficially valid but semantically incorrect configs",
+        "Synthetic vendor models may not fully capture production vendor idiosyncrasies",
+        "Possible API rate or cost limits requiring truncation of planned sample"
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "c2_rag_poisoning_netops",
+      "title": "Vulnerability of NetOps RAG pipelines to adversarially poisoned retrieval contexts",
+      "research_question": "To what extent can adversarially poisoned documents added to a NetOps retrieval corpus induce LLM-generated actionable misconfigurations in an otherwise benign RAG pipeline?",
+      "hypotheses": [
+        "Injecting a single high-impact adversarial document into a RAG index will significantly increase the rate of actionable misconfigurations produced by the LLM vs an unpoisoned index.",
+        "The induced misconfigurations will correlate with the similarity between task intent and poisoned-document surface cues (higher similarity → higher attack success)."
+      ],
+      "proposed_design": "Controlled adversarial experiment using a frozen RAG pipeline: build a retrieval index from public NetOps docs (vendor guides, runbooks). Define 100 intent tasks. For each task run three conditions (paired within-task): (A) clean index; (B) index with a benign distractor doc; (C) index with a crafted poisoned doc that contains subtle malicious instructions contradicting best-practice (but syntactically plausible). For each retrieval context, run identical LLM prompt template; evaluate produced configs using deterministic validator and semantic checks in simulator (no real devices). Measure actionable-misconfig proportion per condition. Vary poison strength and insertion rank in additional ablations. Ethical safeguards: all execution in isolated simulator and synthetic topologies; poison content non-deployable to real networks.",
+      "expected_data": "Per-task/control condition: retrieval hits, poisoned-doc presence/rank, LLM output, validator failure flags, semantic-safety flag, attack-success binary. Aggregates: misconfig rates per condition, attack-success vs poison-rank curve, similarity correlation metrics.",
+      "primary_outcome": "Increase in actionable-misconfiguration proportion in poisoned vs clean retrieval conditions (difference in proportions with 95% CI).",
+      "analysis_outline": "Primary: paired proportion tests across conditions (McNemar or paired bootstrap). Dose-response analysis: logistic regression of attack success vs poisoned-doc rank/similarity. Sensitivity analysis across poison templates and retrieval settings. Report false-positive/false-negative validator rates under poisoning. Include adversarial-case qualitative examples.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Ethical risk of producing deployable malicious payloads (mitigated by simulator-only execution and non-deployable poison phrasing)",
+        "Indexer/retrieval artifacts may not reflect enterprise document heterogeneity",
+        "Attack strength dependent on chosen poison templates; may under- or over-estimate real-world vulnerability"
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c3_confidence_calibration_gating",
+      "title": "Evaluating confidence-calibration methods as automated gates for NetOps action approval",
+      "research_question": "Can post-hoc calibration methods applied to LLM outputs produce reliable gating thresholds (approve/reject) for automatic NetOps actions while maintaining acceptable coverage and low false-accept rates?",
+      "hypotheses": [
+        "A calibrated confidence estimator (temperature scaling or ensemble Brier reduction) achieves a usable operating point where false-accept rate ≤5% while retaining ≥40% automated-apply coverage on the task bank.",
+        "Different calibration methods will produce statistically different trade-offs between coverage and false-accept rate, with ensembles outperforming single-model temperature scaling on calibration metrics (ECE, Brier)."
+      ],
+      "proposed_design": "Generate a 300-task NetOps intent bank. For each task, obtain LLM config and an intrinsic model-provided logit/confidence signal where available; if unavailable, compute proxy scores (model log-probability of generated token sequence). Split dataset into calibration (60%) and evaluation (40%). Fit calibration methods on calibration set: temperature scaling, isotonic regression, Platt, ensemble averaging (if multiple model variants available). Define gating thresholds (range) and evaluate on held-out tasks: measure coverage (proportion of tasks above threshold) and false-accept rate (validator-flagged actionable errors among approved items). Produce ROC-style and decision-curve plots and compute ECE/Brier.",
+      "expected_data": "Per-task: raw model-score, calibrated probability, validator correctness, approval decision at multiple thresholds. Aggregates: coverage vs false-accept tradeoff curves, calibration metrics (ECE, Brier), threshold operating points achieving policy targets.",
+      "primary_outcome": "Calibration method and threshold achieving false-accept rate ≤5% with maximal coverage; report coverage and uncertainty (95% CI).",
+      "analysis_outline": "Compute calibration metrics (ECE, Brier) per method; compute decision operating points and compare coverage using bootstrapped CIs. Use paired comparisons across methods (Wilcoxon or paired t on coverage at fixed FPR). Produce calibration plots and decision-curve analysis. Report sample-size-driven uncertainty and robustness to task subgroups.",
+      "novelty_evidence_ids": [
+        "10.21203/rs.3.rs-7038601/v1",
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W4403635865"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4391136507"
+      ],
+      "risks": [
+        "Model score proxies may poorly reflect true uncertainty leading to optimistic calibration",
+        "Calibration may not generalize across vendors or task types (distribution shift)",
+        "Coverage targets might be unattainable without unacceptably high false-accept rates"
+      ],
+      "estimated_model_calls": 1000
+    },
+    {
+      "candidate_id": "c4_operational_benchmark_corpus_multivendor",
+      "title": "Design and evaluation of a reproducible multi-vendor NetOps benchmark and evaluation pipeline",
+      "research_question": "Does a curated, publicly reproducible benchmark corpus with end-to-end execution and deterministic verification reveal operational LLM failure modes that are not captured by prior knowledge-style evaluations?",
+      "hypotheses": [
+        "A multi-vendor, end-to-end benchmark with deterministic verification will show a substantially different failure-mode distribution (higher semantic/policy error share) than knowledge-only question benchmarks.",
+        "Publishing a standardized benchmark and evaluation pipeline will produce reproducible per-task failure logs that enable consistent comparison across models and prompt variants and will facilitate discovery of previously underreported failure modes (e.g., rollback omission)."
+      ],
+      "proposed_design": "Assemble a benchmark of 250 intent-to-configuration tasks covering multiple vendor families and operational scenarios (routing changes, ACLs, NAT, BGP policies). Provide synthetic topology files, configuration templates, and deterministic validators/simulators. Define standard prompts, scoring rules (syntax, pass/fail validator, semantic policy match), and data formats. Run an initial baseline evaluation using two LLM prompting strategies and report per-task metrics and failure taxonomy. Publish corpus and evaluation code under permissive license. Use only public data sources and synthetic artifacts.",
+      "expected_data": "Benchmark artifacts (topologies, intents), per-task model outputs, validator results, error taxonomy counts, per-model aggregated metrics, reproducible logs and hashes. Comparison between benchmark-derived failure distribution and that from a knowledge-style benchmark (e.g., existing NetOps QA dataset) on overlapping tasks.",
+      "primary_outcome": "Demonstration that the benchmark reveals a distinct, reproducible distribution of operational failure modes (quantified difference in semantic/policy error proportion with 95% CI) and a working open evaluation pipeline.",
+      "analysis_outline": "Descriptive statistics of per-task pass/fail rates, error-type proportions; cluster analysis of failure modes; paired comparison where tasks overlap with knowledge benchmarks (difference in semantic-error proportions with bootstrapped CI). Provide reproducibility checklist and exemplar reproducibility hashes for artifacts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415227752",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4412877164"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4415227752"
+      ],
+      "risks": [
+        "Licensing and provenance concerns for included public artifacts",
+        "Synthetic benchmark may still miss production idiosyncrasies limiting external validity",
+        "Resource cost to evaluate many models/prompts may exceed modest budgets"
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}

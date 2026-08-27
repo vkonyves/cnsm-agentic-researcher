@@ -1,0 +1,21 @@
+{
+  "summary": "Closure review: well-executed, reproducible preregistered paired study with full forensic artifacts. Two required prereview items remain unaddressed in the submitted revision: (1) inline per‑vendor stratified outcome counts and the explicit discordant-episode identifier (with scoring-JSON SHA‑256) are not inserted despite being deterministically recoverable from archived artifacts; (2) the Related Work still uses a vague parenthetical reference to the \"Header Space Analysis\" literature instead of a concrete primary bibliographic citation. One prior required item (explicitly mark H2 as untestable) has been addressed. Because required revision(s) remain, I do not accept for finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 4,
+  "soundness_score": 1,
+  "clarity_score": 2,
+  "critical_issues": [
+    "Required inline per-vendor outcome counts and the explicit discordant episode identifier (and associated scoring-JSON SHA-256/path) were requested in the prior terminal review and remain absent from the manuscript despite being deterministically recoverable from the archived artifacts (execution/task_manifest.jsonl, execution/raw_results.jsonl, execution/scoring/...). This omission reduces immediate interpretability and prevents quick verification without re-derivation.",
+    "Related Work still contains a vague parenthetical pointer to the \"Header Space Analysis\" literature instead of a concrete, verifiable primary citation (e.g., the canonical Header Space/Static Checking source). The reviewer-requested explicit bibliographic replacement was not applied.",
+    "The manuscript claims to preserve artifact-first traceability but declines to present small, deterministically extractable numeric tables (per-vendor counts and discordant episode id), leaving an unresolved accessibility deficit for reviewers/readers."
+  ],
+  "required_revisions": [
+    "Insert inline (manuscript body) a concise machine-verifiable per-vendor table reporting observed counts: for each planned stratum (Cisco-like, Juniper-like, RFC-neutral) provide baseline successes/failures and guarded successes/failures, and include the episode identifier (episode id string) of the single discordant pair plus the SHA‑256 digest and repository path of its scoring JSON so readers can locate it deterministically. These values must be computed from the supplied archived artifacts (execution/task_manifest.jsonl + execution/scoring/*.json) and inserted verbatim; no new experiments are required.",
+    "Replace the vague phrase referencing the \"Header Space Analysis\" literature in Related Work with an explicit primary bibliographic citation present in the supplied evidence bundle (name authors, year, and stable identifier/DOI or the exact archived reference record path/ID included in the evidence), so the foundational verification claim is directly traceable to a primary source in the archive."
+  ],
+  "optional_revisions": [
+    "Optionally add a one-line inline table showing repair_applied=true episodes (episode id → repair_prompt/provider-trace SHA‑256/path) to surface the single repair without requiring auditors to open JSONs.",
+    "Optionally include a very short worked example paragraph that points to the scoring JSON for the discordant episode and demonstrates the validator_trace fields (validation_before/after) to illustrate artifact format for readers."
+  ],
+  "accept_for_finalisation": false
+}
