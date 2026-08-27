@@ -46,6 +46,65 @@ HUMAN_DEPENDENCY_PATTERNS = {
 
 
 NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
+    # Coordinated explicit denials such as:
+    # "no human annotation or manual adjudication is required".
+    r"\bno\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:\s+or\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+"
+    r"\s+(?:is|are)\s+(?:required|needed|used)\b",
+
+    # "does not require human annotation or manual adjudication".
+    r"\bdoes\s+not\s+require\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:\s+or\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
+
+    # "without human review or manual adjudication".
+    r"\bwithout\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:\s+or\s+"
+    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
+    # Coordinated negative requirements, e.g.
+    # "no human annotation or manual adjudication is required".
+    # Remove the whole denied dependency phrase before scanning for
+    # positive human-scientific dependencies.
+    r"\\bno[\\s-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review)"
+    r"(?:[\\s,;/+-]+or[\\s,;/+-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review))+"
+    r"(?:[\\s-]+(?:is|are))?"
+    r"(?:[\\s-]+(?:required|needed|used))?\\b",
+
+    # Coordinated "does not require ..." construction.
+    r"\\bdoes[\\s-]+not[\\s-]+require[\\s-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review)"
+    r"(?:[\\s,;/+-]+or[\\s,;/+-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review))+\\b",
+
+    # Coordinated "without A or B" construction.
+    r"\\bwithout[\\s-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review)"
+    r"(?:[\\s,;/+-]+or[\\s,;/+-]+"
+    r"(?:human[\\s-]+annotation"
+    r"|manual[\\s-]+adjudicat(?:ion|or|ors|e|ed|ing)?"
+    r"|human[\\s-]+review"
+    r"|manual[\\s-]+review))+\\b",
     # Handle the complete ambiguous construction first so that
     # "manual review" is removed together with its explicit denial
     # of human adjudication.
