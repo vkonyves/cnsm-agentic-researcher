@@ -76,6 +76,166 @@ from .publication_renderer import (
 T = TypeVar("T")
 
 
+def _compact_execution_manifest_for_manuscript(
+    execution_manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Deterministic manuscript-facing projection of the execution
+    manifest.
+
+    The complete manifest remains archived and authoritative. The
+    manuscript agents do not need hundreds of kilobytes of per-file
+    SHA-256 entries on every revision call.
+    """
+    compact = {
+        key: value
+        for key, value in execution_manifest.items()
+        if key != "artifact_hashes"
+    }
+
+    artifact_hashes = execution_manifest.get(
+        "artifact_hashes",
+        {},
+    )
+
+    if isinstance(artifact_hashes, dict):
+        compact["artifact_hash_count"] = len(
+            artifact_hashes
+        )
+
+        # Preserve a deterministic small set of scientifically useful
+        # provenance hashes while avoiding the complete per-file hash
+        # inventory in the model context.
+        priority_fragments = (
+            "execution_manifest",
+            "task_manifest",
+            "model_configuration",
+            "results",
+            "analysis",
+            "preregistration",
+        )
+
+        selected_hashes: dict[str, Any] = {}
+
+        for path in sorted(artifact_hashes):
+            if any(
+                fragment in path
+                for fragment in priority_fragments
+            ):
+                selected_hashes[path] = artifact_hashes[path]
+
+            if len(selected_hashes) >= 40:
+                break
+
+        compact["representative_artifact_hashes"] = (
+            selected_hashes
+        )
+
+    return compact
+
+
+def _compact_verified_records_for_manuscript(
+    records: list[Any],
+) -> list[dict[str, Any]]:
+    """
+    Deterministic bibliographic projection for manuscript revision.
+
+    Full literature records and abstracts remain archived. Revision
+    agents receive citation identity/provenance fields sufficient to
+    preserve and verify already-written references without repeatedly
+    injecting the full retrieved abstracts.
+    """
+    compact_records: list[dict[str, Any]] = []
+
+    allowed_fields = (
+        "record_id",
+        "title",
+        "publication_year",
+        "doi",
+        "url",
+        "source_api",
+        "authors",
+        "cited_by_count",
+    )
+
+    for record in records:
+        if hasattr(record, "model_dump"):
+            data = record.model_dump()
+        elif isinstance(record, dict):
+            data = record
+        else:
+            continue
+
+        compact_records.append(
+            {
+                key: data.get(key)
+                for key in allowed_fields
+                if key in data
+            }
+        )
+
+    return compact_records
+
+
+def _compact_manuscript_evidence_bundle(
+    manuscript_evidence_bundle: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Deterministic bounded projection of manuscript evidence.
+
+    Full artifact examples and representative task collections remain
+    archived. A bounded deterministic sample is sufficient for revision
+    and review while preventing context growth from scaling with the
+    complete experiment.
+    """
+    compact = dict(manuscript_evidence_bundle)
+
+    for key, limit in (
+        ("artifact_examples", 12),
+        ("representative_tasks", 8),
+    ):
+        value = compact.get(key)
+
+        if isinstance(value, list):
+            compact[key] = value[:limit]
+            compact[f"{key}_total_count"] = len(value)
+            compact[f"{key}_context_count"] = min(
+                len(value),
+                limit,
+            )
+
+    return compact
+
+
+def _manuscript_revision_context(
+    *,
+    records: list[Any],
+    execution_manifest: dict[str, Any],
+    manuscript_evidence_bundle: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Build the bounded deterministic context shared by all manuscript
+    revision calls.
+    """
+    return {
+        "verified_records": (
+            _compact_verified_records_for_manuscript(
+                records
+            )
+        ),
+        "execution_manifest": (
+            _compact_execution_manifest_for_manuscript(
+                execution_manifest
+            )
+        ),
+        "manuscript_evidence_bundle": (
+            _compact_manuscript_evidence_bundle(
+                manuscript_evidence_bundle
+            )
+        ),
+    }
+
+
 def read_json(
     path: Path,
 ) -> Any:
@@ -3437,6 +3597,16 @@ class FinalAutonomousResearchPipeline:
         )
 
         current_manuscript = draft
+        manuscript_revision_context = (
+            _manuscript_revision_context(
+                records=records,
+                execution_manifest=execution_manifest,
+                manuscript_evidence_bundle=(
+                    manuscript_evidence_bundle
+                ),
+            )
+        )
+
         latest_peer_review: PeerReviewReport | None = None
 
         maximum_peer_review_rounds = 5
@@ -3504,7 +3674,11 @@ class FinalAutonomousResearchPipeline:
                 MANUSCRIPT_REVISER,
                 {
                     "master_prompt": master_prompt,
-                    "verified_records": records,
+                    "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
                     "evidence_verification": (
                         evidence_report
                     ),
@@ -3512,8 +3686,10 @@ class FinalAutonomousResearchPipeline:
                         preregistration.model_dump()
                     ),
                     "execution_manifest": (
-                        execution_manifest
-                    ),
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
+                        ),
                     "analysis_results": (
                         analysis_results
                     ),
@@ -3521,8 +3697,10 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                        manuscript_evidence_bundle
-                    ),
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
+                        ),
                     "manuscript": (
                         current_manuscript
                         .model_dump()
@@ -3911,7 +4089,11 @@ class FinalAutonomousResearchPipeline:
                 MANUSCRIPT_REVISER,
                 {
                     "master_prompt": master_prompt,
-                    "verified_records": records,
+                    "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
                     "evidence_verification": (
                         evidence_report
                     ),
@@ -3919,8 +4101,10 @@ class FinalAutonomousResearchPipeline:
                         preregistration.model_dump()
                     ),
                     "execution_manifest": (
-                        execution_manifest
-                    ),
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
+                        ),
                     "analysis_results": (
                         analysis_results
                     ),
@@ -3928,8 +4112,10 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                        manuscript_evidence_bundle
-                    ),
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
+                        ),
                     "manuscript": (
                         revision_base_manuscript
                         .model_dump()
@@ -4145,7 +4331,11 @@ class FinalAutonomousResearchPipeline:
                         MANUSCRIPT_REVISER,
                         {
                             "master_prompt": master_prompt,
-                            "verified_records": records,
+                            "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
                             "evidence_verification": (
                                 evidence_report
                             ),
@@ -4153,8 +4343,10 @@ class FinalAutonomousResearchPipeline:
                                 preregistration.model_dump()
                             ),
                             "execution_manifest": (
-                                execution_manifest
-                            ),
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
+                        ),
                             "analysis_results": (
                                 analysis_results
                             ),
@@ -4162,8 +4354,10 @@ class FinalAutonomousResearchPipeline:
                                 deterministic_reconciliation
                             ),
                             "manuscript_evidence_bundle": (
-                                manuscript_evidence_bundle
-                            ),
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
+                        ),
                             "manuscript": (
                                 modular_base_manuscript
                                 .model_dump()
@@ -4703,7 +4897,11 @@ class FinalAutonomousResearchPipeline:
                 MANUSCRIPT_REVISER,
                 {
                     "master_prompt": master_prompt,
-                    "verified_records": records,
+                    "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
                     "evidence_verification": (
                         evidence_report
                     ),
@@ -4711,8 +4909,10 @@ class FinalAutonomousResearchPipeline:
                         preregistration.model_dump()
                     ),
                     "execution_manifest": (
-                        execution_manifest
-                    ),
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
+                        ),
                     "analysis_results": (
                         analysis_results
                     ),
@@ -4720,8 +4920,10 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                        manuscript_evidence_bundle
-                    ),
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
+                        ),
                     "manuscript": (
                         terminal_review_revision_base_manuscript
                         .model_dump()
@@ -4996,7 +5198,11 @@ class FinalAutonomousResearchPipeline:
                     MANUSCRIPT_REVISER,
                     {
                         "master_prompt": master_prompt,
-                        "verified_records": records,
+                        "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
                         "evidence_verification": (
                             evidence_report
                         ),
@@ -5004,7 +5210,9 @@ class FinalAutonomousResearchPipeline:
                             preregistration.model_dump()
                         ),
                         "execution_manifest": (
-                            execution_manifest
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
                         ),
                         "analysis_results": (
                             analysis_results
@@ -5013,7 +5221,9 @@ class FinalAutonomousResearchPipeline:
                             deterministic_reconciliation
                         ),
                         "manuscript_evidence_bundle": (
-                            manuscript_evidence_bundle
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
                         ),
                         "manuscript": (
                             terminal_revision_base_manuscript.model_dump()
