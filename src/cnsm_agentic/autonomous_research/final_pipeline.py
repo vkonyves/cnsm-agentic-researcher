@@ -835,6 +835,56 @@ def preregistration_execution_contract_issues(
 
     return sorted(set(issues))
 
+def canonicalize_preregistration_analysis_contract(
+    preregistration: PreregistrationDocument,
+    *,
+    analysis_contracts: dict[str, dict[str, Any]],
+) -> PreregistrationDocument:
+    """
+    Canonicalize the machine-readable primary estimand identifier
+    only when exactly one registered analysis contract is compatible
+    with the already-selected execution adapter.
+
+    This is foreign-key normalization, not scientific selection:
+    hypotheses, the human-readable primary estimand, analysis prose,
+    outcomes, and scientific interpretation are left unchanged.
+    """
+    adapter_family = (
+        preregistration.execution_contract.adapter_family
+    )
+
+    compatible_contracts = [
+        contract
+        for contract in analysis_contracts.values()
+        if adapter_family
+        in contract.get(
+            "compatible_execution_adapter_families",
+            [],
+        )
+    ]
+
+    # Never choose deterministically if multiple scientifically
+    # executable analysis contracts remain available.
+    if len(compatible_contracts) != 1:
+        return preregistration
+
+    canonical_estimand_id = compatible_contracts[0].get(
+        "estimand"
+    )
+
+    if (
+        not isinstance(canonical_estimand_id, str)
+        or not canonical_estimand_id.strip()
+    ):
+        return preregistration
+
+    preregistration.primary_estimand_id = (
+        canonical_estimand_id
+    )
+
+    return preregistration
+
+
 def canonicalize_preregistration_execution_contract(
     preregistration: PreregistrationDocument,
     *,
@@ -2460,6 +2510,15 @@ class FinalAutonomousResearchPipeline:
                 )
             )
 
+            preregistration = (
+                canonicalize_preregistration_analysis_contract(
+                    preregistration,
+                    analysis_contracts=(
+                        available_analysis_contracts
+                    ),
+                )
+            )
+
             preregistration_contract_issues = (
                 preregistration_execution_contract_issues(
                     preregistration,
@@ -2507,6 +2566,23 @@ class FinalAutonomousResearchPipeline:
                         preregistration
                         .execution_contract
                         .model_dump()
+                    ),
+                    "declared_primary_estimand_id": (
+                        preregistration.primary_estimand_id
+                    ),
+                    "declared_primary_estimand": (
+                        preregistration.primary_estimand
+                    ),
+                    "available_analysis_estimands": sorted(
+                        {
+                            contract.get("estimand")
+                            for contract
+                            in available_analysis_contracts.values()
+                            if isinstance(
+                                contract.get("estimand"),
+                                str,
+                            )
+                        }
                     ),
                 },
             )
