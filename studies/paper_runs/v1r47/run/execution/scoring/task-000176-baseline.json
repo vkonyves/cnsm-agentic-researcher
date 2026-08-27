@@ -1,0 +1,249 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000176-baseline",
+  "normalized_reference_answer": "interface uplink44 admin up\ninterface uplink43 admin down\ninterface uplink43 vlan 220\ninterface uplink43 mtu 9300\ninterface uplink43 admin up\ninterface uplink44 admin down\ninterface edge85 admin down\ninterface edge85 vlan 70\ninterface edge85 admin up",
+  "normalized_response": "interface uplink44 admin up\ninterface uplink43 admin down\ninterface uplink",
+  "pair_id": "pair-000176",
+  "raw_response_sha256": "aae0e46c1b1d5223e4a4b665f5726ca30cd40420a3522d7f451f94fe3f0a21ef",
+  "reference_answer_sha256": "461dd6efad902f37fd374bada21d94e7455f0ee8db44e5704ff6763bd4c2ab49",
+  "repair_provider_trace_path": null,
+  "repair_provider_trace_sha256": null,
+  "schema_version": "1.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000176-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "675d044b17bbc27f9aea560fd9c0ff45c70402d3cbaed624beb30eccf079e332",
+  "study_id": "CNSM2026-A1-prereg-v1",
+  "task_id": "task-000176",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "interface uplink44 admin up\ninterface uplink43 admin down\ninterface uplink",
+    "repair_applied": false,
+    "repair_prompt_sha256": null,
+    "shared_initial_candidate": "interface uplink44 admin up\ninterface uplink43 admin down\ninterface uplink",
+    "shared_initial_candidate_sha256": "aae0e46c1b1d5223e4a4b665f5726ca30cd40420a3522d7f451f94fe3f0a21ef",
+    "shared_initial_response_path": "execution/responses/task-000176-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge85": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge86": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt22": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink43": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink44": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink44 admin up\ninterface uplink43 admin down",
+      "observed_touched_field_count": 2,
+      "parsed_command_count": 2,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 10,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 3,
+          "message": "Unsupported command: interface uplink"
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge85 vlan ended as 10; expected 70."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 admin ended as 'down'; expected 'up'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 mtu ended as 9000; expected 9300."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 vlan ended as 200; expected 220."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink44 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge85 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge85 vlan."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink43 mtu."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink43 vlan."
+        }
+      ]
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge85": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge86": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt22": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink43": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink44": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink44 admin up\ninterface uplink43 admin down",
+      "observed_touched_field_count": 2,
+      "parsed_command_count": 2,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 10,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 3,
+          "message": "Unsupported command: interface uplink"
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge85 vlan ended as 10; expected 70."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 admin ended as 'down'; expected 'up'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 mtu ended as 9000; expected 9300."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink43 vlan ended as 200; expected 220."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink44 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge85 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge85 vlan."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink43 mtu."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink43 vlan."
+        }
+      ]
+    }
+  }
+}

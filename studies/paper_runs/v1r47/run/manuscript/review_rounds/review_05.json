@@ -1,0 +1,21 @@
+{
+  "summary": "Well‑executed, preregistered paired study evaluating an LLM (gpt‑5‑mini) generate→validate→repair pipeline with a deterministic verifier on a synthetic multi‑vendor NetOps task set. Execution and provenance artifacts appear comprehensive and mostly consistent with the preregistration. The confirmatory analysis is correctly implemented (paired design, McNemar test, bootstrap CI) and the preregistered efficacy target was not met. Key limitations are high baseline correctness (ceiling effect), rare repair invocations (3), and single‑model / synthetic benchmark scope.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered sensitivity bootstrap CI not reported inline: the manuscript reports only an approximate normal‑theory CI for the prespecified sensitivity (treating both‑missing pairs as failures) even though the preregistered bootstrap (10,000 resamples, seed=1729) can be deterministically computed from the archived per‑pair raw_results.jsonl. Omitting the preregistered CI contradicts the preregistration and leaves a reproducible numeric gap in the confirmatory record.",
+    "Claim linking the three repair invocations to the three guarded‑only successes (n_10 = 3) is asserted but the manuscript does not enumerate the explicit per‑call provider_trace filenames and SHA‑256 checksums that would deterministically substantiate this mapping (those filenames/sha256s are present in the archived raw_results/provider_calls but were not listed). Without those explicit pointers the asserted repair→correction linkage is not verifiable from the paper text alone."
+  ],
+  "required_revisions": [
+    "Compute and report the preregistered bootstrap percentile 95% CI for the sensitivity analysis (complete_pair_primary_with_failure_as_zero_sensitivity) using the archived per‑pair raw_results.jsonl with 10,000 resamples and seed=1729; replace the approximate normal‑theory CI in the manuscript with the preregistered bootstrap result (numbers must match the deterministic computation from execution/raw_results.jsonl SHA‑256 = 8b1a66d7f2fc50404ff45d7ec16a30d3baae8f6b49572a3194fedbf3042da4d7). Provide the exact command or script path (within the artifact bundle) and invocation used to compute that bootstrap so reviewers/readers can reproduce it deterministically.",
+    "Provide explicit artifact pointers to substantiate the repair→correction mapping: enumerate the provider_call filenames (relative paths under execution/provider_calls or execution/responses) and their SHA‑256 checksums for the three repair invocations and show the raw_results.jsonl entries that link each repair call to its episode_id and final scoring outcome. If a short table of (episode_id, pair_id, provider_call_filename, provider_call_sha256, final_score) is added, include its artifact path and checksum so readers can deterministically verify the asserted mapping from the supplied archive."
+  ],
+  "optional_revisions": [
+    "Briefly expand the discussion of verifier coverage (known FP/FN behavior) by referencing the contamination_summary/contamination artifact and, if available in the archive, report the verifier FP/FN estimates derived from oracle/golden comparisons (label exploratory).",
+    "Add one short representative example (single task pair) in the manuscript body or caption showing the raw LLM proposal, validator failures (if any), and the automated repair (if invoked) to help readers understand the concrete failure mode corrected by the repair. Point to the archived per‑episode JSON for that example and its checksum.",
+    "Clarify in one sentence why baseline correctness was so high for the sampled task family (task-generator constraints / verifier‑supported feature set) to help readers interpret the ceiling effect."
+  ],
+  "accept_for_finalisation": false
+}

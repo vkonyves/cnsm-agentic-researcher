@@ -1,0 +1,22 @@
+{
+  "summary": "Well‑executed preregistered paired study of an LLM‑driven generate→validate→repair pipeline (gpt‑5‑mini + deterministic_netops_validator_v5) on a synthetic multi‑vendor NetOps task set. Execution, provenance, and analysis artifacts are comprehensive and reproducible. The preregistered primary estimand was computed correctly and the negative/null outcome (small, non‑significant absolute gain) is reported and interpreted with appropriate caveats (ceiling effect, sparse repairs). Overall scientifically sound and well documented, but two prespecified/reporting items required by the preregistration/artifact bundle are missing from the manuscript and must be added before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The preregistration and contamination plan specified estimating and reporting the deterministic verifier’s false‑positive / false‑negative rates via oracle (golden) comparison; no explicit FP/FN estimates or summarized verifier‑error numbers appear in the manuscript or analysis artifacts summary (contamination_summary.csv is empty). This is a prespecified analysis and must be reported or, if infeasible, an explicit disclosure of why it cannot be produced from the archived artifacts must be included.",
+    "The manuscript states repair invocations = 3 and explains how to extract them from the canonical archive, but does not list the repair provider_call filenames and their SHA‑256 checksums verbatim in the paper. Because the existence and identities of those three repair artifacts are central to the causal interpretation of the three discordant guarded‑only successes (n_10 = 3), the manuscript must include the explicit provider_call filenames and SHA‑256 checksums (or an inline, deterministic table extracted from execution/raw_results.jsonl) so readers need not re‑run the extraction step to verify the repair→correction mapping."
+  ],
+  "required_revisions": [
+    "Add prespecified verifier performance numbers: report the verifier’s estimated false‑positive and false‑negative counts/rates (oracle vs validator comparison) computed deterministically from the archived golden configurations and validator traces, with reference to the exact artifact paths and SHA‑256 checksums used to compute them. If those numbers cannot be produced from the supplied artifacts, explicitly state the reason (deterministic failure mode) and explain the impact on interpretation.",
+    "Add an explicit, deterministic table (in the manuscript body or a concise boxed subsection) listing the three repair invocations: for each repair include episode_id, pair_id, repair_provider_trace_path (relative path within the artifact bundle), and the repair_provider_trace_sha256. Cross‑check the table entries with the archived provider_call files and include their filenames and SHA‑256 values verbatim.",
+    "Where these additions change page count, perform the autonomous micro‑editing (as allowed by the track) to maintain the five‑page maximum while preserving mandatory content (Disclosure Statement)."
+  ],
+  "optional_revisions": [
+    "Include a brief numeric summary (median, IQR) of blast‑radius diagnostics (observed_touched_field_count, parsed_command_count) for (a) all complete pairs, (b) repaired episodes, and (c) nonrepaired episodes to illustrate operational impact beyond the binary success metric (these values are available in validator_trace fields in the archive).",
+    "Add a short explicit sentence clarifying the shared_initial semantics and how model_call accounting (model_calls_used = 203) maps to pairs and repair calls (this is present implicitly but a one‑line explicit mapping will help readers).",
+    "If space permits, include the exact initial master prompt text in the Disclosure Statement (or confirm the provided immutable reference path contains the full prompt and state its byte/line count) to remove any ambiguity for reproducibility."
+  ],
+  "accept_for_finalisation": false
+}

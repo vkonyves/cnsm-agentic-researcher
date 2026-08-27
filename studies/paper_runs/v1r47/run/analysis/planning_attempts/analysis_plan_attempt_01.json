@@ -1,0 +1,32 @@
+{
+  "study_id": "CNSM2026-A1-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute paired_binary_analysis_v1 on execution/scoring/*.json (schema paired_binary_episode_v1) to compute the prespecified estimand paired_success_rate_difference_guarded_minus_baseline. Input selection: confirmatory task set = preregistered task_indices (1..200) filtered by execution/task_manifest.jsonl and execution/transformation_manifest.json for 'unsupported' flags. Pair inclusion rule = include all task pairs except those where both condition episodes have call_status == 'failed' (treatment: complete_pair_primary). Compute point estimate = P(regression|guarded) - P(regression|baseline) on the included pairs. Primary inference: exact paired-proportion (McNemar-style) p-value; 95% bootstrap percentile CI for paired difference (bootstrap_reps=10000). Archive executor inputs/outputs and use execution/raw_results.jsonl, execution/scoring/task-*.json, and execution/provider_calls/*.json as canonical inputs.",
+  "secondary_analyses": [
+    "Paired median blast-radius difference: for included pairs compute per-task blast_radius under each condition; report median difference, bootstrap 95% CI (percentile, 10000 reps), and paired Wilcoxon signed-rank test (two-sided). Input: execution/scoring/task-*.json.",
+    "Descriptive distribution_of_repair_iterations: histogram and summary (mean, median, IQR) for guarded condition repair_iterations (exploratory). Input: execution/scoring/task-*.json.",
+    "Prespecified subgroup analyses by topology_scale (small/medium/large): compute paired success-rate difference per stratum and report unadjusted p-values and Bonferroni-adjusted p-values (alpha_adj=0.05/3)."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call sensitivity (per preregistration): re-run paired estimate treating any failed model call as a regression (failed_call_treatment = complete_pair_primary_with_failure_as_zero_sensitivity). Compute bootstrap CIs and McNemar-style p-value on this replacement dataset.",
+    "Verifier-error reweighting sensitivity: estimate verifier FP/FN rates by oracle comparison using execution/scoring/*guarded.json vs archived oracle simulation outcomes; perform bootstrap reweighting where guarded regression flags are probabilistically flipped according to estimated verifier FP/FN to produce adjusted paired-difference CIs (10000 reps).",
+    "Per-task exclusion sensitivity: report primary estimand when excluding any task flagged 'unsupported' in execution/transformation_manifest_path and when excluding tasks with parser_status != 'parsed'."
+  ],
+  "uncertainty_quantification": "95% bootstrap percentile confidence intervals (bootstrap_reps=10000) for paired difference and medians; exact McNemar-style paired-proportion p-values for primary estimand (two-sided, alpha=0.05); paired Wilcoxon signed-rank p-values for secondary blast-radius. All CIs and p-values reported with numerator/denominator and method label; bootstrap seeds archived.",
+  "multiplicity_implementation": "Single prespecified primary test at alpha=0.05. Secondary and exploratory analyses reported as exploratory. Prespecified subgroup analyses across topology_scale (3 strata) use Bonferroni correction (alpha_adj = 0.05/3) when labeling subgroup p-values as confirmatory-like; both adjusted and unadjusted p-values provided.",
+  "contamination_analysis": "Detect and report contamination per preregistration using: execution/task_manifest.jsonl and execution/transformation_manifest.json (unsupported-feature flags), execution/provider_calls/* (provider caching risk), and execution/scoring/* vs oracle simulator outputs to estimate verifier FP/FN. Produce report: counts of tasks flagged 'unsupported', counts of model-failures (call_status=='failed'), verifier FP/FN estimates (with 95% bootstrap CIs), and sensitivity-adjusted estimand as described. All contamination-detection code executed against archived artifacts (paths in execution_manifest).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory primary outcome: N_tasks_prespecified, N_pairs_included, baseline_regressions_count, guarded_regressions_count, paired_difference, 95% bootstrap CI, McNemar p-value. Source: execution/scoring/task-*.json aggregated by task_id.",
+    "Table 2 — Secondary blast-radius summary: per-condition median, IQR, bootstrap 95% CIs, paired Wilcoxon p-value. Source: execution/scoring/task-*.json.",
+    "Table 3 — Failure & contamination summary: counts and proportions of model-failures, parser_failures, verifier_unsupported_flags, tasks moved to exploratory, verifier FP/FN estimates (with CIs). Source: execution/execution_log.jsonl, execution/transformation_manifest.json, execution/scoring/*.json.",
+    "Table 4 (exploratory) — Repair iterations: distribution summary (count, mean, median, IQR) and percent requiring repair for guarded condition. Source: execution/scoring/*.json."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Paired difference plot: per-task regression outcome pairs (baseline vs guarded) as paired-dot plot with jitter and marginal histograms; annotate paired difference and 95% bootstrap CI. Source: execution/scoring/*.json.",
+    "Figure 2 — Blast-radius distribution: overlaid kernel densities (baseline, guarded) and histogram of per-task differences (guarded - baseline). Source: execution/scoring/*.json.",
+    "Figure 3 — Repair-iterations histogram for guarded condition (exploratory): bar counts per iteration count (0,1,2...). Source: execution/scoring/*.json.",
+    "Figure 4 — Subgroup forest plot: paired_difference and 95% CI per topology_scale (small/medium/large) plus overall estimate; annotate Bonferroni-adjusted p-values. Source: execution/scoring/*.json and execution/task_manifest.jsonl."
+  ]
+}

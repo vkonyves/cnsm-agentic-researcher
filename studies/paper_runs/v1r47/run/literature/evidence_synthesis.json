@@ -1,0 +1,207 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs can generate network configurations and intent-driven workflows but frequently produce functional errors or introduce regressions that require further validation or repair.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7157506260",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "evidence_type": "empirical/experimental and system reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Many studies use synthetic or lab-scale scenarios rather than diverse production multi-vendor deployments",
+        "Performance and error modes vary by model, prompt, and task formulation; not all LLMs were comparably evaluated"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate→validate→repair architectures that combine LLM generation with deterministic network verifiers or emulated sandboxes (e.g., Batfish, symbolic verifiers) detect functional regressions and materially improve correctness of proposed fixes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7202372419",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "benchmarking study, system prototypes, and verification research",
+      "confidence": 0.9,
+      "limitations": [
+        "Integration overhead and verifier coverage (protocols/features supported) constrain applicability",
+        "Some verifier-improvement proposals are prototypical and evaluated on limited feature sets"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Operational reliability of LLM-driven NetOps depends heavily on surrounding machinery—tooling, constraints/guardrails, verification loops, governance, and rollout/rollback mechanisms—rather than on model capability alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4416927413",
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "architectural surveys, system proposals, and tooling papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Argumentative and survey-style sources predominate; fewer controlled comparative trials quantify magnitude of effect",
+        "Implementation details and operational policies vary across proposals"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Benchmarked evaluations (Cornetto) show that state-of-the-art LLMs can attempt repairs at scale but their success rate declines with topology/protocol scale and they often introduce new regressions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "benchmark empirical study",
+      "confidence": 0.85,
+      "limitations": [
+        "Cornetto is a synthesized benchmark; real-world heterogeneity and vendor-specific behavior may further affect outcomes",
+        "Benchmark covers a limited set of topologies and protocols relative to production diversity"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Tool-assisted LLM self-correction patterns (external-tool critiquing, RAG, NDT-backed refinement) demonstrably improve correctness in code/math and have been applied in NetOps prototypes (e.g., VNF deployment with NDTs and RAG).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4377372007",
+        "https://openalex.org/W7163413045",
+        "https://openalex.org/W4416608147",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "method papers and applied system reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Cross-task transfer (from math/code to network configs) is promising but not universally validated",
+        "Effectiveness depends on the fidelity of external tools/simulators and the feedback loop design"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent can LLM-driven agents safely and autonomously execute high-impact network changes in production without human approval while meeting required safety/availability SLAs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "position papers and system proposals (limited deployment evidence)",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing sources argue for human-in-the-loop or constrained roles and present prototype deployments, but lack large-scale production trials measuring SLA impacts",
+        "Ethical/regulatory and operational risk trade-offs are discussed but not empirically resolved"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What are scalable, practical methods to keep deterministic verifiers up-to-date across vendor-specific behaviors so generate→validate→repair pipelines remain effective in long-lived, heterogeneous networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7202372419",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "research prototypes and benchmark observations",
+      "confidence": 0.5,
+      "limitations": [
+        "Self-evolving verifier proposals show promise but are early-stage and evaluated on limited feature additions",
+        "Operational costs and test coverage trade-offs are not fully quantified"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How robust are LLM-driven NetOps workflows to adversarial or malformed intent inputs specifically crafted to induce unsafe network changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404688214",
+        "doi:10.2139/ssrn.7042179",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "surveys on adversarial robustness and agent failure taxonomies; applied NetOps papers highlight errors but lack adversarial stress tests",
+      "confidence": 0.45,
+      "limitations": [
+        "Adversarial robustness literature exists broadly but targeted adversarial evaluations for LLM-generated network configs remain sparse",
+        "NetOps-specific threat models (privileged actions, rollback constraints) require tailored adversarial tests not yet commonly reported"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of public, production-scale multi-vendor datasets and longitudinal field trials that measure LLM-driven NetOps safety, rollback effectiveness, and real-world SLA impacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "benchmark/field-report coverage analysis",
+      "confidence": 0.85,
+      "limitations": [
+        "Some deployments (e.g., BiAn) exist but are limited in scope or reported metrics; broad multi-vendor longitudinal evidence is not present in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient adversarial-robustness benchmarks that specifically target LLM-generated network configurations and agentic NetOps workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404688214",
+        "https://openalex.org/W4416927413",
+        "doi:10.2139/ssrn.7042179"
+      ],
+      "evidence_type": "survey and taxonomy documents indicating gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Adversarial evaluations exist in related domains; explicit NetOps-targeted adversarial benchmark design is still emerging"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for standardized metrics that map LLM-output correctness to operationally meaningful properties (reachability, policy compliance, blast radius, rollbackability) across evaluation suites.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "benchmark and verification literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Some works use formal verification metrics but there is no single community-agreed metric suite for LLM-driven NetOps in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Comparative empirical studies quantifying trade-offs between human-in-the-loop approval gates and fully automated LLM agent workflows (impact on speed, safety, and operator trust) are sparse.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164614460",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413756536"
+      ],
+      "evidence_type": "methodological/preregistration and architectural discussions",
+      "confidence": 0.75,
+      "limitations": [
+        "Preregistration and methodological recommendations exist, but controlled comparison trials are not reported in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Operational-cost and human-factors studies (e.g., rollout/canary policies, operator workload, incident response under LLM suggestions) are underrepresented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "system reports and surveys noting governance aspects",
+      "confidence": 0.7,
+      "limitations": [
+        "Some systems report MTTR reductions in limited settings; broader socio-technical and cost analyses are missing"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs alone (without deterministic validators, tooling, and governance) are sufficient for safe, production-grade autonomous NetOps.",
+    "State-of-the-art LLMs never introduce regressions when repairing network configurations.",
+    "There is conclusive, published evidence that fully agentic LLM systems outperform human-in-the-loop workflows across all operational metrics in production networks.",
+    "Existing benchmarks and surveys in the supplied records prove adversarial robustness of LLM-driven NetOps workflows under targeted attack."
+  ]
+}

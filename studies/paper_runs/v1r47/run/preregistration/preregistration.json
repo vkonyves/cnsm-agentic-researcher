@@ -1,0 +1,81 @@
+{
+  "study_id": "CNSM2026-A1-prereg-v1",
+  "title": "Effectiveness of Generate→Validate→Repair Pipelines with Deterministic Verifiers on Multi‑Vendor Configuration Repairs (Repaired Preregistration)",
+  "research_question": "Does integrating a deterministic network verifier into an LLM-driven generate→validate→repair pipeline reduce the rate of functional regressions and average blast radius of repairs versus LLM-alone proposals on a seeded multi‑vendor synthetic benchmark?",
+  "confirmatory_hypotheses": [
+    "H1: The paired difference in functional-regression rate (LLM+Verifier+Repair minus LLM-alone) is <= -0.20 (i.e., verifier pipeline reduces absolute regression rate by at least 20 percentage points). This is the primary confirmatory estimand.",
+    "H2: The paired median blast-radius for LLM+Verifier+Repair is at least 30% lower than for LLM-alone (exploratory/secondary; reported with bootstrap CIs and nonparametric paired tests)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Distribution of repair iterations required for verifier-guided repair (per-model/prompt).",
+    "EQ2: Relationship between topology scale/vendor-mix strata and mitigation effectiveness.",
+    "EQ3: Effect of prompt seed and LLM family on paired outcome heterogeneity."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7202372419",
+    "https://openalex.org/W4416655698",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413756536"
+  ],
+  "benchmark_scope": [
+    "Synthetic Cornetto-like multi-vendor topology generator (public, reproducible); seeded faults with ground-truth golden configs.",
+    "Topology scales: small (≤10 nodes), medium (11–50 nodes), large (51–150 nodes).",
+    "Vendor feature mix: common cross-vendor features (BGP, OSPF, static routes, ACLs, VLANs)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired difference in per-task binary functional-regression indicator: P(regression|LLM+Verifier) - P(regression|LLM-alone))",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_median_blast_radius_difference (difference in per-task blast-radius medians, exploratory)",
+    "distribution_of_repair_iterations (count, exploratory)"
+  ],
+  "sampling_plan": "Stratified generation of 200 confirmatory tasks + 40 discovery tasks (discovery used for prompt tuning only). Confirmatory set: 200 paired tasks deterministically stratified evenly across topology scales (small, medium, large) and vendor-mix strata. Inclusion: tasks whose golden configs and seeded faults only require verifier-supported features. Exclusion: tasks that require unsupported proprietary vendor features (automatically detected and moved to exploratory bucket). All inclusion/exclusion decisions are deterministic and logged; no human adjudication.",
+  "power_and_precision_plan": "Primary estimand target: absolute reduction 0.20 in regression rate (two-sided alpha=0.05, power≈0.80). Power calculation: approximate paired-proportion McNemar-style with assumed discordant proportion ≈0.30 gives ~80% power with 200 confirmatory pairs. Report 95% bootstrap CIs for paired difference and exact paired-proportion inference (McNemar-style) with p-values.",
+  "exclusion_rules": [
+    "Exclude tasks whose golden config or seeded fault references unsupported vendor-specific constructs (detected deterministically during parsing).",
+    "Exclude individual model/prompt episodes where LLM output is syntactically unparseable into IR after preregistered retry; such episodes are marked model-failures and handled per missingness_plan."
+  ],
+  "missingness_plan": "Retry policy: one automatic retry for transient API failures/timeouts with identical settings. If both original and retry fail, mark as failed call. For the primary paired analysis, exclude pairs where both conditions failed (complete_pair_primary). Sensitivity analysis will treat failed outputs as regressions (complete_pair_primary_with_failure_as_zero_sensitivity). All failures, causes, and counts logged in the execution manifest. No human imputation.",
+  "analysis_plan": "Primary confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' computing the primary estimand (paired_success_rate_difference_guarded_minus_baseline). Primary treatment of failed calls: 'complete_pair_primary' (exclude pairs where both conditions fail). Sensitivity: 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat failed outputs as regressions). Primary statistical test: paired binary (McNemar-style) inference with 95% bootstrap CIs and p-values (alpha=0.05). Secondary/exploratory: paired Wilcoxon signed-rank for blast-radius, bootstrap CIs for medians, descriptive histograms for repair-iterations. Archive all raw outputs, seeds, prompts, verifier traces, and executor inputs/outputs.",
+  "multiplicity_plan": "Single prespecified primary confirmatory test (primary_estimand) at alpha=0.05. Secondary analyses treated as exploratory. For prespecified subgroup analyses by topology-scale (3 strata), apply Bonferroni correction (alpha_adj = 0.05/3) when reporting confirmatory-like subgroup p-values. All p-values labeled adjusted/unadjusted.",
+  "contamination_plan": "Benchmark names: Cornetto-like synthetic multi-vendor seeded-fault benchmark (generator and templates archived). Risk factors: verifier unsupported vendor features; model prompt leakage via provider caching; dataset generator glitches that reveal golden fixes. Detection: automated feature-compatibility detector flags unsupported tasks (moved to exploratory bucket); automated oracle comparison between golden-simulator outcomes and verifier flags to estimate verifier FP/FN without human adjudication. Flagging rules: tasks with unsupported constructs marked 'unsupported' and excluded from confirmatory analysis; unparseable model outputs marked 'model-failure' and treated per missingness_plan; verifier 'unsupported' responses route task to exploratory analysis. Analysis treatment: exclude unsupported-feature tasks from confirmatory set; report verifier FP/FN rates via oracle comparison and perform sensitivity reweighting of primary estimand by estimated verifier error rates.",
+  "stopping_rule": "Stop when all required_confirmatory_task_count tasks (200) have completed both condition episodes for all model/prompt combos and analysis artifacts are archived, or earlier if a reproducible non-recoverable infrastructure failure (Docker/CI or provider outage) prevents completion. Do not perform early stopping for efficacy. If maximum_model_calls budget (as constrained by execution environment) is exhausted, stop and report completed fraction and perform sensitivity analyses on observed data.",
+  "planned_outputs": [
+    "Preregistered experimental plan (this document) and machine-readable execution manifest.",
+    "Versioned experiment code, generator, vendor-to-IR mappers, and unit tests (Dockerized).",
+    "Raw LLM outputs, verifier traces, parsed IRs, simulation outcomes, and archived seeds/prompts.",
+    "Analysis scripts and paired_binary_analysis_v1 executor outputs (point estimates, CIs, p-values).",
+    "Failure-analysis record, evidence-to-claim table, nearest-work matrix.",
+    "IEEE-formatted short-paper LaTeX source, BibTeX, and compiled PDF (≤5 pages) including Disclosure Statement.",
+    "NotebookLM presentation brief and final-output hash manifest."
+  ],
+  "unresolved_critical_issues": []
+}

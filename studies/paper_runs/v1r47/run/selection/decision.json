@@ -1,0 +1,31 @@
+{
+  "selected_candidate_id": "CNSM2026-A1",
+  "selection_rationale": "CNSM2026-A1 (Generate→Validate→Repair with deterministic verifier) best aligns with the track’s focus on NetOps safety/reliability, has clear, falsifiable hypotheses and a paired experimental design, is experimentally tractable within the stated compute budget, and directly tests an operationally meaningful intervention (verifier-guided repair) with measurable outcomes (regression rate, blast radius).",
+  "runner_up_candidate_id": "CNSM2026-A2",
+  "unresolved_uncertainties": [
+    "Deterministic verifier coverage for vendor-specific features and how unsupported features will be handled in analysis.",
+    "External validity: how results on the synthetic/Cornetto-like benchmark generalize to production multi-vendor deployments.",
+    "Prompt sensitivity and model-dependence: degree to which results depend on chosen LLM(s) and prompt templates.",
+    "Potential verifier false-positive and false-negative rates and their impact on measured mitigation effect.",
+    "Adequacy of the planned sample size (200 tasks) for detecting preregistered effect sizes across strata (topology scale, vendor mix)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7202372419",
+    "https://openalex.org/W4416655698",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413756536"
+  ],
+  "required_repairs_before_preregistration": [
+    "Pre-register exact deterministic verifier (name, version) and enumerate supported/unsupported vendor features; specify handling policy for unsupported features (exclude, map to fallback, or annotate).",
+    "Include multiple LLM families and multiple prompt seeds; preregister prompt templates, temperature/settings, and random seeds to assess prompt/model sensitivity.",
+    "Precisely operationalize and preregister metric definitions: formal definitions and thresholds for \"functional regression\", \"blast-radius\" (e.g., impacted prefixes/nodes normalization), and any policy-violation counts.",
+    "Design and preregister procedures to measure verifier false-positives and false-negatives (e.g., oracle checks or manual adjudication on a stratified subset) and plan to report their influence on primary outcomes.",
+    "Provide and preregister a statistical power/sample-size calculation for the paired design; justify or adjust the 200-task target and preregister strata and alpha adjustments (multiple comparisons).",
+    "Preregister exact paired-analysis statistical tests, effect-size measures, bootstrap/CI procedures, and the handling of failed/unsupported tasks (exclusion rules and sensitivity analyses).",
+    "Specify repair-loop stopping rules (max iterations), iteration-level logging, timeout policies, and retry policies for infrastructure/model/API failures; preregister how retries will be treated in analyses.",
+    "Document sandbox/emulation environment details (Batfish or equivalent config), dataset generation procedure (topology/vendor mixes), and ensure all experiments run in isolated simulated environments (no live networks, no credentials).",
+    "Preregister prompt-sensitivity and robustness analyses (e.g., report per-model/per-prompt results and pooled estimates), and commit to publishing prompts and anonymized artifacts consistent with ethical constraints.",
+    "Predefine the exact blast-radius and regression aggregation procedures (per-change vs per-task), and preregister secondary analyses (topology-scale strata, vendor-mix strata) with multiple-comparison controls."
+  ]
+}

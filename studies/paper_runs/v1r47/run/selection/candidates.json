@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CNSM2026-A1",
+      "title": "Effectiveness of Generate→Validate→Repair Pipelines with Deterministic Verifiers on Multi‑Vendor Configuration Repairs",
+      "research_question": "Does integrating a deterministic network verifier (e.g., Batfish-style checks) into an LLM-driven generate→validate→repair pipeline significantly reduce functional regressions and blast radius when repairing erroneous multi-vendor network configurations compared to LLM-alone generation?",
+      "hypotheses": [
+        "Integrating a deterministic verifier after LLM generation reduces the rate of functional regressions (reachability or policy violations) by at least 40% compared to LLM-alone proposals on the same task set.",
+        "A verifier-guided repair loop reduces the average blast radius (number of impacted prefixes/nodes) of applied repairs by at least 30% compared to repairs applied without verifier feedback."
+      ],
+      "proposed_design": "Controlled empirical comparison using a publicly reproducible synthetic benchmark (Cornetto-like) of multi-vendor topologies and seeded faults. Two conditions per task: (A) LLM-alone: LLM generates repair/configuration and change is accepted; (B) LLM+Verifier+Repair: LLM generates, deterministic verifier flags regressions, LLM performs repair iterations until verifier passes or max iterations reached. Use an emulated sandbox (Batfish or equivalent) to evaluate reachability, ACL/policy violations, and per-change blast radius. Tasks: 200 seeded faults across varying topology scales and vendor feature mixes. Fix budgets and identical prompts across conditions. Record raw model outputs, verifier failures, repair iterations, time, and final applied config.",
+      "expected_data": "Per-task records containing: initial fault description, LLM proposals (text/config), verifier pass/fail flags per iteration, number of repair iterations, final config, binary regression indicator (presence of new violations), numeric blast-radius (impacted prefixes/nodes), time-to-final, and verifier-supported diagnostic logs.",
+      "primary_outcome": "Percent reduction in functional-regression rate (new violations introduced) for LLM+Verifier+Repair relative to LLM-alone across the task set.",
+      "analysis_outline": "Paired design (same seeded fault under both conditions). Compute per-task regression indicators and blast-radius; report aggregated rates and means with 95% bootstrap CIs. Use paired McNemar's test or paired-proportion test for regression-rate difference and paired Wilcoxon signed-rank test for blast-radius differences. Report effect sizes (risk difference, relative risk, Cliff's delta) and analyze repair-iteration distribution and verifier false-negative/coverage cases. Pre-register alpha=0.05, and report unadjusted and Bonferroni-adjusted p-values for secondary analyses (topology-scale strata).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7202372419",
+        "https://openalex.org/W4416655698"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Deterministic verifier coverage may not support all vendor features causing false negatives and unfairly favoring LLM-alone in some cases.",
+        "Synthetic benchmark may not capture all production heterogeneity; results may not generalize to proprietary vendor behaviors.",
+        "Prompt sensitivity may affect baseline LLM-alone performance; need to fix prompt templates and report sensitivity analyses."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "CNSM2026-A2",
+      "title": "Adversarial Intent Robustness of LLM‑Driven NetOps Agents and Mitigation by Validation Gates",
+      "research_question": "How susceptible are LLM-driven NetOps agents to adversarially crafted intent inputs that aim to induce unsafe network changes, and to what extent do deterministic validation gates reduce successful adversarial manipulations?",
+      "hypotheses": [
+        "Adversarially crafted intents increase the rate of unsafe changes (policy violations or high-blast-radius modifications) produced by an LLM agent by at least 30% relative to benign intents.",
+        "A deterministic validation gate applied before change application reduces the successful adversarial unsafe-change rate by at least 50% compared to no validation gate, under the same adversarial intent distribution."
+      ],
+      "proposed_design": "Construct an adversarial-intent generator using template perturbations, ambiguity injection, and malicious-phrasing transformations derived from adversarial-attack literature. Create a task bank of 150 NetOps intents (benign) and generate adversarial variants for each. For each intent variant, run LLM agent to produce proposed change under two pipelines: (1) No-Gate (agent output accepted), (2) Gate (deterministic verifier blocks unsafe changes; agent may attempt repair but blocked until pass). Use sandboxed evaluation to label unsafe changes (policy violation, reachability loss, blast-radius threshold). Record attack success rate (unsafe change applied) and types of successful manipulations. Follow strict ethical constraints: all experiments in isolated simulated environments; no live networks, no real credentials.",
+      "expected_data": "Per-intent variant records: intent text, adversarial transformation type, LLM proposal, verifier decision, whether change would be unsafe, blast-radius metric, number of repair iterations, and categorical attack success label (unsafe-change-applied under pipeline). Aggregate statistics by attack family and topology scale.",
+      "primary_outcome": "Difference in unsafe-change application rate between adversarial and benign intents (attack effect) and reduction in attack success rate attributable to the validation gate (mitigation effect).",
+      "analysis_outline": "Compute proportions of unsafe changes for benign vs adversarial sets and for Gate vs No-Gate conditions. Use chi-square or Fisher's exact tests for proportion differences and compute risk ratios with 95% CIs. Perform subgroup analyses by attack family and topology scale; estimate mitigation efficacy with bootstrapped CIs. Report per-attack ROC-style analysis if verifier provides numeric risk scores. Document ethical safeguards and rule out transfer to live environments.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404688214",
+        "doi:10.2139/ssrn.7042179",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Adversarial-intent generation may overfit to the LLM used; include multiple prompt seeds and report sensitivity.",
+        "Ethical risk if methods are misused; mitigate by publishing only high-level attack taxonomies and not automatable exploit scripts, and using simulated environments only.",
+        "Verifier blocking might produce false positives that inflate the apparent mitigation effect; must report verifier false-positive rates."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "CNSM2026-A3",
+      "title": "Operational Metric Suite for LLM‑Generated Network Changes: Design and Predictive Validation",
+      "research_question": "Can a standardized composite metric suite (reachability-loss, policy-violation count, blast-radius, rollback-complexity) reliably predict operational severity of LLM-generated network changes and discriminate high-risk proposals from low-risk ones in a simulated evaluation corpus?",
+      "hypotheses": [
+        "A composite score combining reachability-loss, policy-violation count, normalized blast-radius, and rollback-complexity will achieve Spearman correlation >= 0.6 with a deterministic severity proxy (simulated outage-impact score) across tasks.",
+        "The composite metric will classify high-risk proposals (top 20% severity proxy) with AUC >= 0.80 when evaluated across a mixed corpus of LLM proposals from multiple prompt seeds and topology scales."
+      ],
+      "proposed_design": "Define component metrics precisely: reachability-loss (fraction of previously reachable prefix-pairs broken), policy-violation count (ACL/policy mismatches), blast-radius (normalized impacted prefixes/nodes), rollback-complexity (number of config diffs or manual steps estimated). Construct simulated severity proxy from weighted combination of simulated user-impact metrics (e.g., affected prefix-days). Generate a corpus of 600 LLM proposals (multiple LLM seeds and prompts) for seeded-change tasks; compute component metrics, composite score, and severity proxy for each proposal. Evaluate metric calibration, correlation, discrimination, and threshold-operating points for operator-like gating.",
+      "expected_data": "Per-proposal numeric component metrics, composite score, severity-proxy numeric value, binary high-risk label (top 20% by proxy), and metadata (topology size, vendor features, prompt seed).",
+      "primary_outcome": "Spearman correlation between composite metric and severity-proxy, and AUC for classifying high-risk proposals.",
+      "analysis_outline": "Compute Spearman rho with 95% bootstrap CIs; compute AUC with DeLong CI for classification. Perform calibration plots (reliability diagrams) and compute Brier score. Run ablation experiments removing each component metric to measure marginal contribution to predictive performance. Report sensitivity by topology scale and LLM prompt seed. Pre-register composite weighting scheme and threshold selection protocol.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Severity proxy is a simulated construct and may not fully represent operator-perceived severity; external validity limited.",
+        "Metric thresholds may be LLM- and benchmark-dependent; require reporting of generalization across prompt seeds and topology scales.",
+        "Some component metrics depend on verifier fidelity; limited verifier coverage can bias metric values."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "CNSM2026-A4",
+      "title": "Quantifying Speed–Safety Tradeoffs: Human‑Approval Emulation versus Fully Automated LLM Agents in Simulated NetOps Workflows",
+      "research_question": "What are the quantitative trade-offs between speed (time-to-change) and safety (unsafe-change rate and rollback incidence) when comparing a fully automated LLM agent to a human-approval workflow emulated by a conservative rule-based approval gate in simulated NetOps tasks?",
+      "hypotheses": [
+        "A fully automated LLM agent achieves at least 50% median reduction in time-to-change compared to the emulated approval workflow.",
+        "The fully automated agent produces an unsafe-change rate at least 20 percentage points higher than the emulated conservative-approval workflow under identical task distributions.",
+        "The conservative approval emulation reduces applied unsafe changes by rejecting or requiring additional repair iterations but increases median time-to-change and the number of repair cycles required."
+      ],
+      "proposed_design": "Simulated task bank of 240 change requests across topology scales. Two workflows: (A) Fully automated: LLM generates and change applied immediately if verifier passes; (B) Emulated human-approval: LLM generates proposal, a conservative rule-based approver simulates human caution (stricter thresholds on blast-radius and policy violations) and only approves when thresholds met; otherwise asks LLM for revision. The approver is deterministic and pre-registered to avoid data-driven tuning. Measure time-to-final (model iteration time plus approver delay modeled as fixed wait), unsafe-change application rate, rollback incidence, and total operator-like intervention count. All experiments in sandbox; no human subjects.",
+      "expected_data": "Per-task workflow traces: initial proposal times, number of iterations, approver decisions, final applied config, time-to-final, unsafe-change label, rollback-required indicator, and resource counts (model calls, verifier calls).",
+      "primary_outcome": "Trade-off curve summarized as median time-to-change versus unsafe-change rate for Fully-Automated vs Emulated-Approval workflows.",
+      "analysis_outline": "Compare median time-to-change with bootstrapped 95% CIs and test differences with Mann–Whitney U or paired tests depending on design. Compare unsafe-change rates with proportion tests. Present Pareto front visualization of time vs safety metrics. Compute cost metric combining time and safety (pre-registered scalar) and test for statistically significant differences. Report sensitivity to approver threshold settings in pre-registered sensitivity analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7164614460",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413756536"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413756536"
+      ],
+      "risks": [
+        "Approver emulation may not perfectly reflect human decision behavior; results depend on chosen conservative thresholds.",
+        "Simulated approver delays and cost model are synthetic and may not map exactly to real operator staffing constraints.",
+        "Potential prompt sensitivity and model-specific behavior; must report per-model and per-prompt seed results."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

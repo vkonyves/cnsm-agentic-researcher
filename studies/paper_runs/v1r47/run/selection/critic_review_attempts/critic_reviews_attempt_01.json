@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CNSM2026-A1",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Deterministic verifier coverage may omit vendor-specific features, biasing comparisons.",
+        "Synthetic benchmark generalizability to production multi‑vendor networks is uncertain.",
+        "Prompt sensitivity and single‑model dependence could confound effect attribution.",
+        "Blast‑radius and regression definitions need exact operational semantics and thresholds.",
+        "Power/sample‑size justification for the paired design not specified."
+      ],
+      "required_design_repairs": [
+        "Pre-register exact verifier (version/feature set), document known coverage gaps and plan for handling unsupported features.",
+        "Include multiple LLM seeds and at least two model families to test generality; report prompt templates and seeds.",
+        "Precisely define blast‑radius and regression metrics (operational mapping) and preregister thresholds.",
+        "Perform verifier false‑positive/false‑negative measurement and report how these affect outcomes.",
+        "Provide statistical power calculation and justify 200 tasks or adjust sample size; preregister analysis plan and strata."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-A2",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Adversarial‑intent generator may overfit to the target LLM, limiting external validity.",
+        "Publishing attack artifacts risks misuse; ethical disclosure and redaction policy absent.",
+        "Verifier false‑positive rates could inflate apparent mitigation effectiveness.",
+        "Need clear definition of what constitutes an \"unsafe change\" and blast‑radius thresholds."
+      ],
+      "required_design_repairs": [
+        "Pre-register adversarial generation procedures (templates, transformations) and include multiple LLMs/prompt seeds to test transferability.",
+        "Define and preregister ethical safeguards; commit to high‑level attack taxonomy only in public artifacts (no exploitable scripts).",
+        "Measure and report verifier false positives/negatives alongside mitigation efficacy.",
+        "Preregister sample sizes and perform power analysis; specify how ambiguous intent labels are adjudicated.",
+        "Specify simulated environment details (sandbox configuration) and ensure no live credentials or networks are used."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-A3",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Severity proxy is simulated and may not map to operator judgement or real outage impact.",
+        "Rollback‑complexity is underspecified and may be difficult to measure consistently.",
+        "Composite weighting scheme can be tuned post‑hoc unless preregistered.",
+        "Dependence on verifier fidelity may bias component metrics."
+      ],
+      "required_design_repairs": [
+        "Preregister composite weighting and threshold selection protocol (avoid post‑hoc fitting).",
+        "Operationalize rollback‑complexity with a measurable procedure (e.g., config diff steps) and document measurement process.",
+        "Validate the severity proxy against a small set of human expert labels or documented incident templates (even simulated) and report concordance.",
+        "Include sensitivity/ablation analyses for each component metric and multiple LLM/prompt seeds to assess robustness.",
+        "Document verifier limitations and quantify how verifier coverage affects component values."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-A4",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Emulated human‑approval (conservative approver) may not reflect real operator behavior; results sensitive to approver thresholds and modeled delays.",
+        "Synthetic approver delay and cost model choices are subjective and can drive conclusions.",
+        "Rollback incidence measurement and its mapping to operational cost are not fully specified."
+      ],
+      "required_design_repairs": [
+        "Pre-register approver rules, thresholds, and fixed delay parameters; justify choices and include preplanned sensitivity analyses.",
+        "Define rollback detection, measurement, and costs concretely; preregister the cost metric combining time and safety.",
+        "Include multiple approver threshold settings in the preregistered plan to show robustness of tradeoffs.",
+        "Run experiments with multiple LLM seeds/models and report per‑model results; include paired design or blocking to control variance.",
+        "Provide power analysis for the 240‑task bank or adjust sample size accordingly and preregister statistical tests."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
