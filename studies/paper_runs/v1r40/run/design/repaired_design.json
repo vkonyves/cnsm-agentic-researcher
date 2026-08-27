@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "autocand-2026-01",
+  "title": "Comparative evaluation of LLM-only, LLM+RAG, and LLM+RAG+Formal-Verifier pipelines for preventing actionable NetOps misconfigurations (repaired preregistration)",
+  "research_question": "How much do RAG augmentation and a downstream formal network verifier reduce the rate of actionable misconfigurations produced by LLM-generated network-change proposals on realistic public topologies and incident-change tasks, and what are the operational trade-offs (end-to-end latency, verifier failure rates)?",
+  "confirmatory_hypotheses": [
+    "H1: An LLM+RAG pipeline (Treatment B) produces a lower actionable-misconfiguration rate than LLM-only (Baseline A) on the same paired task set (primary confirmatory hypothesis).",
+    "H2: Adding a formal network verifier to LLM+RAG (Treatment C) further reduces actionable-misconfiguration rate compared with LLM+RAG alone, at the cost of increased end-to-end latency (secondary confirmatory hypothesis).",
+    "H3: A majority of residual verified failures after the verifier stage are attributable to semantic policy-specification gaps rather than purely syntactic generation errors (exploratory confirmatory sub-hypothesis to be tested descriptively and by logistic regression)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which failure-mode taxons (missing ACL, wrong next-hop, route withdrawal, loop introduction, interface shutdown) dominate residual actionable failures per pipeline?",
+    "EQ2: How do retriever match scores and retrieval-document provenance correlate with residual failures?"
+  ],
+  "benchmark_scope": [
+    "Public topology task set assembled from public topology collections (see sampling_plan) and incident-derived change intents; scope explicitly limited to those public/synthesized topologies and emulated vendor CLIs."
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint (identifier: hosted-llm-api-1) used for all generation calls to avoid multi-model generality claims; embedding/embedding-api-1 used for retrieval embedding. All calls use the hosted model API available per capability_manifest."
+  ],
+  "transformation_scope": [
+    "RAG retrieval (embeddings + vector index), LLM generation prompts (fixed templates), deterministic parser-based configuration normalization, Batfish-style formal verification (containerized Batfish vX image), and simulator-based service-impact emulation using containerized vendor-CLI emulators."
+  ],
+  "primary_estimand": "Paired absolute difference in actionable-misconfiguration rate between LLM+RAG (B, guarded) and LLM-only (A, baseline) across the same tasks (estimand: paired_success_rate_difference_guarded_minus_baseline as required by available_analysis_contracts.paired_binary_analysis_v1).",
+  "secondary_estimands": [
+    "Paired absolute difference in actionable-misconfiguration rate between LLM+RAG+Verifier (C) and LLM+RAG (B).",
+    "Median and IQR of end-to-end latency per pipeline (paired comparisons).",
+    "Verifier precision and recall computed against simulator-detected outages (simulator treated as reference for detectable outages)."
+  ],
+  "sampling_plan": "Confirmatory paired sample of N=200 distinct change-intent tasks. Each task is executed under three deterministic treatments on the same frozen intent text: (A) LLM-only, (B) LLM+RAG, (C) LLM+RAG+Verifier. Inclusion: tasks drawn from public incident descriptions and synthetic variants (see public sources below) that (a) are expressible as a single atomic change intent and (b) are executable on emulated vendor-CLI topologies included in the public topology set. Exclusion: tasks requiring non-public data or human operator credentials. Public topology and emulator choices (images, versions) will be published with checksums in the experiment artifacts: Internet Topology Zoo subset (hashes published) and synthetic spine-leaf topologies derived from publicly available container network images; vendor-CLI emulation via containerized open-source CLI emulators (Batfish-compatible CLI images and a documented Cisco-like IOS emulator image; exact image tags and SHA256 hashes will be recorded in the execution manifest). Confirmatory items = 200 (paired tasks). Discovery items = 0 (all confirmatory).",
+  "analysis_plan": "Primary confirmatory analysis uses the supplied paired_binary_analysis_v1 executor (estimand paired_success_rate_difference_guarded_minus_baseline). For each task produce binary actionable-misconfiguration flags for each treatment using deterministic rules (see contamination_plan). Primary test: McNemar-style paired binary test implemented by paired_binary_analysis_v1 producing absolute difference, odds ratio, and 95% CI. Report two-sided p-values and Clopper–Pearson intervals for per-treatment rates. Secondary: paired Wilcoxon signed-rank test on latency distributions. Verifier precision/recall: compare verifier pass/fail to simulator-detected service-impact (simulator as reference) with Clopper–Pearson intervals. Correct for multiplicity of main confirmatory contrasts (B vs A primary; C vs B secondary) using Benjamini–Hochberg on the two confirmatory p-values. Preplanned sensitivity analyses: (1) treat failed or unavailable model calls as automatic failures (binary=1) and rerun analysis (complete_pair_primary_with_failure_as_zero_sensitivity), (2) alternate actionable definition conservative (require both simulator outage AND verifier fail) and report as robustness check. All analyses executed by registered executor paired_binary_analysis_v1 (compatible_execution_adapter: hosted_netops_gvr_v1).",
+  "multiplicity_plan": "Primary confirmatory contrast pre-registered as B (LLM+RAG) vs A (LLM-only). Secondary confirmatory contrast C vs B. Apply Benjamini–Hochberg correction across these two confirmatory contrasts. All further contrasts are exploratory and reported as such.",
+  "missingness_plan": "Model/API call failures and infrastructure faults are logged automatically. For a task-treatment pair where a technical failure prevents observing model output, the pair is included in the primary analysis under two prespecified treatments: (a) primary analysis excludes only tasks where the baseline A or B output is missing for both arms of a contrast (paired executor rule 'complete_pair_primary'); (b) sensitivity analysis treats technical-failure pairs as actionable failures (complete_pair_primary_with_failure_as_zero_sensitivity). No human imputation or manual adjudication is used.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public-incident-derived NetOps task set (ReproTask-200)",
+      "Public topology set (ITZ-subset + synthetic spine-leaf subset)"
+    ],
+    "risk_factors": [
+      "Retrieval-corpus poisoning or low-provenance documents causing RAG misguidance",
+      "Simulator/verifier modeling mismatch with emulated vendor-CLI semantics",
+      "Nondeterministic LLM outputs and API rate-limit induced variability"
+    ],
+    "detection_procedures": [
+      "Provenance-check: every retrieved document must carry a documented source URL and checksum; retrievals lacking provenance are automatically excluded from the RAG context.",
+      "Cross-document consistency check: if top-3 retrieved documents provide mutually contradictory configuration templates (>2 distinct canonical syntaxes for same intent), flag retrieval as low-confidence and run an alternate prompt that omits retrievals for sensitivity analysis.",
+      "Retriever score threshold gating: retrievals with embedding similarity below a prespecified seedable threshold (0.65 cosine) are excluded automatically."
+    ],
+    "item_flagging_rules": [
+      "If provenance is missing => exclude doc from RAG context (automatic exclusion).",
+      "If cross-document contradiction score > predefined threshold => mark task retrieval as 'low-confidence' and record for subgroup analysis (deterministic flag).",
+      "If verifier and simulator disagree (verifier pass but simulator outage) => label as 'verifier_simulator_disagreement' for automated downstream sensitivity analysis; do not perform human adjudication."
+    ],
+    "analysis_treatment": "Primary analysis labels actionable-misconfiguration = 1 if (simulator-detected service-impact == yes) OR (verifier reports property violation). For verifier/simulator disagreements the automated rule above determines labeling and the disagreement category is reported and analyzed as a planned subgroup. Sensitivity analyses include the conservative alternative requiring both verifier AND simulator to signal a fault.",
+    "residual_uncertainty": [
+      "Residual construct-validity uncertainty from simulator fidelity vs production networks (recorded and reported as noncritical).",
+      "Residual uncertainty about adversarially poisoned public documents that evade provenance checks (reported as noncritical and discussed in limitations)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_recommended",
+      "description": "Full confirmatory run: N=200 paired tasks, single hosted LLM model (hosted-llm-api-1), one retriever/embedding configuration, Batfish-style verifier container. Conservative repair-loop budget allowing up to 2 automated repair prompts per task when verifier fails (average observed repairs per failing task estimated = 2).",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted-llm-api-1 (generation, temperature=0.0, top_p=1.0, deterministic decoding where supported)",
+        "hosted-embedding-api-1 (embedding for retriever)"
+      ],
+      "transformations": [
+        "Prompt templates v1 (frozen), retriever top-k=5 (seeded), vector index (FAISS-like, deterministic build), Batfish-container-v1 verification run"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Model-call arithmetic: per task calls = A:1 (LLM-only) + B:1 (LLM+RAG) + C:1 (initial LLM generation for LLM+RAG+Verifier) + C_repairs_avg:2 = 5 LLM calls per task. 5 calls/task * 200 tasks = 1,000 planned_model_calls. Verifier and simulator run locally in containers (docker_available=true) and do not consume hosted model calls. This fits capability_manifest maximum_planned_model_calls=10000 and can complete within the run-time budget."
+    },
+    {
+      "scenario_id": "S2_budget_saver",
+      "description": "Reduced confirmatory run for constrained budget: N=100 paired tasks; same architecture but no allowed repair-loop (repair attempts disabled; verifier-only blocking).",
+      "planned_model_calls": 300,
+      "models": [
+        "hosted-llm-api-1 (generation, temperature=0.0)",
+        "hosted-embedding-api-1"
+      ],
+      "transformations": [
+        "Prompt templates v1, retriever top-k=5 (seeded), Batfish-container-v1 verification run"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Model-call arithmetic: per task calls = A:1 + B:1 + C:1 = 3 calls/task. 3 calls/task * 100 tasks = 300 planned_model_calls. Lower cost but removes repair-loop measurements and reduces power for small effects."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (B vs A)",
+    "target_effect": "Detect an absolute reduction in actionable-misconfiguration rate of 6 percentage points (e.g., 15% -> 9%) between A and B with two-sided alpha=0.05 and 80% power under approximate binomial paired assumptions.",
+    "clustering_unit": "individual task (paired within-task comparisons across treatments)",
+    "calculation_method": "Analytic approximation for paired binary comparisons (McNemar/paired_binary_analysis_v1) and simulation-based sensitivity checks; power calculation assumes independence across tasks and baseline misconfiguration prevalence ~0.15.",
+    "assumptions": [
+      "Baseline actionable-misconfiguration rate for LLM-only (A) ≈ 15% (plausible given literature on domain hallucination; conservative default).",
+      "Paired correlation of binary outcomes moderate (unknown); power approximations use worst-case conservative assumptions.",
+      "No more than 5% technical-failure pairs (handled by sensitivity analyses)."
+    ],
+    "recommended_scenario_id": "S1_recommended",
+    "minimum_detectable_effect_notes": "With N=200 paired tasks and baseline 15%, the study can detect ~6 percentage-point absolute reductions with ~80% power under the stated assumptions; if baseline is lower (<10%) detectable absolute effect grows larger. These are approximations; exact power numbers will be produced by paired_binary_analysis_v1 pre-execution power routine and recorded in the execution manifest.",
+    "sensitivity_analyses": [
+      "Repeat power estimates under baseline rates 10% and 20% and under varying paired outcome correlations (0.1–0.5).",
+      "Assess power when treating technical failures as failures (conservative)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Prompt → generated-CLI-config normalization (parser-based)",
+      "Retriever (embedding) → top-k context selection",
+      "Verifier run (Batfish-style) → pass/fail property extraction",
+      "Simulator run (containerized CLI replay) → service-impact detection"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated parser checks: normalize generated CLI to canonical internal representation and verify that the set of intended ACL/prefix modifications appear in the normalized output (deterministic string/AST comparisons).",
+      "Round-trip check: reingest normalized config into the simulator and verify that key caller-specified observable properties (reachability between named endpoints in intent) are not inverted relative to baseline when verifier reports pass."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated outputs if parsing fails deterministically (syntax errors) — automatically log as syntactic-failure.",
+      "Reject and mark for repair-loop if verifier reports property violation — automatic repair prompt generated with deterministic template (no human adjudication).",
+      "Reject retrievals lacking provenance or below similarity threshold (automatic exclusion)."
+    ],
+    "audit_sample_policy": "Audit sample: deterministic 10% random seed-based sample of generated outputs and verifier/simulator outcomes will be exported as reproducibility bundle (hashed) for external inspection. Audit is automatic (no human annotation) and serves reproducibility trace; sampling seed recorded in manifest.",
+    "mapping_validation": "Vendor-CLI mapping validated by automated unit tests in containers: for each vendor image used, deterministic test fixtures exercise a representative set of commands and expected parser outputs; fixtures and their hashes published in artifacts.",
+    "residual_risks": [
+      "Parser or mapping bugs that mis-interpret vendor CLI constructs (documented and included in residual_uncertainty).",
+      "Verifier modeling gaps for semantic policies not expressible in verifier property language."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator/digital-twin fidelity relative to production networks (construct validity) — acknowledged and bounded to public/emulated topologies.",
+    "Degree to which retriever/corpus quality vs RAG design drive observed benefits (possible confounding; planned subgroup analyses and sensitivity across retriever thresholds).",
+    "Formal verifier false negatives for semantic policies not expressible in verifier language (will be reported and analyzed descriptively).",
+    "Adversarial retrieval-poisoning residual risk beyond provenance exclusion rules (discussed as limitation).",
+    "Detectable minimum effect depends on true baseline prevalence and paired correlation (power approximations provided; exact numbers recorded pre-execution)."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W4413756540",
+    "https://openalex.org/W4402670290",
+    "https://openalex.org/W4394661176",
+    "https://openalex.org/W7161354925"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator/digital‑twin fidelity may not reflect production leading to construct‑validity gaps.",
+        "Retriever corpus quality may dominate measured RAG benefit (confounding).",
+        "Formal verifier false negatives could bias efficacy estimates upward.",
+        "LLM nondeterminism and API limits may inflate variance if not tightly controlled."
+      ],
+      "required_design_repairs": [
+        "Specify exact public topology sources and CLI emulation toolchain (images, versions) and publish hashes.",
+        "Prespecify retriever architecture, embedding model, index params, and retrieval seeds.",
+        "Select and justify a concrete verifier implementation (Batfish/NetKAT variant) and document modeling assumptions and limitations.",
+        "Provide explicit labeling/threshold rules for actionable misconfiguration and adjudication procedure for simulator/verifier disagreements.",
+        "Prespecify exact LLM model identifiers, temperature/decoding settings, retry policy, and random seeds for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "novelty": 0.9,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Ethical risk from publishing poisoned documents (dual‑use) and potential to enable attacks.",
+        "Realism of crafted poison payloads may be limited; transferability to diverse retrievers uncertain.",
+        "Mitigations may trade off utility in ways that confound interpretation (overfiltering)."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethics/safety protocol and controlled‑release/redaction plan for poisoned corpora and attack artifacts.",
+        "Define realistic attacker capability model and justify poison-generation templates with pilot realism tests.",
+        "Prespecify retriever/model variants and sensitivity analyses to demonstrate transferability rather than a single‑system result.",
+        "Define concrete mitigation implementations (provenance filters, attestation) with parameter ranges and an evaluation rubric for utility vs security tradeoffs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Mapping high‑level semantic policies into verifier‑checkable properties may require manual templating, undermining full automation claims.",
+        "Verifier modeling mismatch with vendor CLI semantics could produce false passes/fails.",
+        "Repair prompts may induce oscillation (config churn) rather than converge."
+      ],
+      "required_design_repairs": [
+        "Specify the automated policy→verifier translation method and any manual templates required (and how manual steps are logged).",
+        "Document vendor‑CLI mapping approach and provide tests showing fidelity for each vendor included.",
+        "Include safeguards in repair loop (e.g., change-size limits, edit-distance constraints) and prespecify oscillation-detection and termination criteria.",
+        "Plan to measure and report verifier soundness relative to simulator ground truth (false‑positive/negative rates) with preplanned adjudication rules."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Benchmark design risks encoding biases favoring certain pipelines or retrievers.",
+        "Public release may enable overfitting/gaming if partitioning and evaluation protocol are insufficient.",
+        "Some metrics (trace‑fidelity, canary scoring) require careful, reproducible definitions to avoid ambiguous scoring."
+      ],
+      "required_design_repairs": [
+        "Provide explicit task sourcing (public incidents/topology datasets) and justify selection criteria.",
+        "Define formal metric formulas (trace‑fidelity, rollback‑safety, canary‑score) with thresholds and example computations.",
+        "Prespecify dataset partitioning, evaluation protocol, and anti‑overfitting safeguards (held‑out tasks, challenge split).",
+        "Document licensing and safe‑release policy for benchmark artifacts and include reproducibility checksums and example runs."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

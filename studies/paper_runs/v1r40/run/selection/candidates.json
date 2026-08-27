@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "title": "Comparative evaluation of LLM-only, LLM+RAG, and LLM+RAG+Formal-Verifier pipelines for preventing actionable NetOps misconfigurations",
+      "research_question": "How much do RAG augmentation and a downstream formal network verifier reduce the rate of actionable misconfigurations produced by LLM-generated network-change proposals on realistic topologies and incident-change tasks, and what are the operational trade-offs (latency, verification failures)?",
+      "hypotheses": [
+        "An LLM+RAG pipeline produces significantly fewer actionable misconfigurations than an LLM-only pipeline on the same task set.",
+        "Adding a formal network verifier to LLM+RAG (LLM+RAG+Verifier) further reduces actionable misconfiguration rates compared with LLM+RAG alone, at the cost of increased end-to-end latency.",
+        "Many remaining failures after verification are attributable to semantic policy-specification gaps rather than syntactic generation errors."
+      ],
+      "proposed_design": "Preregistered, paired within-task evaluation across three treatments: (A) LLM-only generation, (B) LLM+RAG (retrieval over an operator corpus), (C) LLM+RAG+Formal-Verifier (e.g., Batfish-style or NetKAT-based verifier). Use a publicly reproducible set of 200 NetOps change tasks derived from anonymized public incident descriptions and synthesized from public topology datasets (containerized virtual topologies with vendor-CLI emulation). For each task: (1) provide identical intent; (2) record generated configuration proposal; (3) run verifier/digital-twin/simulator to detect policy violations and simulation-detected outages; (4) label outputs as actionable misconfiguration if the proposal would cause a policy violation or outage in simulation. Measure verifier pass/fail, simulator-detected outage, proposal latency, and operator-meaningful repair-count when manual repair is simulated. Fixed random seeds for retriever sampling; retry policy limited to deterministic reruns for infrastructure faults only. Preregister primary metric (actionable misconfiguration rate per pipeline) and secondary metrics (latency, verifier false-positive/false-negative rates).",
+      "expected_data": "Per-task records containing: treatment label, raw LLM output, retrieved docs (for RAG), verifier result (pass/fail, violated properties), simulator outcome (service-level impact yes/no), binary actionable-misconfiguration label, end-to-end latency, and (where applicable) number of automated repairs attempted. Aggregated tables: per-treatment misconfiguration rates, verifier FP/FN estimates, latency distributions, and per-task failure-mode annotations.",
+      "primary_outcome": "Absolute and relative reduction in actionable misconfiguration rate comparing (B) vs (A) and (C) vs (B), with 95% confidence intervals.",
+      "analysis_outline": "Compute paired differences in binary misconfiguration outcome per task across treatments; use McNemar's test for paired binary comparisons and report odds ratios and 95% CIs. Compare latency distributions via paired Wilcoxon signed-rank tests. Estimate verifier precision/recall by cross-checking simulator-detected outages (simulator as reference) and report FP/FN rates with Clopper–Pearson intervals. Perform failure-mode taxonomy analysis (categorical counts) and logistic regression to test whether task complexity or retrieval-match score predicts residual failures. Correct for multiple comparisons using Benjamini–Hochberg where applicable.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4413756540"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402670290",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Simulator/digital-twin fidelity may not perfectly reflect operator production behavior, causing construct-validity gaps.",
+        "Retriever quality and corpus coverage could dominate RAG effectiveness, confounding attribution to RAG vs verifier.",
+        "Formal verifier may report false negatives for complex semantic policies, biasing measured efficacy upward.",
+        "LLM nondeterminism and API rate limits may inflate estimated model-call requirements or introduce variance."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "title": "Robustness of NetOps RAG pipelines under adversarial retrieval-poisoning and indirect prompt-injection",
+      "research_question": "To what extent do adversarially poisoned retrieval corpora and indirect prompt-injection vectors increase the rate of actionable misconfigurations in LLM+RAG NetOps pipelines, and which mitigations (provenance filtering, conservative attestation) reduce attack success while preserving utility?",
+      "hypotheses": [
+        "Targeted poisoning of the retrieval corpus increases the actionable misconfiguration rate of a standard LLM+RAG NetOps pipeline relative to a clean corpus.",
+        "Simple provenance-based filtering and attestation heuristics reduce attack success significantly but incur measurable utility loss (reduced verifier pass rates or increased latency).",
+        "Attack effectiveness correlates with the retriever's semantic-similarity score to the malicious document and with the attack payload's syntactic closeness to CLI examples."
+      ],
+      "proposed_design": "Controlled injection experiments: construct a baseline retrieval corpus (public operator docs, configuration snippets, RFCs) and a set of 120 NetOps tasks. For each task, evaluate LLM+RAG pipeline under three corpus conditions: (1) clean corpus, (2) corpus with targeted poisoning documents designed to mislead (e.g., malicious config snippets or misleading guidance), (3) poisoned corpus with applied mitigations (provenance filtering, conservative similarity thresholds, or CoTA-style attestation). Attack payloads will be crafted deterministically from templates and validated by a threat-model checklist. Measure change in actionable misconfiguration rate, retrieval of malicious documents (hit rate), and utility metrics (verifier pass rate, task completion latency). All attack designs and mitigations are preregistered; retriever and attacker corpora are versioned and published for reproducibility.",
+      "expected_data": "Per-task logs: retrieved-document IDs and similarity scores, whether a poisoned document was retrieved, LLM outputs, verifier/simulator outcomes, binary actionable-misconfiguration labels, mitigation flag, and latency. Aggregate attack-success rate (increase in misconfiguration rate vs clean), mitigation effectiveness (reduction in attack success), and utility trade-offs.",
+      "primary_outcome": "Attack success rate: absolute increase in actionable misconfigurations caused by poisoned retrievals (condition 2 vs 1) and reduction in that increase due to mitigations (condition 3 vs 2), with 95% confidence intervals.",
+      "analysis_outline": "Use paired comparisons per task across corpus conditions. Test difference in misconfiguration rates using McNemar's test and bootstrap CIs for attack-success effect size. Model attack-success probability with logistic regression using features: retrieved-malicious-hit (binary), top similarity score, task complexity; include mitigation as covariate. Report mitigation utility trade-offs via paired latency and verifier-pass comparisons (Wilcoxon signed-rank). Conduct sensitivity analyses varying retriever thresholds.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4402670290"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4402670290",
+        "doi:10.36227/techrxiv.176539611.16370746/v1"
+      ],
+      "risks": [
+        "Crafting realistic yet non-destructive poisoned documents that transfer to diverse tasks is challenging; adversarial examples may be less effective in practice than in-sample.",
+        "Mitigations may overfilter useful evidence, reducing RAG utility and confounding conclusions.",
+        "Ethical handling of attack artifacts and publication of poison corpora requires careful redaction to avoid misuse."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "title": "Efficacy of a Generate–Verify–Repair loop with formal verification for achieving semantic policy compliance across vendor CLIs",
+      "research_question": "Can a bounded Generate–Verify–Repair (GVR) loop combining LLM generation with a formal verifier reliably produce vendor-CLI configurations that satisfy high-level semantic policies (isolation, reachability, ACL intent) within a small number of automated repair iterations?",
+      "hypotheses": [
+        "A bounded GVR loop (≤3 repair iterations) achieves semantic policy compliance in a substantially higher fraction of tasks than a single-pass LLM generator.",
+        "The majority of remaining noncompliant cases after GVR are due to incomplete or ambiguous high-level intent specification rather than repair-loop failures.",
+        "Repair iteration count follows a short-tailed distribution (median ≤2) for tasks that eventually succeed."
+      ],
+      "proposed_design": "Assemble 150 vendor-heterogeneous NetOps tasks involving semantic policies (e.g., tenant isolation, path constraints). Implement a GVR pipeline: (1) LLM generates initial vendor-specific CLI; (2) formal verifier checks semantic policy; (3) if verifier fails and repairs remain, an automated repair prompt is generated (including verifier counterexample) and sent to LLM; loop up to 3 repairs. Baseline: single-pass LLM with no verifier-guided repair. Use Batfish-style verification engine and vendor CLI mapping layers. Record per-iteration outputs, verifier counterexamples, and final simulator execution outcome. Preregister success criterion: verifier pass and simulator no-outage.",
+      "expected_data": "Per-task sequence logs: initial generation, verifier failures with counterexamples, repair prompts and outputs, verifier result after each repair, final simulator outcome, and total iterations. Aggregate metrics: GVR success rate within 3 iterations, distribution of iterations to success, baseline single-pass success for comparison, and taxonomy of counterexample types.",
+      "primary_outcome": "Proportion of tasks achieving semantic policy compliance (verifier pass + simulator-safe) within ≤3 repair iterations compared to single-pass baseline, with 95% CIs.",
+      "analysis_outline": "Compare paired success outcomes (GVR vs baseline) using McNemar's test and compute absolute improvement and NNT-like metric (number of tasks per additional success). Model iteration-to-success with Kaplan–Meier-style survival curves treating iteration as time; report median and quartiles. Qualitative coding of counterexamples to identify common semantic gaps; compute inter-annotator agreement if human adjudication used for coding. Sensitivity: vary max repairs (1,2,3) to observe marginal benefit per iteration.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4394661176",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4413756540"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6578241",
+        "https://openalex.org/W4402670290",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Formal verifier's modeling assumptions (abstractions) may mismatch vendor-CLI semantics, producing false passes or false failures.",
+        "Repair prompts could produce config churn without addressing root semantic cause, leading to oscillation within the loop.",
+        "Mapping high-level policy into verifier-checkable properties may require manual templates, threatening full automation claims."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "title": "Design and validation of a workflow-centered NetOps benchmark measuring trace fidelity, verifier pass/fail, rollback safety, and canary-aware scoring",
+      "research_question": "Can a compact, reproducible workflow-centered benchmark for agentic NetOps systems (measuring trace fidelity, verifier/pass rates, rollback safety, and canary scoring) be constructed such that its metrics are discriminative across pipeline designs and exhibit stable measurement properties (reliability, sensitivity)?",
+      "hypotheses": [
+        "A benchmark suite of 100 curated NetOps workflow tasks yields metrics (trace-fidelity score, verifier-pass rate, rollback-safety score, canary-pass score) that discriminate meaningfully between LLM-only, LLM+RAG, and LLM+RAG+Verifier pipelines.",
+        "The benchmark metrics demonstrate acceptable measurement reliability (Cronbach's alpha ≥ 0.7 across task subsets) and sensitivity to injected faults.",
+        "Canary-aware scoring (weighting early-stage safe changes higher) better reflects operational risk than raw verifier pass rate alone."
+      ],
+      "proposed_design": "Construct and publish a benchmark package: 100 workflow tasks spanning routine changes, policy updates, and emergency patches; each task includes intent, success oracle (simulator/verifier definitions), and canary evaluation procedures. Evaluate three canonical pipelines (LLM-only, LLM+RAG, LLM+RAG+Verifier) across the benchmark. Compute per-task metric vectors: trace-fidelity (similarity between generated change trace and a reference safe trace), verifier-pass (binary), rollback-safety (simulated ability to revert without outage), and canary-score (measured effect in a canary subnet). Perform reliability analyses (split-half, Cronbach's alpha), sensitivity checks via synthetic fault injection into corpora, and report metric correlations and discriminative power (ANOVA or Kruskal–Wallis). Publish full benchmark artifacts and scoring code.",
+      "expected_data": "Benchmark package (tasks, oracles), per-pipeline per-task metric vectors, aggregated metric distributions, reliability statistics (alpha, split-half correlations), sensitivity-to-fault-injection results, and discrimination statistics across pipelines.",
+      "primary_outcome": "Demonstration that the benchmark metrics discriminate between pipelines with medium effect sizes (Cohen's d ≥ 0.5) and show acceptable reliability (alpha ≥ 0.7), establishing the benchmark's utility.",
+      "analysis_outline": "Compute descriptive statistics per metric and pipeline. Test discriminative power via repeated-measures ANOVA (or nonparametric equivalent) across pipelines; compute effect sizes and post-hoc pairwise tests with correction. Compute Cronbach's alpha and split-half correlations for multi-item metrics (trace-fidelity across subcomponents). Conduct sensitivity analysis by injecting controlled faults and measuring metric deltas; report receiver-operating-characteristic curves for canary-score as an early-warning indicator. Provide reproducibility artifact checksums and example runs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4416435156",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402670290",
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4416435156"
+      ],
+      "risks": [
+        "Benchmark creation may inadvertently encode design biases favoring certain pipeline types or retrievers.",
+        "Public benchmark artifacts could be gamed by overfitting if released without careful partitioning and evaluation protocols.",
+        "Operational realism is limited by available public topology and incident data, potentially reducing external validity."
+      ],
+      "estimated_model_calls": 1000
+    }
+  ]
+}

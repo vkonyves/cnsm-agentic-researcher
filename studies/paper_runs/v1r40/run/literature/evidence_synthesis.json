@@ -1,0 +1,216 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models are actively proposed and used as components of agentic NetOps/AIOps workflows (e.g., incident triage, root-cause analysis, configuration synthesis), but authors emphasize that operational reliability depends on surrounding tooling, orchestration, and assurance contracts rather than the model alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7168328989"
+      ],
+      "evidence_type": "survey / conceptual",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence is survey/architectural and does not by itself quantify empirical reliability in production at scale.",
+        "Multiple records are conceptual syntheses rather than controlled NetOps-only experiments."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "LLM hallucinations, including misattribution-style failures (e.g., Ghost Context) and fabrications in code/config generation, are documented phenomena that can produce plausible but incorrect operational outputs.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177162116.61215374/v1",
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4391158659"
+      ],
+      "evidence_type": "empirical / theoretical analyses",
+      "confidence": 0.92,
+      "limitations": [
+        "Studies span theory, controlled experiments, and code-generation analyses; direct measurement specific to network device CLI outputs is limited in the supplied records.",
+        "Ghost Context paper (2026) is a preprint/tech report and introduces new taxonomy requiring broader validation."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Retrieval‑Augmented Generation (RAG) and other tool-augmentation strategies improve factuality and task performance in domain-heavy applications, and are widely recommended as mitigations for hallucination.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670290",
+        "https://openalex.org/W4389984066",
+        "doi:10.1038/s41598-025-06469-w"
+      ],
+      "evidence_type": "benchmark / survey / empirical",
+      "confidence": 0.88,
+      "limitations": [
+        "Most strong empirical RAG evidence in supplied records is from medicine and general tool-augmentation studies, not NetOps-specific config synthesis.",
+        "RAG mitigates but does not eliminate hallucination; effectiveness depends on retriever quality and corpus."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Formal and symbolic network verification tools (NetKAT variants, KATch, MEV, Hoyan, Batfish-class systems) can detect and prevent many classes of network misconfigurations and have been deployed successfully at scale in operator environments.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7168328989",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "tool evaluation / deployment reports",
+      "confidence": 0.9,
+      "limitations": [
+        "These tools address verification over modeled state; their integration with stochastic LLM-generated proposals is discussed conceptually but not uniformly evaluated end-to-end in the supplied records.",
+        "Deployment success metrics (e.g., Hoyan) are organization-specific and may not generalize to all network types."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Generate–Verify–Repair (GVR) or closed-loop verify-and-repair architectures detect many mechanically verifiable defects reliably in code-generation contexts and are proposed as a pattern for regulated, zero-defect settings.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6578241"
+      ],
+      "evidence_type": "single-case / architectural study",
+      "confidence": 0.78,
+      "limitations": [
+        "Empirical evaluation in the supplied GVR study is focused on code-generation and enterprise software repositories, not NetOps configuration domains.",
+        "Detection reliability pertains to mechanistically verifiable defect classes (compilation, tests); semantic/network-policy correctness may be harder to verify deterministically."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Adversarial retrieval/context-poisoning and indirect prompt-injection attacks can induce targeted hallucinations and actionable misdirections in LLM-augmented pipelines, increasing the rate of harmful outputs unless mitigated.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4388886073",
+        "doi:10.36227/techrxiv.176539611.16370746/v1"
+      ],
+      "evidence_type": "preprint / systems security study",
+      "confidence": 0.87,
+      "limitations": [
+        "Attacks are demonstrated in synthetic or controlled simulators and on selected systems; real-world success rates depend on retrieval corpus and system hardening.",
+        "Defenses trade off false positives, latency, and complexity; supplied evidence includes preliminary mitigation (e.g., CoTA) with measured overheads."
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Benchmarks and dynamic evaluation suites for LLMs in operational domains (log analysis, CTI, cybersecurity) exist and reveal that current models perform variably on reasoning-intensive and domain-specific tasks, highlighting evaluation gaps for workflow-centered NetOps assessment.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4416435156",
+        "https://openalex.org/W4399317055"
+      ],
+      "evidence_type": "benchmark / empirical",
+      "confidence": 0.86,
+      "limitations": [
+        "Existing benchmarks focus on log analysis, CTI, and cybersecurity; explicit NetOps configuration synthesis workflow benchmarks are less represented among supplied records.",
+        "Model coverage varies and proprietary models often outperform open models, complicating generalization."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How effective are end-to-end agentic pipelines that combine LLM generation, RAG/tool augmentation, and formal network verifiers (or digital twins) at preventing actionable misconfigurations when evaluated on realistic, large-scale NetOps tasks and production topologies?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7155247165",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "gap identified from proposal and domain studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Aether and architectural proposals exist (Aether), and GVR is evaluated in code domains, but a reproducible large-scale NetOps empirical evaluation is not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do RAG and tool-augmentation defenses remain robust under adversarial retrieval-poisoning or indirect prompt-injection attacks in NetOps pipelines, and what operational trade-offs (latency, false-positive rate) are acceptable?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670290",
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4388886073"
+      ],
+      "evidence_type": "open empirical robustness question",
+      "confidence": 0.65,
+      "limitations": [
+        "Evidence shows benefits of RAG and the existence of adversarial attacks, but direct measurements of RAG robustness under such attacks in NetOps contexts are absent from the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What standardized, workflow-centered metrics and publicly reproducible datasets should be used to evaluate agentic NetOps systems (trace quality, bounded tool use, sandbox replay, canary-aware scoring) to enable fair comparison across approaches?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4402670290",
+        "https://openalex.org/W4400377739"
+      ],
+      "evidence_type": "methodological gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys and benchmarks call for richer workflow-centered evaluation, but a community-accepted NetOps workflow benchmark is not present in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of reproducible, large-scale empirical studies that compare LLM-only generation, LLM+RAG, and LLM+RAG+formal-verifier (or digital-twin) pipelines on realistic network topologies and historical incident datasets.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "empirical / proposal gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Aether and verification deployments exist conceptually or in specific operator settings, but the supplied literature does not include a reproducible multi-condition comparative NetOps experiment at scale."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient empirical evaluation of adversarial retrieval/poisoning defenses (e.g., provenance, per-token uncertainty, Chain-of-Thought attestation) specifically for network-configuration retrieval corpora and NetOps RAG pipelines.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4402670290"
+      ],
+      "evidence_type": "security evaluation gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Defensive proposals have initial efficacy numbers but are evaluated on synthetic/simulated corpora; transfer to NetOps corpora requires targeted study."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for NetOps-specific benchmarks that measure workflow-centered properties (trace fidelity, verifier pass/fail rates, rollback safety, canary scoring) rather than only static QA or log-task performance.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4416435156",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "benchmarking gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmarks cover log analysis, CTI, and AIOps retrieval tasks but do not fully capture end-to-end NetOps change-validation workflows."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Limited evidence on semantic correctness verification layers that can deterministically certify high-level network policy compliance (beyond syntactic/compilation checks) when fed stochastic LLM proposals.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "verification capability gap",
+      "confidence": 0.72,
+      "limitations": [
+        "Formal verifiers excel at many properties, but integrating them into stochastic-generation repair loops to certify semantic policy compliance across diverse vendor CLIs remains underexplored in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already production-ready to autonomously enact network configuration changes without human oversight (no supplied record provides empirical production-end-to-end evidence for safe autonomous enactment).",
+    "Generate–Verify–Repair architectures are proven to eliminate all hallucinations in NetOps contexts (supplied GVR evidence is from code-generation domains, not NetOps).",
+    "RAG or retrieval alone guarantees immunity to adversarial retrieval-poisoning in operational pipelines (adversarial studies show successful poisoning under conditions).",
+    "Any single paper in the supplied records demonstrates first-ever end-to-end NetOps agent deployment at Internet-scale with audited safety guarantees (no supplied record supports such an overarching production claim)."
+  ]
+}
