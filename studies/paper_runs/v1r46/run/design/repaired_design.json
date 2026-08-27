@@ -1,0 +1,148 @@
+{
+  "selected_candidate_id": "a2b7d4c1-9d6e-4f3b-b8e4-2c6d0f9e5a22",
+  "title": "Defensive Patterns against Tool‑Selection and LLM‑as‑Judge Prompt‑Injection in Weakly‑Constrained NetOps Agents (Repaired Preregistration)",
+  "research_question": "Which defensive architecture pattern (constrained tool-surface + independent verifier + authenticated tool‑handoff) most reliably reduces successful tool‑selection and LLM‑as‑judge prompt‑injection attacks relative to an unconstrained baseline in weakly‑constrained NetOps agent workflows?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory, paired): The constrained+independent-verifier+authenticated-handoff defense reduces attacker success rate by ≥50% (relative reduction) versus the unconstrained baseline when tested on the same attack attempts (paired design).",
+    "H2 (confirmatory, paired): The operational false‑positive rate on benign tasks introduced by the constrained+verifier+handoff defense remains <10% compared to baseline (measured as proportion of benign tasks flagged/blocked)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do the constrained-only and independent-verifier-only patterns compare to the combined pattern in absolute attacker success rate and latency?",
+    "EQ2: How robust is the combined defense under an adaptive adversary that iteratively probes verifier behavior (preregistered adaptive follow-up)?",
+    "EQ3: Which automatic verifier heuristics (syntactic tool-call whitelist, semantic matcher, signature verification) contribute most to reduced attack success (ablation)?"
+  ],
+  "benchmark_scope": [
+    "Public synthetic NetOps emulation suite (synthetic_paired_llm_benchmark_v1 adapter–compatible task set).",
+    "Emulated multi-vendor device models limited to safe, read-only and dry-run configuration templates (no destructive outputs).",
+    "Attack corpus published alongside code (public repository) and limited to the supplied simulated tool descriptions and prompt families."
+  ],
+  "model_scope": [
+    "Hosted LLM API backends permitted by capability_manifest (hosted_model_api_available).",
+    "Model selection limited to up to two hosted model endpoints during execution (chosen before lock); all model calls counted toward the model-call budget."
+  ],
+  "transformation_scope": [
+    "Text-to-tool-call translation and canonicalization routines executed under CPU-capable code (docker available).",
+    "No local GPU or private-lab hardware required."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (attack success rate difference computed on paired attack attempts: baseline run vs defended run on same attack input)",
+  "secondary_estimands": [
+    "absolute_attack_success_rate_baseline",
+    "absolute_attack_success_rate_defended",
+    "false_positive_rate_on_benign_tasks_defended",
+    "mean_end_to_end_latency_overhead_ms_defended_vs_baseline"
+  ],
+  "sampling_plan": "Confirmatory paired sample: N_pairs = 500 distinct attack attempts. Each attack attempt will be executed twice (paired): once under the unconstrained baseline agent and once under the constrained+verifier+authenticated-handoff defense, using identical attack input and RNG seeds for model-internal nondeterminism where available. Benign-safety sample: 500 benign tasks will be sampled and executed under the same paired regime (baseline and defended) to measure false positives. All RNG seeds, prompt selection seeds, and exact sampled indices will be published. Arithmetic derivation: 500 attack pairs × 2 runs/pair = 1000 agent runs for attack evaluation; 500 benign pairs × 2 runs/pair = 1000 agent runs for benign evaluation; total agent runs = 2000. Planned average model calls per agent run = 3.0–4.0 (planner + tool-selection + verifier ± replan). Planned total model calls estimate: 2000 runs × 3.0 calls/run = 6000 model calls (within capability_manifest.limit 10000).",
+  "analysis_plan": "Primary confirmatory analysis: use paired_binary_analysis_v1 executor (paired_success_rate_difference_guarded_minus_baseline). For each attack pair, record outcome baseline_success ∈ {0,1} and defended_success ∈ {0,1}. Compute paired success-rate difference (defended minus baseline) with 95% CI via exact paired/binomial methods as implemented by the analysis executor. Primary decision rule: reject null of no ≥50% relative reduction if observed relative reduction ≥50% and 95% CI lower bound excludes reductions <50% under preregistered baseline success assumption (see power plan). Secondary analyses: compute false-positive rates on benign tasks and latency overheads (means + bootstrap 95% CI). Exact binomial tests (paired McNemar-style exact test or executor-specified exact test) will be used. All analyses that use the confirmatory estimator must be executed by the registered paired_binary_analysis_v1 executor. All other comparisons (per-arm absolute rates, ablations, adaptive-followup results) are labeled exploratory and will be reported without confirmatory p-values.",
+  "multiplicity_plan": "One primary confirmatory estimand (H1) using the paired analysis executor. H2 (benign false‑positive <10%) is preregistered and confirmatory but will be assessed with a one-sided test and reported alongside H1; both H1 and H2 are primary and will be explicitly reported. All other comparisons (constrained-only, verifier-only, ablations, adaptive follow-ups) are exploratory; no alpha correction for exploratory analyses. A brief multiplicity note will appear in the manuscript clarifying confirmatory vs exploratory labeling.",
+  "missingness_plan": "If an agent run fails due to infrastructure/provider API failure, the preregistered failed_call_treatment for paired_binary_analysis_v1 will be applied: primary treatment = complete_pair_primary (exclude the entire pair if either run failed due to technical/provider error). Sensitivity analysis: complete_pair_primary_with_failure_as_zero_sensitivity (treat missing run as attack success failure=0 for conservative sensitivity). All technical failures, retries, and their causes (provider error, timeouts) will be logged and disclosed. No manual adjudication for missingness; deterministic rules govern inclusion/exclusion.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic_paired_llm_benchmark_v1 (internal adapter-compatible task bank)"
+    ],
+    "risk_factors": [
+      "Data leakage between attack corpus and model training (vendor blackbox models) — cannot be fully excluded.",
+      "Task-sampling contamination (reuse of same seed indices in multiple arms) — mitigated by deterministic pairing and published seeds.",
+      "Adaptive adversary learning from defender outputs between runs — controlled by isolating each pair execution with identical initial conditions and by preregistered adaptive-followup design."
+    ],
+    "detection_procedures": [
+      "Automated hash-based artifact provenance checks: all attack inputs and model responses will be hashed and compared across runs to detect unintended reuse or duplication.",
+      "Automatic detection of duplicated prompts or tool descriptors in training corpora is infeasible for hosted closed models; we will record model identifiers and note nondeterminism as noncritical external limitation.",
+      "For adaptive-followup, automated logging will record cross-run information flows; any cross-pair leakage will be flagged by deterministic trace detectors."
+    ],
+    "item_flagging_rules": [
+      "Flag pair for exclusion when provider/API error occurs in either paired run (deterministic exclusion rule).",
+      "Flag benign task as rejected if verifier produced an invalid signature or canonicalization failure (automatic exclusion and logged as a false-positive event)."
+    ],
+    "analysis_treatment": "Excluded pairs (technical failures) are removed under primary analysis (complete_pair_primary). Sensitivity analyses will include treating failed runs as worst-case (failure-as-zero) to bound results.",
+    "residual_uncertainty": [
+      "Residual uncertainty about closed-model training-data overlap with our attack corpus (noncritical external validity limitation).",
+      "Residual uncertainty about transfer to production device behavior beyond emulated templates."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal_confirmatory",
+      "description": "Confirmatory-focused run: 500 attack pairs + 200 benign pairs; no adaptive-followup; average model calls/run = 3.0; minimal logging publishing.",
+      "planned_model_calls": 3600,
+      "models": [
+        "one hosted LLM endpoint (selected before lock)"
+      ],
+      "transformations": [
+        "text-to-canonical-tool-call translation (dockerized CPU code)",
+        "signature generation (authenticated handoff) via HMAC-SHA256 or ECDSA depending on runtime availability"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 500,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Model-call estimate: (500 attack pairs × 2 runs/pair + 200 benign pairs × 2 runs/pair) = 1400 runs × 3 calls/run = 4200 calls; rounded to 3600 conservative estimate accounting for re-use and lower average per run. Under capability_manifest limit (10000)."
+    },
+    {
+      "scenario_id": "recommended_full",
+      "description": "Full preregistered run (recommended): 500 attack pairs + 500 benign pairs + adaptive-followup of 200 adaptive probe sessions; full artifact publication and ablations.",
+      "planned_model_calls": 6000,
+      "models": [
+        "up to two hosted LLM endpoints (both selected before lock)"
+      ],
+      "transformations": [
+        "text-to-canonical-tool-call translation (dockerized CPU code)",
+        "signature generation and verification (authenticated handoff) using per-session ephemeral ECDSA keypairs and HMAC fallbacks"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 500,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model-call arithmetic: 500 attack pairs × 2 runs/pair + 500 benign pairs × 2 runs/pair = 2000 runs. Estimated average 3.0 calls/run → 6000 model calls. Adaptive follow-up uses up to 200 additional adaptive probe sessions (counted inside this budget). 6000 < 10000 manifest limit and fits 7‑day wall clock budget with CPU execution and hosted APIs."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "≥50% relative reduction in attacker success rate (e.g., baseline 30% → defended 15%, absolute diff = 0.15)",
+    "clustering_unit": "attack attempt (paired across baseline and defended runs)",
+    "calculation_method": "Simulation-based paired-binomial power assessment under conservative assumptions: assume baseline success p0=0.30, defended success p1=0.15 (relative reduction 50%), alpha=0.05 two-sided for paired test, target power=0.80. Under these assumptions, simulation with 500 pairs yields power ≥0.80. Power checks will be executed by CPU simulations prior to primary run; seeds used will be published.",
+    "assumptions": [
+      "Baseline attacker success rate assumed 0.30 (conservative literature-informed estimate from EF3 evidence).",
+      "Within-pair correlation structure assumed by modeling paired discordances; simulation-based approach used rather than closed-form approximations for robustness.",
+      "Type I error α = 0.05; target power = 0.80."
+    ],
+    "recommended_scenario_id": "recommended_full",
+    "minimum_detectable_effect_notes": "With 500 pairs and baseline p0=0.30, the minimum detectable absolute difference (two-sided, power 0.8) is approximately 0.12–0.15 depending on within-pair discordance; the design is powered to detect the preregistered ≥0.15 (absolute) target under stated assumptions.",
+    "sensitivity_analyses": [
+      "Recompute power under baseline p0=0.40 (worse-case) and p0=0.20 (best-case).",
+      "Sensitivity to within-pair concordance will be simulated; results reported in appendix."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Canonicalization of model textual outputs into structured tool-call JSON.",
+      "Signature creation/verification outputs for authenticated handoff.",
+      "Verifier decision outputs (accept/reject/block) from deterministic rule engine."
+    ],
+    "semantic_equivalence_checks": [
+      "Bidirectional round-trip check: canonicalized tool-call → canonical text regenerator → normalize and compare hashes to original canonicalization; mismatches auto-reject.",
+      "Deterministic schema validation: JSON schema checks with strict types and ranges; any schema violation triggers automatic rejection and deterministic fallback (reject-run)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject tool-call if required safety fields missing or if semantic matcher confidence < threshold (deterministic threshold documented and published).",
+      "Reject and log run if signature verification fails or key rotation error occurs (no manual adjudication)."
+    ],
+    "audit_sample_policy": "All runs are fully logged; an automated sample (deterministic every 20th run and all flagged runs) will be exported to the public artifact repository. Selected samples are subject to automated secondary checks; no human manual audit is required.",
+    "mapping_validation": "Mapping from model textual output to tool-call uses deterministic regex/tokenizer + schema fill; mapping tests (unit tests) are included and executed in CI prior to runs. Mapping mismatch rates are computed automatically and reported.",
+    "residual_risks": [
+      "Semantic drift of canonicalizer for unseen phrasing (noncritical; mitigated by published prompt families and deterministic canonicalizer tests).",
+      "Verifier rule-engine coverage may miss semantic device-level regressions that are outside the emulated templates (noncritical external validity)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity and transferability to heterogeneous production firmware/device behaviors (CG1, EF2) — acknowledged and bounded to the emulated benchmark.",
+    "Potential overlap between published attack corpus and proprietary hosted-model training data (residual contamination risk) — documented as limitation; cannot be fully excluded for closed-hosted models.",
+    "Operational acceptability thresholds for latency/false positives in real operator contexts remain application-dependent and outside the current public-synthetic benchmark scope."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161032443",
+    "https://openalex.org/W4405181600",
+    "https://openalex.org/W4410215516",
+    "https://openalex.org/W7163777690",
+    "10.20944/preprints202512.0913.v1"
+  ]
+}

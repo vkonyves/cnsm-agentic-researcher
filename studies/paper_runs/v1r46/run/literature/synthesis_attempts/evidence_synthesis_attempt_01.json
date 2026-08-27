@@ -1,0 +1,183 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLMs can translate natural-language intent into network-configuration templates or artifacts, but their outputs are often incorrect, incomplete, or require downstream validation/repair.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7171613584"
+      ],
+      "evidence_type": "empirical_evaluation / system_paper",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations focus on limited tasks and datasets rather than broad production deployments.",
+        "Some studies use synthetic or constrained corpora; generalization to heterogeneous real networks is not established."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Combining LLM generation with deterministic validators or formal verification improves detection of regressions and overall repair safety, yet LLM-driven repairs still introduce regressions and performance commonly degrades at scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "benchmark / empirical_evaluation / position_paper",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks and evaluations are frequently run on synthesized or emulated topologies rather than diverse production networks.",
+        "Model and vendor diversity in experiments is limited in the cited studies."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Agentic and tool-augmented LLM workflows enable end-to-end NetOps tasks but introduce concrete security and reliability vulnerabilities (prompt injection, tool-selection attacks, hallucination propagation) that are effective under studied threat models.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W4410215516",
+        "https://openalex.org/W4405181600",
+        "doi:10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "attack_evaluation / empirical_study / survey",
+      "confidence": 0.95,
+      "limitations": [
+        "Attacks are evaluated under specific threat models and experimental setups; real-world impact depends on deployment specifics and defenses.",
+        "Defensive effectiveness is still an active area with partial solutions reported."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Structuring agent policies or encoding domain diagnostic procedures (e.g., phase-gated troubleshooting) can substantially improve LLM-agent troubleshooting performance compared to unstructured prompting.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7160670725"
+      ],
+      "evidence_type": "empirical_evaluation",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported gains are on a specific benchmark (NIKA) and may not directly transfer to all NetOps tasks or deployment contexts."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent do validated LLM-driven repair pipelines (generate–validate–repair) transfer from emulated/synthetic benchmarks to heterogeneous production networks without introducing unacceptable risk?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "benchmark / empirical_observation",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing studies document degradation and regression risk but do not provide large-scale production transfer studies."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Which defenses reliably prevent tool-selection and LLM-as-judge prompt-injection attacks in no-box or weakly constrained agentic NetOps frameworks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W4405183116",
+        "https://openalex.org/W4405183113"
+      ],
+      "evidence_type": "attack_and_defense_evaluations",
+      "confidence": 0.6,
+      "limitations": [
+        "Some defenses are proposed and partially evaluated, but comprehensive, field-validated defenses are not demonstrated in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "How should prompt uncertainty and prompt-governance (prompt-averaged estimands) be quantified and managed for NetOps measurement and evaluation?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6381558",
+        "doi:10.2139/ssrn.7200222"
+      ],
+      "evidence_type": "methodological_study",
+      "confidence": 0.6,
+      "limitations": [
+        "Methodological proposals exist but have not been widely applied to NetOps-specific benchmarks in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "UQ4",
+      "statement": "What benchmark designs best capture operational impact metrics (connectivity, outage risk, replay-based adversary evaluation) rather than only syntactic or local correctness?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7171748677"
+      ],
+      "evidence_type": "benchmark / position_paper",
+      "confidence": 0.6,
+      "limitations": [
+        "Some papers propose or employ higher-fidelity checks (e.g., offensive replay, connectivity regression), but consensus benchmark standards are not established in the supplied corpus."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a gap in standardized, production-like benchmarks covering multi-vendor, large-scale topologies with emulated firmware and replay-based validation for LLM-driven NetOps automation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7166901862"
+      ],
+      "evidence_type": "benchmark_observation / system_paper",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmarks (including Cornetto and COHORT-style emulations) are steps forward but remain limited in scope and prevalence."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Defenses against tool-selection prompt injection and LLM-as-judge attacks in agentic NetOps frameworks are underdeveloped relative to the threat demonstrations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W4405183113",
+        "https://openalex.org/W4410215516"
+      ],
+      "evidence_type": "attack_evaluation / defense_gap",
+      "confidence": 0.9,
+      "limitations": [
+        "Some mitigations are proposed, but empirical robustness and deployment-ready solutions are not established in the cited works."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "A practical architectural gap exists in delegating reasoning to formal solvers while confining LLMs to translation/representation tasks (to combine LLM translation strengths with solver soundness).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "position_paper / system_proposal",
+      "confidence": 0.75,
+      "limitations": [
+        "Proposals (e.g., TypoNet) are preliminary; integration, tooling, and empirical validation across diverse networks remain open."
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "NetOps evaluations seldom report prompt governance, prompt families, or prompt-averaged uncertainty—limiting reproducibility and construct validity of LLM-driven NetOps claims.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6381558",
+        "doi:10.2139/ssrn.7200222",
+        "https://openalex.org/W4392240262"
+      ],
+      "evidence_type": "methodological_survey / empirical_observation",
+      "confidence": 0.7,
+      "limitations": [
+        "The methodological literature proposes protocols, but uptake in NetOps-specific studies in the supplied corpus is limited."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-only agentic systems are production-ready to autonomously perform network changes without human oversight.",
+    "Deterministic validators guarantee zero regressions when used with LLM-generated changes.",
+    "Prompt engineering alone eliminates hallucinations and adversarial manipulation in NetOps agentic systems.",
+    "Existing benchmarks conclusively demonstrate safe large-scale deployment of LLM-driven NetOps automation across heterogeneous production networks."
+  ]
+}

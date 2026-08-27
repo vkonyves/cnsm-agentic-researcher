@@ -1,0 +1,81 @@
+{
+  "study_id": "a2b7d4c1-9d6e-4f3b-b8e4-2c6d0f9e5a22",
+  "title": "Defensive Patterns against Tool‑Selection and LLM‑as‑Judge Prompt‑Injection in Weakly‑Constrained NetOps Agents (Repaired Preregistration)",
+  "research_question": "Which defensive architecture pattern (constrained tool-surface + independent verifier + authenticated tool‑handoff) most reliably reduces successful tool‑selection and LLM‑as‑judge prompt‑injection attacks relative to an unconstrained baseline in weakly‑constrained NetOps agent workflows?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory, paired): The constrained+independent-verifier+authenticated-handoff defense reduces attacker success rate by ≥50% (relative reduction) versus the unconstrained baseline when tested on the same attack attempts (paired design).",
+    "H2 (confirmatory, paired): The operational false‑positive rate on benign tasks introduced by the constrained+verifier+handoff defense remains <10% compared to baseline (measured as proportion of benign tasks flagged/blocked)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do the constrained-only and independent-verifier-only patterns compare to the combined pattern in absolute attacker success rate and latency?",
+    "EQ2: How robust is the combined defense under an adaptive adversary that iteratively probes verifier behavior (preregistered adaptive follow-up)?",
+    "EQ3: Which automatic verifier heuristics (syntactic tool-call whitelist, semantic matcher, signature verification) contribute most to reduced attack success (ablation)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161032443",
+    "https://openalex.org/W4405181600",
+    "https://openalex.org/W4410215516",
+    "https://openalex.org/W7163777690",
+    "10.20944/preprints202512.0913.v1"
+  ],
+  "benchmark_scope": [
+    "Public synthetic NetOps emulation suite (synthetic_paired_llm_benchmark_v1 adapter–compatible task set).",
+    "Emulated multi-vendor device models limited to safe, read-only and dry-run configuration templates (no destructive outputs).",
+    "Attack corpus published alongside code (public repository) and limited to the supplied simulated tool descriptions and prompt families."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 500,
+    "planned_episode_count": 1000,
+    "maximum_model_calls": 1000,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (attack success rate difference computed on paired attack attempts: baseline run vs defended run on same attack input)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_attack_success_rate_baseline",
+    "absolute_attack_success_rate_defended",
+    "false_positive_rate_on_benign_tasks_defended",
+    "mean_end_to_end_latency_overhead_ms_defended_vs_baseline"
+  ],
+  "sampling_plan": "Confirmatory paired sample: N_pairs = 500 distinct attack attempts. Each attack attempt executed twice (paired): once under unconstrained baseline agent and once under constrained+verifier+authenticated-handoff defense, using identical attack input and RNG seeds where available. Benign-safety sample: 500 benign tasks executed under same paired regime. All RNG seeds, prompt-selection seeds, and sampled indices will be published. Total planned agent runs = 2000; planned average model calls/run = 3.0; planned total model calls estimate = 6000 (within manifest limit).",
+  "power_and_precision_plan": "Primary estimand paired_success_rate_difference_guarded_minus_baseline. Target effect: ≥50% relative reduction (example: baseline 30% → defended 15%, absolute diff 0.15). Simulation-based paired-binomial power assessment assuming baseline p0=0.30, defended p1=0.15, α=0.05, target power=0.80; with 500 pairs simulation yields ≥0.80 power. Sensitivity analyses: recompute under p0=0.20 and p0=0.40 and under varying within-pair concordance; seeds published.",
+  "exclusion_rules": [
+    "Exclude pair when provider/API or infrastructure error occurs in either paired run (deterministic exclusion per missingness_plan).",
+    "Exclude benign task run when canonicalization or signature verification fails (counted as false-positive event and logged)."
+  ],
+  "missingness_plan": "If an agent run fails due to infrastructure/provider API failure, apply analysis executor's failed_call_treatment: primary treatment = complete_pair_primary (exclude entire pair). Sensitivity analysis: complete_pair_primary_with_failure_as_zero_sensitivity (treat missing run as attack success=0). All technical failures, retries, causes, timestamps, and hashes will be logged and published. No manual adjudication; deterministic rules govern inclusion/exclusion.",
+  "analysis_plan": "Primary confirmatory analysis executed by paired_binary_analysis_v1. For each attack pair record baseline_success ∈ {0,1} and defended_success ∈ {0,1}. Compute paired success-rate difference (defended minus baseline) with 95% CI via exact paired/binomial methods implemented by paired_binary_analysis_v1. Primary decision rule: declare H1 supported if observed relative reduction ≥50% AND 95% CI lower bound excludes reductions <50% under preregistered baseline assumption. H2 assessed with a one-sided test (false-positive rate <10%) using exact binomial methods. Secondary analyses (absolute rates, ablations, latency) are exploratory and reported without confirmatory p-values.",
+  "multiplicity_plan": "Two primary confirmatory estimands: H1 (paired success-rate reduction) and H2 (benign false-positive <10%). Both reported explicitly as primary. All additional comparisons (constrained-only, verifier-only, ablations, adaptive follow-ups) are exploratory and will not receive alpha correction; multiplicity statement will be included in manuscript.",
+  "contamination_plan": "Benchmark: synthetic_paired_llm_benchmark_v1. Risk factors: possible overlap between attack corpus and closed-model training data (cannot be excluded); task-sampling contamination mitigated by deterministic pairing and published seeds; adaptive adversary learning across runs mitigated by isolated paired execution and preregistered adaptive-followup design. Detection: automated hash-based provenance checks for inputs and responses; flagging rules for provider errors and canonicalization/signature failures. Analysis treatment: technical-failure pairs excluded under primary analysis; sensitivity analyses include worst-case treatments. Residual uncertainty documented in manuscript.",
+  "stopping_rule": "Stop when all preregistered paired executions complete (500 attack pairs + 500 benign pairs) OR when the planned model-call budget (maximum_model_calls = 6000) is exhausted OR when wall-clock execution reaches the capability manifest limit (maximum_wall_clock_days = 7). Any early stop and reason will be logged and published.",
+  "planned_outputs": [
+    "IEEE-format short paper (≤5 pages) with mandatory Disclosure Statement",
+    "Public repository with code, attack corpus, canonicalizer, verifier rules, signed artifact hashes, raw model responses, and analysis notebooks",
+    "Machine-readable preregistration and execution manifest",
+    "Statistical-results file and failure-analysis record",
+    "NotebookLM presentation brief (concise, machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

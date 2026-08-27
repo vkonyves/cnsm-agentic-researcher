@@ -1,0 +1,32 @@
+{
+  "study_id": "a2b7d4c1-9d6e-4f3b-b8e4-2c6d0f9e5a22",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis of H1 and H2: (1) H1 — compute paired success-rate difference (defended minus baseline) on the 500 preregistered attack pairs using exact paired/binomial methods implemented by paired_binary_analysis_v1; report absolute difference, relative reduction, two-sided 95% exact CI; decision rule per preregistration: H1 supported if observed relative reduction ≥50% and 95% CI lower bound excludes reductions <50%. (2) H2 — assess defended false‑positive rate on the 500 benign paired runs with a one‑sided exact binomial test against 10% (decision rule per preregistration). All confirmatory tests follow the sealed preregistration and use only execution/raw_results.jsonl, execution/scoring/*.json, and execution/execution_log.jsonl artifacts.",
+  "secondary_analyses": [
+    "absolute_attack_success_rate_baseline",
+    "absolute_attack_success_rate_defended",
+    "mean_end_to_end_latency_overhead_ms_defended_vs_baseline"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity",
+    "recompute_primary_CI_and_decision_under_alternative_baseline_rates_p0=0.20_and_p0=0.40"
+  ],
+  "uncertainty_quantification": "Primary estimand: exact (Clopper–Pearson style) paired/binomial 95% CI produced by paired_binary_analysis_v1; H2: exact one‑sided binomial confidence interval and p‑value. Report CIs, exact p‑values, and counts. Report Monte‑Carlo re‑computations for preregistered power/sensitivity scenarios (p0 variants) as sensitivity outputs.",
+  "multiplicity_implementation": "Two preregistered confirmatory hypotheses (H1 and H2) are declared primary and reported as confirmatory. All other analyses are exploratory and reported without alpha adjustments, per preregistered multiplicity_plan.",
+  "contamination_analysis": "Follow preregistered contamination_plan: use deterministic pairing/seeds and hash‑based provenance checks (artifact_hashes in execution manifest) to identify input/response overlap; treat provider/model training overlap as residual, documented uncertainty. Technical‑failure detection and provenance flags derived from execution/execution_log.jsonl; technical‑failure pairs excluded per preregistered rules (missingness_plan). All detection logs and flagged items are published alongside manuscript.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Per‑pair episode extract (produced from execution/raw_results.jsonl and execution/scoring/*.json): columns: task_id, seed, baseline_success {0,1}, defended_success {0,1}, model_calls_count, latency_ms, canonicalizer_hashes, verifier_flags, raw_model_responses_hashes. (One row per paired episode pair.)",
+    "Table 2 — Confirmatory summary (produced from Table 1): N_pairs, baseline_successes, defended_successes, paired_success_rate_difference (defended minus baseline), relative reduction, 95% exact CI, exact p‑value, preregistered decision for H1.",
+    "Table 3 — Benign‑safety summary (produced from execution/scoring for benign task subset): counts and rates of flagged/blocked benign tasks per condition, one‑sided exact binomial test result and decision for H2.",
+    "Table 4 — Secondary summaries (produced from execution/scoring and provider_calls): absolute attack success rates by condition, mean and SD of end‑to‑end latency per condition, mean latency overhead (defended vs baseline) with 95% CI.",
+    "Table 5 — Execution provenance and integrity table (produced from execution/execution_log.jsonl and artifact_hashes): completed_episode_count, failed_episode_count, model_calls_used, list of key artifact paths with published SHA‑256 hashes."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Overall attack success rates bar chart (baseline vs defended) with 95% CIs computed from paired counts (produceable from execution/scoring/*.json).",
+    "Figure 2 — Paired outcome plot (per‑task baseline vs defended success: jittered points or connected pairs) to show within‑pair changes (produceable from execution/raw_results.jsonl).",
+    "Figure 3 — Latency distribution (CDF and histogram) for baseline and defended runs and the latency overhead distribution (produceable from execution/scoring/*.json and provider call timing).",
+    "Figure 4 — Flow diagram of deterministic canonicalizer + verifier decision outcomes (counts of initial accept/reject/repair) derived from transformation_manifest.json and execution/scoring/* verifier_flags."
+  ]
+}

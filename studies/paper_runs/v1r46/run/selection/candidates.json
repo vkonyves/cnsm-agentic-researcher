@@ -1,0 +1,143 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1f9a3e2-7b4d-4d2b-a9c2-1e3f9b2a6d11",
+      "title": "Transferability of Generate–Validate–Repair Pipelines to Large Multi‑Vendor Topologies",
+      "research_question": "How well does a generate–validate–repair pipeline for LLM-driven network-configuration changes transfer from emulated benchmarks to larger, multi-vendor simulated topologies without increasing outage or regression risk relative to a human-curated baseline?",
+      "hypotheses": [
+        "When applied to larger multi-vendor topologies, generate–validate–repair pipelines will exhibit a higher regression rate than reported on small emulated benchmarks.",
+        "Augmenting generate–validate–repair with topology-aware constraints and vendor-aware templates will reduce regression rate by ≥30% compared to an unconstrained generate–validate–repair pipeline."
+      ],
+      "proposed_design": "Preregistered comparative study using public topology templates and vendor configuration families: (1) build three topology scales (small/emulated baseline, medium heterogenous, large heterogenous) using network simulators/emulators (ns-3/mininet + vendor-template artifacts). (2) Implement three interventions: human-curated baseline, unconstrained generate–validate–repair pipeline (LLM→syntactic validator→repair loop), and constrained generate–validate–repair with topology- and vendor-aware constraints. Validators include reachability and access-control checks (deterministic). For each of 120 intent-to-change tasks per topology scale, record produced configs, validator outputs, repairs, and replay connectivity tests. Fix seeds and model prompts; limit retries per preregistration.",
+      "expected_data": "Per task and pipeline: produced configuration artifacts, binary validator pass/fail, number of repair iterations, post-deployment replay connectivity results (connectivity matrix), regression indicators (new outages or ACL regressions), outage durations (simulated), and validator-flagged safety violations.",
+      "primary_outcome": "Difference in regression rate (proportion of tasks causing any connectivity or policy regression) between constrained generate–validate–repair and unconstrained generate–validate–repair on large heterogeneous topologies.",
+      "analysis_outline": "Compute regression rates with 95% bootstrap CIs per pipeline and topology scale. Use paired comparisons (McNemar or paired proportion test) across identical task instances to test hypothesis of ≥30% reduction. Report effect sizes and exact p-values. Perform subgroup failure-mode analysis by vendor and topology feature; report repair iteration distributions and validator false negatives/positives.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7166901862",
+        "https://openalex.org/W7171748677"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7163777690"
+      ],
+      "risks": [
+        "Generate–validate–repair performance may degrade at larger scale and introduce new regressions (EF2).",
+        "Simulator/emulator fidelity may not capture production device quirks leading to optimistic safety estimates (UQ1, CG1).",
+        "Agentic components may be vulnerable to prompt-injection or hallucination propagation if used in orchestration (EF3)."
+      ],
+      "estimated_model_calls": 3500
+    },
+    {
+      "candidate_id": "a2b7d4c1-9d6e-4f3b-b8e4-2c6d0f9e5a22",
+      "title": "Defensive Patterns against Tool‑Selection and LLM‑as‑Judge Prompt‑Injection in Weakly‑Constrained NetOps Agents",
+      "research_question": "Which defensive architecture patterns (constrained tool surface, independent tool-verifier, authenticated tool‑handoff) most reliably reduce successful tool-selection and LLM-as-judge prompt-injection attacks in weakly-constrained agentic NetOps workflows?",
+      "hypotheses": [
+        "A constrained tool-surface combined with an independent tool-verifier will reduce successful tool-selection attacks by ≥50% compared to an unconstrained agent.",
+        "Adding an authenticated tool-handoff protocol (signed tool outputs validated by a separate verifier) will further reduce attack success while keeping operational false-positive rates acceptable (<10%)."
+      ],
+      "proposed_design": "Adversarial evaluation framework: construct a minimal agentic NetOps orchestration with LLM planner, tool registry (configuration appliers, validators, monitoring), and optional defenses. Implement adversary strategies from the literature (prompt-injection, tool-selection manipulation, malicious tool descriptions). Compare four arms across identical attack corpora: baseline (no defenses), constrained tool-surface, independent tool-verifier, and constrained+verifier+authenticated-handoff. Use 500 randomized attack attempts and 500 benign tasks; measure attack success, benign task success, latency overhead, and false positives. Fix prompt families and random seeds per preregistration.",
+      "expected_data": "Per attempt: attack/benign label, agent tool selection trace, tool inputs/outputs, verifier decisions, whether the attacker achieved unauthorized tool invocation or incorrect judgment, task success, and latency metrics.",
+      "primary_outcome": "Reduction in attacker success rate (proportion of attack attempts resulting in unauthorized tool invocation or malicious action) for the constrained+verifier+handoff arm vs baseline.",
+      "analysis_outline": "Compute attacker success rates with 95% CIs per defense arm; compare arms with exact binomial tests and compute risk ratios. Report defender false-positive rates on benign tasks and latency trade-offs. Conduct attacker-adaptive follow-up experiments on top-performing defenses to assess robustness.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4410215516"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W7163777690"
+      ],
+      "risks": [
+        "Adaptive adversaries may craft inputs that bypass the verifier or mimic legitimate tool descriptors (EF3, UQ2).",
+        "Defenses may introduce unacceptable operational latency or false positives, degrading operator trust and availability.",
+        "Defense evaluation on simulated tools may not fully represent production tool complexity (external validity concern)."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "d4e6b7a3-3c2f-4c9b-8a1e-3f7b6c9d8e33",
+      "title": "Confining LLMs to Translation and Delegating Constraint Solving to Formal Solvers for Safer NetOps Changes",
+      "research_question": "Does an architecture that confines the LLM to intent-to-spec translation and delegates constraint solving to a formal solver (SMT/constraint optimizer) reduce operational regressions relative to end-to-end LLM planning for configuration generation?",
+      "hypotheses": [
+        "A translator+solver pipeline will produce fewer operational regressions than an end-to-end LLM planner on the same set of intent-to-change tasks.",
+        "Translator+solver will have higher determinism (lower output variance) across repeated prompts than end-to-end LLM planning, improving verifier trustability."
+      ],
+      "proposed_design": "Controlled A/B pipeline experiment: implement (A) end-to-end LLM planner that outputs concrete configuration sequences and (B) LLM translator that emits formalized constraints/specification fed to a solver (e.g., Z3 or standard constraint optimizer) which synthesizes configurations. Use 200 intent-to-change scenarios across multiple topology templates and policy constraints. Validators (reachability, ACL semantics) run post-synthesis. Record solver unsat cases and compare regression rates, success rates, and per-task variance across 5 prompt seeds.",
+      "expected_data": "Per scenario and pipeline: synthesized configuration, validator pass/fail, regression indicator, solver unsat count, number of prompt trials per scenario, and variance of outputs across seeds.",
+      "primary_outcome": "Difference in regression rate (validator-detected regressions) between translator+solver and end-to-end LLM planner across scenarios.",
+      "analysis_outline": "Estimate regression-rate differences with bootstrap CIs; use paired proportion tests for significance. Quantify output variance across seeds (entropy or edit distance) and compare distributions (Kolmogorov–Smirnov). Analyze unsat cases to characterize specification gaps and propose mitigations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W4411015066"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7163777690"
+      ],
+      "risks": [
+        "Formal solvers may produce no-solution (unsat) cases, requiring human fallback or conservative defaults (CG3).",
+        "Solver models require accurate domain models; drift between solver model and real device semantics can produce incorrect but solver-legal outputs (construct validity).",
+        "Integration latency and engineering complexity may limit real-time applicability."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "b5c8d9e4-2f1a-4b6c-90d5-4e1f2a7b9f44",
+      "title": "Prompt‑Governance and Prompt‑Averaged Estimands for Reliable NetOps Measurement",
+      "research_question": "How do prompt-family governance and prompt-averaging affect measured performance, uncertainty quantification, and construct validity of LLM-driven intent-to-configuration translation tasks in NetOps evaluations?",
+      "hypotheses": [
+        "Prompt-averaged estimands produce wider but better-calibrated confidence intervals for operational correctness than single-prompt evaluation.",
+        "Applying prompt-governance to limit admissible prompt families will reduce measured performance variance without materially degrading median operational correctness."
+      ],
+      "proposed_design": "Methodological experiment defining three prompt families (conservative, neutral, exploratory) constructed via controlled template transformations. For a fixed set of 200 tasks, sample 50 prompts per family and collect LLM outputs. Compute single-prompt estimates, prompt-family medians, and full prompt-averaged estimands (weighted by governance weights). Evaluate operational correctness via deterministic validators and replay tests. Assess CI calibration (coverage) and estimator variance; preregister prompt-family construction, sampling scheme, and governance weights.",
+      "expected_data": "Per task and prompt: prompt identifier, raw model output, validator pass/fail, replay connectivity outcome, and metadata. Aggregated per-task prompt-averaged success rates, per-family medians, CI widths, and coverage statistics.",
+      "primary_outcome": "Calibration and width of 95% confidence intervals for operational correctness under prompt-averaged estimands vs single-prompt estimates (measured by empirical coverage across tasks).",
+      "analysis_outline": "Compute empirical coverage of 95% CIs via bootstrap across tasks for each estimator. Compare CI widths and variances using paired tests; report changes in median correctness and variance under governance-weighted averaging. Perform sensitivity analysis over governance weights and prompt-family definitions.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.6381558",
+        "10.2139/ssrn.7200222",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7171748677"
+      ],
+      "risks": [
+        "Prompt-family choices and governance weights are subjective and may affect conclusions (construct validity, CG4).",
+        "Sampling enough prompts increases model-call cost and may still underrepresent adversarial prompt variants (UQ3).",
+        "Findings on synthetic/emulated tasks may not fully transfer to production scenarios (external validity)."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "f6a1b2c3-8d4e-4f5a-9b6c-5d7e8f0a1b55",
+      "title": "Efficacy of Phase‑Gated Troubleshooting Policies for LLM‑Agent NetOps Workflows",
+      "research_question": "Do phase‑gated, structured agent policies (diagnose→isolate→repair→verify) materially improve correctness and safety of LLM-agent troubleshooting workflows compared to unstructured prompting on operational NetOps troubleshooting tasks?",
+      "hypotheses": [
+        "Phase-gated policies will increase successful fault resolution rate by ≥25% compared to unstructured LLM prompting on the same troubleshooting tasks.",
+        "Phase-gated policies will reduce dangerous repair actions (those producing regressions) by ≥30% relative to unstructured prompting."
+      ],
+      "proposed_design": "Controlled comparison using a public NetOps troubleshooting task set (NIKA-like problems): implement two agent workflows — (A) unstructured LLM prompting and (B) phase-gated policy enforcing explicit stage outputs and stage-specific validators. For 300 troubleshooting cases, run both agents with identical observation inputs. Record resolution success, number/type of repair actions, validator-flagged safety violations, and number of tool invocations. Fix prompts and policy templates in preregistration.",
+      "expected_data": "Per case and agent: stage transcripts, proposed repairs, applied configurations, validator outcomes, whether original fault resolved, any introduced regressions, and counts of tool calls.",
+      "primary_outcome": "Difference in successful fault-resolution rate between phase-gated policy agent and unstructured prompting agent.",
+      "analysis_outline": "Compute resolution rates and regression rates with 95% CIs. Use paired proportion tests for significance. Report stage-level error rates, median number of repair iterations, and qualitative failure-mode taxonomy. Include ablation of individual phase constraints to identify high-impact components.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7160670725",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7160670725",
+        "https://openalex.org/W4392875514"
+      ],
+      "risks": [
+        "Structured policies may overconstrain the agent, reducing flexibility on novel faults (construct validity).",
+        "Agent transcripts and tool interactions could be susceptible to prompt-injection or tool-manipulation attacks if not guarded (EF3).",
+        "Benchmarked troubleshooting tasks may not cover rare real-world failure modes (external validity)."
+      ],
+      "estimated_model_calls": 1800
+    }
+  ]
+}

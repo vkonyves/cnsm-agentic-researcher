@@ -1,0 +1,111 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1f9a3e2-7b4d-4d2b-a9c2-1e3f9b2a6d11",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator/simulator fidelity may not reflect multi‑vendor production quirks (optimistic safety estimates).",
+        "Preregistered task count (120) may be underpowered for heterogeneous large‑topology subgroup analyses.",
+        "Validator coverage (reachability/ACL) can miss semantic device‑level regressions; replay tests may be insufficiently realistic.",
+        "Availability and licensing of vendor configuration templates and realistic firmware behavior are not detailed."
+      ],
+      "required_design_repairs": [
+        "Strengthen emulator fidelity checks (include at least one higher‑fidelity vendor model or replay-ground-truth scenario and report limitations).",
+        "Increase task/sample size or justify power calculations for subgroup (vendor/topology) analyses; preregister effect-size detection thresholds.  ",
+        "Define and preregister conservative safety fallback policies for unsimulated device behaviors (dry‑run only; no destructive outputs).",
+        "Publish exact vendor templates, seeds, prompts, and validator code; add posthoc manual adjudication protocol only for unavoidable edge cases."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "a2b7d4c1-9d6e-4f3b-b8e4-2c6d0f9e5a22",
+      "novelty": 0.85,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.75,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Realism of simulated tools and attack corpus — may understate adaptive attacker capabilities.",
+        "Potential operational latency and false-positive tradeoffs not fully bounded; need acceptability criteria. ",
+        "Authenticated handoff mechanisms are underspecified (threat model for key management, signing)."
+      ],
+      "required_design_repairs": [
+        "Preregister an adaptive-adversary follow‑up (attacker that iteratively probes defenses) and include it in robustness claims.",
+        "Specify authentication/signing protocol details, threat model, and failure modes; measure key‑management overhead and attack surfaces.",
+        "Open-source attack corpus, tool models, and metrics; preregister acceptable latency/false‑positive thresholds and justify from operational constraints."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "d4e6b7a3-3c2f-4c9b-8a1e-3f7b6c9d8e33",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.85,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Risk of solver 'unsat' or solver-legal but device-invalid outputs due to imperfect domain models.",
+        "Engineering cost to maintain solver models (semantic drift) threatens external validity.",
+        "Integration latency and real‑time applicability not bounded; solver timeouts and fallback policy unspecified."
+      ],
+      "required_design_repairs": [
+        "Preregister clear unsat handling and safe-fallback policies (e.g., human escalation, conservative default configs).",
+        "Include a validation step mapping solver outputs to device-specific semantics (small held-out oracle of real device behavior) and report mismatch rates.",
+        "Preregister solver timeout budgets and measure end‑to‑end latency; include hybrid fallback and metrics for determinism vs coverage tradeoffs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "b5c8d9e4-2f1a-4b6c-90d5-4e1f2a7b9f44",
+      "novelty": 0.65,
+      "falsifiability": 0.95,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.75,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Prompt‑family construction and governance weights are subjective and drive results; risk of post‑hoc tuning. ",
+        "Sampling requirements (50 prompts × families) increase cost and may still miss adversarial prompts. ",
+        "Construct validity: operational correctness measured via validators may not capture all real‑world failure modes."
+      ],
+      "required_design_repairs": [
+        "Preregister exact prompt‑family construction rules and governance weights; provide rationale and sensitivity analyses over weights. ",
+        "Publish the full prompt bank and sampling RNG seeds; include adversarial prompt enumeration where feasible. ",
+        "Include a mapping from validator outcomes to operational impact metrics and discuss residual gaps (what validators miss)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "f6a1b2c3-8d4e-4f5a-9b6c-5d7e8f0a1b55",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Phase gating may overconstrain agent behavior and reduce flexibility on novel faults; need ablation to isolate which phases help. ",
+        "Agent transcripts/tools may still be vulnerable to prompt‑injection unless explicitly defended. ",
+        "Benchmarks (NIKA‑like) may not cover low‑frequency, high‑impact faults."
+      ],
+      "required_design_repairs": [
+        "Preregister ablation experiments removing individual phase constraints to quantify their marginal contribution.",
+        "Include prompt‑injection resilience measures (e.g., verifier on stage outputs) and evaluate attack robustness.",
+        "Expand troubleshooting task set diversity or justify coverage; report limitations and threat model for uncovered fault classes."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
