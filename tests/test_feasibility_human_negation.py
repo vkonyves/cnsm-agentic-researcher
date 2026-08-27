@@ -63,3 +63,39 @@ def test_r38_false_positive_sentence_is_removed():
     )
 
     assert dependencies(text) == set()
+
+
+def test_r40_no_human_imputation_or_manual_adjudication_is_negated():
+    text = "No human imputation or manual adjudication is used."
+
+    cleaned = _prepare_human_dependency_scan_text(text)
+
+    assert "human imputation" not in cleaned.lower()
+    assert "manual adjudication" not in cleaned.lower()
+
+
+def test_r40_do_not_perform_human_adjudication_is_negated():
+    text = (
+        "If verifier and simulator disagree, do not perform "
+        "human adjudication."
+    )
+
+    cleaned = _prepare_human_dependency_scan_text(text)
+
+    assert "human adjudication" not in cleaned.lower()
+
+
+def test_positive_human_imputation_remains_detectable():
+    text = "Missing values require human imputation."
+
+    cleaned = _prepare_human_dependency_scan_text(text)
+
+    assert "human imputation" in cleaned.lower()
+
+
+def test_positive_human_adjudication_remains_detectable():
+    text = "Ambiguous cases require human adjudication."
+
+    cleaned = _prepare_human_dependency_scan_text(text)
+
+    assert "human adjudication" in cleaned.lower()

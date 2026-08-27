@@ -12,6 +12,9 @@ HUMAN_DEPENDENCY_PATTERNS = {
     "human annotation": (
         r"\bhuman annotat(?:ion|or|ors|e|ed|ing)\b"
     ),
+    "human imputation": (
+        r"\bhuman imput(?:ation|e|ed|ing)\b"
+    ),
     "manual adjudication": (
         r"\bmanual adjudicat"
     ),
@@ -46,25 +49,33 @@ HUMAN_DEPENDENCY_PATTERNS = {
 
 
 NEGATED_HUMAN_DEPENDENCY_PATTERNS = (
+    # Explicit negative-action statements, e.g.
+    # "do not perform human adjudication".
+    r"\bdo\s+not\s+"
+    r"(?:perform|use|require|rely\s+on)\s+"
+    r"(?:human\s+annotation|human\s+imput\w*|"
+    r"human\s+adjudicat\w*|manual\s+adjudicat\w*|"
+    r"human\s+review|manual\s+review)\b",
+
     # Coordinated explicit denials such as:
     # "no human annotation or manual adjudication is required".
     r"\bno\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
     r"(?:\s+or\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+"
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review))+"
     r"\s+(?:is|are)\s+(?:required|needed|used)\b",
 
     # "does not require human annotation or manual adjudication".
     r"\bdoes\s+not\s+require\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
     r"(?:\s+or\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
 
     # "without human review or manual adjudication".
     r"\bwithout\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review)"
     r"(?:\s+or\s+"
-    r"(?:human\s+annotation|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
+    r"(?:human\s+annotation|human\s+imput\w*|human\s+adjudicat\w*|manual\s+adjudicat\w*|human\s+review|manual\s+review))+\b",
     # Coordinated negative requirements, e.g.
     # "no human annotation or manual adjudication is required".
     # Remove the whole denied dependency phrase before scanning for
