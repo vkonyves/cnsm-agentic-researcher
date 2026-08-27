@@ -76,6 +76,369 @@ from .publication_renderer import (
 T = TypeVar("T")
 
 
+
+def _manuscript_text(
+    manuscript: ManuscriptPackage | dict[str, Any],
+) -> str:
+    if hasattr(manuscript, "model_dump"):
+        payload = manuscript.model_dump()
+    else:
+        payload = manuscript
+
+    parts: list[str] = []
+
+    def visit(value: Any) -> None:
+        if isinstance(value, str):
+            parts.append(value)
+        elif isinstance(value, dict):
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, (list, tuple)):
+            for child in value:
+                visit(child)
+
+    visit(payload)
+    return "\n".join(parts)
+
+
+def _normalise_claimed_artifact_path(
+    value: str,
+) -> str:
+    value = value.strip().strip(
+        "\"'`.,;:()[]{}"
+    )
+
+    while value.endswith(
+        (".", ",", ";", ":", ")")
+    ):
+        value = value[:-1]
+
+    return value
+
+
+def audit_manuscript_artifact_references(
+    *,
+    manuscript: ManuscriptPackage | dict[str, Any],
+    run_dir: Path,
+) -> dict[str, Any]:
+    """
+    Deterministically verify concrete manuscript provenance claims.
+
+    Hard failures are limited to:
+      1. artifacts explicitly claimed to be archived/bundled/provided;
+      2. explicit artifact-path + SHA-256 assertions;
+      3. structured provider-trace path/hash assertions.
+
+    Mere mention of a path in a reproduction command is not interpreted
+    as a claim that the output already exists.
+    """
+    import glob
+    import re
+
+    text = _manuscript_text(manuscript)
+
+    artifact_prefixes = (
+        "literature",
+        "selection",
+        "design",
+        "preregistration",
+        "execution",
+        "analysis",
+        "manuscript",
+        "disclosure",
+    )
+
+    prefix_pattern = "|".join(
+        re.escape(x)
+        for x in artifact_prefixes
+    )
+
+    path_token = (
+        rf"(?:{prefix_pattern})/"
+        r"[A-Za-z0-9_./*?\-]+"
+    )
+
+    sha_token = r"[a-fA-F0-9]{64}"
+
+    issues: list[str] = []
+    checked_paths: list[str] = []
+    checked_hash_claims: list[dict[str, Any]] = []
+
+    def normalise_path(value: str) -> str:
+        value = _normalise_claimed_artifact_path(value)
+        return value
+
+    def check_existence(
+        relative: str,
+        *,
+        reason: str,
+    ) -> None:
+        relative = normalise_path(relative)
+
+        # Directory mentions are not file assertions.
+        if relative.endswith("/"):
+            return
+
+        checked_paths.append(relative)
+
+        if "*" in relative or "?" in relative:
+            if not glob.glob(str(run_dir / relative)):
+                issues.append(
+                    f"{reason} glob has no matches: {relative}"
+                )
+            return
+
+        if not (run_dir / relative).is_file():
+            issues.append(
+                f"{reason} does not exist: {relative}"
+            )
+
+    def check_hash(
+        relative: str,
+        claimed_sha: str,
+    ) -> None:
+        relative = normalise_path(relative)
+        claimed_sha = claimed_sha.lower()
+
+        if relative.endswith("/"):
+            return
+
+        if "*" in relative or "?" in relative:
+            return
+
+        candidate = run_dir / relative
+        actual_sha = (
+            sha256_file(candidate)
+            if candidate.is_file()
+            else None
+        )
+
+        checked_hash_claims.append(
+            {
+                "path": relative,
+                "claimed_sha256": claimed_sha,
+                "exists": candidate.is_file(),
+                "actual_sha256": actual_sha,
+            }
+        )
+
+        if not candidate.is_file():
+            issues.append(
+                "Artifact path with explicit SHA-256 "
+                f"does not exist: {relative}"
+            )
+            return
+
+        if actual_sha.lower() != claimed_sha:
+            issues.append(
+                "Artifact SHA-256 mismatch: "
+                f"{relative}; claimed={claimed_sha}; "
+                f"actual={actual_sha}"
+            )
+
+    # ---------------------------------------------------------
+    # A. Explicit archived/provided/stored claims where the
+    # provenance verb appears before the path.
+    # ---------------------------------------------------------
+    before_path_claim = re.compile(
+        rf"(?is)"
+        rf"(?:"
+        rf"archived\s+(?:as|at|under)|"
+        rf"stored\s+(?:as|at|under)|"
+        rf"available\s+(?:as|at|under)|"
+        rf"provided\s+(?:as|at|under)"
+        rf")"
+        rf"\s+"
+        rf"(?P<path>{path_token})"
+    )
+
+    for match in before_path_claim.finditer(text):
+        check_existence(
+            match.group("path"),
+            reason="Claimed archived artifact",
+        )
+
+    # ---------------------------------------------------------
+    # B. Explicit after-path archive/bundle assertions.
+    #
+    # Only accept wording syntactically attached to the exact
+    # artifact path. Do not use generic proximity, because paths
+    # appearing as outputs of reproduction commands must not be
+    # interpreted as pre-existing archived artifacts.
+    # ---------------------------------------------------------
+    attached_after_path_claim = re.compile(
+        rf"(?is)"
+        rf"(?P<path>{path_token})"
+        rf"\s*"
+        rf"(?:"
+        rf"\("
+        rf"[^)]{{0,100}}"
+        rf"\b(?:archived|bundled|provided|stored)\b"
+        rf"[^)]{{0,100}}"
+        rf"\)"
+        rf"|"
+        rf"\s+(?:is|was|are|were)\s+"
+        rf"(?:archived|bundled|provided|stored)"
+        rf")"
+    )
+
+    for match in attached_after_path_claim.finditer(text):
+        check_existence(
+            match.group("path"),
+            reason="Claimed bundled/archived artifact",
+        )
+
+    # ---------------------------------------------------------
+    # C. Explicit path + SHA-256 assertion.
+    #
+    # Resolve each explicit SHA-256 label to the NEAREST
+    # preceding run-relative artifact path in its local context.
+    # This prevents a hash belonging to a later path from being
+    # accidentally associated with an earlier path in the same
+    # sentence or paragraph.
+    # ---------------------------------------------------------
+    explicit_sha = re.compile(
+        rf"(?is)"
+        rf"\bSHA[\-\u2010-\u2015 ]*256\b"
+        rf"\s*(?:=|:)?\s*"
+        rf"(?P<sha>{sha_token})"
+    )
+
+    path_finder = re.compile(
+        path_token,
+        flags=re.IGNORECASE,
+    )
+
+    seen_hash_pairs: set[tuple[str, str]] = set()
+
+    for sha_match in explicit_sha.finditer(text):
+        # A deliberately short local window. We then use only the
+        # final path occurrence before the SHA label.
+        context_start = max(
+            0,
+            sha_match.start() - 220,
+        )
+        context = text[
+            context_start:sha_match.start()
+        ]
+
+        path_matches = list(
+            path_finder.finditer(context)
+        )
+
+        if not path_matches:
+            continue
+
+        nearest = path_matches[-1]
+        relative = normalise_path(
+            nearest.group(0)
+        )
+
+        # Do not interpret a directory or wildcard reference as a
+        # one-file/one-hash assertion.
+        if (
+            relative.endswith("/")
+            or "*" in relative
+            or "?" in relative
+        ):
+            continue
+
+        claimed_sha = (
+            sha_match.group("sha").lower()
+        )
+
+        key = (relative, claimed_sha)
+        if key in seen_hash_pairs:
+            continue
+
+        seen_hash_pairs.add(key)
+        check_hash(relative, claimed_sha)
+
+    # ---------------------------------------------------------
+    # D. Structured repair-provider provenance assertions.
+    #
+    # Treat every repair_provider_trace_path occurrence as the
+    # start of one record. Search only within that record (up to
+    # the next path occurrence) for its corresponding SHA-256.
+    # This avoids one malformed/oddly formatted bullet causing a
+    # subsequent repair record to be skipped.
+    # ---------------------------------------------------------
+    provider_path_pattern = re.compile(
+        rf"(?is)"
+        rf"repair_provider_trace_path"
+        rf"\s*[:=]\s*[\"']?"
+        rf"(?P<path>{path_token})"
+        rf"[\"']?"
+    )
+
+    provider_sha_pattern = re.compile(
+        rf"(?is)"
+        rf"repair_provider_trace_sha256"
+        rf"\s*[:=]\s*[\"']?"
+        rf"(?P<sha>{sha_token})"
+        rf"[\"']?"
+    )
+
+    provider_path_matches = list(
+        provider_path_pattern.finditer(text)
+    )
+
+    for index, path_match in enumerate(
+        provider_path_matches
+    ):
+        record_end = (
+            provider_path_matches[index + 1].start()
+            if index + 1 < len(provider_path_matches)
+            else min(
+                len(text),
+                path_match.end() + 700,
+            )
+        )
+
+        record_text = text[
+            path_match.end():record_end
+        ]
+
+        sha_match = provider_sha_pattern.search(
+            record_text
+        )
+
+        if sha_match is None:
+            continue
+
+        relative = normalise_path(
+            path_match.group("path")
+        )
+        claimed_sha = (
+            sha_match.group("sha").lower()
+        )
+
+        key = (relative, claimed_sha)
+
+        if key in seen_hash_pairs:
+            continue
+
+        seen_hash_pairs.add(key)
+        check_hash(relative, claimed_sha)
+
+    issues = sorted(set(issues))
+
+    return {
+        "status": (
+            "passed"
+            if not issues
+            else "failed"
+        ),
+        "passed": not issues,
+        "issue_count": len(issues),
+        "issues": issues,
+        "checked_archived_paths": sorted(
+            set(checked_paths)
+        ),
+        "checked_hash_claims": checked_hash_claims,
+    }
+
+
 def _compact_execution_manifest_for_manuscript(
     execution_manifest: dict[str, Any],
 ) -> dict[str, Any]:
@@ -5498,6 +5861,66 @@ class FinalAutonomousResearchPipeline:
         # -------------------------------------------------
         # 15. Final autonomous readiness judgement
         # -------------------------------------------------
+
+        artifact_reference_audit = (
+            audit_manuscript_artifact_references(
+                manuscript=revised_manuscript,
+                run_dir=run_dir,
+            )
+        )
+
+        write_json(
+            run_dir
+            / "manuscript"
+            / "final"
+            / "artifact_reference_audit.json",
+            artifact_reference_audit,
+        )
+
+        if not artifact_reference_audit["passed"]:
+            final_report = FinalReadinessReport(
+                ready=False,
+                passed_gates=[
+                    "Autonomous research execution completed",
+                    "Final manuscript compilation completed",
+                ],
+                failed_gates=[
+                    (
+                        "Deterministic manuscript artifact-reference "
+                        "audit failed."
+                    )
+                ],
+                warnings=(
+                    artifact_reference_audit["issues"]
+                ),
+                final_state=(
+                    "MANUSCRIPT_ARTIFACT_REFERENCE_AUDIT_FAILED"
+                ),
+            )
+
+            write_json(
+                run_dir / "final_readiness_report.json",
+                final_report,
+            )
+
+            write_state(
+                run_dir=run_dir,
+                state=final_report.final_state,
+                selected_candidate_id=(
+                    selected_candidate_id
+                ),
+                development_rehearsal=(
+                    self.development_rehearsal
+                ),
+                additional_fields={
+                    "ready": False,
+                    "artifact_reference_audit": (
+                        artifact_reference_audit
+                    ),
+                },
+            )
+
+            return final_report
 
         final_report = await run_agent(
             FINAL_JUDGE,
