@@ -1,0 +1,19 @@
+{
+  "summary": "Well‑executed, fully archived preregistered confirmatory paired study that measured whether a bounded generate–validate–repair (G‑V‑R) pipeline improves validator‑passing rates for vendor CLI config generation vs. direct LLM generation. Execution and artifact provenance are thorough and machine‑verifiable. The run produced a ceiling (100% initial validator pass rate): no repairs were ever invoked, so the preregistered estimand is empirically untestable in this run. The manuscript documents the ceiling outcome and publishes hashes for all artifacts. I recommend revision (clarifications) but not rejection on scientific grounds.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add an explicit, prominent statement in the Abstract and the Conclusion that the primary estimand (paired_success_rate_difference) became empirically untestable in this run because baseline initial‑candidate pass rate = 100% (n11=300, n10=n01=n00=0), and state succinctly the inferential consequence (the guarded arm was never exercised and the single‑repair policy was never invoked). This must use language that cannot be read as a failure of preregistration but as a ceiling outcome that limits inference.",
+    "Cite and point readers to the exact validator implementation artifact and canonical hash that define the scoring rules used (artifact path and SHA‑256 as present in the execution bundle) and add a short enumerated summary (1–3 bullets) of the validator checks that were actually applied in scoring (e.g., syntactic correctness, interface‑assignment invariants, basic reachability invariants, destructive‑pattern detection). The pointer must reference an existing artifact/hash from the supplied bundle (no new artifacts).",
+    "Make explicit, in Methods (and the Threats to Validity section), that the preregistered paired design used a shared initial candidate per task (one model call per task shared across arms) and explain how that design choice interacts with the observed ceiling: specifically, state that a perfect initial pass rate implies the guarded arm could not produce additional successes under the preregistered single‑repair policy, and therefore generator variability was not tested in this run."
+  ],
+  "optional_revisions": [
+    "Include a small table or paragraph summarizing the task manifest difficulty distribution (counts by difficulty level/pattern) taken from the published manifest (execution/task_manifest.jsonl) so readers can assess task hardness empirically.",
+    "Add a brief note (or appendix paragraph) describing how the preregistered power calculation assumptions map to the observed data (i.e., show that the originally targeted detectable effect is undefined when there are zero discordant pairs) — this can be short and formulaic and should reuse already‑published analysis artifacts (analysis_log.jsonl, paired_contingency_table.csv).",
+    "Where space permits, add one sentence suggesting specific, artifact‑grounded follow‑ups that would be scientifically informative and feasible with the supplied artifacts (e.g., replace the shared‑initial design with independent initial draws, or replace/expand the deterministic validator with the provided Docker image containing additional dynamic checks), noting these are future experiments and not required to validate the current run."
+  ],
+  "accept_for_finalisation": false
+}

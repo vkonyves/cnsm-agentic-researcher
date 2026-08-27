@@ -1,0 +1,20 @@
+{
+  "summary": "Careful, well‑documented preregistered paired study. Execution and artifacts appear complete and reproducible. Main scientific outcome is a valid null/ceiling result (all 300 initial generations passed the deterministic validator, so the single‑repair G‑V‑R policy could not improve outcomes). Manuscript correctly acknowledges the ceiling effect and publishes full artifacts. A small set of clarifications and artifact‑anchored disclosures remain required before this submission can be finalized.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add an explicit, artifact‑anchored summary (table or paragraph) reporting the 300‑task manifest’s vendor breakdown and the preregistered task difficulty distribution (counts per difficulty level / pattern). Cite the exact manifest path and hash (execution/task_manifest.jsonl, SHA‑256 as recorded) when reporting these counts. This is resolvable from the supplied artifacts and is necessary to support claims about task hardness and external validity.",
+    "Add explicit artifact references (file paths and SHA‑256 hashes) for: (a) the deterministic validator implementation and rule set (the exact file(s) inside the published Docker/artifact bundle), and (b) the generation prompt templates and repair prompt template(s) used to produce the shared initial candidate and any repair calls. If the validator rules and prompt templates are already in the bundle, cite their paths/hashes and include a 1–2 sentence summary of representative rule types and repair‑prompt structure in Methods. (All referenced files are present in the execution artifacts; this revision only requires pointing readers to them and summarizing their contents.)",
+    "Because the guarded arm invoked zero repair calls, amend the Abstract, Results, and Conclusion to state explicitly and unambiguously that the primary hypothesis was untestable under the observed ceiling (i.e., no initial validator failures occurred so the single‑repair policy was never exercised), and that secondary per‑vendor paired tests and repair‑success diagnostics are vacuous in this run. Replace any wording that could be read as implying a general negative result about G‑V‑R beyond this exact model/prompt/manifest/validator regime.",
+    "Where the preregistration listed per‑vendor secondary analyses, add a short deterministic accounting (artifact path + hash) showing that those analyses produced no discordant pairs and therefore no per‑vendor inferential results were obtained; explicitly mark those pre‑specified secondary tests as uninformative for this execution and adjust any claims about per‑vendor effects accordingly. This can be implemented by adding the per‑vendor contingency counts (extractable from execution/scoring or task_manifest artifacts)."
+  ],
+  "optional_revisions": [
+    "Include a brief contamination/memorization summary in the main Results (not just the analysis artifacts): report the number of exact/fuzzy matches flagged and the rule thresholds used (artifact: analysis/contamination_summary.csv and related logs). The preregistration says this was run and artifacts exist; a one‑paragraph summary will help readers assess residual memorization risk.",
+    "Add a compact table or figure (one small panel) summarizing representative task payload fields (intent template examples, required_sequence patterns, and difficulty tags) drawn from the published manifest to help readers judge task realism and coverage. This is optional but would improve interpretability.",
+    "If space permits, add a short appendix paragraph (still within the five pages) listing the canonical paths and SHA‑256 hashes for the key Docker/image artifact that contains the validator and prompt templates to make artifact retrieval easier for reviewers replicating the study."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,104 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd_7a3f2b1e",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Validator-oracle specification is underspecified (which static checks / Batfish rules exactly?).",
+        "Dataset representativeness: public examples may not match operational distributions—threat to external validity.",
+        "Single-LLM single-version dependence not explicit; results may not generalize across models/versions.",
+        "Handling of ambiguous validator outcomes (human adjudication) is not fully defined and may breach autonomy/reproducibility constraints.",
+        "Recovery from API rate limits or transient failures and retry-policy effects on paired design need clarity."
+      ],
+      "required_design_repairs": [
+        "Specify exact validator toolchain (versions, rule-set files) and provide test oracle examples; publish validator code/config.",
+        "Define task sourcing and sampling procedure with provenance, training/held-out split, and sanitization steps.",
+        "Fix model details: explicit provider, model identifier(s), exact prompt templates, temperature schedule, seeds, and number of calls per sample; snapshot and publish raw outputs.",
+        "Replace or tightly predefine any human adjudication: either use deterministic tie-breaker rules or pre-register a blinded automated adjudicator; if human review unavoidable, preregister selection/rubric and log every decision.",
+        "Pre-register retry policy, rate-limit handling, failure classification, and how truncated runs are analyzed; include hash-signed execution logs for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd_b4e9d2c3",
+      "novelty": 0.8,
+      "falsifiability": 0.85,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.75,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator fidelity and ecological validity are primary threats—synthetic faults may not map to real device semantics.",
+        "Auditability score is subjective as stated; inter-rater reliability and rubric are not defined.",
+        "Ensuring parity of oracle/tool access between orchestration patterns must be explicit to avoid confounding.",
+        "Agentic pipeline safety controls (iteration caps, loop detection) are only loosely specified; risk of runaway agent loops.",
+        "Randomization and sample size justification for 240 tasks needs formal power analysis."
+      ],
+      "required_design_repairs": [
+        "Specify simulator/emulation platform (versions), fault-injection semantics, and provide validation that simulator reproduces key vendor behaviors.",
+        "Publish a detailed auditability scoring rubric, run an inter-rater calibration on a held pilot set, and report kappa/ICC before main analysis.",
+        "Define strict oracle/tool access parity and instrument access logs to show equivalence; pre-register permitted tool queries for the agent.",
+        "Specify agent safeguards: explicit iteration/step caps, loop detection heuristics, and abort conditions; log all agent decisions.",
+        "Provide power/sample-size calculation for harmful-change rate comparison and preregister stratification by task complexity; publish randomization seed and assignment manifest."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd_f1c8a9d7",
+      "novelty": 0.7,
+      "falsifiability": 0.85,
+      "evidence_support": 0.55,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Planned human-reviewed tie-breaker for ambiguous validator outcomes conflicts with the autonomy/reproducibility mandate unless tightly specified.",
+        "'Validator budget' levels are described qualitatively; exact validator computation/timeout/resource definitions are needed.",
+        "Censoring/truncation risk when model-call budget exhausted must be handled statistically.",
+        "Task provenance (postmortem vs synthetic) may bias results; mixing sources requires stratification.",
+        "Potential overfitting of policy recommendations to the synthetic/curated task set threatens external validity."
+      ],
+      "required_design_repairs": [
+        "Remove open-ended human adjudication or replace with pre-registered deterministic adjudication heuristics; if human review used, define reviewer pool, rubric, blinding, and log all decisions.",
+        "Precisely define validator-budget levels (static checks list, topology checks algorithm, simulator dry-run spec) with resource/time caps and versioned implementations.",
+        "Pre-register censoring-handling rules and plan (e.g., treat exhausted-budget runs as censored and apply survival/competing-risk analysis).",
+        "Document task sourcing with provenance tags, stratify analyses by source (postmortem vs synthetic), and preregister exclusion rules.",
+        "Add external-validation holdout or small production-like sample if possible, and explicitly bound recommendations to dataset characteristics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd_9e2b6f4a",
+      "novelty": 0.8,
+      "falsifiability": 0.85,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Automated trace-scoring may be brittle and favor particular surface forms; heuristics need robust specification and validation.",
+        "Benchmark task and oracle design choices can privilege certain models—task curation and diversity procedures must be transparent.",
+        "Publishing configuration examples and traces risks exposing sensitive practices; sanitization policy required.",
+        "Model-version drift for hosted models threatens reproducibility if baseline outputs are not snapshot/signed.",
+        "Scoring calibration (thresholds for 'verifiability') is underspecified."
+      ],
+      "required_design_repairs": [
+        "Define and publish the trace-scoring algorithm with test cases, include human spot-checks for rubric calibration, and report scoring reliability metrics.",
+        "Provide explicit task-sourcing policy to ensure vendor/mode diversity; publish provenance and selection criteria.",
+        "Apply and describe sanitization procedures for all artifacts and document legal/ethical review of released content.",
+        "Snapshot and publish baseline model outputs, exact prompts, and model-version identifiers; include Docker/VM images for evaluation code where possible.",
+        "Pre-register verifiability thresholds and run sensitivity analyses showing how conclusions change with threshold variation."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "study_id": "study_hosted_netops_gvr_v1_cnd_7a3f2b1e",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired (within-task) two-sided McNemar-style test comparing success_guarded vs success_baseline using inputs from execution/raw_results.jsonl (result_schema paired_binary_episode_v1). Report two-sided p-value and 95% Wilson-style CI for paired_success_rate_difference_guarded_minus_baseline; report paired contingency cell counts and exact test numerator/denominator.",
+  "secondary_analyses": [
+    "Per-vendor paired McNemar-style tests (Cisco IOS, JunOS, Arista) with Bonferroni correction (family alpha=0.05; per-comparison alpha≈0.0167).",
+    "Repair outcomes (exploratory): repair_success_rate_given_initial_failure (conditional proportion) with 95% Wilson CIs; violation-type frequency table and top repairable violation types.",
+    "Descriptive: mean_model_calls_per_task_by_arm (empirical model_call_count_for_task distribution and summary statistics)"
+  ],
+  "sensitivity_analyses": [
+    "Failed-call alternative: complete_pair_primary_with_failure_as_zero_sensitivity (treat unrecoverable failed-call samples as failures) applied to primary estimand.",
+    "Contamination sensitivity A: exclude pairs flagged as 'possible_memorization' or 'sensitive_artifact' and re-run primary and per-vendor analyses.",
+    "Contamination sensitivity B: treat contaminated pairs as failures (worst-case bound) and re-run primary estimator.",
+    "Censoring sensitivity: report robustness to up to 10% pair censoring per preregistration (sensitivity curve)."
+  ],
+  "uncertainty_quantification": "Primary: two-sided p-values (exact/McNemar-style) and 95% Wilson-style CI for paired difference; report paired contingency-cell exact counts (b,c) and Wilson CIs. Secondary/exploratory: two-sided p-values where appropriate, Bonferroni-adjusted inferential thresholds for pre-specified vendor tests, and Wilson CIs for binomial proportions (repair rates). Provide sensitivity/power curves pre-registered for target effect (10 percentage points) using observed discordance.",
+  "multiplicity_implementation": "Primary hypothesis: single overall paired test (alpha=0.05). Pre-specified secondary family: three per-vendor paired comparisons with Bonferroni correction (family alpha=0.05 → per-comparison alpha≈0.0167). All other analyses labeled exploratory; no further formal multiplicity adjustment applied to exploratory outputs.",
+  "contamination_analysis": "Detection procedures (as preregistered): exact- and fuzzy-match duplicate detection between manifest and generated outputs; secret-token/high-entropy heuristics to flag 'sensitive_artifact'; verbatim-match checks to flag 'possible_memorization'. Analysis treatment: contaminated/flagged samples are retained in the primary confirmatory analysis (per preregistration) but excluded from public exploratory artifact release; sensitivity analyses will (a) exclude contaminated pairs and (b) treat contaminated pairs as failures to bound effect. Residual uncertainty: automated detection cannot fully eliminate memorization risk; sensitivity bounds reported. Implementation will use execution manifest flags and scoring artifacts (execution/scoring/*.json and execution/provider_calls/*) to identify flagged items and then run the stated sensitivity variants.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Overall paired contingency table: counts of (baseline pass / guarded pass) and discordant cells (baseline pass & guarded fail, baseline fail & guarded pass), McNemar test statistic, two-sided p-value, and 95% Wilson-style CI for paired_success_rate_difference_guarded_minus_baseline. Source: execution/raw_results.jsonl + execution/scoring/*.json.",
+    "Table 2 — Per-vendor paired results: for each vendor (Cisco IOS, JunOS, Arista) present paired contingency counts, paired difference, 95% CI, p-value, and Bonferroni-adjusted significance indicator. Source: execution/raw_results.jsonl annotated by vendor field in task_manifest.jsonl and execution/scoring/*.json.",
+    "Table 3 — Repair diagnostics (exploratory): conditional on initial validator failure show (a) number of initial failures, (b) number and proportion of successful single repairs (repair_success_rate_given_initial_failure) with 95% Wilson CIs, (c) distribution of validator violation types and top repairable types. Source: execution/raw_results.jsonl (initial_validation_result, repair_validation_result, diagnostics).",
+    "Table 4 — Model-call accounting: per-arm and per-task model_call_count_for_task distribution, mean and median model calls by arm, and total model_calls_used (from execution_manifest). Source: execution/raw_results.jsonl and execution_manifest."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Overall success-rate bar chart: baseline vs guarded success proportions with 95% Wilson CIs (executable from execution/scoring/*.json and execution/raw_results.jsonl).",
+    "Figure 2 — Per-vendor forest plot: paired_success_rate_difference_guarded_minus_baseline for each vendor with 95% CI and Bonferroni-threshold markers (data from Table 2).",
+    "Figure 3 — Repair-analysis visualization: stacked bar or heatmap of validator violation types vs repair outcome (success/fail) and histogram of model_call_count_for_task; illustrates E1 and budget relationship. Source: execution/raw_results.jsonl and execution/scoring/*.json."
+  ]
+}

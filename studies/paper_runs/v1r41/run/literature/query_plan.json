@@ -1,0 +1,140 @@
+{
+  "queries": [
+    {
+      "query": "LLMs OR \"large language model\" AND (network OR NetOps OR \"network configuration\" OR \"network change\" OR \"network repair\") AND (failure OR error OR misconfiguration OR hallucinat* OR incorrect*)",
+      "rationale": "Map the phenomenon: documented failure modes where LLM outputs cause incorrect or unsafe network actions (misconfigurations, hallucinations, incorrect plans).",
+      "source_preferences": [
+        "IEEE Xplore",
+        "ACM Digital Library",
+        "arXiv",
+        "Google Scholar",
+        "USENIX"
+      ]
+    },
+    {
+      "query": "\"intent-to-configuration\" OR \"natural language to configuration\" OR \"intent driven network configuration\" \"LLM\"",
+      "rationale": "Survey work that translates operator intent (NL) to device/configuration artifacts to understand typical pipelines and points of brittleness.",
+      "source_preferences": [
+        "IEEE Xplore",
+        "ACM",
+        "arXiv",
+        "IETF drafts",
+        "technical reports / datasheets (vendor docs for format examples)"
+      ]
+    },
+    {
+      "query": "(generate AND validate AND repair) AND (network OR NetOps OR \"network configuration\") AND (LLM OR \"large language model\" OR agent)",
+      "rationale": "Find architectures that combine generation, automated validators, and repair loops (G-V-R) used to improve NetOps reliability.",
+      "source_preferences": [
+        "arXiv",
+        "IEEE",
+        "ACM",
+        "arXiv:cs.AI"
+      ]
+    },
+    {
+      "query": "network configuration verification OR \"network verification\" OR \"formal verification\" AND (SMT OR model checking OR \"static analysis\") AND (config OR policy)",
+      "rationale": "Locate deterministic/verifier mechanisms in networking (e.g., header space analysis, VeriFlow, Batfish) that can serve as validators or ground-truth oracles.",
+      "source_preferences": [
+        "IEEE/ACM conferences (SIGCOMM, NSDI, SOSP, OSDI)",
+        "USENIX",
+        "arXiv"
+      ]
+    },
+    {
+      "query": "bounded self-correction OR \"LLM self-correction\" OR \"tool assisted correction\" AND (network OR config OR NetOps)",
+      "rationale": "Investigate mechanisms for limiting or bounding iterative LLM corrections to avoid cascades of erroneous changes in operational workflows.",
+      "source_preferences": [
+        "arXiv",
+        "NeurIPS/ICML/ICLR workshops",
+        "ACL/EMNLP"
+      ]
+    },
+    {
+      "query": "AIOps OR \"AI for IT operations\" OR \"LLM for AIOps\" AND (network OR NetOps OR \"network operations\") AND (benchmark OR dataset OR evaluation)",
+      "rationale": "Identify benchmarks, datasets, and evaluation practices in AIOps/NetOps to assess current validity and gaps for operational reliability studies.",
+      "source_preferences": [
+        "arXiv",
+        "IEEExplore",
+        "ACM",
+        "Data repositories (Zenodo, Github)"
+      ]
+    },
+    {
+      "query": "benchmarks OR evaluation AND (\"LLM\" OR \"foundation model\") AND networking AND (limitations OR validity OR reproducibility OR \"threats to validity\")",
+      "rationale": "Gather critical analyses of benchmark validity, dataset representativeness, synthetic vs. real configs, and reproducibility concerns relevant to NetOps tasks.",
+      "source_preferences": [
+        "Google Scholar",
+        "arXiv",
+        "peer-reviewed workshops"
+      ]
+    },
+    {
+      "query": "agentic OR autonomous agent OR \"tool-using agent\" AND (network OR NetOps OR \"network operator\") AND (safety OR guardrails OR constraints OR \"tool orchestration\")",
+      "rationale": "Survey agentic workflows and orchestration frameworks (tool use, action verification, constrained agents) that could manage NetOps tasks.",
+      "source_preferences": [
+        "arXiv",
+        "AI conferences (AAAI, IJCAI, NeurIPS)",
+        "systems venues"
+      ]
+    },
+    {
+      "query": "human-in-the-loop OR \"operator trust\" OR \"human oversight\" AND (LLM OR agent OR \"autonomous NetOps\") AND (usability OR acceptance OR error recovery)",
+      "rationale": "Capture human factors: operator trust, oversight policies, and mixed-initiative workflows impacting safety and deployment viability.",
+      "source_preferences": [
+        "CHI",
+        "HCI conferences",
+        "IEEExplore",
+        "arXiv"
+      ]
+    },
+    {
+      "query": "datasets AND (\"network configuration\" OR \"NetOps\" OR \"routing policies\" OR \"SDN policies\") AND (public OR benchmark OR corpus)",
+      "rationale": "Locate publicly available datasets and corpora suitable for reproducible experimentation and validation of NetOps LLM workflows.",
+      "source_preferences": [
+        "GitHub",
+        "Zenodo",
+        "Kaggle",
+        "DataCite",
+        "academic papers that release datasets"
+      ]
+    },
+    {
+      "query": "case study OR \"failure analysis\" AND (network OR NetOps OR \"configuration change\") AND (automation OR script OR agent)",
+      "rationale": "Find empirical case studies of automation-caused incidents or failure analyses to ground threat models and real-world mitigations.",
+      "source_preferences": [
+        "USENIX ATC",
+        "industry postmortems (if technical and verifiable)",
+        "arXiv",
+        "SIGCOMM workshop papers"
+      ]
+    },
+    {
+      "query": "related-work: \"program synthesis\" OR \"code generation\" AND (configuration OR network) AND (evaluation OR correctness OR verification)",
+      "rationale": "Adjacent literature on program synthesis and code-generation correctness informs methods for spec-to-code translation, validators, and repair in NetOps.",
+      "source_preferences": [
+        "PLDI",
+        "ICSE",
+        "arXiv",
+        "ICLR/NeurIPS"
+      ]
+    }
+  ],
+  "inclusion_criteria": [
+    "Primary sources (peer-reviewed papers, arXiv preprints with clear methods/results, released technical reports) that directly address LLM/agent use for network configuration, change planning, or NetOps automation.",
+    "Work presenting validators, formal verification, or deterministic analyzers for network configurations (e.g., Batfish, VeriFlow, HSA) that can serve as oracles or comparators.",
+    "Papers describing generate-validate-repair architectures, tool-assisted LLM correction, constrained/guarded generation, or agent orchestration applicable to NetOps.",
+    "Datasets, benchmarks, and reproducible artifact releases (code/data) for network configs, routing policies, or AIOps tasks.",
+    "Empirical failure analyses, postmortems, or case studies describing automation-caused network incidents with technical detail.",
+    "Human-factors and HCI studies addressing operator trust, oversight, and mixed-initiative workflows in network management.",
+    "Works up to the current date (include 2015–2026 for background; prioritize 2018+) with preference for the most recent advances (2020–2026) given LLM rapid progress."
+  ],
+  "exclusion_criteria": [
+    "Non-technical marketing or high-level blog posts without verifiable technical detail or primary artifacts (unless used only to locate primary technical documents).",
+    "Papers that discuss language-model architectures in isolation without any networking/NetOps application or toolchain relevance.",
+    "Works solely about unrelated infrastructure domains (e.g., database tuning) unless methods are directly adaptable and explicitly discussed.",
+    "Non-English publications unless an English translation or summary with verifiable details exists.",
+    "Very old networking work (pre-2010) unless foundational (formal verification methods) and cited for historical grounding."
+  ],
+  "date_rationale": "Include literature from roughly 2015 to the present, prioritizing 2018–2026. Rationale: foundational network-verification and NetOps automation literature predates LLMs (hence include earlier key verifier work), while the LLM and agentic-AIOps surge—and most relevant mitigation and benchmarking papers—appear from ~2018 onward; the search must cover up-to-date (through 2026) preprints and conference proceedings to capture the latest agentic and LLM-for-NetOps work."
+}

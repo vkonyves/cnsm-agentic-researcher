@@ -1,0 +1,31 @@
+{
+  "selected_candidate_id": "cnd_7a3f2b1e",
+  "selection_rationale": "Directly targets gap G2 by experimentally measuring the safety benefit of a concrete generate–validate–repair (G‑V‑R) pipeline versus direct LLM generation. The paired design yields a clear, falsifiable primary outcome (validator-pass rate difference), is computationally feasible within the stated budget, and maps tightly to CNSM NetOps reliability concerns—making it the strongest defensible short-paper study after repairs.",
+  "runner_up_candidate_id": "cnd_9e2b6f4a",
+  "unresolved_uncertainties": [
+    "Validator-oracle mismatch: deterministic validator may mark unconventional-but-safe configs as violations.",
+    "Dataset representativeness: public/config-example sourcing may not reflect production distribution (external validity).",
+    "Single-LLM / single-version dependence: results may not generalize across models/versions.",
+    "Human adjudication conflict with autonomy/reproducibility requirements unless fully specified or eliminated.",
+    "API rate limits, transient failures, and retry-policy interactions could bias paired comparisons.",
+    "Simulator/validator faithfulness to multi-vendor device semantics for some violation categories."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.176978431.15223796/v1",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W7125810855",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4367860052",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W7125810855"
+  ],
+  "required_repairs_before_preregistration": [
+    "Specify the exact validator toolchain (software, versions) and publish rule-set files and validator code/config; include representative test-oracle examples.",
+    "Define task sourcing, sampling, and provenance procedure (sources, sanitization, training/held-out split) and publish the task manifest.",
+    "Fix model invocation details: provider, exact model identifier(s)/version, full prompt templates, temperature/seed schedule, number of calls per sample; snapshot and publish all raw model outputs.",
+    "Eliminate underspecified human adjudication: replace with pre-registered deterministic tie-breaker heuristics or, if human review is necessary, pre-register reviewer selection, blinding, rubric, and log every decision for reproducibility.",
+    "Pre-register retry and failure-handling policy: explicit rules for rate-limit retries, transient-failure classification, truncated-run handling, and how such cases are included/excluded in paired analyses; publish hash-signed execution logs.",
+    "Predefine exclusions and stopping rules for nonsensical or destructive LLM outputs and describe sandboxing/safety measures that prevent any real-device application during experiments."
+  ]
+}

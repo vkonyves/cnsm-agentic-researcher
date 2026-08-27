@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd_7a3f2b1e",
+      "title": "Quantifying the safety benefit of generate–validate–repair (G-V-R) loops for multi-vendor network-configuration generation",
+      "research_question": "To what extent does a generate–validate–repair loop reduce harmful misconfigurations produced by an LLM when translating operator intent into multi-vendor router/switch configurations, compared to direct LLM generation without validation?",
+      "hypotheses": [
+        "An LLM augmented with a deterministic validator and a single automated repair iteration (G-V-R) will produce a statistically higher proportion of validator-pass and non-harmful configurations than the same LLM used without validation/repair."
+      ],
+      "proposed_design": "Controlled paired experiment using a curated dataset of 300 operator-intent tasks spanning Cisco IOS, JunOS, and Arista configurations assembled from public configuration examples and runbook fragments. For each task: (A) prompt a hosted LLM API to generate vendor-specific configuration (direct generation); (B) run the same prompt but wrapped in a G-V-R pipeline: generate -> deterministic validator (open-source static checks and Batfish-like rules) -> automatic repair prompt using the LLM guided by validator diagnostics -> re-validate (single repair iteration). Each task is paired so the same intent seeds are used for A and B. Track raw LLM outputs, validator results, repaired outputs, and any solver/repair failures. Use fixed prompt templates, five random seeds per task where applicable (or five API calls with temperature sampling), and record all model calls. Preregister inclusion/exclusion rules, stopping rules, and a maximum of 4,000 model calls.",
+      "expected_data": "For 300 paired tasks * up to 5 samples = up to 1500 direct-generation outputs and up to 1500 G-V-R outputs. For each output: validator pass/fail (binary), categorized violation types (routing loop, ACL deny misplacement, interface misassignment), repair success flag, number of model calls, and time-to-valid result. Aggregate per-task pass rates and per-vendor pass rates.",
+      "primary_outcome": "Difference in validator-pass rates (proportion) between G-V-R pipeline and direct LLM generation across the full task set.",
+      "analysis_outline": "Compute paired differences in pass rates per task. Use McNemar's test for paired binary outcomes to evaluate whether G-V-R changes pass/fail classification significantly. Report paired proportion difference with 95% Wilson CIs. Perform per-vendor subgroup analyses with Bonferroni correction for three comparisons. Analyze violation-type frequencies with a paired sign test and report repair success conditional on initial failure. Present model-call budget and its relation to marginal pass-rate improvements descriptively.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7125810855"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4367860052"
+      ],
+      "risks": [
+        "Validator oracle mismatch: deterministic validator may misclassify safe but unconventional configurations as violations.",
+        "LLM hallucination producing nonsensical or destructive config snippets; must sandbox before any real device application.",
+        "Dataset assembly bias: public examples may not reflect operational distribution, limiting external validity.",
+        "API rate limits or transient failures could bias sample if retries not strictly according to preregistered policy."
+      ],
+      "estimated_model_calls": 4000
+    },
+    {
+      "candidate_id": "cnd_b4e9d2c3",
+      "title": "Comparative safety and debuggability of code-first vs inference-first orchestration for LLM-assisted NetOps actions",
+      "research_question": "How do code-first (template-and-typed-code generation executed deterministically) and inference-first (agentic LLM orchestration invoking tools/steps dynamically) orchestration patterns compare in safety (rate of harmful changes), auditability (trace completeness), and time-to-recovery under injected fault scenarios?",
+      "hypotheses": [
+        "A code-first orchestration pattern will yield lower harmful-change rates and higher auditability scores than an inference-first agentic orchestration under matched task and permission constraints.",
+        "Inference-first orchestration will recover faster (shorter time-to-recovery) in scenarios requiring multi-step reasoning or discovery of undocumented state, provided adequate tool access."
+      ],
+      "proposed_design": "Randomized controlled trial over 240 NetOps tasks (config changes, remediation plans, rollout sequences) with synthetic injected faults in a simulator (routing inconsistencies, dependency ordering errors). Implement two orchestration pipelines using the same hosted LLM backend: (1) Code-first: prompt produces constrained, typed configuration templates and deterministic orchestration executes templates; (2) Inference-first agentic: LLM planner issues stepwise actions, queries read-only tools (topology oracle), and may self-correct. Use identical initial intents and identical read-only oracle access. Measure: harmful-change occurrence (binary), audit trace completeness (scores based on presence of explicit rationale, validation outputs, and commit diff), time-to-success or failure, and number of intervention-required cases. Preregister 240-task selection and random assignment of tasks to orchestration experiments; maximum model calls capped at 3000.",
+      "expected_data": "Per-task records including orchestration type, harmful-change flag, auditability score (0–5), time-to-recovery or time-to-failure (seconds), number of model calls, and a qualitative log of decision points. Aggregate metrics by orchestration type and by task complexity bin.",
+      "primary_outcome": "Difference in harmful-change rate between code-first and inference-first orchestration patterns.",
+      "analysis_outline": "Compare harmful-change proportions using two-proportion z-test (or Fisher exact if counts small). Compare auditability scores with Mann–Whitney U test. Time-to-recovery compared using survival analysis (Kaplan–Meier curves) and log-rank test. Adjust for multiple comparisons (harmful rate, auditability, recovery time) using Holm correction. Conduct exploratory regression linking task complexity and orchestration to outcomes.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6389739",
+        "https://openalex.org/W4414133540",
+        "https://openalex.org/W7125810855"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4367860052"
+      ],
+      "risks": [
+        "Agentic orchestration may trigger uncontrolled step generation leading to loops; impose strict iteration/step caps.",
+        "Simulator faithfulness: synthetic faults may not capture full production device semantics, limiting external validity.",
+        "Auditability scoring is partially subjective; define rubric and inter-rater calibration ahead of analysis.",
+        "Potential for unequal tool-access advantages; ensure oracle parity across pipelines."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnd_f1c8a9d7",
+      "title": "Bounded self-correction policies for LLM-driven NetOps: optimizing iteration limits and validator budgets",
+      "research_question": "Which bounded self-correction policy (combination of maximum repair iterations and validator computational budget) minimizes net harmful-change rate while maximizing successful automated remediation in LLM-driven NetOps workflows?",
+      "hypotheses": [
+        "There exists a non-zero optimal maximum-iteration bound and validator budget pair where additional repair iterations yield diminishing returns or increase harmful-change cascades.",
+        "Very high iteration limits without stronger validators will increase harmful-change rate due to over-correction cascades compared to a conservative bounded policy."
+      ],
+      "proposed_design": "Parameter sweep experiment on 200 remediation tasks derived from public incident postmortems and synthetic fault injections. For each task, run an LLM-driven repair loop with combinations of iteration bounds (0,1,2,5) and validator budgets (low: static checks; medium: static+topology checks; high: static+topology+simulated dry-run). Record outcome after each iteration and final deployment decision. Use strict preregistered retry policy and maximum model calls budget of 2500. Define 'harmful-change' using deterministic validator outcomes and human-reviewed tie-breaker for ambiguous cases (human review only to adjudicate validator ambiguities per preregistration).",
+      "expected_data": "Grid of outcomes for 200 tasks × 4 iteration bounds × 3 validator budgets = up to 2400 experiment runs. For each run: final success (remediation achieved without violation), harmful-change indicator, number of iterations used, time, and model calls. Aggregate success and harm rates per policy pair.",
+      "primary_outcome": "Policy pair (iteration bound, validator budget) that achieves highest net utility defined as success_rate - harm_rate (difference), identified and statistically validated.",
+      "analysis_outline": "Estimate success and harm rates with 95% CIs for each policy pair. Use ANOVA on the utility metric with factors iteration_bound and validator_budget to test main effects and interaction. Post-hoc pairwise comparisons with Tukey correction. Analyze trend lines to identify diminishing returns. Report effect sizes (Cohen's d) and recommend conservative bounds if interaction term significant in direction of increased harm with unbounded iterations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166901903",
+        "doi:10.59543/jidmis.v3.2033",
+        "https://openalex.org/W7125810855"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4367860052",
+        "doi:10.2139/ssrn.7213484"
+      ],
+      "risks": [
+        "Human adjudication for ambiguous validator outcomes introduces limited manual intervention; preregister human-review rules to avoid bias.",
+        "High validator-budget conditions could incur significant compute/time; define runtime caps.",
+        "Overfitting policy recommendations to the synthetic task set may reduce external validity; report limits transparently.",
+        "Model-call budget exhaustion may truncate some long-iteration policy runs; enforce consistent stopping and report as censored."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cnd_9e2b6f4a",
+      "title": "NetOps process-and-trace benchmark: an evaluation suite measuring reasoning trace quality, verifiability, and configuration correctness",
+      "research_question": "Can a publicly reproducible benchmark that includes operator intent, expected validator oracles, and required reasoning traces discriminate LLMs' abilities to produce verifiable, auditable NetOps outputs beyond final-output correctness?",
+      "hypotheses": [
+        "A benchmark that requires explicit stepwise reasoning traces and includes validator oracles will expose differences between models that are not visible in final-configuration-only evaluations; models with similar final-output pass rates will differ significantly in trace quality and verifiability metrics.",
+        "Models optimized for final-output correctness but lacking trace-generation objectives will score lower on trace-verifiability metrics even when final pass rates are comparable."
+      ],
+      "proposed_design": "Design and release a benchmark of 150 tasks with: (1) natural-language operator intent; (2) canonical expected configuration(s); (3) deterministic validator oracle per task; and (4) reference stepwise reasoning trace templates (minimal required trace components). Evaluate three hosted LLMs (publicly accessible variants) using fixed prompts requesting both final configuration and explicit reasoning trace. Metrics: final validator-pass rate, trace-completeness score (matching required components), trace-verifiability score (degree to which trace steps map to validator checkpoints), and calibration (model confidence vs validator outcome). Publicly release dataset, oracles, evaluation scripts, and baseline model runs. Estimated model calls budget: 2000 for baseline runs and reproducibility artifacts.",
+      "expected_data": "For each model and task: final validator pass/fail, trace text, automated trace-completeness and verifiability scores, model-reported confidence, and raw outputs. Cross-model comparison matrices and per-metric distributions will be produced and published alongside benchmark artifacts.",
+      "primary_outcome": "Demonstrated discriminative power of the benchmark: at least one pair of models with statistically indistinguishable final-pass rates but significantly different trace-verifiability scores (p<0.05).",
+      "analysis_outline": "Compute per-model distributions of final-pass, trace-completeness, and verifiability. Use paired Wilcoxon signed-rank tests for metric comparisons across models on the same task set. Use Spearman correlation to assess relationship between trace scores and final-pass. Demonstrate discriminative cases where final-pass rates not significantly different but trace metrics are (report p-values and effect sizes). Publish evaluation code to allow reproducibility and independent verification.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411735779",
+        "doi:10.20944/preprints202511.1572.v1",
+        "doi:10.2139/ssrn.6816161"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4367860052",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.2139/ssrn.7213484"
+      ],
+      "risks": [
+        "Benchmark design choices (task selection, oracle strictness) may privilege certain models; mitigate via diverse task sourcing and open review.",
+        "Automated trace scoring may require brittle pattern matching; include human spot-checks and refine scoring heuristics.",
+        "Publishing configuration examples and traces may disclose sensitive operator practices; ensure only publicly available or sanitized examples are used.",
+        "Dependence on hosted model APIs may affect reproducibility if model versions change; snapshot baseline outputs and provide versioned prompts."
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

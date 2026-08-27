@@ -1,0 +1,81 @@
+{
+  "study_id": "study_hosted_netops_gvr_v1_cnd_7a3f2b1e",
+  "title": "Quantifying the safety benefit of generate–validate–repair (G‑V‑R) loops for multi‑vendor network‑configuration generation (adapter‑aligned preregistration)",
+  "research_question": "To what extent does a deterministic-validated generate–validate–repair (G‑V‑R) pipeline increase the proportion of non‑harmful, validator‑passing vendor-specific configurations produced from operator intent, compared to direct LLM generation without validation?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): Per task (paired design, n=300), the G‑V‑R pipeline yields a higher paired probability of 'task success' than direct LLM generation, where a task is a success if the validator accepts the candidate produced by the baseline initial generation (baseline) versus the guarded arm where the same initial candidate is validated and, if it fails, a single deterministic-repair generation is attempted (guarded). The primary test compares per-task paired binary outcomes (success_guarded minus success_baseline)."
+  ],
+  "exploratory_questions": [
+    "E1: Conditional on initial validator failure, what fraction of single automatic repairs succeed (repair success rate) and which validator violation types are most repairable under one repair attempt?",
+    "E2: Per‑vendor differences in baseline and G‑V‑R improvement (Cisco IOS vs JunOS vs Arista).",
+    "E3: Relationship between model‑call budget consumed (one initial generation + optional one repair per task) and marginal increase in per‑task success (diminishing returns within the one-repair policy)."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.176978431.15223796/v1",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W7125810855",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4367860052",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W7125810855"
+  ],
+  "benchmark_scope": [
+    "Curated public 300-task multi-vendor NetOps intent manifest (Cisco IOS, JunOS, Arista). Tasks limited to vendor CLI fragments expressing configuration-change intents; manifest published with provenance tags and deterministic hashes.",
+    "Deterministic validator rule set (published): syntactic correctness, interface assignment invariants, basic routing reachability invariants, and ACL/route-policy destructive-pattern detection. Validator rules, canonicalization, and parser code are published with the study Docker image."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (difference in per-task probability that the guarded arm yields a validator-pass vs the baseline arm, paired across tasks)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per_vendor_paired_success_rate_difference (Cisco, JunOS, Arista)",
+    "repair_success_rate_given_initial_failure (conditional probability under single-repair policy)",
+    "mean_model_calls_per_task_by_arm"
+  ],
+  "sampling_plan": "Paired tasks n = 300. For each task: (1) produce one initial candidate configuration using the preregistered vendor prompt (this single initial candidate is shared between conditions); (2) Baseline arm outcome: success if initial candidate passes deterministic validator (no additional model calls). (3) Guarded arm outcome: validate the same initial candidate; if it passes → success; if it fails → issue a single automatic repair LLM call (one repair) and re-validate repaired candidate; guarded success if repaired candidate passes. Per-task binary outcome defined as success if the arm produced a validator-pass within the allowed per-task model-call budget (baseline ≤1 call; guarded ≤2 calls). Inclusion: tasks from the published manifest; exclude only tasks whose intent deterministically fails parsing prior to generation (hash-signed and logged). Stopping rule: execute all 300 tasks once (no interim stopping). Pre-registered RNG: one seed per task for deterministic metadata; seeds recorded in execution manifest. All raw outputs, logs, and hashes stored and published.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect absolute increase of 10 percentage points (0.10) in per-task success probability with two-sided alpha=0.05 and power≈0.80. Clustering unit: task (n_pairs = 300). Calculation method: paired-proportions (McNemar-style) guidance under reasonable discordance assumptions; sensitivity curves and exact power given observed baseline discordance will be reported. Sensitivity analyses include baseline rates 0.30 and 0.50 and up to 10% pair censoring.",
+  "exclusion_rules": [
+    "Exclude tasks whose operator-intent manifest entry cannot be deterministically parsed into the adapter's task format prior to any model call (logged, hash-signed).",
+    "Auto-exclude individual samples containing disallowed sensitive tokens or parser failures (logged)."
+  ],
+  "missingness_plan": "Follow preregistered retry policy for transient model-call failures (deterministic retry attempts per call recorded). If after retries a sample call is unrecoverable, mark that sample 'failed-call'. Confirmatory analysis uses 'complete_pair_primary' (pairs retained; if both arms have only failed calls the pair is counted as paired failure). Sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats failed-call samples as failing. All missingness logs are hash-signed and published.",
+  "analysis_plan": "Confirmatory analysis executed by paired_binary_analysis_v1 executor. Inputs: paired binary outcomes per task (success_baseline, success_guarded). Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Primary test: two-sided McNemar-style paired binary test with 95% Wilson-style CI reported. Failed-call treatment: 'complete_pair_primary' (primary) and sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity'. Secondary analyses: per-vendor paired binary tests with Bonferroni correction (family alpha=0.05 -> per-comparison alpha≈0.0167). Exploratory outputs: repair success conditional on initial failure (proportion), violation-type frequencies, and descriptive model-call counts. All analysis code, raw inputs, and outputs will be published and hash-signed.",
+  "multiplicity_plan": "Primary hypothesis: single overall paired test. Three pre-specified secondary per-vendor paired comparisons corrected with Bonferroni (alpha_family=0.05 -> per-comparison alpha≈0.0167). All other analyses are exploratory and labeled as such.",
+  "contamination_plan": "{\"benchmark_names\": [\"Curated 300-task multi-vendor NetOps intent manifest (this study)\"], \"risk_factors\": [\"Potential overlap between public manifest examples and model training data (memorization)\", \"Prompt leakage across tasks via reused vendor examples\", \"Accidental inclusion of secret/high-entropy tokens\"], \"detection_procedures\": [\"Exact- and fuzzy-match duplicate detection between manifest and generated outputs; flag matches\", \"Secret-token heuristics to detect high-entropy strings and exclude samples\", \"Record provenance and if output verbatim matches a known public source flag as possible memorization\"], \"item_flagging_rules\": [\"If output contains secret-like high-entropy tokens -> mark 'sensitive_artifact' and auto-exclude sample from public release\", \"If output verbatim matches known public example -> flag 'possible_memorization'\"], \"analysis_treatment\": \"Flagged samples are excluded from exploratory artifact release. For confirmatory estimator contaminated pairs are retained in primary analysis; sensitivity analyses will (a) exclude contaminated pairs and (b) treat contaminated samples as failures to bound effect.\", \"residual_uncertainty\": \"Automated detection cannot fully eliminate model memorization risk; sensitivity analyses will quantify bounds.\"}",
+  "stopping_rule": "Execute exactly the full preregistered run across all 300 tasks once; no early stopping or midway design changes. Technical retries allowed only per preregistered retry policy; repeated reruns to alter scientific outcome are prohibited.",
+  "planned_outputs": [
+    "Published manifest of 300 tasks with provenance and hashes",
+    "Docker image containing parser, canonicalizer, deterministic validator, repair-prompt templates, and test-suite (hash-signed)",
+    "Execution manifest (model snapshot identifier, seeds, timestamps, raw outputs, logs, hashes)",
+    "Analysis code and outputs (paired_binary_analysis_v1 inputs and outputs, CIs, p-values)",
+    "Exploratory artifact release (flagged samples excluded)"
+  ],
+  "unresolved_critical_issues": []
+}

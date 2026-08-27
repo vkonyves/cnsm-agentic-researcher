@@ -1,0 +1,146 @@
+{
+  "selected_candidate_id": "cnd_7a3f2b1e",
+  "title": "Quantifying the safety benefit of generate–validate–repair (G‑V‑R) loops for multi‑vendor network‑configuration generation",
+  "research_question": "To what extent does a deterministic-validated generate–validate–repair (G‑V‑R) pipeline increase the proportion of non‑harmful, validator‑passing vendor-specific configurations produced from operator intent, compared to direct LLM generation without validation?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): Per task, the G‑V‑R pipeline yields a higher paired probability of 'task success' than direct LLM generation, where a task is a success if at least one of five generated samples for that task passes the deterministic validator within the allowed model-call budget."
+  ],
+  "exploratory_questions": [
+    "E1: Conditional on initial validator failure, what fraction of automatic repairs succeed (repair success rate) and which violation types are most repairable?",
+    "E2: Per‑vendor differences in baseline and G‑V‑R improvement (Cisco IOS vs JunOS vs Arista).",
+    "E3: Relationship between model‑call budget consumed and marginal increase in per‑task success (diminishing returns)."
+  ],
+  "benchmark_scope": [
+    "Publicly sourced operator-intent tasks and runbook fragments curated into a manifest of 300 tasks covering Cisco IOS, JunOS, and Arista syntaxes; tasks restricted to configuration-change intents that can be expressed as vendor CLI fragments (no proprietary configs).",
+    "Validator rule‑set limited to syntactic correctness, interface assignment checks, basic routing reachability invariants, and ACL/route‑policy detectably destructive patterns; all rules published with the study."
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint (pre-registered provider and exact model identifier will be recorded and snapshot in execution manifest). For preregistration we fix: provider = OpenAI (hosted API), model identifier = gpt-4o-mini (snapshot recorded at execution).",
+    "Prompting: fixed templates per vendor (intent + vendor tag + constraints), temperature schedule specified below; five sampling draws per task per arm using pre-registered RNG seeds [1001,1002,1003,1004,1005] applied where provider supports seeding; otherwise seeds used to initialize local RNG that selects call-specific metadata and random-seed header when supported."
+  ],
+  "transformation_scope": [
+    "Vendor-specific canonicalization (normalize whitespace, canonical ordering of interface blocks), deterministic parser mapping raw LLM text -> structured config object, and a deterministic validator that evaluates structured config against rule set. Repair transformation: repair prompt generator that consumes validator diagnostics and produces a single repair-generation LLM call."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per_vendor_paired_success_rate_difference (Cisco, JunOS, Arista)",
+    "repair_success_rate_given_initial_failure (conditional probability)",
+    "mean_model_calls_per_task_by_arm"
+  ],
+  "sampling_plan": "Paired tasks n=300. For each task: (1) direct arm: issue 5 independent generation calls (one model call per sample) using fixed vendor prompt template -> collect up to 5 samples; (2) G‑V‑R arm: for each of 5 independent generation seeds: generate (1 model call), run deterministic validator locally (no model call). If validator fails, issue one automatic repair model call and revalidate. Define per‑task binary outcome for confirmatory analysis: 'success' if at least one of the 5 samples in that arm produced a validator-pass within the per-sample budget. Inclusion: tasks in the published manifest; excluded if task parsing of intent fails deterministically before generation (hash-signed and logged). Stopping rule: run all 300 tasks once (no mid-run early stopping). Pre-registered RNG seeds: [1001..1005] for sample ordering. All raw outputs stored and hashed.",
+  "analysis_plan": "Confirmatory analysis: compute per-task paired binary outcomes (success_baseline, success_gvr) as defined in sampling_plan; run paired_binary_analysis_v1 executor (McNemar-style paired binary test implemented by the registered executor). Primary estimand: difference in paired success proportions (G‑V‑R minus baseline) with two-sided test and 95% Wilson-style confidence interval. Failed-call treatment: primary execution uses 'complete_pair_primary' (both arms included; if both arms produce no valid samples treat as paired failures). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' treating truncated or transient-failure-flagged samples as failures. Subgroup (secondary) analyses: per-vendor paired binary tests with Bonferroni correction for three comparisons. Exploratory analyses: repair success conditional on initial failure (proportion), violation-type frequencies, and descriptive model-call budget vs success curves. All analyses will be executed by paired_binary_analysis_v1; exact executor parameters and raw inputs will be published.",
+  "multiplicity_plan": "Primary hypothesis limited to overall paired difference (one test). Three pre-specified secondary per-vendor confirmatory comparisons will apply Bonferroni correction (alpha_family=0.05 -> per-comparison alpha=0.0167). All other checks are exploratory and reported as such.",
+  "missingness_plan": "Treatment of missing or transient-failure model calls: follow preregistered retry policy (see below). If after retries a sample call is unrecoverable, that sample is marked 'failed-call'. Per-task pairing uses 'complete_pair_primary' rule: pair is included; if both arms have only failed calls the pair is counted as both-fail (paired failure). Sensitivity analysis will re-run primary estimator treating any failed-call sample treated as failing (see analysis_plan). Missingness logs are hash-signed and published.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Curated 300-task multi-vendor NetOps intent manifest (this study)"
+    ],
+    "risk_factors": [
+      "Prompt leakage or dataset overlap between task sources and model training data (model memorization).",
+      "Cross-task contamination via reuse of identical vendor examples in prompts or instruction templates.",
+      "Transcription/sanitization errors introducing proprietary secrets into artifacts."
+    ],
+    "detection_procedures": [
+      "Automatic duplicate-detection: exact-match and fuzzy-match checks across task manifest and generated outputs; flag duplicates.",
+      "Artifact leak detector: heuristics that detect private-key-like strings, passwords, or tenant identifiers; flag and exclude artifacts.",
+      "Provenance tracer: record task source URLs and apply provenance tags; if a model output verbatim matches a known public example from the manifest or from identified sources, flag in contamination log."
+    ],
+    "item_flagging_rules": [
+      "If generated output contains patterns matching high-entropy secrets or disallowed tokens -> auto-exclude sample and mark 'sensitive_artifact'.",
+      "If generated output matches a training-source fragment (exact verbatim match to public source in manifest) -> flag as 'possible memorization'.",
+      "If duplicate task was used in both arms with identical sample IDs -> flag as 'duplicate-pair' and keep pair but report contamination statistics."
+    ],
+    "analysis_treatment": "Flagged samples are excluded from exploratory outputs release; for the confirmatory estimator, contaminated pairs are retained but sensitivity analyses will (a) exclude contaminated pairs and (b) treat contaminated samples as failures to bound effects. All flagging decisions are deterministic and implemented in code; no human adjudication is used.",
+    "residual_uncertainty": [
+      "Residual uncertainty remains about model training-data overlap even after automated detection; sensitivity analyses bound this effect but cannot fully eliminate it."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scn_recommended",
+      "description": "Recommended scenario: 300 tasks, 5 samples per task, per-sample G‑V‑R repair triggered estimated at 40% of samples (planner estimate); includes 10% margin for transient retries.",
+      "planned_model_calls": 4000,
+      "models": [
+        "OpenAI:gpt-4o-mini (snapshot recorded in execution manifest)"
+      ],
+      "transformations": [
+        "Vendor canonicalization parser -> deterministic validator (Batfish-style ruleset) -> repair prompt generation"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Arithmetic: direct arm = 300 tasks * 5 samples = 1,500 model calls. G‑V‑R arm initial generation = 1,500 calls; estimated repair calls = 40% * 1,500 = 600 additional calls -> G‑V‑R total = 2,100. Total raw calls = 1,500 + 2,100 = 3,600. Add 10% margin for retries and transient-failure reattempts: 3,600 * 1.10 = 3,960 -> rounded to 4,000 planned_model_calls. This fits within the capability manifest maximum_planned_model_calls=10000 and is executable in Docker+CPU within the maximum_wall_clock_days=7 given hosted API latency assumptions; all validator steps are local CPU processes implemented in Docker."
+    },
+    {
+      "scenario_id": "scn_conservative_worstcase",
+      "description": "Conservative worst-case: 300 tasks, 5 samples per task, repairs triggered for all failed initial generations (planning for worst-case 100% repair), includes 10% margin.",
+      "planned_model_calls": 4950,
+      "models": [
+        "OpenAI:gpt-4o-mini (snapshot recorded in execution manifest)"
+      ],
+      "transformations": [
+        "Same as recommended"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 300,
+      "feasibility_rationale": "Arithmetic: direct arm = 1,500 calls. G‑V‑R initial generation = 1,500; worst-case repairs = 1,500 -> G‑V‑R total = 3,000. Total raw calls = 1,500 + 3,000 = 4,500. Add 10% margin -> 4,950 planned_model_calls. Still within capability manifest cap (10,000). This scenario is recommended only if observed repair-trigger rate during an initial pilot exceeds preregistered estimate; pilot rules are specified in retry policy."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute increase of 10 percentage points in per-task success probability (G‑V‑R minus baseline).",
+    "clustering_unit": "task (n_pairs = 300 paired observations). Per-task success is binary: at least one validator-pass among 5 samples.",
+    "calculation_method": "Paired-proportions test (McNemar): guidance calculation under conservative discordance assumptions. We compute detectable effect using standard large-sample approximation for McNemar with two-sided alpha=0.05 and power=0.80.",
+    "assumptions": [
+      "Baseline per-task success rate ≈ 0.40 (plausible from prior small prototypes); discordant-pair proportion sufficient to power 0.10 absolute difference with n=300.",
+      "Independence across tasks; within-task samples used to form the binary success indicator (reduces intra-task dependence).",
+      "No more than 10% of pairs are lost to unrecoverable transient infrastructure failures (handled by sensitivity analysis)."
+    ],
+    "recommended_scenario_id": "scn_recommended",
+    "minimum_detectable_effect_notes": "With n=300 paired tasks and the binary 'any-pass-in-5' outcome, and assuming moderate discordance structure consistent with baseline≈0.40, the design is expected to detect ≈0.10 absolute increase with ~80% power. Exact power given observed baseline and discordance will be reported; sensitivity curves (power vs MDE) will be included.",
+    "sensitivity_analyses": [
+      "Power recalculation under baseline rates 0.30 and 0.50.",
+      "Sensitivity to up to 10% pair censoring (treated as failures) and to Bonferroni correction for per-vendor secondary comparisons."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor CLI parsing and canonicalization (per-vendor deterministic parsers)",
+      "Structured-config -> validator rule evaluation (deterministic)",
+      "Validator diagnostic -> repair-prompt generation (deterministic template mapping)"
+    ],
+    "semantic_equivalence_checks": [
+      "Unit tests: parser round-trip checks on 200 synthetic canonical configs (parse -> canonicalize -> pretty-print -> parse equivalence).",
+      "Deterministic invariants: re-apply canonicalization to validator-pass outputs and verify property preservation (interface identifiers, route prefixes)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and mark sample if parser fails to produce structured config (syntax parse error).",
+      "Reject sample if validator run crashes or exceeds CPU/time limit (predefined CPU/time caps).",
+      "Reject sample if artifact contains disallowed sensitive tokens detected by regex heuristics."
+    ],
+    "audit_sample_policy": "Automatic audit sampling: deterministically select 5% of parsed mappings using pre-registered RNG seeds; for each selected mapping run a battery of unit tests (round-trip and invariant checks). All audit results are logged; failures trigger deterministic reprocessing and, if persistent, automatic exclusion of the entire task pair from exploratory artifact release (confirmatory analysis retains pair but flags it for sensitivity checks). No human adjudication will be used.",
+    "mapping_validation": "Publish parser and validator code/config in a Docker image and repository. Mapping validation implemented as unit tests and integration tests executed in CI-like Docker runs; test-suite hash-signed and published.",
+    "residual_risks": [
+      "Validator may classify unconventional-but-safe configs as violations (oracle mismatch). Sensitivity analyses will show how outcomes change under alternate conservative rule thresholds."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: curated public examples may not reflect production distribution; conclusions are explicitly bounded to the published manifest.",
+    "Validator oracle mismatch: deterministic validator rules may flag unconventional-but-safe outputs; addressed with sensitivity analyses but remains a residual uncertainty.",
+    "Single-model scope: results apply to the selected hosted model snapshot; generalization to other models/versions is noncritical and noted as limitation.",
+    "Automated contamination detection cannot fully prove absence of model memorization; sensitivity analyses bound effect but residual uncertainty remains."
+  ],
+  "evidence_record_ids": [
+    "doi:10.36227/techrxiv.176978431.15223796/v1",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W7125810855",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4367860052",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W7125810855"
+  ]
+}

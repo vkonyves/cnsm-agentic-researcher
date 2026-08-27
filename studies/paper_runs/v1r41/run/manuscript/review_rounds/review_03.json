@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed, preregistered paired confirmatory study of a generate–validate–repair (G‑V‑R) pipeline for LLM‑produced vendor CLI configurations. The run is reproducible and fully artifacted; under the declared model/prompt/validator every shared initial candidate passed the deterministic validator (baseline = 300/300), so the guarded single‑repair intervention was never exercised and the paired difference is 0.00 (McNemar two‑sided p=1.00, 95% CI [0.00,0.00]). The manuscript correctly reports this ceiling outcome and publishes hashes. The work is methodologically sound and reproducible but the paper omits a small number of clarifying, artifact‑resolvable items needed for completeness and interpretation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Manuscript omits an explicit per‑vendor breakdown (task counts and paired contingency cells per vendor) despite repeatedly asserting a multi‑vendor manifest; this is evidence the reviewers must see to support the multi‑vendor claim.",
+    "Statistical reporting lacks an explicit methodological note for the degenerate contingency case (n10 = n01 = 0): how the chosen tests/CI behave in this situation and the implications for hypothesis interpretability (i.e., that the preregistered comparison was uninformative because there were zero discordant pairs).",
+    "The paper states exploratory repair diagnostics were pre‑specified but does not explicitly mark those diagnostics as uncomputed because no repairs were invoked; this should be a clear, unambiguous disclosure (artifact‑traceable) so readers do not expect repair‑success statistics."
+  ],
+  "required_revisions": [
+    "Insert a compact per‑vendor results table (for Cisco IOS, JunOS, Arista) showing task counts and the 2×2 paired contingency (n11,n10,n01,n00) for each vendor; populate from execution/task_manifest.jsonl and execution/scoring/*.json and cite the artifact hashes (e.g., execution/task_manifest.jsonl SHA‑256 = 6d99060659a722e6a91dd2abd7baca45a2aefb41e124b049124d5ea2632cb4b3).",
+    "Add a short statistical-methods paragraph (or a sentence in Methods/Results) that: (a) explains handling of the degenerate paired table when n10=n01=0, (b) states why exact McNemar and the bootstrap percentile CI produce p=1.00 and CI=[0,0] here, and (c) clarifies the consequence that the preregistered confirmatory test cannot demonstrate a positive repair effect when no initial failures occur. Use the existing analysis/paired_contingency_table.csv and analysis/analysis_log.jsonl artifacts as evidence.",
+    "Explicitly state (in Results and Limitations) that the preregistered single‑repair policy was not exercised (repair call count = 0), that repair diagnostics are therefore vacuous for this run, and that any claims about repair effectiveness must be re‑framed as future‑work requiring non‑zero initial failure rates; cite the execution manifest model_calls_used and the scoring/repair trace artifacts (e.g., provider call and repair trace files hashed in the execution manifest)."
+  ],
+  "optional_revisions": [
+    "Add a brief per‑vendor difficulty summary (mean/median difficulty tags or required_command_count) drawn from the task_manifest entries to help readers assess manifest hardness.",
+    "Include an inline excerpt or appendix paragraph reproducing the exact vendor‑adapter prompt template used for initial generation (or point to the exact transformation_manifest entry and show the relevant prompt text) to improve immediate interpretability for readers who do not fetch artifacts.",
+    "Discuss briefly whether alternative repair budgets (iterative repairs) or a non‑shared initial candidate design would be more informative in future confirmatory tests; cross‑reference the preregistered exploratory questions (E1–E3)."
+  ],
+  "accept_for_finalisation": false
+}
