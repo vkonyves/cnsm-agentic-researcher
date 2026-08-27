@@ -91,8 +91,14 @@ def test_final_pipeline_requires_full_five_page_budget():
         in source
     )
     assert (
-        "exactly {maximum_pages} pages"
+        "target approximately one page above the final budget"
         in source
+        or
+        "target six compiled pages"
+        in source
+        or
+        "overshoot"
+        in source.lower()
     )
 
     # Oversized papers must still be compacted.
@@ -106,29 +112,17 @@ def test_final_pipeline_requires_full_five_page_budget():
     )
 
 
-def test_underfill_revision_uses_page_gap_specific_expansion():
+def test_underfill_revision_uses_overshoot_first_convergence():
     source = _final_pipeline_source()
 
-    assert "pages_missing >= 2" in source
-
-    assert (
-        "70–90%"
-        in source
-        or "70-90%"
-        in source
-    )
-
-    assert (
-        "35–50%"
-        in source
-        or "35-50%"
-        in source
-    )
-
-    assert (
-        "substantive_expansion_target"
-        in source
-    )
+    assert "overshoot_target_pages = maximum_pages + 1" in source
+    assert "minimum_expansion_words = max(" in source
+    assert "2300" in source
+    assert "preferred_expansion_words = max(" in source
+    assert "2600" in source
+    assert "Do NOT target {maximum_pages} pages from below" in source
+    assert "target approximately " in source
+    assert "compaction from above" in source
 
 
 def test_final_judge_requires_exact_page_budget():
@@ -919,11 +913,18 @@ def test_preregistration_repair_prompt_forbids_unsupported_stages():
 def test_underfill_prompts_require_structural_additions():
     source = _final_pipeline_source()
     assert "Make structural additions rather than primarily rewriting" in source
-    assert "Because one full compiled " in source
-    assert "page remains unused, make structural additions" in source
-    assert "Make structural additions across every substantive" in source
-    assert "70–90% relative to the supplied manuscript" in source
-    assert "35–50% relative to the supplied manuscript" in source
+    assert "eight distinct new artifact-grounded paragraphs" in source
+    assert "page-convergence control, not permission to pad" in source
+    assert "aim to cross the boundary" in source
+
+
+def test_terminal_underfill_targets_deliberate_overshoot():
+    source = _final_pipeline_source()
+    assert "terminal_overshoot_target_pages" in source
+    assert "terminal_minimum_words = max(" in source
+    assert "terminal_preferred_words = max(" in source
+    assert "Do not try to approach five pages cautiously from below" in source
+    assert "compact the actual over-limit candidate" in source
 
 
 def test_overfill_compaction_uses_actual_overlimit_candidate():
@@ -933,3 +934,11 @@ def test_overfill_compaction_uses_actual_overlimit_candidate():
     assert "revised_manuscript" in source
     assert "if terminal_page_count > terminal_maximum_pages:" in source
     assert "terminal_revision_base_manuscript = revised_manuscript" in source
+
+
+def test_page_convergence_counts_scientific_section_words():
+    source = _final_pipeline_source()
+    assert "def manuscript_section_word_count(" in source
+    assert 'payload.get("sections", {})' in source
+    assert "best_section_word_count" in source
+    assert "current_section_word_count" in source

@@ -497,6 +497,22 @@ def build_manuscript_evidence_bundle(
 
     return bundle
 
+
+def manuscript_section_word_count(
+    manuscript: ManuscriptPackage,
+) -> int:
+    """Deterministically count words in manuscript scientific sections."""
+    payload = manuscript.model_dump()
+    sections = payload.get("sections", {})
+
+    if not isinstance(sections, dict):
+        return 0
+
+    return sum(
+        len(str(value).split())
+        for value in sections.values()
+    )
+
 def preregistration_analysis_contract_issues(
     preregistration: PreregistrationDocument,
     *,
@@ -3529,6 +3545,9 @@ class FinalAutonomousResearchPipeline:
         best_manuscript = revised_manuscript
         best_publication_validation: dict[str, Any] | None = None
         best_page_count = -1
+        best_section_word_count = manuscript_section_word_count(
+            revised_manuscript
+        )
 
         for format_round in range(
             0,
@@ -3574,27 +3593,27 @@ class FinalAutonomousResearchPipeline:
                     best_publication_validation = dict(
                         publication_validation
                     )
+                    best_section_word_count = (
+                        manuscript_section_word_count(
+                            revised_manuscript
+                        )
+                    )
 
                 elif (
                     current_page_count == best_page_count
-                    and len(
-                        json.dumps(
-                            revised_manuscript.model_dump(),
-                            ensure_ascii=False,
-                            sort_keys=True,
-                        )
+                    and manuscript_section_word_count(
+                        revised_manuscript
                     )
-                    > len(
-                        json.dumps(
-                            best_manuscript.model_dump(),
-                            ensure_ascii=False,
-                            sort_keys=True,
-                        )
-                    )
+                    > best_section_word_count
                 ):
                     best_manuscript = revised_manuscript
                     best_publication_validation = dict(
                         publication_validation
+                    )
+                    best_section_word_count = (
+                        manuscript_section_word_count(
+                            revised_manuscript
+                        )
                     )
 
             if publication_validation.get(
@@ -3671,31 +3690,42 @@ class FinalAutonomousResearchPipeline:
             else:
                 pages_missing = maximum_pages - page_count
 
-                if pages_missing >= 2:
-                    substantive_expansion_target = (
-                        "Increase the substantive scientific content by at least "
-                        "70–90% relative to the supplied manuscript. Deliberate "
-                        "slight overfill is acceptable at this stage because a "
-                        "later compiled over-limit candidate can be compacted to "
-                        "the exact page budget. Add at least eight distinct new "
-                        "artifact-grounded paragraphs distributed across Methods, "
-                        "Results, Discussion/Limitations, reproducibility, and "
-                        "related work, plus one or more compact evidence-grounded "
-                        "tables where supported. Preserve all supported content "
-                        "already present. "
-                    )
-                else:
-                    substantive_expansion_target = (
-                        "Increase the substantive scientific content by at least "
-                        "35–50% relative to the supplied manuscript. Deliberate "
-                        "slight overfill is acceptable at this stage because a "
-                        "later compiled over-limit candidate can be compacted to "
-                        "the exact page budget. Add at least four distinct new "
-                        "artifact-grounded paragraphs across multiple scientific "
-                        "sections and at least one compact evidence-grounded table "
-                        "where supported. Preserve all supported content already "
-                        "present. "
-                    )
+                # Overshoot-first convergence: while the paper is
+                # underfilled, deliberately target one page above the frozen
+                # budget. Once an over-limit candidate exists, the next round
+                # compacts that actual candidate toward exactly five pages.
+                overshoot_target_pages = maximum_pages + 1
+                current_section_words = manuscript_section_word_count(
+                    best_manuscript
+                )
+                minimum_expansion_words = max(
+                    2300,
+                    int(current_section_words * 1.45),
+                )
+                preferred_expansion_words = max(
+                    2600,
+                    int(current_section_words * 1.65),
+                )
+
+                substantive_expansion_target = (
+                    f"Do NOT target {maximum_pages} pages from below in this "
+                    f"underfill phase. Deliberately target approximately "
+                    f"{overshoot_target_pages} compiled IEEE pages so that a "
+                    "later round can compact from above. Produce at least "
+                    f"{minimum_expansion_words} substantive words across the "
+                    "scientific sections, preferably around "
+                    f"{preferred_expansion_words} words when the archived "
+                    "evidence supports that level of detail. This word floor "
+                    "is a page-convergence control, not permission to pad: "
+                    "every added sentence must communicate distinct "
+                    "artifact-grounded scientific information. Add at least "
+                    "eight distinct new artifact-grounded paragraphs across "
+                    "Methods, Results, Discussion/Limitations, reproducibility, "
+                    "and related work, plus one or more compact evidence-grounded "
+                    "tables where supported. Preserve all supported content "
+                    "already present. A revision that remains shorter than the "
+                    "best underfilled manuscript is not useful for convergence. "
+                )
 
                 revision_instruction = (
                     f"The manuscript compiled successfully but occupies only "
@@ -3744,14 +3774,26 @@ class FinalAutonomousResearchPipeline:
                     "experiments, observations, statistics, citations, examples, "
                     "repositories, artifact locations, or claims. Do not pad with "
                     "verbosity, repetition, formatting tricks, artificial spacing, "
-                    "or arbitrary word-count targets. The objective is a genuinely "
-                    "complete, dense scientific paper whose compiled length reaches "
-                    f"exactly {maximum_pages} pages."
+                    "or unsupported filler. The objective is a genuinely "
+                    "complete, dense scientific paper. In this underfill phase, "
+                    f"aim to cross the boundary at approximately {overshoot_target_pages} "
+                    "compiled pages; exact five-page convergence will then occur by "
+                    "compaction from above."
                 )
 
             format_feedback = {
                 "page_count": page_count,
                 "maximum_pages": maximum_pages,
+                "current_section_word_count": (
+                    manuscript_section_word_count(
+                        best_manuscript
+                    )
+                ),
+                "underfill_overshoot_target_pages": (
+                    maximum_pages + 1
+                    if page_count < maximum_pages
+                    else None
+                ),
                 "within_page_limit": (
                     publication_validation.get(
                         "within_page_limit"
@@ -4155,76 +4197,53 @@ class FinalAutonomousResearchPipeline:
                     break
 
                 if terminal_page_count < terminal_maximum_pages:
-                    terminal_pages_missing = (
-                        terminal_maximum_pages
-                        - terminal_page_count
+                    terminal_overshoot_target_pages = (
+                        terminal_maximum_pages + 1
+                    )
+                    terminal_base = (
+                        best_terminal_manuscript
+                        if best_terminal_manuscript is not None
+                        else revised_manuscript
+                    )
+                    terminal_current_words = (
+                        manuscript_section_word_count(
+                            terminal_base
+                        )
+                    )
+                    terminal_minimum_words = max(
+                        2300,
+                        int(terminal_current_words * 1.45),
+                    )
+                    terminal_preferred_words = max(
+                        2600,
+                        int(terminal_current_words * 1.65),
                     )
 
-                    if terminal_pages_missing >= 2:
-                        terminal_format_instruction = (
-                            "The terminal-review revision is "
-                            f"{terminal_page_count} pages but must occupy "
-                            f"exactly {terminal_maximum_pages} compiled IEEE "
-                            "pages. Make structural additions across every substantive "
-                            "scientific section rather than primarily rewriting existing "
-                            "prose. Add artifact-grounded methodology, execution accounting, "
-                            "quantitative interpretation, reproducibility information, "
-                            "limitations, and compact tables or figures where supported. "
-                            "Preserve every reviewer-resolved and "
-                            "artifact-supported statement already present. "
-                            "Preserve the current manuscript rather than "
-                            "rewriting or compressing it. Do not remove, "
-                            "shorten, summarize, or replace existing supported "
-                            "content. The revised manuscript must contain "
-                            "strictly more substantive content than the "
-                            "supplied manuscript. Add new evidence-grounded "
-                            "material to multiple scientific sections using "
-                            "only the supplied archived evidence. "
-                            "Substantively expand by roughly 70–90% and prefer a slight "
-                            "overfill over remaining underfilled; an over-limit "
-                            "candidate will be compacted in the next round. Add "
-                            "at least eight distinct new artifact-grounded paragraphs "
-                            "plus compact tables where supported. Expand Methods, "
-                            "Results, statistical interpretation, execution accounting, limitations, "
-                            "reproducibility details, verified related work, "
-                            "or artifact-grounded tables/figures. Do not trade "
-                            "existing text for new text. Do not invent evidence, "
-                            "statistics, references, or experiments."
-                        )
-                    else:
-                        terminal_format_instruction = (
-                            "The terminal-review revision is one compiled page "
-                            "below the required IEEE length. Because one full compiled "
-                            "page remains unused, make structural additions rather than "
-                            "stylistic rewriting. Increase substantive content by "
-                            "roughly 35–50%; slight overfill is preferable to another "
-                            "underfilled revision because the next round can compact "
-                            "an over-limit candidate. Add at least four new artifact-grounded "
-                            "paragraphs across Methods, Results, and Discussion or "
-                            "Limitations where supported. Add a compact artifact-grounded "
-                            "table where the available evidence supports one. Each addition "
-                            "must communicate distinct technical information not already "
-                            "stated elsewhere. Preserve existing supported paragraphs rather "
-                            "than replacing them. Preserve all "
-                            "reviewer-resolved and artifact-supported content. "
-                            "Preserve the current manuscript rather than "
-                            "rewriting or compressing it. Do not remove, "
-                            "shorten, summarize, or replace existing supported "
-                            "content. The revised manuscript must contain "
-                            "strictly more substantive content than the supplied "
-                            "manuscript. Add new evidence-grounded material to "
-                            "multiple scientific sections using only the "
-                            "supplied archived evidence until the manuscript "
-                            "occupies exactly "
-                            f"{terminal_maximum_pages} pages. Prefer additions "
-                            "to Methods, execution accounting, Results "
-                            "interpretation, limitations, reproducibility "
-                            "details, and artifact-grounded tables where "
-                            "appropriate. Do not trade existing text for new "
-                            "text. Do not invent evidence, statistics, "
-                            "references, or experiments, and do not pad with "
-                            "repetition."
-                        )
+                    terminal_format_instruction = (
+                        "The manuscript remains under the frozen page budget. "
+                        "Do not try to approach five pages cautiously from below. "
+                        f"Deliberately target approximately "
+                        f"{terminal_overshoot_target_pages} compiled IEEE pages "
+                        "in this expansion step, after which the next round can "
+                        "compact the actual over-limit candidate to exactly "
+                        f"{terminal_maximum_pages} pages. Produce at least "
+                        f"{terminal_minimum_words} substantive scientific-section "
+                        "words, preferably around "
+                        f"{terminal_preferred_words} where supported by the "
+                        "archived evidence. The word floor is a convergence "
+                        "control, not permission for filler or repetition. "
+                        "Preserve every reviewer-resolved and artifact-supported "
+                        "statement already present. Do not remove, shorten, "
+                        "summarize, or replace supported content. Add at least "
+                        "eight distinct new artifact-grounded paragraphs across "
+                        "Methods, Results, statistical interpretation, execution "
+                        "accounting, Discussion/Limitations, reproducibility, and "
+                        "verified related work, plus compact artifact-grounded "
+                        "tables or figures where supported. Every addition must "
+                        "communicate distinct information from the supplied "
+                        "archived evidence. Do not invent evidence, statistics, "
+                        "references, experiments, or formatting tricks."
+                    )
 
                 else:
                     terminal_format_instruction = (
