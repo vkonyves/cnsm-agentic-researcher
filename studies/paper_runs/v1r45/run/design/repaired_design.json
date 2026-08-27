@@ -1,0 +1,166 @@
+{
+  "selected_candidate_id": "CAND-2026-001",
+  "title": "NetConfig-Semantic (repaired): a preregistered, reproducible benchmark for verifier-based semantic correctness of LLM-generated network configurations",
+  "research_question": "Can a reproducible benchmark using deterministic template baselines and an open-source verifier reliably detect and quantify semantic errors (reachability, ACL equivalence, BGP policy preservation) in LLM-generated device configurations across vendor syntaxes and topology classes?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The single-pass LLM generation pipeline has a lower task-level verifier pass rate than a deterministic template baseline; estimand = paired success-rate difference (LLM_success_rate minus baseline_success_rate) across N=120 tasks, tested with a paired_binary_analysis_v1 executor.",
+    "H2 (confirmatory): The rank-order stability of task-level verifier pass/fail across bootstrap resamples is low for token/fluency metrics but reliably captured by verifier-based binary success, as measured by Kendall tau on aggregated task success rates (exploratory-supported, pre-specified analysis)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How sensitive are measured LLM semantic-error rates to sampling multiple generation seeds per task (seed sensitivity)?",
+    "EQ2: What common semantic error classes (parse/ACL/BGP/misapplied-route) appear, and how do they correlate with topology class and vendor syntax?"
+  ],
+  "benchmark_scope": [
+    "120 intent→config tasks programmatically generated across 3 topology classes (edge, datacenter, multi‑AS)",
+    "3 vendor syntax families: vendor-A CLI, vendor-B CLI, vendor-neutral device model (all syntaxes defined by transformation rules published in repo)",
+    "Public release of task JSON, transformation code, verifier input, and all outputs; no private data"
+  ],
+  "model_scope": [
+    "One hosted LLM via public API (hosted_model_api_available); single commercially-hosted model instance named in the Disclosure (single-model confirmatory claim only)",
+    "No local GPU execution; all model calls via hosted API"
+  ],
+  "transformation_scope": [
+    "Deterministic intent→gold-config generator (template-driven) used for baseline/gold references",
+    "Deterministic parser/translator for LLM output → verifier input (grammar + fallback parse-failure flags)",
+    "Verifier input mapping and unit tests (published)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired_binary_analysis_v1): per-task binary success (verifier-pass) for LLM single-pass generation minus deterministic template baseline, averaged over N=120 paired tasks",
+  "secondary_estimands": [
+    "seed_sensitivity_failure_rate: change in per-task pass probability across additional generation seeds (exploratory)",
+    "rank_stability_kendall_tau: Kendall tau of task success-rate rankings across 1000 bootstrap resamples (exploratory)"
+  ],
+  "sampling_plan": "Confirmatory sample: N=120 tasks (equal allocation across 3 topology classes => 40 tasks per topology). Per-task confirmatory generation: 1 canonical seed (seed_0) used for the paired analysis. Exploratory sampling: 4 additional independent seeds per task (seed_1..seed_4) for seed-sensitivity analysis. Tasks are programmatically synthesized from an intent template bank; inclusion rule: task passes transformation unit tests (gold-config parses and baseline verifies). Exclusion rule: tasks failing gold-config generation unit tests are excluded before runs and replaced to preserve N=120. Total confirmatory LLM calls = 120 * 1 = 120. Total exploratory LLM calls (additional seeds) = 120 * 4 = 480. Total planned LLM calls per recommended scenario = 600.",
+  "analysis_plan": "Primary confirmatory analysis uses the supplied 'paired_binary_analysis_v1' executor computing the paired_success_rate_difference_guarded_minus_baseline. For each task i, define baseline_i = deterministic-template verifier pass (binary), llm_i = verifier pass for LLM seed_0 (binary). The paired estimator is mean(llm_i - baseline_i) over i=1..120. Primary inference: bootstrap 95% CI on paired difference (10000 bootstrap resamples) and a two-sided paired Wilcoxon signed-rank test (paired binary→Wilcoxon on paired differences). Pre-specified failed_call_treatment: use 'complete_pair_primary' (drop pairs only if both baseline and LLM calls fail infrastructure-wise), and sensitivity alternative 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat model-call failures as verifier-failures). Exploratory analyses: seed sensitivity (compare seed_0 vs seeds_1..4), compute Cohen's d for effect sizes on continuous score if a verifier severity score is derived, and report Kendall tau rank stability via 1000 bootstrap resamples. All analysis code, seeds, and outputs are archived in the public repo.",
+  "multiplicity_plan": "Primary confirmatory test: single paired estimand (H1) with alpha=0.05. Exploratory analyses (seed sensitivity, error-class taxonomy) are labeled and reported as exploratory without confirmatory p-values. No multiple-comparison corrections required for the single primary estimand; exploratory p-values are for hypothesis generation only.",
+  "missingness_plan": "Model-call or verifier runtime failures: recorded and reported. Primary treatment: pairs with infrastructure call failures are excluded only if the baseline also failed the equivalent infrastructure step; sensitivity analysis treats failed model calls as verifier failures (binary=0). If >10% of confirmatory pairs are excluded due to infrastructure issues, the run is halted and retried according to preregistered retry policy (up to 2 automatic retries per failed call). All exclusions, retries, and their timestamps are logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "NetConfig-Semantic (this preregistered benchmark)"
+    ],
+    "risk_factors": [
+      "Model memorization of benchmark gold configs or templates",
+      "Verbatim leakage from public artifacts into hosted LLM training data"
+    ],
+    "detection_procedures": [
+      "Exact-match detection: if generated config equals any gold-config text verbatim, mark as 'verbatim_match_suspected_contamination'.",
+      "Near-match string-similarity: compute normalized Levenshtein and 5-gram overlap between generated config and any gold config; flag items above pre-specified thresholds for sensitivity analysis.",
+      "N-gram overlap with public repo artifacts: compute self-bleu style overlap between generated outputs and benchmark repo contents."
+    ],
+    "item_flagging_rules": [
+      "Flag as 'suspected_contamination' if exact match to any gold-config OR normalized 5-gram overlap >= 0.95.",
+      "Flag as 'high_overlap' if normalized Levenshtein similarity >= 0.9 and not exact match."
+    ],
+    "analysis_treatment": "Primary confirmatory analysis excludes flagged items only in a pre-specified sensitivity analysis (report both inclusive and contamination-excluded estimates). The primary estimand reports inclusive results (all tasks). Secondary sensitivity: report confirmatory estimand with suspected-contamination items excluded and with suspected-contamination items artificially set to failure (worst-case).",
+    "residual_uncertainty": [
+      "Unknown extent of model pretraining exposure to similar publicly-available configs; exact contamination cannot be proven without provider disclosure",
+      "String-similarity detection is an imperfect proxy for training-data contamination"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_MIN_BUDGET",
+      "description": "Minimum viable confirmatory run (conservative): 120 tasks, 1 confirmatory seed per task only; no exploratory seeds. Deterministic-template baseline generation executed locally; verifier run for baseline and LLM outputs; minimal storage and CPU usage.",
+      "planned_model_calls": 120,
+      "models": [
+        "hosted-llm-1 (single hosted API instance)"
+      ],
+      "transformations": [
+        "intent→gold-template generator (deterministic)",
+        "LLM output parser→verifier mapping",
+        "verifier execution (Docker Batfish image, pinned version)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "120 LLM calls well within maximum_planned_model_calls (10000). Verifier executed in Docker on CPU; deterministic baseline generation uses local CPU. Minimal wall-clock time estimated under hosted API rate limits."
+    },
+    {
+      "scenario_id": "S2_RECOMMENDED",
+      "description": "Recommended: confirmatory + modest exploratory seed-sensitivity. 120 tasks, 1 confirmatory seed + 2 exploratory seeds per task (3 seeds total), published artifacts and full analysis including seed-sensitivity.",
+      "planned_model_calls": 360,
+      "models": [
+        "hosted-llm-1 (single hosted API instance)"
+      ],
+      "transformations": [
+        "intent→gold-template generator (deterministic)",
+        "LLM output parser→verifier mapping",
+        "verifier execution (Docker Batfish image, pinned version)"
+      ],
+      "discovery_items": 240,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "360 calls remain modest under the 10k-call cap; balances confirmatory power and exploratory seed-sensitivity. Recommended for CNSM paper-length project scope and wall-clock limits."
+    },
+    {
+      "scenario_id": "S3_FULL",
+      "description": "Generous exploratory: 120 tasks, 1 confirmatory seed + 4 exploratory seeds per task (5 seeds total) as originally proposed; full error-taxonomy analysis and seed-variance reporting.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted-llm-1 (single hosted API instance)"
+      ],
+      "transformations": [
+        "intent→gold-template generator (deterministic)",
+        "LLM output parser→verifier mapping",
+        "verifier execution (Docker Batfish image, pinned version)"
+      ],
+      "discovery_items": 480,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "600 calls equals the candidate's plausible earlier plan (and fits within the 10k-call cap). Docker-based verifier runs on CPU; runtime and storage budget fit 7-day wall-clock window with parallel verifier containers limited by available CPU. Recommended scenario (S3) provides full seed-variance coverage for richer analysis."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute paired difference of 0.15 (15 percentage points) in verifier pass probability between template baseline and LLM single-pass, at two-sided alpha=0.05 with power >= 0.80.",
+    "clustering_unit": "task (N=120 paired observations)",
+    "calculation_method": "Normal-approximation + nonparametric bootstrap (10000 resamples) for CI; power estimated via approximate binomial paired-difference calculations and confirmed by simulation during pilot execution before final run.",
+    "assumptions": [
+      "Baseline verifier pass rate expected >= 0.9 (deterministic templates designed to satisfy intent),",
+      "LLM single-pass pass rate plausibly <= 0.75 (expected lower),",
+      "Independence of task-level outcomes conditional on task design (no cross-task dependencies in synthetic intent bank)."
+    ],
+    "recommended_scenario_id": "S3_FULL",
+    "minimum_detectable_effect_notes": "With N=120, under baseline pass=0.9 and LLM pass=0.75, the observed paired difference of 0.15 should be detectable with approx. 0.8 power under standard approximations; final exact power will be computed by simulation in the preregistration verification step.",
+    "sensitivity_analyses": [
+      "Power recomputed treating suspected-contamination items excluded and with worst-case contamination (flagged items forced to failure).",
+      "Power recomputed for reduced confirmatory N if replacement tasks needed due to invalid unit tests."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "deterministic intent→gold-template generation",
+      "LLM-output parsing (grammar + deterministic fallback)",
+      "syntax-to-verifier mapping (verifier input schema)"
+    ],
+    "semantic_equivalence_checks": [
+      "Unit tests: gold-config must parse and verifier must report pass for the intended property on the gold-config (sanity check) for each generated task before inclusion.",
+      "Round-trip intent-check: verifier-backmapping unit test where feasible (parse verifier counterexample into an intent-difference summary) and automated check that gold-intent ≈ round-tripped-intent within pre-specified tolerance.",
+      "For LLM outputs, if parser fails, the output is flagged and counted as parser-failure; parser-failure is treated as verifier-fail in exploratory analyses and documented in primary logs."
+    ],
+    "automatic_rejection_rules": [
+      "Reject and replace any task whose gold-template fails its own unit tests (parsing or verifier pass) prior to model calls.",
+      "Automatically mark LLM-generated outputs with parser failure or invalid syntax as 'parse_fail' and treat as verifier-fail in sensitivity analysis."
+    ],
+    "audit_sample_policy": "Automated synthetic-oracle audit: programmatically synthesize variant intents that exercise transformation edges and run deterministic unit tests; publish unit-test coverage metrics. No human annotation will be used. A deterministic sample of 10% of tasks is subjected to stronger round-trip and semantic-unit tests to estimate mapping brittleness.",
+    "mapping_validation": "Publish transformation code and end-to-end examples in the public repo; include a test-suite (pytest) verifying parsing, mapping, and verifier input generation for representative examples across all vendor syntaxes. Provide CI-style runs (Docker-based) that reproduce mapping tests.",
+    "residual_risks": [
+      "Verifier abstraction may be lossy for nuanced dynamic control-plane interactions (BGP path attributes, convergence) — these remain limitations of the measured properties.",
+      "Parser/translator brittleness may dominate measured failures; we mitigate by publishing parser code, test suite, and by reporting parse-failure rates explicitly."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Verifier coverage: symbolic/verifier tools (Batfish/NetKAT-style) may not capture all operational semantics (dynamic BGP interactions, vendor-specific quirks); we bound claims to verifier-checkable properties.",
+    "Contamination detection via string-similarity cannot prove absence of training-data exposure; results include sensitivity analyses but cannot fully exclude pretraining leakage.",
+    "Single-model scope: confirmatory claims apply only to the tested hosted LLM; external generalization to other models is noncritical and explicitly out of scope."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4408167800",
+    "https://openalex.org/W4394661176",
+    "https://openalex.org/W4401306886",
+    "doi:10.36227/techrxiv.177219979.94060974/v1"
+  ]
+}

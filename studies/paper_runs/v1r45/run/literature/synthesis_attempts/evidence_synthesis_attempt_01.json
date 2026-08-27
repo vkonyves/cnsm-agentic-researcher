@@ -1,0 +1,202 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can be used to translate operator intent or natural-language specifications into network-configuration templates or translations (intent→config) in prototype systems and academic evaluations.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "empirical/prototype evaluations and survey papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Mostly prototype or controlled-evaluation settings (not broad production deployments)",
+        "Varied task complexity across studies; advanced tasks show more failures"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate→validate→repair (closed-loop) architectures and execution-grounded validation reduce some classes of LLM errors by preventing unverified actions and enabling iterative correction.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7154539288",
+        "https://openalex.org/W4394661176",
+        "doi:10.36227/techrxiv.177219979.94060974/v1"
+      ],
+      "evidence_type": "architectural proposals, tool/verification work, and survey/taxonomy",
+      "confidence": 0.8,
+      "limitations": [
+        "Improvements documented at prototype/experiment scale; degree of reduction depends on validator coverage and feedback design",
+        "Not a panacea for all hallucination or semantic-mismatch failures"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Iterative repair loops with limited iteration budgets exhibit diminishing returns; most gains occur in the first few (≈3) iterations in several LLM-driven repair studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7160458110",
+        "https://openalex.org/W7167747165"
+      ],
+      "evidence_type": "empirical studies and case analyses of iterative repair",
+      "confidence": 0.88,
+      "limitations": [
+        "Task-dependent: some domains may require more iterations or different feedback modalities",
+        "Results reported for software/testing tasks and agentic workflows; direct transfer to all NetOps tasks requires caution"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Tool-execution hallucinations and other agent-specific hallucination modes are recognized failure classes; surveys and taxonomies recommend detection and mitigation via runtime checks and deterministic safety nets.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.6538460",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "surveys, framework proposals, and applied hybrid architectures",
+      "confidence": 0.9,
+      "limitations": [
+        "Mitigation strategies vary in effectiveness by task and are often evaluated in non-network domains",
+        "Taxonomies identify gaps where detection remains unreliable"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Existing formal/symbolic network-verification tools (e.g., NetKAT/NetPlumber-style approaches, fast symbolic verifiers) provide practical validators for reachability and policy properties and are referenced as useful components in guarded/verified NetOps pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4401306886",
+        "https://openalex.org/W7127085515"
+      ],
+      "evidence_type": "verification-tool research and system-proposal references",
+      "confidence": 0.9,
+      "limitations": [
+        "Tool applicability depends on network abstraction (e.g., device vendors, Kubernetes policies) and on accurate modeling of control/data-plane semantics",
+        "Integration with LLM pipelines is proposed or prototyped but not universally evaluated at scale"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Surveys and reviews of LLMs applied to NetOps/AIOps highlight promise but repeatedly warn about hallucination, brittleness, verification gaps, and the need for tailored benchmarks and safety practices.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4404656064"
+      ],
+      "evidence_type": "surveys and review articles",
+      "confidence": 0.92,
+      "limitations": [
+        "High-level syntheses; concrete quantitative claims vary by cited primary studies",
+        "Recommendations are broad and call for further empirical work"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent can LLM-driven intent→configuration systems, combined with validators, achieve production-grade safety and correctness across complex, multi-vendor operational networks?",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7127085515",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "prototype studies and system proposals that stop short of broad production validation",
+      "confidence": 0.6,
+      "limitations": [
+        "Available records show prototypes and controlled evaluations but not large-scale production rollouts",
+        "Heterogeneity of real networks (vendor CLIs, dynamic states) raises open integration challenges"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How well do existing deterministic/verifier tools cover the semantic failure modes introduced by LLM-generated configs (e.g., nuanced ACL semantics, BGP policy intent, dynamic control-plane interactions)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4401306886"
+      ],
+      "evidence_type": "verification-tool capabilities and platform-specific verifier work",
+      "confidence": 0.65,
+      "limitations": [
+        "Verifier papers demonstrate reachability/policy checks but do not exhaustively evaluate all LLM-induced semantic error classes",
+        "Mapping from LLM output to verifier input may be lossy and is an area needing empirical validation"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What standardized benchmark tasks and operational metrics most faithfully capture NetOps safety (beyond token/fluency metrics) for LLM-driven systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "papers calling for or building domain-specific evaluations and surveys",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing benchmarks and surveys identify the gap but do not converge on a single standard",
+        "Operational metrics (e.g., reachability, policy-preservation, rollback safety) require careful oracle construction"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of public, NetOps-focused benchmarks that measure semantic correctness (reachability, ACL semantics, BGP policy fidelity) of LLM-generated configurations under realistic control/data-plane models.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "survey/benchmark-gap observations",
+      "confidence": 0.9,
+      "limitations": [
+        "Some domain-specific datasets/tools exist (e.g., Kubernetes policy reachability thesis) but comprehensive NetOps benchmarks remain limited"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient empirical evaluation of end-to-end agentic NetOps systems that combine LLM generation, deterministic validators (e.g., Batfish/NetKAT), and deployment-safe enforcement with operator-in-the-loop controls.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7127085515",
+        "https://openalex.org/W7154539288",
+        "https://openalex.org/W4394661176"
+      ],
+      "evidence_type": "prototype system descriptions and verifier/tool papers",
+      "confidence": 0.88,
+      "limitations": [
+        "Several proposals and prototypes exist, but public empirical studies showing full closed-loop deployment with operator oversight are sparse"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for validated detector/monitoring methods specialized to agentic tool-execution hallucinations in NetOps (e.g., false-positive/false-negative rates of runtime monitors when checking LLM actions).",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.6538460"
+      ],
+      "evidence_type": "taxonomy and hybrid-safety framework papers",
+      "confidence": 0.86,
+      "limitations": [
+        "Taxonomies exist; concrete detector performance in NetOps contexts is not well-documented in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Uncertainty about optimal repair-loop budgets and feedback designs for NetOps tasks—how many repair iterations and what validators maximize correctness vs cost in network domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7160458110"
+      ],
+      "evidence_type": "empirical studies showing diminishing returns in repair loops (software/testing contexts) suggesting need for NetOps-specific study",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing empirical evidence comes from software engineering and testing; NetOps-specific dynamics may differ"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready to autonomously manage complex multi-vendor enterprise networks without human oversight (unsupported by provided records).",
+    "LLMs reliably produce fully-correct, deployment-ready BGP or ACL configurations for large-scale networks in a single pass (no supplied record demonstrates universal correctness at production scale).",
+    "There is consensus in the supplied literature that iterative repair always converges to a correct solution for arbitrary NetOps tasks (studies show diminishing returns and possible irrecoverable failures).",
+    "Formal verifiers uniformly cover all semantic failure modes introduced by LLM-generated configurations (verifiers help but coverage is task- and model-dependent)."
+  ]
+}

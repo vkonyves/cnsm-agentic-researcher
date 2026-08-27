@@ -1,0 +1,20 @@
+{
+  "summary": "Careful, well‑documented preregistered artifact study that correctly executed a paired confirmatory design (shared_initial_candidate) and transparently diagnosed why the paired contrast is degenerate (identical canonical candidates + deterministic validator). Artifacts and per‑file hashes are extensive and appear consistent with the reported counts. The manuscript is reproducible and appropriately cautious about interpretation, but needs a few targeted clarifications to avoid misreading of the estimand and accounting details.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly state the preregistered estimand (verifier‑consistency under identical inputs) in the title and first sentence of the abstract to avoid readers assuming the paper measures independent generative reliability. Cite the exact preregistration field name paired_success_rate_difference_guarded_minus_baseline and the shared_initial_candidate design choice (the artifact evidence is execution/responses/*-shared-initial.txt and execution/execution_manifest.json).",
+    "Add one short table (or boxed bullet) mapping: (a) the operational question practitioners typically want (independent per‑condition generative reliability), (b) the preregistered estimand actually tested here (validator response to identical inputs), and (c) why the shared_initial_candidate semantics answer the latter but not the former. Use existing artifacts (analysis/paired_contingency_table.csv, analysis/condition_summary.csv) as supporting evidence.",
+    "Clarify model‑call accounting explicitly in Methods/Disclosure: state that model_calls_used = 120 because a single canonical generation was produced per task and reused for both scoring conditions (point to execution/provider_calls/* and execution/responses/* files). Make the counting rule transparent for readers reproducing the run.",
+    "Add a concise paragraph (or a single clear sentence in Limitations) that reaffirms that the runnable modifications proposed (independent_per_condition, multi‑seed, validator diversification) are not executed here and are offered as artifact‑grounded next steps; reference exact artifact paths that allow deterministic reruns (execution/model_configuration.json, execution/task_manifest.jsonl, execution/provider_calls/*)."
+  ],
+  "optional_revisions": [
+    "Move one representative validator JSON trace excerpt (e.g., execution/scoring/task-000001-guarded.json) into the paper (short excerpt in appendix/figure caption) to concretely illustrate validator checks; this is optional but would aid readers (artifact already archived).",
+    "Consider renaming or adding a short subtitle that emphasizes the paper is a reproducibility + design‑diagnostic study rather than an independent generative‑reliability benchmark, to further reduce misinterpretation.",
+    "Provide a very brief pseudo‑protocol snippet (2–4 lines) showing the independent_per_condition rerun command sequence so others can execute the proposed rerun deterministically using the published artifacts."
+  ],
+  "accept_for_finalisation": false
+}

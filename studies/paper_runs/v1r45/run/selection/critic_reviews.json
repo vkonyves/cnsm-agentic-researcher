@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier coverage may be lossy (false positives/negatives) for nuanced semantics (BGP, ACL corner cases).",
+        "Synthetic task design and vendor-syntax emulation risk poor external validity versus real multi‑vendor networks.",
+        "Mapping LLM output→verifier input (parsing/translation) is a brittle step that can dominate measured failures.",
+        "Potential unintended dataset bias toward verifier-checkable properties, missing other operational risks."
+      ],
+      "required_design_repairs": [
+        "Specify exact verifier(s) (versions/configs) and formal input mapping; include validation of mapping (examples + failure modes).",
+        "Define vendor-syntax specification and realism criteria; publish transformation rules and example device models.  ",
+        "Pre-register baseline generation procedure and gold-reference construction (who/what produces gold configs).",
+        "Add protocol for measuring and reporting verifier false-positive/false-negative rates (oracle or manual adjudication on a sampled subset)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Relies on NetConfig-Semantic (or equivalent) — any bias there propagates to iteration conclusions.",
+        "Repair signal quality (counterexamples) is underspecified and may leak verifier internals, altering LLM behavior.",
+        "Findings may be tightly coupled to the chosen LLM and prompt templates (limited generality).",
+        "Retry and seed policies need strict preregistration to avoid post-hoc run selection."
+      ],
+      "required_design_repairs": [
+        "Define structured counterexample format (schema) and standardize feedback templates; justify non-leaking design. ",
+        "Pre-register exact repair prompts, stopping rules, random-seed policy, and retry policy. ",
+        "Include multi-model sensitivity checks or clearly bound generalization claims to the tested model. ",
+        "Add manual adjudication on a random subset to validate verifier→repair effectiveness and measure false-repair corrections."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulator fidelity and its mapping to real deployment risk is a major threat to external validity. ",
+        "Agent implementations can diverge; ensuring behavioural parity between Agent-only and Agent+Verifier pipelines is nontrivial. ",
+        "False-positive blocking by the verifier may inflate human-review counts and affect measured trade-offs.",
+        "Measurement of 'unsafe deployment' needs an explicit, operational definition tied to verifier capabilities."
+      ],
+      "required_design_repairs": [
+        "Validate simulator against at least one established network simulator or small real-device trace to justify fidelity. ",
+        "Lock agent policy and randomness; document agent architecture and seed controls to ensure comparable behavior across pipelines. ",
+        "Predefine and disclose precise operational definition of 'unsafe deployment' and adjudication procedure for disputed cases. ",
+        "Include sensitivity analyses showing results stability under alternative verifier strictness thresholds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Hallucination corpus is synthetic; representativeness of real agent hallucinations is uncertain. ",
+        "Defining ground-truth labels for hallucination vs benign ambiguous traces can be subjective. ",
+        "Monitors may introduce latency or operational overhead not accounted for in detection-only metrics. ",
+        "Adversarial variants may evade detectors; robustness evaluation must be rigorous."
+      ],
+      "required_design_repairs": [
+        "Describe corpus construction and labeling protocol; include inter-annotator agreement and examples. ",
+        "Measure monitor runtime/latency and report trade-offs for realistic pipeline integration. ",
+        "Specify adversarial perturbation generation method and include baseline real-agent trace evaluation (if available). ",
+        "Calibrate and preregister monitor thresholds; report sensitivity analyses for threshold choices."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

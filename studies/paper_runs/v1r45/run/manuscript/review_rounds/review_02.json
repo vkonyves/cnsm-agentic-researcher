@@ -1,0 +1,24 @@
+{
+  "summary": "Carefully documented, preregistered confirmatory study with full artifact bundle; result is a degenerate (perfect-agreement) outcome driven by shared-initial generation semantics and templated tasks. Good reproducibility evidence but important interpretability ambiguities about provenance of the shared-initial candidate and baseline definition require manuscript clarifications before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Ambiguous/contradictory description of baseline vs. shared_initial provenance: manuscript text describes a \"deterministic template baseline\" while the execution manifest and response artifacts show a preregistered \"shared_initial_candidate\" stage used for both conditions. This leaves unclear whether the baseline outputs were generated independently by the deterministic pipeline or whether both conditions used the same artifact produced by the same generator. This ambiguity materially affects interpretation of the paired comparison.",
+    "Insufficiently prominent statement that the confirmatory paired test does not compare independent generator outputs: although the Discussion mentions \"shared-initial generation semantics,\" the manuscript currently allows a reader to misinterpret the confirmatory result as evidence that gpt-5-mini independently matched the deterministic baseline. That would be misleading given the shared-candidate execution semantics.",
+    "Potential internal-contradiction between 'baseline produced by deterministic transformation pipeline' (Method claims) and provider-call accounting showing 120 hosted model calls at stage 'shared_initial_generation' (Execution manifest). The manuscript must resolve and explicitly reconcile these factual records using the archived artifacts."
+  ],
+  "required_revisions": [
+    "Using only the archived artifacts, explicitly and unambiguously state the provenance and production pipeline for the \"shared_initial_candidate\": specify whether the shared_initial candidate was produced by the LLM (execution/provider_calls/* and execution/responses/* files) or by the deterministic transformation pipeline (execution/transformation_manifest.json and execution/task_manifest.jsonl). Cite the specific artifact path(s) and SHA-256 hash(es) that demonstrate this provenance.",
+    "Correct the Methods and Baseline descriptions so they are consistent with the execution record: if the baseline was not independently generated for confirmatory seed_0, replace any wording that implies an independent deterministic baseline generation with precise wording (e.g., \"baseline condition used the same shared_initial_candidate supplied by <artifact path/producer> for confirmatory seed_0\"). If the baseline was independently produced, show the artifact evidence proving independent baseline generation (file paths and hashes) and reconcile with the provider_call accounting.",
+    "Prominently (Abstract, final paragraph of the Introduction, and Methods) add a single clear sentence that the confirmatory paired comparison used preregistered generation_semantics = \"shared_initial_candidate\" and therefore compares verifier outcomes on identical canonical candidates rather than on independently sampled generator outputs; explicitly state the consequences for interpretation (i.e., the test measures validator agreement on canonical candidates, not independent model-vs-template generation performance). Reference the exact preregistration entry (preregistration SHA-256) and the execution artifact(s) that show this was applied.",
+    "Update any contribution or conclusion sentence that could be read as claiming model equivalence to make the limitation explicit (no new experiments required — only textual change)."
+  ],
+  "optional_revisions": [
+    "Add a brief, concrete example (one representative pair) referencing its execution/scoring JSON and response files (paths and hashes already in the bundle) to illustrate how shared_initial candidate, baseline, and guarded outputs relate for a sample task (this can help readers quickly audit the provenance claim).",
+    "Expand the short Discussion paragraph on contamination-detection limits with one sentence referencing the contamination_summary artifact and acknowledging limits of string-overlap heuristics for proving absence of pretraining exposure.",
+    "Minor: add a one-line caption in Figure 2 reminding the reader that the bootstrap distribution is degenerate because n_10=n_01=0 and due to shared_initial semantics."
+  ],
+  "accept_for_finalisation": false
+}

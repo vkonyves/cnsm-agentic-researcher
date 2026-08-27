@@ -1,0 +1,26 @@
+{
+  "selected_candidate_id": "CAND-2026-001",
+  "selection_rationale": "CAND-2026-001 (NetConfig-Semantic) is the most mature and review-ready proposal: it directly targets the central gap (semantic correctness benchmarks, G1), has the strongest feasibility evidence and a critic verdict of “pass,” and is implementable within the stated compute/budget constraints for a five-page CNSM short paper. Reviewer concerns are addressable via explicit preregistration repairs.",
+  "runner_up_candidate_id": "CAND-2026-003",
+  "unresolved_uncertainties": [
+    "Verifier coverage for nuanced semantics (e.g., subtle BGP/ACL corner cases) may be lossy and could produce false positives/negatives (see https://openalex.org/W4394661176, https://openalex.org/W4401306886).",
+    "Mapping from LLM output → verifier input (parsing/translation) is brittle and may dominate measured failures; parser/translator error rates are unknown.",
+    "Synthetic dataset external validity: emulated vendor syntaxes and topology classes may not capture real multi-vendor production heterogeneity (mitigation: careful vendor-spec design and sampled real-trace validation).",
+    "Required manual adjudication/sample labeling to estimate verifier false-positive and false-negative rates is underspecified and must be planned before preregistration."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4408167800",
+    "https://openalex.org/W4394661176",
+    "https://openalex.org/W4401306886",
+    "doi:10.36227/techrxiv.177219979.94060974/v1",
+    "doi:10.1002/nem.2313"
+  ],
+  "required_repairs_before_preregistration": [
+    "Specify exact verifier(s) (software, version, configuration) and provide a formal specification of verifier input mapping; publish mapping code, examples, and known failure modes.",
+    "Define vendor-syntax specifications and realism criteria; publish transformation/translation rules and representative device models; include example tasks per vendor and validation tests for syntactic fidelity.",
+    "Pre-register baseline- and gold-reference generation procedures (who/what constructs gold configs), including provenance, adjudication rules, and sampling for manual review.",
+    "Add a protocol to measure and report verifier false-positive and false-negative rates (manual adjudication on a preregistered random subset), and include this error calibration in the primary analysis plan."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "study_id": "CAND-2026-001-NetConfig-Semantic-v1",
+  "title": "NetConfig-Semantic (repaired): a preregistered, reproducible benchmark for verifier-based semantic correctness of LLM-generated network configurations",
+  "research_question": "Can a reproducible benchmark using deterministic template baselines and an open-source verifier reliably detect and quantify semantic errors (reachability, ACL equivalence, BGP policy preservation) in LLM-generated device configurations across vendor syntaxes and topology classes?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The single-pass LLM generation pipeline has a lower task-level verifier pass rate than a deterministic template baseline; estimand = paired success-rate difference (LLM_success_rate minus baseline_success_rate) across N=120 tasks, tested with a paired_binary_analysis_v1 executor.",
+    "H2 (confirmatory): The rank-order stability of task-level verifier pass/fail across bootstrap resamples is low for token/fluency metrics but reliably captured by verifier-based binary success, as measured by Kendall tau on aggregated task success rates (exploratory-supported, pre-specified analysis)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How sensitive are measured LLM semantic-error rates to sampling multiple generation seeds per task (seed sensitivity)?",
+    "EQ2: What common semantic error classes (parse/ACL/BGP/misapplied-route) appear, and how do they correlate with topology class and vendor syntax?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4408167800",
+    "https://openalex.org/W4394661176",
+    "https://openalex.org/W4401306886",
+    "doi:10.36227/techrxiv.177219979.94060974/v1"
+  ],
+  "benchmark_scope": [
+    "120 intent→config tasks programmatically generated across 3 topology classes (edge, datacenter, multi‑AS)",
+    "3 vendor syntax families: vendor-A CLI, vendor-B CLI, vendor-neutral device model (all syntaxes defined by transformation rules published in repo)",
+    "Public release of task JSON, transformation code, verifier input, and all outputs; no private data"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 120,
+    "planned_episode_count": 240,
+    "maximum_model_calls": 240,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired_binary_analysis_v1): per-task binary success (verifier-pass) for LLM single-pass generation minus deterministic template baseline, averaged over N=120 paired tasks",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "seed_sensitivity_failure_rate: change in per-task pass probability across additional generation seeds (exploratory)",
+    "rank_stability_kendall_tau: Kendall tau of task success-rate rankings across 1000 bootstrap resamples (exploratory)"
+  ],
+  "sampling_plan": "Confirmatory sample: N=120 tasks (equal allocation across 3 topology classes => 40 tasks per topology). Per-task confirmatory generation: 1 canonical seed (seed_0) used for the paired analysis. Exploratory sampling: 4 additional independent seeds per task (seed_1..seed_4) for seed-sensitivity analysis (exploratory only). Tasks are programmatically synthesized from an intent template bank; inclusion rule: task passes transformation unit tests (gold-config parses and baseline verifies). Exclusion rule: tasks failing gold-config generation unit tests are excluded before runs and replaced to preserve N=120. Total confirmatory LLM calls = 120. Planned maximum_model_calls for execution contract = 240 (one initial generation per condition per task, at most one repair episode).",
+  "power_and_precision_plan": "Primary estimand: detect an absolute paired difference of 0.15 in verifier pass probability at two-sided alpha=0.05 with target power >=0.80. N=120 paired tasks (40 per topology) chosen per simulation approximations under baseline pass≈0.9 and LLM≈0.75 assumptions. Primary CI via 10,000 bootstrap resamples. Sensitivity power recomputed excluding suspected-contamination items and under worst-case contamination.",
+  "exclusion_rules": [
+    "Exclude and replace any task whose gold-template fails unit tests (parsing or verifier pass) prior to model calls to preserve N=120.",
+    "Primary analysis uses 'complete_pair_primary': drop pairs only if both baseline and LLM calls fail infrastructure-wise.",
+    "Sensitivity analysis treats failed model calls as verifier-failures (binary=0)."
+  ],
+  "missingness_plan": "Record all model-call and verifier runtime failures. Primary treatment: pairs with infrastructure call failures are excluded only if the baseline also failed the equivalent infrastructure step ('complete_pair_primary'). Sensitivity alternative 'complete_pair_primary_with_failure_as_zero_sensitivity' treats failed model calls as verifier failures (binary=0). If >10% of confirmatory pairs are excluded due to infrastructure issues, halt and retry according to preregistered retry policy (up to 2 automatic retries per failed call). All exclusions, retries, and timestamps are logged and published.",
+  "analysis_plan": "Primary confirmatory analysis executed by 'paired_binary_analysis_v1'. For each task i, baseline_i = deterministic-template verifier pass (binary), llm_i = verifier pass for LLM seed_0 (binary). Paired estimator = mean(llm_i - baseline_i) over i=1..120. Primary inference: bootstrap 95% CI on paired difference (10,000 resamples) and two-sided paired Wilcoxon signed-rank test on paired differences. Pre-specified failed_call_treatment: 'complete_pair_primary' (primary) and sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity'. Exploratory analyses: seed sensitivity across seeds_1..4, compute Cohen's d on any continuous verifier severity score if derived, and compute Kendall tau rank stability via 1000 bootstrap resamples. All analysis code, seeds, and outputs archived in public repo.",
+  "multiplicity_plan": "Single primary confirmatory test (H1) with alpha=0.05. Exploratory analyses (seed sensitivity, error taxonomy, rank stability) labeled exploratory and reported without confirmatory multiplicity corrections. Exploratory p-values are for hypothesis generation only.",
+  "contamination_plan": "Detection: exact-match detection (flag 'verbatim_match_suspected_contamination'); normalized Levenshtein and 5-gram overlap thresholds to flag 'high_overlap' or 'suspected_contamination'; self-bleu N-gram overlap with repo artifacts. Flagging rules: 'suspected_contamination' if exact match OR normalized 5-gram overlap >= 0.95; 'high_overlap' if normalized Levenshtein >= 0.9 and not exact match. Analysis treatment: primary estimand reports inclusive results (all tasks). Secondary sensitivity: report estimand excluding suspected-contamination items and with suspected-contamination items forced to failure (worst-case). Residual uncertainty: training-data exposure cannot be fully proven; string-similarity is an imperfect proxy.",
+  "stopping_rule": "If >10% of confirmatory pairs are excluded due to infrastructure failures after up to 2 automatic retries per failed call, abort the confirmatory run and report as incomplete; otherwise proceed to analysis. Any run-level aborts, retries, and reasons are logged and published.",
+  "planned_outputs": [
+    "IEEE-formatted short paper PDF (<=5 pages) including Disclosure Statement",
+    "Public Git repository with: task JSON, transformation code, parser, verifier input schemas, unit tests, all LLM outputs, baseline outputs, raw verifier logs, analysis code, seeds, and hashes",
+    "Docker image reference and pinned verifier (Batfish) version, CI-style mapping tests",
+    "Statistical results file (bootstrap replicates, test statistics)",
+    "Evidence-to-claim table, nearest-work comparison matrix, NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

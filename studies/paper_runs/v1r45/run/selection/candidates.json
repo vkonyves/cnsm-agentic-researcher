@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "title": "NetConfig-Semantic: A NetOps Benchmark for Semantic Correctness of LLM-Generated Configs",
+      "research_question": "Can a publicly reproducible benchmark measuring reachability, ACL semantics, and BGP policy fidelity reliably distinguish semantic correctness of LLM-generated network configurations across varied topologies and vendor syntaxes?",
+      "hypotheses": [
+        "LLM-generated configurations will exhibit substantially higher semantic-error rates (reachability or policy violations) than syntactically-correct baselines when evaluated under realistic control/data-plane models.",
+        "A benchmark that reports reachability and ACL-equivalence metrics will expose error modes not visible to token/fluency metrics and will produce stable model rankings across repeated seeds."
+      ],
+      "proposed_design": "Construct a public dataset of 120 intent→config tasks covering three vendor syntaxes (vendor-A CLI, vendor-B CLI, and a vendor-neutral device model) and three topology classes (edge, datacenter, multi-AS). For each intent task, produce a gold-reference config and an oracle reachable/policy model (using Batfish-style verifier or NetKAT mappings). Query one hosted LLM (standard API) with a fixed prompt template to generate configs (5 seeds per task). Evaluate each generated config with the verifier to compute reachability, ACL-equivalence, BGP policy-preservation, and syntactic-parsing success. Provide tooling, task JSON, verifier input, and all outputs in a public repo.",
+      "expected_data": "Per-task, per-seed records: generated config text, parse status, verifier pass/fail flags for reachability/ACL/BGP, violation traces (counterexamples), and metadata (model prompt, seed, timestamp). Aggregated tables of per-task error rates, metric distributions, and model-seed variance.",
+      "primary_outcome": "Benchmark utility measured as (a) effect size: difference in verifier-detected semantic-error rate between LLM outputs and gold baselines; and (b) internal consistency: rank-stability of models across bootstrapped task samples.",
+      "analysis_outline": "Compute per-task semantic-error rates and 95% confidence intervals via bootstrap; compare LLM vs baseline using paired Wilcoxon signed-rank tests; compute Cohen's d for effect sizes; report Kendall tau rank-stability across 1,000 bootstrap resamples; analyze failure traces to classify common semantic error types and correlate with topology/vendor class.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4408167800"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4401306886",
+        "doi:10.36227/techrxiv.177219979.94060974/v1"
+      ],
+      "risks": [
+        "Verifier abstractions may not cover all semantic nuances (lossy mapping) leading to false positives/negatives.",
+        "Synthetic dataset may not generalize to production heterogeneity.",
+        "Hosted-model API rate limits or outages could interrupt runs.",
+        "Dataset construction may inadvertently bias tasks toward verifier-covered properties."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "title": "Bounded Repair Loops for Intent→Config: Optimal Iteration Budgets in NetOps Repair",
+      "research_question": "For LLM-driven intent→configuration pipelines with verifier feedback, what iteration budget maximizes semantic-correctness gains per model-call cost for typical NetOps tasks?",
+      "hypotheses": [
+        "Most semantic-correctness improvement from iterative generate→validate→repair occurs within the first three repair iterations for NetOps intent→config tasks.",
+        "Beyond an empirically determined budget (3–5 iterations), additional iterations yield diminishing returns that are not cost-justified under model-call constraints."
+      ],
+      "proposed_design": "Use the NetConfig-Semantic dataset subset (60 tasks). Implement a closed-loop pipeline: LLM generates config → verifier checks → provide structured counterexample feedback → LLM repairs, up to 8 iterations or until verifier success. Run with fixed prompts and three random seeds per task. Record per-iteration verifier outcomes, model calls, latency, and final success. Compare fixed budgets (1,3,5,8) on correctness and model-call efficiency.",
+      "expected_data": "Iteration-level logs: for each task and seed, iteration number, generated config, verifier pass/fail, counterexample content, cumulative model calls, and final success flag. Aggregated curves of success probability vs iteration and cost-efficiency (success per 100 model calls).",
+      "primary_outcome": "Cost-effectiveness curve: semantic-success probability as a function of iteration budget and model-call cost; identification of the budget with maximal marginal gain per model call.",
+      "analysis_outline": "Estimate success-probability curves with 95% CIs via bootstrap; compute marginal success increase per additional iteration; apply segmented regression to identify elbow point; perform paired comparisons of budgets (McNemar test on paired success outcomes) and cost-effectiveness ratios with bootstrapped CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7167748939",
+        "https://openalex.org/W7160458110",
+        "https://openalex.org/W7167747165"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W7154539288",
+        "doi:10.36227/techrxiv.177219979.94060974/v1"
+      ],
+      "risks": [
+        "Repair prompts may leak verifier internals, biasing results.",
+        "Counterexample quality may vary, reducing repair signal effectiveness.",
+        "Model API rate limits could force uneven seed execution.",
+        "Findings may depend on the particular LLM chosen and not generalize to others."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "title": "Verified Agentic NetOps Pipeline: Measuring Safety Gains from Deterministic Verifier Integration",
+      "research_question": "Does integrating a deterministic network verifier into an agentic LLM NetOps pipeline measurably reduce deployment-risk actions (unsafe configs) compared to an unverified agentic pipeline under matched task workloads?",
+      "hypotheses": [
+        "An agentic pipeline augmented with a deterministic verifier and fail-safe enforcement will produce significantly fewer unsafe deployment actions than an equivalent pipeline without verification.",
+        "Verifier-augmented pipelines will trade reduced unsafe actions for modest increases in human-review flags (false positives), measurable by verifier coverage metrics."
+      ],
+      "proposed_design": "Implement two agentic pipelines: (A) Agent-only: LLM agent plans and issues configs/actions to a simulated execution queue; (B) Agent+Verifier: same agent but every planned action passes through a deterministic verifier; verifier-failing actions are blocked and routed for auto-repair or human-review flagging. Use 100 multi-step operational tasks (change plans affecting routing and ACLs) in a simulated multi-vendor environment. Measure unsafe deployments (verifier-detected violations that would reach production), blocked unsafe attempts, false-positive flags, and time-to-resolution.",
+      "expected_data": "Per-task logs of planned actions, verifier decisions (pass/block), deployments executed, any violations observed post-deployment in control-plane simulation, counts of human-review flags, and latency metrics.",
+      "primary_outcome": "Reduction in unsafe deployments (proportion of tasks resulting in unsafe config applied) between Agent-only and Agent+Verifier pipelines; secondary outcome: false-positive flag rate and mean time-to-resolution.",
+      "analysis_outline": "Compare proportions of unsafe deployments using two-proportion z-tests with exact binomial CIs; compute relative risk reduction and number-needed-to-block; analyze false-positive rates and latency with Mann–Whitney U tests; report subgroup analyses by vendor-syntax and task type.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7127085515",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W7154539288"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4401306886",
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "https://openalex.org/W4392875514"
+      ],
+      "risks": [
+        "Simulator fidelity may under- or over-estimate real deployment risk.",
+        "Verifier may block legitimate planned changes (false positives), inflating human-review burden.",
+        "Agent implementation variability could confound pipeline comparison if agent behavior diverges across runs.",
+        "Integration complexity across synthetic vendor syntaxes may cause mapping errors."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "title": "Runtime Monitors for Agentic Tool-Execution Hallucinations in NetOps",
+      "research_question": "Can lightweight runtime monitors detect agent tool-execution hallucinations (e.g., false API calls, fabricated device responses, invalid CLI commands) with acceptable false-positive/false-negative rates in LLM-driven NetOps agents?",
+      "hypotheses": [
+        "A runtime-monitor ensemble (syntax checker + API-result plausibility filter + command-execution sandbox) will detect >80% of agent tool-execution hallucinations with a false-positive rate <10% on curated NetOps scenarios.",
+        "Detection performance will degrade on adversarially-crafted hallucination variants but remain substantially above random baseline."
+      ],
+      "proposed_design": "Create a corpus of 600 agent action traces: 300 benign (correct tool calls and plausible responses) and 300 injected hallucinations (fabricated API endpoints, impossible device responses, malformed CLI sequences). Implement runtime monitors: lexical/grammar CLI parser, API-response schema validator, and sandboxed execution comparator. Evaluate detection metrics (TPR, FPR, precision, recall) and test robustness with adversarial perturbations (e.g., paraphrased hallucination messages).",
+      "expected_data": "Per-trace monitor outputs, binary detection labels, timestamps, detected-subtype codes, and aggregated ROC curves and precision–recall curves under standard and adversarial conditions.",
+      "primary_outcome": "Detection performance summarized as TPR and FPR; primary success threshold: TPR≥0.80 and FPR≤0.10 on held-out test traces.",
+      "analysis_outline": "Compute ROC and AUC; report point estimates and 95% CIs for TPR and FPR; compare monitor ensemble to single-monitor baselines using McNemar tests; perform error analysis on false negatives to categorize undetected hallucination types.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.6538460",
+        "https://openalex.org/W4399750638"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4401306886",
+        "https://openalex.org/W7167748939"
+      ],
+      "risks": [
+        "Constructed hallucination corpus may not reflect real-world hallucination diversity.",
+        "Monitors could be evaded by sophisticated adversarial phrasing.",
+        "Sandbox comparators may impose performance overhead unsuitable for low-latency operations.",
+        "False positives may reduce operator trust and increase alert fatigue."
+      ],
+      "estimated_model_calls": 900
+    }
+  ]
+}
