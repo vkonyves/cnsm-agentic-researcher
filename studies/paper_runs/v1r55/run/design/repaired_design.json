@@ -1,0 +1,168 @@
+{
+  "selected_candidate_id": "cand_7f4b9a2d",
+  "title": "End-to-end generate→verify→repair: measuring verifier impact on LLM-generated network configurations (repaired preregistration)",
+  "research_question": "How much does integrating a deterministic network verifier into a generate→verify→repair loop reduce verifier-detected safety violations in LLM-generated device-configuration proposals compared to LLM-only proposals under matched intent tasks and canonical topologies?",
+  "confirmatory_hypotheses": [
+    "An LLM paired with a deterministic verifier plus an automated repair loop (verify→repair, max 5 repair iterations) will produce a lower verifier-detected safety-violation rate than the same LLM producing a single proposal without verifier feedback (paired per-task comparison).",
+    "Most of the safety improvement from the verify→repair loop will occur within the first one or two repair iterations (diminishing returns thereafter)."
+  ],
+  "exploratory_questions": [
+    "How does repair success probability vary by violation-class (reachability, blackhole, ACL breach, static-route misconfiguration)?",
+    "What is the distribution of repair iterations conditioned on initial-violation class?",
+    "What is the latency (wall-clock) distribution per task for the guarded arm and its dependence on number of repair iterations?"
+  ],
+  "benchmark_scope": [
+    "Synthetic Intent→Configuration task corpus (public synthetic-generator scripts included in repo)",
+    "Canonical small-to-medium topologies covering VLAN, ACL, and static-route intents",
+    "Evaluations restricted to configuration features and protocol constructs that the chosen verifier models (see contamination_plan and transformation_validation)"
+  ],
+  "model_scope": [
+    "One hosted LLM (single model identity to be called via hosted model API; model identifier will be recorded in execution manifest prior to runs). The preregistration preserves a single selected model identity; no cross-model generalization claim is made."
+  ],
+  "transformation_scope": [
+    "Natural-language intent → per-device CLI/configuration snippets",
+    "Deterministic parser/normalizer transformations to canonical configuration AST used by the verifier",
+    "Automated repair-prompt generation derived deterministically from verifier diagnostics"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "iteration_to_success_distribution (P(success by iteration k))",
+    "mean_latency_per_task_guarded_minus_baseline",
+    "per-violation-class absolute risk reduction (paired)"
+  ],
+  "sampling_plan": "Confirmatory paired design. The confirmatory cohort is a stratified sample of intent→configuration tasks balanced across three clusters: VLAN-change, ACL-change, and static-route-change. Stratification: equal allocation to clusters. Tasks are generated deterministically by the supplied synthetic generator (public repo) using fixed random seed(s) recorded in the preregistration. Inclusion: tasks whose intents reference only features modeled by the verifier (see contamination_plan). Exclusion: tasks mentioning unmodeled features (e.g., proprietary vendor-only constructs) are omitted from the primary paired analysis and reported in a separate cohort. For the recommended scenario: 500 confirmatory tasks (167 per cluster, remainder allocated deterministically by seed). Discovery/exploratory items: 0 (no discovery items in the primary preregistration). All per-task selection is deterministic (hash-based selection from generator output with preregistered seeds).",
+  "analysis_plan": "Primary analysis executed by the registered analysis executor 'paired_binary_analysis_v1' with estimand 'paired_success_rate_difference_guarded_minus_baseline'. Primary outcome per task: binary pass/fail of verifier-detected safety-violation (pass == verifier reports zero high/medium-severity violations among preregistered property set). Paired comparison: McNemar's test (two-sided, alpha=0.05) to test whether the guarded final proposals have a different pass rate than baseline proposals; report absolute and relative risk reduction with 95% CIs. Multiple-comparison control for per-violation-class secondary tests: Benjamini–Hochberg FDR control. Analysis executor failure-handling: follow the registered contract's failed_call_treatment options in order: 'complete_pair_primary' (drop pair if both arms unavailable) and sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing final guarded proposal as a failure in a sensitivity run). Pre-specified seeds and deterministic randomness used for all experiment elements are recorded. All prompts, prompt templates, repair-mapping rules, generator seeds, and verifier configuration are frozen and published in the preregistration artifact store before execution.",
+  "multiplicity_plan": "Primary confirmatory test: single paired McNemar test on pass/fail averaged across all properties in the verifier property set (composite pass==no high/medium-severity violations). Secondary analyses by violation class (reachability, blackhole, ACL, static-route) are treated as exploratory-confirmatory with Benjamini–Hochberg FDR correction. No additional unregistered contrasts will be presented as confirmatory.",
+  "missingness_plan": "Missingness sources: API failures, verifier parse failures, or excluded tasks (unmodeled features). Deterministic retry policy for model calls: up to 2 automated retries for transient API/network errors (exponential backoff). If a baseline or guarded initial call permanently fails for a task after retries, the pair is handled per analysis contract (primary: drop incomplete pairs; sensitivity: treat the guarded final as failure). Verifier parse failures (syntax parse of generated config) cause automatic exclusion of that proposal and replacement of the pair only if parser failure is due to nondeterministic provider-side issues; otherwise the pair is retained with the verifier reporting 'parse_failure' and counted as failure for pass/fail. All exclusions and missingness reasons are logged and reported; no manual adjudication is performed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic Intent-To-Config v1 (repo: ./bench/synthetic_intent_config_v1)"
+    ],
+    "risk_factors": [
+      "Prompt leakage across tasks (repeated identical intents)",
+      "Generator seeding duplications",
+      "Verifier-unmodeled features accidentally included in tasks",
+      "Cross-contamination between exploratory/development artifacts and confirmatory cohort"
+    ],
+    "detection_procedures": [
+      "Deterministic per-item hashing (SHA-256) of canonicalized intent+topology+seed; any duplicate hash within confirmatory set flags the item for exclusion.",
+      "Textual-similarity screening using cosine similarity over a TF-IDF vectorization; similarity > 0.95 triggers deterministic exclusion.",
+      "Automated check that task provenance (generator seed and index) is within preregistered ranges."
+    ],
+    "item_flagging_rules": [
+      "Duplicate-hash or similarity-flagged items are automatically excluded from the confirmatory cohort and replaced deterministically by the next-in-sequence generator output.",
+      "Tasks whose parsed intent references any feature listed in 'verifier_unmodeled_features' are automatically routed to the separate 'unmodeled-feature' cohort and excluded from primary analysis."
+    ],
+    "analysis_treatment": "Flagged/excluded items are omitted from the primary paired analysis and reported in a separate section with counts and deterministic reasons. Primary estimates are computed only on the verified-modeled cohort.",
+    "residual_uncertainty": [
+      "Residual risk that synthetic generator does not reflect production intent distributions (external validity).",
+      "Potential for the verifier to report false positives/negatives within its modeled domain; quantification approach described in transformation_validation."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_conservative",
+      "description": "Minimal confirmatory runs to detect large effects within resource constraints.",
+      "planned_model_calls": 800,
+      "models": [
+        "single_hosted_llm"
+      ],
+      "transformations": [
+        "intent_to_config_generation",
+        "config_normalization"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task expected model calls: baseline 1 + guarded (initial + expected 2 repair iterations) = 1 + 3 = 4 calls/task. 200 tasks × 4 = 800 expected model calls. Worst-case (max repairs 5) upper bound: 200 × 7 = 1400 model calls, still within the 10k system cap. This scenario is sufficient to detect large absolute risk reductions (>~15 percentage points) under baseline violation-rate assumptions (see power_plan)."
+    },
+    {
+      "scenario_id": "scenario_recommended",
+      "description": "Recommended confirmatory run sized to detect modest absolute reductions (~10 percentage points) with power≈0.8 under assumptions.",
+      "planned_model_calls": 2000,
+      "models": [
+        "single_hosted_llm"
+      ],
+      "transformations": [
+        "intent_to_config_generation",
+        "config_normalization",
+        "deterministic_repair_prompt_mapping"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 500,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task expected model calls: baseline 1 + guarded expected calls (initial + avg 2 repair iterations) = 1 + 3 = 4 calls/task. 500 tasks × 4 = 2000 expected model calls. Worst-case upper bound (max 5 repair iterations per guarded task): baseline 1 + guarded up to 6 => 7 calls/task → 500 × 7 = 3500 worst-case. Both expected and worst-case are below the capability manifest limit (max 10000 planned model calls). Matches candidate's estimated_model_calls (~2000)."
+    },
+    {
+      "scenario_id": "scenario_aggressive",
+      "description": "Larger confirmatory run for improved precision and subgroup estimates.",
+      "planned_model_calls": 4000,
+      "models": [
+        "single_hosted_llm"
+      ],
+      "transformations": [
+        "intent_to_config_generation",
+        "config_normalization",
+        "deterministic_repair_prompt_mapping"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1000,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Per-task expected model calls: 4 calls/task × 1000 tasks = 4000 expected calls; worst-case upper bound 7×1000 =7000 < 10000. Offers improved power for smaller effects and more granular per-violation-class inference."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "absolute reduction of 0.10 (10 percentage points) in verifier-detected violation rate (e.g., baseline 0.30 → guarded 0.20)",
+    "clustering_unit": "task (each task yields a paired baseline and guarded outcome)",
+    "calculation_method": "Approximate paired-sample power (normal approximation to McNemar): assumed baseline violation-rate p_b = 0.30; target p_g = 0.20; paired discordant probability modeled with an assumed within-task correlation of 0.5 for pass/fail. Using these assumptions and two-sided alpha=0.05, power=0.80 requires approximately N≈384 paired tasks. We round up to 500 for the recommended scenario to allow for exclusions and provide stability across clusters.",
+    "assumptions": [
+      "Baseline verifier-detected violation rate p_b ≈ 0.30 (conservative prior based on evidence gaps)",
+      "Target absolute reduction 0.10 (10 pp)",
+      "Within-task paired correlation ≈ 0.5 for binary outcomes",
+      "Alpha=0.05, power=0.80; two-sided test",
+      "Planned analysis uses McNemar's test implemented by 'paired_binary_analysis_v1' executor"
+    ],
+    "recommended_scenario_id": "scenario_recommended",
+    "minimum_detectable_effect_notes": "With N=200 (conservative), detectable absolute difference is roughly ≥0.15–0.18; with N=500 detectable difference ~0.08–0.10 under the same assumptions.",
+    "sensitivity_analyses": [
+      "Repeat primary paired analysis under alternative missingness treatment: sensitivity run treating missing guarded proposals as failures (per analysis contract).",
+      "Recompute paired effect confidence intervals excluding any tasks in the separate 'unmodeled-feature' cohort.",
+      "Recompute power / detectable-effect with baseline p_b values in [0.20,0.40]."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent → configuration generation (LLM output)",
+      "Configuration normalization & AST conversion (deterministic parser)",
+      "Verifier-diagnostic → repair-prompt mapping (deterministic template)"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated normalization of generated configurations to canonical ASTs; semantic equivalence via AST equality/structural comparison for constructs within the verifier-modeled subset.",
+      "Round-trip check: the normalized AST rendered back to CLI text re-parsed to the same AST; pairs failing round-trip are rejected automatically."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated proposals that fail deterministic parser/normalizer (parse failure → count as verifier failure in primary analysis unless failure is due to known provider-side transient error and retried).",
+      "Reject proposals that reference unmodeled features (as determined by a deterministic keyword/feature-set matcher) and route those tasks to the 'unmodeled-feature' cohort.",
+      "Reject or mark for exploratory-only any proposal that exceeds preregistered maximum length thresholds to avoid downstream verifier-modeling ambiguity."
+    ],
+    "audit_sample_policy": "Deterministic 5% audit sample of confirmatory pairs selected by hashing (no human inspection). For each audited pair the system runs additional automated syntactic and semantic checks (AST diff, property re-evaluation) to confirm pipeline consistency. Audit results are logged and any systematic parsing failures trigger preregistered exclusion thresholds.",
+    "mapping_validation": "The verifier-diagnostic → repair-prompt mapping is implemented as deterministic templates with fields filled by exact diagnostic labels from the verifier (e.g., {device},{fault_type},{failing_acl_line},{desired_property}). Mapping templates and unit tests (public repo) are frozen and exercised on synthetic fault fixtures so the mapping is reproducible.",
+    "residual_risks": [
+      "Verifier may produce false negatives/positives even within modeled features; we estimate residual FN/FPR by running the verifier on synthetic golden-config pairs produced by the same generator and comparing verifier output to oracle reachability computations implemented in the experiment code (deterministic simulator). No human adjudication is used."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: the synthetic generator and canonical topologies may not fully reflect production diversity across vendors and scale (bounded claim to synthetic/canonical topologies).",
+    "Hosted-model nondeterminism and vendor-side model updates may affect exact numeric replication; logs and seeds are preserved for the time of execution.",
+    "Verifier-modeling scope: some advanced vendor constructs remain intentionally excluded and reported in the unmodeled-feature cohort; generalization beyond the modeled feature set is not claimed."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415124495",
+    "https://openalex.org/W2742515467",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7138852018"
+  ]
+}

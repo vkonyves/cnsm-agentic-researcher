@@ -1,0 +1,23 @@
+{
+  "summary": "Careful, preregistered paired study measuring verifier impact on synthetic intent→configuration tasks. Execution and analysis are complete and well-archived. Result: baseline 499/500 pass, guarded 500/500 pass; absolute improvement 0.002 (95% CI [0.0,0.006]); McNemar two-sided p = 1.00. Methods, preregistration, and artifact bundle are present. Manuscript is scientifically defensible but requires a small set of clarifications to avoid reader confusion about shared-generation semantics, model-call accounting, and verifier scope/repair activity.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Methods do not explicitly state that baseline and guarded used a single shared initial LLM generation per task (shared_initial_candidate), which explains why only ~501 model calls were used instead of two independent calls per arm. Absent this clarification, readers may misinterpret the paired design and model-call accounting.",
+    "The manuscript omits a concise, explicit summary of verifier modeling scope and repair activity (e.g., which device/feature classes were modeled, count of excluded tasks—zero—and that only one repair invocation occurred). This gap can mislead readers about generalizability and the practical meaning of the guarded arm.",
+    "The statistical reporting (exact McNemar p = 1.00) is presented without brief explanation of why the p-value is 1.00 in the presence of a single discordant pair and without an explicit statement that the analysis is underpowered to detect small improvements because of a ceiling effect. This risks reader confusion about test interpretation."
+  ],
+  "required_revisions": [
+    "In Methods (and Disclosure if appropriate) add an explicit, brief statement that generation_semantics was 'shared_initial_candidate' with independent_condition_generation = false, so each task used one shared LLM proposal (one generation call) that was then evaluated for both baseline and guarded conditions; add this same accounting to the Execution/Results paragraph and reconcile it with the reported model_calls_used = 501 and stage_counts (shared_initial_generation = 500, repair = 1). Use the archived execution manifest hashes as provenance but do not paste raw logs in body.",
+    "Add a short, explicit paragraph (or a row in Results/Limitations) listing the deterministic validator's modeled feature scope and confirm that zero tasks were excluded from the primary analysis; state the total number of repair invocations (1) and how that was counted (referencing the 'repair' stage count in the execution manifest). This must be derived from the supplied execution/analysis artifacts.",
+    "In Results add one clarifying sentence explaining the exact-McNemar p = 1.00 outcome (i.e., only one discordant pair observed, n10=1 n01=0, resulting in a two-sided exact test p=1.00) and explicitly state that the near-ceiling baseline pass rate substantially limits power to detect small absolute improvements (so the null result should be read as a ceiling-effect finding rather than evidence that verifiers are universally unnecessary)."
+  ],
+  "optional_revisions": [
+    "Include a one-paragraph per-cluster (VLAN/ACL/static-route) success-rate breakdown and the paired contingency figure (paired_difference_figure.svg) from the archived analysis artifacts to help readers judge heterogeneity; these artifacts are available in the evidence bundle.",
+    "Move or summarize a single-line provenance pointer in Methods to the representative artifact hashes (e.g., execution/raw_results.jsonl) to help reviewers locate archived logs quickly (do not paste full logs).",
+    "Add a very brief note in Discussion contrasting shared-initial-generation design choice with an alternative independent-generation design and state how that choice affects the estimand interpretation (i.e., guarded effect isolates verifier+repair impact conditional on the same initial model candidate)."
+  ],
+  "accept_for_finalisation": false
+}

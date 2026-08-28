@@ -1,0 +1,19 @@
+{
+  "summary": "This is a careful, artifact-backed preregistered paired experiment that measures the verifier+repair effect on verifier-detected safety violations for LLM-generated intent→configuration proposals under a constrained synthetic corpus. Execution and analysis artifacts are comprehensive and internally consistent. The principal scientific limitation is a ceiling-effect regime (baseline 499/500) that yields a numerically tiny measured improvement (0.002) and large inferential uncertainty for small absolute effects. The manuscript correctly bounds its claims and archives reproducibility artifacts, but a small set of clarifications that can be resolved from the archived artifacts are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Report the identity (pair/task identifier) of the single discordant pair (n10=1) and include a 1–2 sentence archival summary of the validator diagnostics and the repair-stage trace applied for that pair (repair prompt SHA, repair output SHA, violation code(s) that triggered repair). This information is available in the archived scoring/validator traces and is necessary for reproducible auditing and correct interpretation of the single observed guarded-only success.",
+    "State explicitly which exact implementation of the ‘exact McNemar two-sided’ test was used (library or algorithmic variant) and provide the numeric calculation or code reference that produced p = 1.00. If an exact-binomial two-sided approach or mid-p variant was considered, list which was used. The analysis artifacts and analysis_log.jsonl can be referenced to populate this short methodological note.",
+    "In Methods (and Abstract if space allows) add one clear sentence reminding readers that under the preregistered generation_semantics = 'shared_initial_candidate' the baseline and guarded arms evaluated the same initial model proposal (so guarded repairs occur only when the validator flagged that shared candidate). Although discussed in the manuscript, a single explicit sentence in Methods and one in Abstract will prevent misinterpretation about the experimental contrast being ‘verifier+repair conditional on a single candidate’ rather than ‘verifier-guided regeneration’. This clarification can be resolved from the archived model_configuration.json and execution_manifest.json."
+  ],
+  "optional_revisions": [
+    "Consider adding a short one-paragraph example (1–2 lines) drawn from the archived artifacts that illustrates the nature of the baseline failure that the guard corrected (violation class and human-readable description). This will help readers understand practical impact beyond summary counts.",
+    "If space permits, add a brief note referencing the nearest verifier-integration prior work (e.g., Batfish integrations or generate–verify examples) with precise citations to strengthen related-work positioning; the evidence bundle includes verified bibliography records.",
+    "If helpful for readers, include in supplementary/appendix artifact table form (artifact-path + SHA) the analysis script entrypoint or notebook that reproduces the primary McNemar and bootstrap CI calculations (the analysis artifacts appear present)."
+  ],
+  "accept_for_finalisation": false
+}

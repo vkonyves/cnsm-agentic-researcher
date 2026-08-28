@@ -1,0 +1,21 @@
+{
+  "summary": "Closure review (review_mode=closure_review) evaluating whether prior required revisions were resolved. The study is a well-executed, preregistered, artifact-backed paired experiment isolating verifier+single-repair impact. However the two prior required revisions remain unaddressed in the manuscript: (1) the deterministic identifier and a short artifact-backed sanitized summary of the single discordant episode (baseline fail → guarded pass) are not included in the text, and (2) the manuscript does not explicitly report realized per-cluster sample sizes (preregistered 167/167/166) with a citation to the task-manifest evidence. These omissions reduce immediate verifiability though the archived artifacts needed to satisfy them are available. No new critical scientific defects are introduced in this revision.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript omits the deterministic identifier (pair/episode id) for the single discordant episode where the guarded arm converted a baseline failure to a pass, preventing immediate deterministic audit from the paper alone.",
+    "Manuscript does not explicitly state the realized per-cluster sample sizes (preregistered 167/167/166) or cite the execution/task_manifest.jsonl evidence that confirms the realized allocation."
+  ],
+  "required_revisions": [
+    "Insert the deterministic identifier (pair/episode id) of the discordant episode into the manuscript text. Source this identifier directly from the archived execution/raw_results.jsonl and provide the artifact retrieval path (execution/raw_results.jsonl) and its recorded SHA-256 manifest hash so auditors can locate the entry deterministically. Do not invent or paraphrase the id — copy it exactly from the archived artifact.",
+    "Add a short sanitized, artifact-backed summary of the discordant episode using only archived fields: report the verifier-reported violation class/code and mapped severity, a concise statement of the repair action applied (repair prompt id/path and short sanitized description of the repair), and the final validator outcome. All details must be quoted or paraphrased directly from execution/raw_results.jsonl, the validator_trace, and any repair_provider_trace present in the evidence bundle; redact or sanitize any operator-sensitive strings only if required by existing artifact redaction policy and state that redaction.",
+    "Explicitly report the realized per-cluster sample sizes and confirm whether they match the preregistered allocation (167/167/166). Cite the exact artifact path and recorded SHA-256 for the task manifest entry or execution/task_manifest.jsonl (as archived) that shows the per-task cluster assignments so readers can verify counts deterministically. If any deterministic deviation occurred, state it and point to the manifest evidence showing the deviation."
+  ],
+  "optional_revisions": [
+    "Optionally include a single-row table or one-paragraph boxed example pulled from the archived discordant-episode artifact showing validator.violation_codes, validator.violation_count, repair_prompt path/sha256, and final validator.valid status to expedite reader inspection (use only archived artifact fields).",
+    "Optionally cite the exact execution/task_manifest.jsonl SHA-256 (already present in the manifest summary) in the Results or Methods when stating overall task counts and strata to improve immediate traceability, and add a one-sentence pointer to the artifact_examples entries for representative tasks."
+  ],
+  "accept_for_finalisation": false
+}

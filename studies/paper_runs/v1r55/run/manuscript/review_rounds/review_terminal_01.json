@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed preregistered paired study with extensive artifact archival that measures the marginal effect of inserting a deterministic verifier plus one automated repair into an LLM generate→verify→repair pipeline. The experiment and artifacts are thorough and reproducible; results show a near-ceiling baseline and a single repaired discordant pair (absolute improvement 0.002, bootstrap 95% CI [0.0,0.006]). Main concerns are limited and resolvable from the archived evidence: (1) the manuscript asserts preregistered stratification into three clusters but does not show the actual per-cluster composition from the executed task manifest, and (2) the discordant episode that produced the single guarded-only success is referenced but not explicitly identified in the paper, reducing immediate auditability. A minor clarity issue concerns the exact implementation and reporting convention for the “exact McNemar two-sided” computation; authors describe their convention but should cite or state the formula succinctly for readers.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript claims a stratified sample across three clusters (VLAN-change, ACL-change, static-route-change) with explicit per-cluster counts, but the paper does not present the actual executed per-cluster counts or disclose any deviation from the preregistered allocation. This is a required provenance/disclosure item that is resolvable from the archived task_manifest.jsonl.",
+    "The single discordant episode (the sole case where guarded converted a baseline failure to a pass) is described as archived and locatable by filtering raw_results.jsonl, but the manuscript does not give the deterministic pair/episode identifier or a concise pointer (e.g., pair-XXXXX). That omission reduces immediate verifiability; the identifier and brief description can and should be included from the archived artifacts.",
+    "The statistical-reporting convention for the confirmatory test (labelled “exact McNemar two-sided” but implemented as an exact binomial on discordant pairs with a particular two-sided doubling/truncation rule) is described in text but would benefit from an explicit one-line formula or a standard reference to remove ambiguity. Without that, readers may misinterpret the p=1.00 statement."
+  ],
+  "required_revisions": [
+    "Add an explicit table or one-line sentence reporting the realized per-cluster sample sizes (counts for VLAN-change, ACL-change, static-route-change) from execution/task_manifest.jsonl and state whether these match the preregistered 167/167/166 allocation or, if different, document the deterministic deviation and rationale (using archival evidence).",
+    "Insert the deterministic identifier for the discordant episode (pair id present in execution/raw_results.jsonl) and a one-paragraph sanitized summary of what the validator reported and what the repair did (sourced from the archived validator_trace and repair_provider_trace). If the team prefers not to print provider-call traces, include the pair id and a short, artifact-backed summary of the violation class and repair outcome.",
+    "Explicitly state the exact test implementation used for the confirmatory inference (the exact-binomial-on-discordant-pairs convention), provide the one-line formula or algorithmic description used to compute the two-sided p-value, and add a standard statistical citation or archival code-path reference from the analysis artifacts that implements this convention (so readers can reproduce the p-value calculation)."
+  ],
+  "optional_revisions": [
+    "Add a short table or appendix paragraph (sourced from analysis artifacts) showing per-violation-class counts and any attempted repairs by class (even if counts are near-zero) to help readers assess where the lone failure arose.",
+    "Briefly quantify or discuss cost/latency implications of the shared_initial_candidate semantics versus a regeneration-based guarded workflow using the observed model_calls_used and repair-call counts (the artifacts contain model_calls_used = 501 and repair-stage calls = 1).",
+    "Clarify in Related Work one or two closest prior empirical studies that attempted similar generate→verify→repair isolations and explicitly state differences; include direct citations from the verified bibliography to better situate novelty."
+  ],
+  "accept_for_finalisation": false
+}

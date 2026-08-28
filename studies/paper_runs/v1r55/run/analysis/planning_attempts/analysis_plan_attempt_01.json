@@ -1,0 +1,33 @@
+{
+  "study_id": "cand_7f4b9a2d_hosted_gvr_v1_2026",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis (per preregistration) using McNemar's test (two-sided, alpha=0.05) on per-task verifier pass/fail labels (pass = verifier reports zero preregistered high/medium-severity violations). Report absolute risk reduction (guarded − baseline), relative risk reduction, 95% confidence interval for absolute risk reduction, and McNemar p-value. Primary missing-call treatment: complete_pair_primary (drop incomplete pairs). All analyses use archived per-task records from execution/raw_results.jsonl and execution/task_manifest.jsonl.",
+  "secondary_analyses": [
+    "iteration_to_success_distribution (P(success by iteration k), k∈{0,1}) — empirical distribution from verifier pass labels and repair iteration counts; report proportions and 95% CIs",
+    "mean_latency_per_task_guarded_minus_baseline — paired comparison of per-task wall-clock latency (guarded − baseline); report mean difference, 95% CI, and paired test (Wilcoxon signed-rank if nonnormal)",
+    "per-violation-class absolute risk reduction (paired) — paired counts and absolute risk reductions by violation class (reachability, blackhole, ACL breach, static-route misconfiguration); report unadjusted p-values and BH-adjusted q-values (see multiplicity)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity — treat missing guarded final proposals as failures (count as verifier failure) and recompute primary estimand and McNemar test",
+    "Exclusion-sensitivity — recompute primary estimand excluding tasks routed to the preregistered unmodeled-feature cohort",
+    "Missingness-as-drop (alternate) — report results when dropping any pair with any permanent API/parsing failures (document counts and reasons)"
+  ],
+  "uncertainty_quantification": "Primary: McNemar two-sided p-value and 95% CI for absolute risk reduction (Newcombe/Wilson-based interval for paired proportions). Secondary: 95% CIs for proportions (Wilson) and for latency difference (bootstrap, B=1000) where applicable. Report exact counts and exact binomial CIs for per-class rates. All CI and p-value computations use deterministic numeric procedures on archived result records.",
+  "multiplicity_implementation": "Primary composite test is sole confirmatory contrast. Secondary per-violation-class hypothesis tests are treated as exploratory-confirmatory and adjusted using Benjamini–Hochberg FDR across those class-specific tests; report both unadjusted p-values and BH q-values. All other analyses are explicitly exploratory and labeled as such.",
+  "contamination_analysis": "Follow preregistered contamination_plan using execution artifacts: detect and report duplicate tasks via SHA-256 of canonicalized intent+topology+seed (task_manifest in execution/task_manifest.jsonl), flag high-similarity items via TF-IDF cosine>0.95 (automated screening logged in execution/execution_log.jsonl), and route tasks referencing verifier_unmodeled_features to the unmodeled-feature cohort. Excluded/flagged items are omitted from primary paired analysis and reported with deterministic reasons and counts (artifact paths provided).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary 2×2 paired contingency table (baseline pass vs guarded pass) with counts, discordant-cell counts, absolute risk reduction (guarded−baseline), relative risk reduction, 95% CI, and McNemar p-value (source: execution/raw_results.jsonl)",
+    "Table 2 — Task counts and exclusions by preregistered cluster (VLAN, ACL, static-route): included, excluded (unmodeled-feature), duplicate, similarity-flagged; include deterministic seeds and replacement indices (source: execution/task_manifest.jsonl and execution/execution_log.jsonl)",
+    "Table 3 — Secondary: per-violation-class paired counts, absolute risk reduction, unadjusted p-values, and BH-adjusted q-values (source: execution/raw_results.jsonl verifier_diagnostics)",
+    "Table 4 — Sensitivity analyses summary: primary estimand recomputed under complete_pair_primary_with_failure_as_zero_sensitivity and exclusion variants, with counts of affected pairs and resulting ARR/p-values",
+    "Table 5 — Latency summary by condition and cluster: median, IQR, mean difference, 95% CI, and test statistic (source: timestamps in execution/raw_results.jsonl)"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar plot of verifier pass rates (baseline vs guarded) overall and by cluster (VLAN/ACL/static-route) with 95% CIs (data from execution/raw_results.jsonl)",
+    "Figure 2 — Paired discordant-cell stacked bar (counts of baseline-only failures, guarded-only failures) illustrating where improvements occur (source: per-task pass_fail_labels)",
+    "Figure 3 — Iteration-to-success distribution (P(success at iteration 0 vs after 1 repair)) as clustered bars per violation class (source: repair iteration and verifier outcome fields)",
+    "Figure 4 — Latency distribution (boxplots) per condition (baseline, guarded) with overlaid paired differences (source: timestamps in execution/raw_results.jsonl)"
+  ]
+}

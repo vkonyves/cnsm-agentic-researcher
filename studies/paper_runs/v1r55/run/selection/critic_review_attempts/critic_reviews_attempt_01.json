@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand_7f4b9a2d",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier/modeling mismatch not fully specified (which verifier, supported features, mapping from generated config to verifier model).",
+        "Dataset/topology provenance and realism are underspecified (risk of synthetic overfitting).",
+        "Repair prompt design and termination rules need concreteness to avoid silent reruns or prompt-tuning bias."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier/tool (name and version, e.g., Batfish vX or Minesweeper) and its modeling coverage; list properties it will check and failure modes to be excluded.",
+        "Provide precise dataset and topology sources (public repo links), inclusion/exclusion rules, and seedable generation procedures for synthetic cases.",
+        "Publish frozen prompts, repair-prompt templates, max-iterations policy, retry policy, and exact random seeds in preregistration.",
+        "Predefine mapping rules for verifier-detected faults → automated repair prompt inputs so repairs are deterministic given verifier traces.",
+        "Add an explicit plan to handle verifier-unmodelable features (exclusion or separate analysis)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_2b1c8e6f",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Ground-truth vendor configs and dataset licensing/representativeness are insufficiently specified.",
+        "Validator coverage for different vendor CLIs may be incomplete (semantic checks vs syntactic parsing).",
+        "Prompt-adapter construction (few-shot examples) could leak dataset-specific answers if not preregistered."
+      ],
+      "required_design_repairs": [
+        "Provide exact dataset items with public identifiers or a reproducible synthetic generation script; state how vendor diversity is sampled and balanced.",
+        "Specify vendor-grammar/syntax validators and semantic-check procedures per vendor (tools, versions, regex/AST definitions).",
+        "Freeze and publish the three prompt conditions (vendor-agnostic, vendor-annotated, vendor-adapter few-shot) in the preregistration with seeds for few-shot example selection.",
+        "Define actionable-success rubric clearly (what counts as actionable across vendors) and how edit-distance vs semantic correctness are combined.",
+        "Pre-register statistical model (mixed-effects formulation) including covariates and planned contrasts."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_9d3e4b21",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulation fidelity and assumptions (failure models, canary behavior, rollback semantics) are central but underspecified.",
+        "Composite metric construction and preregistered threshold (>=0.05 R^2) risk overfitting to simulator; no plan for external validation.",
+        "Validators' false-negative measurement depends on oracle definition; needs clear oracle or ground-truth wiring."
+      ],
+      "required_design_repairs": [
+        "Describe the simulation engine (codebase or scripts) with public repo link, parameter ranges, and deterministic seeds; include threat model for simulated outages.",
+        "Predefine exact composite metric formula or procedure for deriving it (weights, normalization) before model fitting; reserve a held-out validation set or external corpus for assessing generalization.",
+        "Specify how validator ground truth is obtained (oracle, golden-config replay, or human annotation) and when validator FN is recorded vs inferred.",
+        "Publish deployment protocol parameters (canary %, rollback delay, monitoring windows) and run sensitivity analysis over these parameters as preregistered steps.",
+        "Provide cross-validation and model-regularization details, and an a priori plan to avoid tuning the composite to achieve the preregistered R^2 threshold."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_a5c2f430",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Oscillation/divergence detection rules are vague and may misclassify legitimate multi-step repairs.",
+        "The decision rule for selecting B* (marginal-gain threshold) is not numerically specified.",
+        "Latency and cost assumptions (token pricing, model-latency variability) are unstated, affecting operational recommendations."
+      ],
+      "required_design_repairs": [
+        "Define formal oscillation-detection heuristics (e.g., Levenshtein threshold, property-cycle detection) and validate them on pilot traces; publish detection code.",
+        "Pre-register the marginal-gain threshold and the statistical procedure for breakpoint analysis that yields B*.",
+        "State exact cost/latency accounting assumptions (token cost per model, network round-trip time distribution) and include sensitivity analyses over these parameters.",
+        "Provide frozen prompts, critic/verifier implementation/version, and deterministic seeds; publish criteria for legitimate multi-step repairs vs oscillation.",
+        "Include a plan to report per-task examples of oscillation and manual adjudication protocol used for edge cases."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

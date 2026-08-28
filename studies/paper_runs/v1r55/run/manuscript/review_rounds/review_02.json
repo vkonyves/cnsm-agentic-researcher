@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, preregistered paired experiment measuring the marginal effect of inserting a deterministic network verifier plus one automated repair iteration into an LLM intent→configuration pipeline. The authors archive a complete preregistration, execution manifest, raw artifacts, and analysis. On a deterministic synthetic task corpus (N=500) and with a shared-initial-generation design, baseline proposals passed the verifier 499/500 and guarded (verify→repair) passed 500/500, yielding an absolute improvement of 0.002 (95% CI [0.0,0.006]); McNemar two-sided p = 1.00. The manuscript is reproducible and frank about scope and limitations, but a few clarifications are required to avoid misinterpretation of what the experiment measures and to resolve minor accounting ambiguities in the archived manifest.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript does not yet make sufficiently explicit that the experimental design uses a single shared initial LLM proposal per task (generation_semantics = 'shared_initial_candidate') and therefore measures the verifier+repair effect conditional on that candidate rather than the effect of verifier-guided regeneration. This is a substantive interpretive limitation that must be stated clearly in the Abstract, Methods (preregistration reference), and Discussion to prevent readers from inferring that the verifier produced changes via iterative regeneration.",
+    "The execution-accounting labels in the manifest are potentially confusing (e.g., provider audit condition_counts reported as {shared:500, guarded:1} while guarded_success_count=500). The manuscript must reconcile and explain these accounting fields (shared initial generation vs. repair-stage calls) and show, with artifact references, how model_calls_used=501 maps to baseline and guarded outcomes so that readers can verify that the single repair call corrected the single baseline failure.",
+    "The statistical reporting is technically correct but requires a brief explicit statement (Methods or Results) explaining why the exact McNemar two-sided p-value equals 1.00 in the presence of a single discordant pair (n10=1, n01=0) and what that implies for interpretation under a ceiling-effect regime. This avoids misreading the non-significant p as evidence that verifiers are unnecessary."
+  ],
+  "required_revisions": [
+    "Add explicit, unambiguous wording in the Abstract, Methods, and Discussion that the study used a single shared initial generation per task and therefore estimates verifier+repair impact conditional on that same candidate rather than measuring verifier-in-the-loop regeneration. Cite the preregistration artifact (SHA-256) and the execution_manifest paths that define generation_semantics to support the claim.",
+    "Add a short subsection or paragraph that reconciles model-call accounting: (a) show the mapping from shared_initial_generation/repair/provider-call-stage counts to baseline and guarded condition outcomes, (b) explain why condition_counts may show guarded:1 while guarded_success_count=500 (i.e., that the guarded arm re-used the shared candidate and only invoked the repair-stage provider call once), and (c) point to the exact artifact paths/hashes (e.g., execution/model_configuration.json, execution/provider_calls/*, execution/scoring/*.json) that verify these facts.",
+    "Add one or two sentences in Methods/Results explicitly explaining the exact McNemar p-value behavior given n10=1,n01=0 and noting that the result reflects a ceiling effect and severely limited discordant-pair count; include (or reference) the paired-bootstrap CI method and parameters already archived to support the CI claim."
+  ],
+  "optional_revisions": [
+    "Report (in an appendix or short paragraph) exploratory per-cluster summaries (VLAN/ACL/static-route) from archived artifacts to give readers a sense of distributional variation; label these as exploratory per the preregistration.",
+    "Add a brief forward-looking paragraph clarifying how an alternative design that permits verifier-feedback-guided regeneration would address different operational questions, and reference the relevant artifacts showing the current design choice.",
+    "Clarify in the Disclosure the precise path and hash for the initial master prompt (master_prompt.txt SHA-256) in the body near the existing Disclosure sentence that references it, to make discovery slightly easier for readers verifying autonomy claims."
+  ],
+  "accept_for_finalisation": false
+}

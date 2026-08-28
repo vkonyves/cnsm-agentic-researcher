@@ -1,0 +1,109 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand_7f4b9a2d",
+      "title": "End-to-end generate→verify→repair: measuring verifier impact on LLM-generated network configurations",
+      "research_question": "How much does integrating a deterministic network verifier into a generate→verify→repair loop reduce safety-violating network configurations produced by an LLM compared to LLM-only proposals under matched tasks and topologies?",
+      "hypotheses": [
+        "An LLM paired with a deterministic verifier plus an automated repair loop will produce significantly fewer safety violations than the same LLM producing configurations without verifier feedback.",
+        "The majority of safety improvement will be achieved within the first one or two repair iterations, yielding diminishing returns thereafter."
+      ],
+      "proposed_design": "Controlled paired experiment. Use a public/synthetic corpus of intent-to-configuration tasks covering VLAN, ACL, and static-route changes across a set of canonical topologies. For each task: (1) prompt a fixed LLM to generate a device configuration change; (2) run a deterministic verifier (e.g., Batfish/Minesweeper style checks) to detect violations; (3) if violations, invoke an automated repair prompt loop constrained by verifier feedback up to N=5 iterations or until verifier passes; (4) record raw LLM-only proposal, corrected proposal, verifier traces, and repair iterations. Compare to an LLM-only arm that returns the first proposal without verifier feedback. Use fixed seeds, frozen prompts, and preregistered inclusion rules.",
+      "expected_data": "Per-task records containing: initial LLM proposal, verifier pass/fail flags, number of repair iterations, final proposal, list and severity of detected violations (reachability, blackholes, ACL breaches), time per iteration, and whether final proposal passed verifier. Aggregate counts: violation rate (initial vs final), repair success rate, iterations distribution, and latency.",
+      "primary_outcome": "Relative reduction in verifier-detected safety-violation rate (percentage points) from LLM-only proposals to final proposals after the verify+repair loop, measured across the task set.",
+      "analysis_outline": "Paired comparison (per-task) of violation presence initial vs final using McNemar's test for binary pass/fail; compute absolute and relative risk reduction with 95% CIs. Report distribution of iterations and latency; analyze repair-success probability as function of initial violation class using logistic regression. Conduct sensitivity analyses excluding tasks where verifier cannot model the device feature. Predefine alpha=0.05 and correct for multiple property-types using Benjamini–Hochberg.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W2742515467",
+        "https://openalex.org/W7161165783"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7138852018",
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W2742515467"
+      ],
+      "risks": [
+        "Verifier–modeling mismatch causing false positives/negatives in evaluation; repair loop producing syntactically valid but semantically incompatible configs for real devices; overfitting prompts to synthetic topologies reducing external validity; resource/latency cost of repeated model calls."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand_2b1c8e6f",
+      "title": "Cross-vendor robustness of LLM intent-to-configuration translation",
+      "research_question": "How reliably do LLM-based intent-to-configuration translations generalize across heterogeneous vendor CLIs (e.g., Cisco IOS, Juniper Junos, Arista EOS), and how much can lightweight prompt adaptation reduce vendor-specific error rates?",
+      "hypotheses": [
+        "LLM translations will have significantly higher error rates on vendor CLIs that are underrepresented or unseen in the prompt/context compared to seen vendors.",
+        "Providing small vendor-specific prompt adapters/templates (few-shot examples or constraint templates) will significantly reduce translation errors relative to a vendor-agnostic prompt baseline."
+      ],
+      "proposed_design": "Assemble a public or synthetic dataset of matched high-level intents and ground-truth vendor-specific configuration fragments for three vendors. For each intent-vendor pair run three conditions: (A) vendor-agnostic LLM prompt; (B) vendor-annotated prompt (explicit vendor token, no examples); (C) vendor-adapter prompt with 3–5 few-shot example mappings. Validate outputs syntactically and semantically via vendor-grammar checks and a verifier (where supported). Measure per-vendor accuracy, edit distance to ground truth, and actionable-error rate. Freeze prompts and seeds; preregister inclusion/exclusion rules and evaluation rubric.",
+      "expected_data": "Per-case records: intent, vendor, prompt condition, generated config, syntactic parse result, semantic validation result, edit distance to ground truth, and binary actionable-success flag. Aggregates: per-vendor accuracy by condition, mean edit distance, failure-mode taxonomy (syntax vs semantic vs semantic-incorrect-but-syntactically-valid).",
+      "primary_outcome": "Per-vendor actionable-success rate difference between vendor-agnostic baseline and vendor-adapter prompt condition (percentage points) with 95% CI.",
+      "analysis_outline": "Compare per-vendor accuracy across conditions using mixed-effects logistic regression with random intercept for intent to account for intent difficulty. Test fixed effect of prompt condition and vendor and their interaction. Post-hoc pairwise comparisons with Tukey adjustment. Report effect sizes and bootstrapped CIs for edit-distance reductions.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415124495",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W2742515467"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7138852018"
+      ],
+      "risks": [
+        "Public dataset limitations may not reflect proprietary vendor nuances; syntactic validators may not capture all semantic hazards; copyright/privacy constraints if real configs are used (use synthetic/public only); prompt-adapter gains may not generalize to unseen features."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand_9d3e4b21",
+      "title": "Operational-safety metrics: predicting risk from LLM proposals using validator and rollback measures",
+      "research_question": "Which operational-safety metrics derived from validator outcomes and rollback/canary simulations best predict simulated operational risk (e.g., MTTR, outage-severity) from LLM-generated NetOps changes?",
+      "hypotheses": [
+        "A composite metric combining validator false-negative rate and rollback success probability will predict simulated MTTR better than task-level LLM accuracy alone.",
+        "Validator false-negative rate (violations missed by verifier) will be the single strongest predictor of severe simulated outages compared to other single metrics (edit distance, syntactic error rate)."
+      ],
+      "proposed_design": "Design a simulation environment that can execute proposed changes on forked topologies and simulate failure impact (reachability loss, route blackholes). For a corpus of LLM proposals, compute candidate metrics: validator true/false positive/negative rates,canary-detection probability, rollback success rate, syntactic-error rate, and LLM task-accuracy. For each proposal, run a simulated deployment protocol with canary percentage and rollback rules to record MTTR and outage severity. Use cross-validated predictive modeling to evaluate which metrics (or combinations) predict MTTR and outage severity.",
+      "expected_data": "Row-level dataset: proposal id, metric vector (validator FN rate, FP rate, canary detect, rollback success prob, syntactic-error flag, LLM accuracy), simulated MTTR (minutes), simulated outage-severity score, and binary severe-outage indicator. Aggregates: correlations, model coefficients, and predictive performance (R^2/AUROC) for candidate metrics and composites.",
+      "primary_outcome": "Predictive performance (adjusted R^2 for MTTR; AUROC for severe-outage) of the preregistered composite metric vs task-level LLM accuracy, demonstrating whether composite improves predictive power by a preregistered margin.",
+      "analysis_outline": "Fit LASSO-regularized linear regression for MTTR and logistic regression for severe-outage with nested cross-validation. Compare nested models using likelihood-ratio tests and report bootstrapped CIs for R^2 and AUROC. Compute SHAP or feature-importance post-hoc explanations to identify dominant predictors. Prespecified threshold for improvement: composite must increase R^2 by >=0.05 over baseline to be considered practically better.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4391136507"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W2742515467",
+        "https://openalex.org/W7138852018"
+      ],
+      "risks": [
+        "Simulation fidelity may not capture real operator rollback constraints; composite metric tuned to the simulated environment may not generalize; validators may have blind spots producing misleading predictor values."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand_a5c2f430",
+      "title": "Bounded iterative self-correction (generate–critic) trade-offs: safety gains vs latency and oscillation",
+      "research_question": "Does imposing a bounded number of critic-verified correction iterations on an LLM-based NetOps pipeline yield a practical balance between safety improvement and latency/resource cost, and where does oscillatory or divergent behavior emerge?",
+      "hypotheses": [
+        "Most safety gains from iterative generate–critic repair occur within a low iteration bound (1–3 iterations), after which gains plateau while latency increases linearly.",
+        "Unbounded or poorly constrained iterative repair increases risk of oscillation (repeated semantic flips) and can produce semantic divergence; introducing a bounded stopping rule reduces oscillation frequency without materially reducing final-pass safety under standard tasks."
+      ],
+      "proposed_design": "Select a representative task set of intent-to-configuration and repair problems. For each task run iterative repair experiments with iteration bounds B∈{0,1,2,3,5,10} where 0 corresponds to no repair. Use a fixed critic/verifier providing deterministic diagnostic feedback. For each B record violation rate after final iteration, total latency, number of oscillation events (measured as repeating prior configs or cycling property violations), and resource consumption (token counts/model calls). Predefine oscillation detection rules and stopping criteria. Compare bounded vs effectively unbounded (B=10) behavior.",
+      "expected_data": "Per-task series: iteration index, proposal text, verifier result, diagnostic messages, timestamps, token counts, oscillation flag. Aggregates: violation rate vs B, median latency vs B, oscillation incidence vs B, and safety-per-cost ratios.",
+      "primary_outcome": "Optimal bounded iteration B* that maximizes reduction in violation rate per unit latency (safety-per-latency) and the observed oscillation rate at different bounds.",
+      "analysis_outline": "Plot violation rate and latency as functions of B; compute marginal safety gain per additional iteration. Use breakpoint analysis to identify B* where marginal gain falls below pre-registered threshold. Test oscillation incidence differences across B using Poisson or negative-binomial regression. Report trade-off curves and recommend bounded settings with bootstrapped uncertainty.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7138852018",
+        "doi:10.2139/ssrn.6484501",
+        "https://openalex.org/W4415124495"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W2742515467"
+      ],
+      "risks": [
+        "Oscillation detection heuristics may misclassify legitimate multi-step repairs; bounded iteration recommendations may be dataset- or prompt-sensitive; latency/operational-cost findings depend on access-cost assumptions and model pricing."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

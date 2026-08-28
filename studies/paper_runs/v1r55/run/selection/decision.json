@@ -1,0 +1,28 @@
+{
+  "selected_candidate_id": "cand_7f4b9a2d",
+  "selection_rationale": "cand_7f4b9a2d (end-to-end generate→verify→repair) best matches the programme goals: it directly targets a documented gap (integration of deterministic verifiers with LLM proposals), is experimentally falsifiable with a paired design and clear primary outcome (violation-rate reduction), is computationally feasible within budget, and yields operationally meaningful evidence about reliability/safeguards for agentic NetOps.",
+  "runner_up_candidate_id": "cand_2b1c8e6f",
+  "unresolved_uncertainties": [
+    "Exact verifier modeling coverage and how verifier false-positives/negatives will affect measured violation rates.",
+    "Realism and provenance of the dataset/topologies (risk of synthetic overfitting vs real-world diversity).",
+    "Determinism of the repair mapping: how verifier diagnostics are transformed into repair prompts without ad-hoc tuning.",
+    "Handling tasks/features that the chosen verifier cannot model (exclusion vs separate analysis).",
+    "Latency/resource trade-offs and prompt-sensitivity (different prompt phrasings or seeds may materially change repair performance)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415124495",
+    "https://openalex.org/W2742515467",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7138852018"
+  ],
+  "required_repairs_before_preregistration": [
+    "Specify exact deterministic verifier/tool and version (e.g., Batfish vX or Minesweeper vY), enumerate its modeling coverage, and list properties that will be checked and any failure modes to be excluded.",
+    "Provide precise dataset and topology provenance: public repository links or synthetic-generation scripts, inclusion/exclusion rules, sampling seeds, and balancing procedure across task types (VLAN/ACL/static-route).",
+    "Freeze and publish all prompting artifacts in the preregistration: initial LLM prompt, repair-prompt templates, repair-iteration termination rule, max-iterations (N), retry policy, and exact random seeds.",
+    "Predefine deterministic mapping rules from verifier-detected faults → repair-prompt inputs (template fields, prioritized diagnostics) so repairs are reproducible and not ad-hoc.",
+    "Pre-register how verifier-unmodelable features will be handled (explicit exclusion criteria, separate reporting cohort, or alternative validator) and ensure those cases are omitted from the primary paired analysis.",
+    "Define validator-ground-truth procedure for measuring verifier false-negatives (e.g., golden-config replay, oracle simulator, or manual adjudication) and publish the adjudication protocol.",
+    "Pre-register statistical analysis details (primary test: paired McNemar for pass/fail; effect-size metrics; 95% CIs; multiple-comparison control method such as Benjamini–Hochberg) and planned sensitivity analyses.",
+    "Document latency/cost accounting assumptions (token/model-call cost, measurement of per-iteration latency) and predefine the latency budget and stopping rules tied to operational constraints."
+  ]
+}
