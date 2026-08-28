@@ -1,0 +1,24 @@
+{
+  "summary": "Thorough, well‑documented preregistered paired NetOps experiment with complete artifact archive. The executed shared‑generation semantics produced identical per‑pair LLM candidates and a ceiling outcome (200/200 SAFE in both arms), rendering the preregistered paired causal test non‑informative. Analysis and provenance artifacts are reproducible and consistent; the manuscript provides an artifact‑grounded diagnosis and practical design recommendations for informative repeats.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 3,
+  "clarity_score": 3,
+  "critical_issues": [
+    "The confirmatory test was rendered mechanically uninformative by the executed shared_initial_candidate generation semantics (one LLM call per task shared across arms); the manuscript must not present the null/ceiling outcome as evidence of verifier efficacy.",
+    "The manuscript currently emphasizes detailed artifact bookkeeping and path lists within the main narrative, producing metadata‑heavy prose that reads more like an artifact report than a normal conference paper; this impairs readability and discussion of scientific implications.",
+    "Some in‑text citations appear as URLs and provenance fragments rather than conventional, literature‑grounded scholarly citations; the related work section should present standard bibliographic citations tied to the verified reference record, not raw archive links."
+  ],
+  "required_revisions": [
+    "Explicitly and unambiguously state in the title, abstract first paragraph, and conclusion that the observed ceiling outcome is a testability/failure‑of‑design result (non‑informative for verifier efficacy) and not evidence that the LLM+validator pipeline is safe in production. Use precise wording (e.g., “non‑informative / testability failure — not evidence of safety”) to avoid reader misinterpretation; this can be fixed from the supplied manuscript artifacts.",
+    "Compress provenance and artifact‑path lists in the main text: replace long enumerations of file paths and SHA entries with concise referential statements (e.g., “full execution and analysis artifacts are archived in the supplied bundle; representative artifact identifiers appear in Appendix/Disclosure”), and move detailed manifest listings to a compact appendix, footnote, or single archival pointer within the five‑page limit. This is a manuscript‑editing change resolvable from supplied artifacts.",
+    "Convert in‑text URLs/provenance snippets in Related Work and other sections into conventional bibliographic citations (author, year, venue), using the supplied verified bibliography record. Ensure every cited source in the narrative is supported by the archived verified reference entries rather than inline raw links.",
+    "Add a short explicit paragraph (one concise paragraph in Methods or Discussion) labeled “Why the inferential test was uninformative” that ties the inferential degeneracy to the three archival facts (shared generation semantics, validator labels all candidates SAFE, no repairs applied) using the exact artifact filenames/IDs already cited—this clarifies causal inference limitations without requiring new analysis."
+  ],
+  "optional_revisions": [
+    "Shorten and refocus the Related Work section to prioritize the closest methodological and empirical papers (limit to 3–5 strongest items) and move more peripheral citations to references only (improves information density).",
+    "Add a brief, high‑level operational recommendation table (1/2 table) summarizing the trade‑offs (model‑call budget vs independent draws vs repair capability) using numbers from execution_manifest.json to aid operator decision‑making.",
+    "Clarify in one sentence whether the guarded pipeline was capable of invoking repairs and, if so, why repairs were not exercised in the confirmatory episodes (this can be addressed by rephrasing existing repair_provider_trace null information already archived)."
+  ],
+  "accept_for_finalisation": false
+}

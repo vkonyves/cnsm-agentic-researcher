@@ -1,0 +1,141 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-01",
+      "title": "Adversarial robustness of tool-augmented LLM NetOps agents",
+      "research_question": "How does tool-augmentation (deterministic verifier + simulator) affect LLM-generated network-change correctness and adversarially induced unsafe configuration proposals under NetOps-specific adversarial prompts?",
+      "hypotheses": [
+        "Tool-augmentation with a deterministic verifier reduces the rate of unsafe configuration proposals compared to LLM-only generation under both benign and adversarial prompts."
+      ],
+      "proposed_design": "Create an intent-to-configuration task set using public network topologies and policy constraints. Implement two pipelines: (A) LLM-only config synthesis and (B) LLM + deterministic verifier+simulator (generate–validate–refine loop). Construct an adversarial prompt corpus (obfuscated intents, privilege-escalation phrasing, contradictory constraints) derived from red-team patterns in prior work. For each task and prompt variant, record generated configuration, verifier verdict, and final accepted config. Run across multiple seeds and at least one hosted LLM model via API under fixed prompt templates. Use simulator (Batfish-like) in sandbox to detect reachability/policy violations.",
+      "expected_data": "Per-task records: prompt, LLM output, verifier verdicts, final configuration, boolean flags for policy violations (reachability, ACL/policy breaches), and whether the pipeline refused to output a config. Aggregated counts of violations and refusals under benign vs adversarial inputs.",
+      "primary_outcome": "Difference in unsafe-configuration proposal rate (policy violations per 100 tasks) between LLM-only and tool-augmented pipelines under adversarial prompts.",
+      "analysis_outline": "Compute violation rates and refusal rates with 95% CI for each pipeline and input condition. Use paired comparisons (Wilcoxon signed-rank or McNemar test depending on pairing) across matched tasks. Estimate effect size (risk difference) and test significance with Bonferroni-corrected p-values for multiple conditions (benign/adversarial). Report receiver-operating characteristics for verifier detection where applicable and analyze representative failure cases qualitatively.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7172000952",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7117986201"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4412888330",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Adversarial prompt set may not fully capture real-world attacker creativity (external validity).",
+        "Simulator/verifier fidelity may under- or over-estimate production risk (construct validity).",
+        "API rate limits or costs could limit sample size (operational risk).",
+        "Potential leaks of sensitive topology artifacts — use only public/synthetic topologies (ethical/data risk)."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-2026-02",
+      "title": "Quantifying the false-refusal versus safety trade-off under schema-enforced guardrails",
+      "research_question": "What is the quantitative trade-off between strict schema/rule enforcement (guardrails) and operational utility (false-refusal rate, additional verification steps) when LLM agents generate NetOps changes?",
+      "hypotheses": [
+        "Increasing guardrail strictness reduces configuration violations but increases false-refusal rate and operator verification workload."
+      ],
+      "proposed_design": "Create a controlled task set of intent-to-configuration items with graded difficulty. Implement three pipeline variants: (1) No schema guardrail (open generation), (2) Moderate schema enforcement (soft checks + automated suggestions), (3) Strict schema enforcement (hard rejection of nonconforming outputs). For each variant, measure: violation incidence (via verifier), refusal incidence, and simulated operator verification workload (number of required manual approvals/edits). Use matched-task repeated runs across seeds and a single hosted LLM. Predefine guardrail parameter settings and freeze them in the preregistration.",
+      "expected_data": "Per-task and per-variant arrays: violation flags, refusal flags, counts of manual-verification steps, generation latency, and qualitative failure logs. Aggregated curves of violation rate vs refusal rate across guardrail settings.",
+      "primary_outcome": "Pareto curve characterizing violation rate vs false-refusal rate across guardrail strictness levels; quantified operator workload delta between variants.",
+      "analysis_outline": "Compute violation and refusal rates with 95% CI per variant. Fit logistic regression predicting refusal as a function of guardrail strictness and task difficulty. Compute area under the violation-versus-refusal curve (operational utility metric). Use bootstrap to estimate uncertainty and perform pairwise comparisons with corrected p-values. Report examples of high-cost false refusals.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W7172000952",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4412888330"
+      ],
+      "risks": [
+        "Operational workload simulation may not fully reflect human operator behavior (external validity).",
+        "Strict guardrails could cause excessive rejections, limiting statistical power if sample size is insufficient.",
+        "Choice of guardrail parameters may bias results — preregistration required to avoid post-hoc tuning."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand-2026-03",
+      "title": "A workflow-centred canary evaluation protocol for LLM-based NetOps agents",
+      "research_question": "Does a workflow-centred canary evaluation protocol (intent-to-config + deterministic verification + staged-canary scoring) detect unsafe agent proposals earlier and provide more operationally meaningful metrics than static QA-style benchmarks?",
+      "hypotheses": [
+        "A workflow-centred canary protocol identifies unsafe proposals and rollout risks that static QA metrics miss, producing earlier detection and higher practical sensitivity to composition errors."
+      ],
+      "proposed_design": "Design and implement a reproducible protocol that: (1) translates intents to candidate configs via LLMs, (2) verifies via deterministic simulator for immediate safety checks, (3) scores candidate changes with canary-rollout simulation (apply change to fraction of topology and measure end-to-end metrics), and (4) aggregates operational metrics (canary-failure rate, rollback need). Compare detection and ranking of unsafe cases against static QA metrics (e.g., syntactic correctness, unit-check pass rates) on the same task set. Provide an open artifact with tasks, verification scripts, and scoring rules.",
+      "expected_data": "For each task: static QA scores, verifier results, canary rollout outcomes (failure/no-failure), and timestamps of detection. Aggregated sensitivity, specificity, and lead time (how much earlier canary detects an issue vs static QA).",
+      "primary_outcome": "Relative sensitivity (true unsafe cases detected) and lead time of the canary workflow vs static QA across the task set.",
+      "analysis_outline": "Compute sensitivity, specificity, positive predictive value for both methods with 95% CIs. Use McNemar tests for paired detection outcomes. Analyze lead-time distribution (Wilcoxon test) comparing time-to-detection. Perform failure-mode analysis classifying cases where canary wins vs static QA wins. Release protocol and scripts for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4411109869",
+        "doi:10.2139/ssrn.7268438"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412888330",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Canary simulations may not capture full operational complexity (simulator fidelity risk).",
+        "Open-sourcing the protocol may reveal adversarial avoidance strategies (security disclosure risk).",
+        "Comparisons could be sensitive to chosen static QA baseline implementations."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand-2026-04",
+      "title": "Adaptive approval gates to reduce operator burden while preserving safety in LLM NetOps pipelines",
+      "research_question": "Can adaptive approval gates that combine model confidence signals and verifier outputs reduce required human approvals without increasing unsafe configuration commits compared to a fixed approval gate?",
+      "hypotheses": [
+        "Adaptive gates that accept low-risk proposals automatically (confidence+verifier pass) reduce the number of human approvals while maintaining comparable safety (policy-violation rate) to a conservative fixed-gate baseline."
+      ],
+      "proposed_design": "Simulate a deployment pipeline with three configurations: (A) Conservative fixed gate (human approval required for all changes), (B) Naive automated acceptance (auto-apply when LLM outputs), (C) Adaptive gate (auto-apply when model confidence > threshold AND verifier passes; otherwise require human approval). Use a public task set with seeded benign and adversarial cases. Measure number of human approvals required, post-commit violation rate, and false-acceptance incidents. Vary confidence thresholds in a sensitivity analysis as pre-registered.",
+      "expected_data": "Per-task outcomes: gate decision (auto-apply vs require-approval), verifier result, model confidence score, post-commit violation flag, and count of human approvals. Aggregate human-approval reduction percentage and safety delta relative to baseline.",
+      "primary_outcome": "Net reduction in human approvals (percentage) for the adaptive gate vs conservative fixed gate while keeping post-commit violation rate statistically non-inferior (predefined non-inferiority margin).",
+      "analysis_outline": "Compare approval counts across pipelines using paired t-test or Wilcoxon signed-rank. For safety, perform non-inferiority testing on violation rates (place alpha and margin pre-registered). Conduct threshold sensitivity analysis and present ROC-like trade-offs between approval reduction and violation increase. Provide representative failure-case analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406549441",
+        "doi:10.36227/techrxiv.177006109.97957916/v1",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7117986201"
+      ],
+      "risks": [
+        "Model confidence calibration may be poor, causing unsafe auto-applies (calibration risk).",
+        "Simulated operator workload reductions may not match real human behavior (external validity).",
+        "Non-inferiority margin selection may be contested — must be justified in preregistration."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-2026-05",
+      "title": "Interoperability and cross-tool mismatch reduction using MPC/schema guardrails across heterogeneous NetOps toolchains",
+      "research_question": "Do MPC/schema-based guardrails applied across heterogeneous toolchains (CMDB, config generators, simulators) reduce cross-tool mismatch and composition errors when LLM agents operate on multi-vendor configurations?",
+      "hypotheses": [
+        "Applying a shared MPC/schema guardrail layer that canonicalizes intents and enforces type/constraint contracts across toolchain components reduces cross-tool mismatch errors compared to per-tool ad-hoc checks."
+      ],
+      "proposed_design": "Assemble a reproducible multi-tool chain: synthetic CMDB, LLM-based config generator, translator modules for two vendor syntaxes, and a deterministic simulator/validator. Implement two modes: (1) Ad-hoc per-tool checks, (2) Centralized MPC/schema guardrail layer mediating translations and enforcing contracts. Run multi-vendor configuration change tasks (public/synthetic topologies) and measure mismatch errors (semantic translation errors, broken constraints after translation), rollback events, and verification pass rates. Open-source mapping and scripts.",
+      "expected_data": "Per-task logs showing input intent, canonicalized representation, generated vendor configs, translator diffs, validator results, mismatch/error labels, and rollback indicators. Aggregated counts of cross-tool mismatch errors and verification pass rates.",
+      "primary_outcome": "Relative reduction in cross-tool mismatch errors (errors per 100 tasks) when using MPC/schema guardrails vs ad-hoc per-tool checks.",
+      "analysis_outline": "Compare mismatch error rates with 95% CI; use McNemar or paired proportion tests for matched tasks. Analyze error taxonomy to show which classes shrank most (syntax vs semantic vs policy mismatch). Provide case studies showing how guardrails prevented specific composition failures. Discuss integration costs measured as additional translation/validation latency.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4406549441",
+        "https://openalex.org/W4414000703"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412888330",
+        "https://openalex.org/W4414000703"
+      ],
+      "risks": [
+        "Implemented guardrails may be brittle to unseen vendor features (coverage risk).",
+        "Latency introduced by central guardrails could be operationally unacceptable in some contexts (performance risk).",
+        "Synthetic multi-vendor tasks may not cover all real-world heterogeneity (external validity)."
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}

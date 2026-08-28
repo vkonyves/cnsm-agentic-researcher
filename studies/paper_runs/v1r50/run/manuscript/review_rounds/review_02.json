@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, well-documented preregistered paired experiment with comprehensive archival artifacts. The study transparently reports a null/ceiling outcome and provides a useful methodological diagnosis (shared-generation semantics + ceilinged task bank) explaining why the confirmatory paired test could not detect a verifier effect. Artifacts, execution manifest, and deterministic analysis are complete and reproducible. However, a substantive coding/labeling inconsistency and a few clarity fixes must be corrected before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 4,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Inconsistent binary outcome coding between the preregistration and analysis/manuscript: the preregistration defined the per-arm binary indicator as 1 = unsafe proposal, but the archived analysis artifacts and manuscript text treat 1 as a successful/’safe’ outcome (paired_contingency_table.csv and analysis summaries use 1=both-safe). This mismatch must be resolved and explained (it affects the interpretation and labeling of the primary estimand).",
+    "The preregistered shared_initial_candidate generation semantics (independent_condition_generation=false) make the planned paired test unable to observe verifier-mediated corrections when the shared initial candidate is already valid. Although the manuscript recognises this, it must more explicitly state that the preregistered primary hypothesis (a causal reduction in unsafe proposals attributable to the verifier) was rendered untestable by the executed generation semantics and the observed ceiling effect; any wording that could be read as testing verifier efficacy must be removed or rephrased.",
+    "Model-call accounting and planned-budget mismatch: preregistration planned up to 400 model calls (independent generation per arm) but the run used 200 model calls due to shared-generation semantics. Although recorded, the Methods and Disclosure must explicitly connect the reduced model-call usage to the preregistered generation semantics and make clear how that choice changed the causal interpretation of the confirmatory test."
+  ],
+  "required_revisions": [
+    "Fix the binary-labeling inconsistency: explicitly state in Methods/Analysis which numeric code corresponds to 'unsafe' vs 'safe' in the archived analysis artifacts, and confirm that the computed estimand and reported numbers (n11,n10,n01,n00, rates, CI, p-value) match the preregistered estimand definition after consistent relabeling. If the analysis actually computed the paired difference in 'safe' rates rather than 'unsafe' rates, revise all estimand names/text to match the computed quantity and add a short note explaining the mapping to the original preregistered estimand.",
+    "Add a concise, unambiguous statement in the Abstract, Introduction (end), and Conclusion that the preregistered confirmatory hypothesis could not be meaningfully tested under the executed shared_initial_candidate semantics and the observed ceilinged baseline (0% unsafe proposals). Replace any phrasing that might be read as a test of verifier efficacy with wording framing the result as a methodological/null outcome and diagnosis.",
+    "In Methods/Disclosure, explicitly explain the model-call accounting: report that model_calls_used=200 and link this to shared_initial_candidate semantics (one generation per pair). State that this differs from the maximum_model_calls in the preregistration and clarify why (preregistered generation semantics) and how that affects causal interpretation. Point to the exact execution artifact paths (already archived) supporting these statements."
+  ],
+  "optional_revisions": [
+    "Consider adding a short, explicit table in Results that shows the preregistered estimand name, its formal definition, and the exact computed quantity (including mapping of codes) to help readers follow the logic without inspecting raw artifacts.",
+    "Expand the Discussion with a brief inspection (from archived artifacts) of a small sample of tasks where the model produced nontrivial outputs to illustrate why the task bank produced a ceiling (e.g., show 2–3 representative prompt→candidate traces and validator outputs). This is optional but could help readers understand whether tasks were too easy or adversarial templates were too weak.",
+    "Label the archived contingency and analysis CSVs in the manuscript text with exact artifact paths/filenames and SHA256 values (they exist in the bundle) to make linking manuscript claims to artifacts trivially verifiable for reviewers/readers."
+  ],
+  "accept_for_finalisation": false
+}

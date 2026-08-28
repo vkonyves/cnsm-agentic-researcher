@@ -1,0 +1,111 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-01",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial prompt corpus construction is underspecified (risk of bias/limited coverage).",
+        "Simulator/verifier fidelity not fully defined — may under/over-estimate real risk.",
+        "Single-hosted-LLM generality risk (claims may not hold across models).",
+        "Power/sample-size and cost limits not shown; API failures/retries handling not specified."
+      ],
+      "required_design_repairs": [
+        "Preregister precise adversarial-prompt generation procedure and corpora sourcing rules (including red-team heuristics).",
+        "Specify simulator/verifier implementation (e.g., Batfish config) and concrete safety predicates with thresholds.",
+        "Either include at least one additional model or justify single-model scope and limit claims accordingly.",
+        "Add sample-size/power calculation and explicit retry/error-handling policy in preregistration."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-2026-02",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulated operator-workload metric is underspecified and may not reflect human behavior.",
+        "Guardrail parameter choices could be post-hoc tuned, biasing trade-off curves.",
+        "Risk of excessive refusals reducing analyzable sample size under strict guardrails."
+      ],
+      "required_design_repairs": [
+        "Define and preregister the simulated operator model (actions, cost model) or include small human pilot to validate simulated workload assumptions.",
+        "Predefine guardrail parameter grid and selection criteria in preregistration; forbid post-hoc tuning.",
+        "Include power analysis accounting for potential high-refusal rates and predefined handling of sparse outcomes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-03",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Canary-rollout simulation fidelity and parameters (fraction applied, metrics measured) are underspecified.",
+        "Static QA baseline not precisely defined — comparison may be unfair or ambiguous.",
+        "Security disclosure risk from open-sourcing canary protocol not addressed."
+      ],
+      "required_design_repairs": [
+        "Preregister exact canary simulation design (rollout fractions, metrics, detection thresholds) and justify choices.",
+        "Specify static QA baseline implementations (tools, checks) used for comparison and freeze them before runs.",
+        "Add a responsible-disclosure plan for publicly releasing protocol artifacts to avoid enabling adversarial exploitation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-04",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Model confidence signals are not specified or calibrated — auto-accept rules may be invalid.",
+        "Non-inferiority margin is not justified; results could be sensitive to margin choice.",
+        "Operator-simulation validity similar to other candidates."
+      ],
+      "required_design_repairs": [
+        "Specify confidence metric(s) and include confidence calibration experiments (or use calibrated estimators) in preregistration.",
+        "Predefine and justify non-inferiority margin and statistical test details in the preregistration.",
+        "Define simulated operator behavior or include a small human validation to ground approval-count metrics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-05",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Multi-toolchain integration complexity is high; reproducible artifact risk if mappings/translator coverage not well scoped.",
+        "Synthetic multi-vendor tasks may not capture real heterogeneity; guardrail brittleness risk.",
+        "Performance/latency overhead from central guardrails needs measurement and acceptance criteria."
+      ],
+      "required_design_repairs": [
+        "Precisely specify the canonical MPC/schema design, mapping rules, and included vendor syntaxes; preregister coverage limits.",
+        "Include representative vendor features and edge cases in task corpus or justify exclusions; add robustness tests for unseen vendor features.",
+        "Add latency/throughput measurements and predefine acceptable operational overhead thresholds in preregistration."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

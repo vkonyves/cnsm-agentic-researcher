@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed, fully archived preregistered paired experiment and analysis comparing an LLM baseline and a deterministic verifier pipeline on 200 synthetic NetOps tasks. Execution used shared_initial_candidate semantics producing identical per‑pair outputs; observed baseline unsafe rate = 0%, so the preregistered causal hypothesis was not testable. The manuscript is artifact‑rich and produces useful methodological lessons and reproducibility assets, but several manuscript clarifications are required to avoid misinterpretation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "No unambiguous empirical evidence addressing the preregistered causal hypothesis is present because independent_condition_generation=false produced identical initial generations and a 0% baseline unsafe rate (ceiling effect). The manuscript already discloses this, but the paper as submitted risks being read as an efficacy evaluation of the verifier unless stronger, explicit qualification and wording changes are made."
+  ],
+  "required_revisions": [
+    "Explicitly and prominently revise the title, abstract, and contributions bullets to state that the confirmatory hypothesis was non‑informative (ceiling effect) and that the paper’s primary contribution is methodological/artifact publication and design recommendations. Use exact artifact pointers (execution/model_configuration.json, execution/execution_manifest.json, analysis/*) to support this clarification.",
+    "Add a short, explicit explanation in Methods and/or Introduction that independent_condition_generation=false (shared_initial_candidate semantics) was chosen/executed, report the exact model‑call accounting (model_calls_used=200 versus preregistered maximum_model_calls=400), and explain precisely how this choice made the causal test untestable. Cite the manifest and model_configuration artifacts (paths and SHA256 already archived) in that paragraph.",
+    "Remove or soften any language in Results, Abstract, Introduction, or Conclusion that could be read as claiming verifier efficacy or safety improvement. Replace such statements with artifact‑grounded, narrowly framed methodological conclusions (e.g., \"this run was non‑informative for verifier efficacy; recommendations for a repeat are provided\").",
+    "Include (or point to in the manuscript) an explicit evidence‑to‑claim table mapping each principal claim in the paper to the archived artifact(s) that support it (analysis/paired_contingency_table.csv, condition_summary.csv, execution_manifest, scoring JSONs). If an evidence mapping already exists in the bundle, reference its path and SHA‑256 in the manuscript.",
+    "Add a concise paragraph (Methods or Limitations) that justifies the preregistered option to allow shared_initial_candidate (why it was allowed), and explicitly state that independent per‑arm generation would be required to test the causal estimand—report the precise additional model‑call budget that would have been required (i.e., the difference between executed and preregistered maximum_model_calls). All content must be supportable from the archived artifacts and preregistration record."
+  ],
+  "optional_revisions": [
+    "Provide a short, artifact‑grounded summary (one paragraph or table) of task difficulty distribution (pulling from task_manifest entries) to illustrate how difficulty matched preregistered assumptions; include representative task examples already archived (paths are present).",
+    "Briefly expand the Discussion with explicit, concrete guidance for repeat experiments (e.g., recommended N, adversarial prompt transforms, independent generation budget, and how to capture verifier ROC) with numeric examples derived from the preregistration and manifest rather than aspirational prescriptions.",
+    "Condense provenance/provenance‑heavy passages into succinct methodological statements so the manuscript reads more like a conference short paper and less like an artifact inventory; retain full provenance in the archived bundle but prefer scholarly prose within the five pages."
+  ],
+  "accept_for_finalisation": false
+}
