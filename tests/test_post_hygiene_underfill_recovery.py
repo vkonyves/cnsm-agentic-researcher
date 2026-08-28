@@ -239,3 +239,88 @@ def test_recovery_attempt_audits_are_archived():
         "post_hygiene_underfill_"
         in SOURCE
     )
+
+
+def test_final_selector_can_rescue_protected_exact_page_candidate():
+    assert (
+        "current_candidate_needs_rescue"
+        in SOURCE
+    )
+    assert (
+        "protected_rescue_validation"
+        in SOURCE
+    )
+    assert (
+        "protected_rescue_is_valid"
+        in SOURCE
+    )
+
+
+def test_protected_final_rescue_requires_all_hard_gates():
+    assert (
+        'protected_rescue_validation.get("passed") is True'
+        in SOURCE
+    )
+    assert (
+        'protected_rescue_sanity.get("passed") is True'
+        in SOURCE
+    )
+    assert (
+        "protected_rescue_artifact_audit.get("
+        in SOURCE
+    )
+
+
+def test_protected_rescue_requires_exact_page_budget():
+    assert (
+        'protected_rescue_validation.get("page_count")'
+        in SOURCE
+    )
+    assert (
+        'protected_rescue_validation.get('
+        in SOURCE
+    )
+    assert (
+        '"maximum_pages"'
+        in SOURCE
+    )
+
+
+def test_failed_protected_probe_is_non_destructive():
+    assert (
+        "pre_rescue_manuscript = revised_manuscript"
+        in SOURCE
+    )
+    assert (
+        "revised_manuscript = pre_rescue_manuscript"
+        in SOURCE
+    )
+
+
+def test_protected_final_rescue_makes_no_agent_call():
+    start = SOURCE.index(
+        "# Deterministic protected-candidate rescue"
+    )
+    end = SOURCE.index(
+        "# Re-run BOTH deterministic audits",
+        start,
+    )
+    rescue = SOURCE[start:end]
+
+    assert "run_agent(" not in rescue
+    assert "await " not in rescue
+
+
+def test_protected_final_rescue_archives_decision_artifacts():
+    assert (
+        "publication_validation_"
+        in SOURCE
+    )
+    assert (
+        "protected_final_rescue.json"
+        in SOURCE
+    )
+    assert (
+        "selected_protected_final_"
+        in SOURCE
+    )

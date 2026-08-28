@@ -6866,6 +6866,174 @@ class FinalAutonomousResearchPipeline:
                     publication_validation,
                 )
 
+            # -------------------------------------------------
+            # Deterministic protected-candidate rescue
+            # -------------------------------------------------
+            #
+            # Late publication-hygiene/remediation stages must never
+            # destroy an earlier submission-valid exact-page state.
+            #
+            # If the current candidate is no longer publication-valid,
+            # independently re-render the latest protected exact-page
+            # checkpoint and subject it to the SAME deterministic
+            # publication-sanity and artifact-reference audits.
+            #
+            # No scientific generation or revision occurs here.
+            # The protected candidate is selected only if ALL hard
+            # publication constraints still pass. If the probe fails,
+            # the current candidate is restored exactly.
+
+            current_candidate_needs_rescue = (
+                publication_validation is None
+                or publication_validation.get("passed") is not True
+                or publication_validation.get("page_count")
+                != publication_validation.get("maximum_pages")
+            )
+
+            if (
+                current_candidate_needs_rescue
+                and protected_submission_manuscript is not None
+                and protected_submission_validation is not None
+                and protected_submission_validation.get("passed") is True
+                and protected_submission_validation.get("page_count")
+                == protected_submission_validation.get("maximum_pages")
+            ):
+                pre_rescue_manuscript = revised_manuscript
+                pre_rescue_validation = dict(
+                    publication_validation
+                    if publication_validation is not None
+                    else {}
+                )
+
+                protected_rescue_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            protected_submission_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                protected_rescue_sanity = (
+                    audit_manuscript_publication_sanity(
+                        run_dir=run_dir,
+                    )
+                )
+
+                protected_rescue_artifact_audit = (
+                    audit_manuscript_artifact_references(
+                        manuscript=(
+                            protected_submission_manuscript
+                        ),
+                        run_dir=run_dir,
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_validation_"
+                        "protected_final_rescue.json"
+                    ),
+                    protected_rescue_validation,
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_sanity_audit_"
+                        "protected_final_rescue.json"
+                    ),
+                    protected_rescue_sanity,
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "artifact_reference_audit_"
+                        "protected_final_rescue.json"
+                    ),
+                    protected_rescue_artifact_audit,
+                )
+
+                protected_rescue_is_valid = (
+                    protected_rescue_validation.get("passed") is True
+                    and protected_rescue_validation.get(
+                        "compile_status"
+                    )
+                    == "passed"
+                    and protected_rescue_validation.get("page_count")
+                    == protected_rescue_validation.get(
+                        "maximum_pages"
+                    )
+                    and protected_rescue_sanity.get("passed") is True
+                    and protected_rescue_artifact_audit.get(
+                        "passed"
+                    )
+                    is True
+                )
+
+                if protected_rescue_is_valid:
+                    revised_manuscript = (
+                        protected_submission_manuscript
+                    )
+                    publication_validation = dict(
+                        protected_rescue_validation
+                    )
+
+                    write_json(
+                        revision_rounds_dir
+                        / (
+                            "selected_protected_final_"
+                            "candidate.json"
+                        ),
+                        revised_manuscript,
+                    )
+
+                    write_json(
+                        run_dir
+                        / "manuscript"
+                        / "revised_package.json",
+                        revised_manuscript,
+                    )
+
+                else:
+                    # The protected checkpoint was exact-page when
+                    # originally created but does not satisfy the current
+                    # complete deterministic gate. Restore the candidate
+                    # that entered this probe so candidate evaluation is
+                    # non-destructive.
+                    revised_manuscript = pre_rescue_manuscript
+
+                    publication_validation = (
+                        build_publication_artifacts(
+                            manuscript=(
+                                revised_manuscript.model_dump()
+                            ),
+                            verified_records=records,
+                            output_dir=publication_dir,
+                            paper_run_constraints=(
+                                paper_run_constraints
+                            ),
+                        )
+                    )
+
+                    # Preserve the prior validation snapshot for
+                    # provenance/debugging; authoritative validation is
+                    # the freshly rendered restored candidate above.
+                    write_json(
+                        publication_dir
+                        / (
+                            "publication_validation_"
+                            "pre_protected_final_rescue.json"
+                        ),
+                        pre_rescue_validation,
+                    )
+
             # Re-run BOTH deterministic audits on the final
             # post-remediation candidate, including any bounded
             # scientific underfill recovery.
