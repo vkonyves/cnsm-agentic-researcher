@@ -1,0 +1,154 @@
+{
+  "selected_candidate_id": "c1_gvr_semantic_eval",
+  "title": "Effectiveness of Generate–Verify–Repair (GVR) for Preventing Semantic NetOps Violations — Repaired Preregistration",
+  "research_question": "Does deterministic verification plus bounded LLM-guided repair (GVR) reduce verifier-detected semantic invariant violations (reachability or policy/ACL breaches) relative to (A) unconstrained LLM generation and (B) schema-constrained decoding alone on a public synthetic NetOps task bank?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR arm (C) has a lower proportion of verifier-detected semantic invariant violations than unconstrained LLM generation (A) on paired tasks.",
+    "H2: The GVR arm (C) has a lower proportion of verifier-detected semantic invariant violations than schema-constrained decoding (B) on paired tasks."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does repair-iteration count correlate with topology size and policy complexity?",
+    "EQ2: What semantic failure modes remain after GVR (category tallies from deterministic diagnostics)?"
+  ],
+  "benchmark_scope": [
+    "Public synthetic NetOps task bank v1 (released subset): 12 topology/policy clusters × 20 tasks each = 240 tasks; each task = intent + reference topology + policy predicates. (See dataset-generation procedure; license: permissive public dataset release.)"
+  ],
+  "model_scope": [
+    "Single hosted LLM API, fixed model identifier (preregistered): OpenAI GPT-4o (model_id: gpt-4o) used via hosted API endpoint; single model/version used for all arms and all prompts to ensure comparability. (API keys and exact call metadata recorded in execution manifest.)"
+  ],
+  "transformation_scope": [
+    "Unconstrained textual generation (A).",
+    "Schema-constrained decoding: grammar-based output templates enforced via prompt + decoding constraints (B).",
+    "GVR pipeline (C): generate → deterministic verifier checks → if failing, bounded LLM repair prompt up to 3 repair attempts → verifier recheck; repairs restricted to allowed edit primitives (see preregistered repair template)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion of tasks with verifier-detected semantic violations; estimand computed as paired difference: rate(C) - rate(baseline) using paired_binary_analysis_v1 executor).",
+  "secondary_estimands": [
+    "Absolute risk reduction (C vs A and C vs B) with 95% Wilson CIs.",
+    "Distribution of repair iterations until verifier acceptance (empirical survival function).",
+    "Logistic regression coefficients for topology_size and policy_complexity as moderators of GVR effectiveness (exploratory)."
+  ],
+  "sampling_plan": "Confirmatory sample: N = 240 tasks. Sampling structure: 12 topology/policy clusters × 20 tasks per cluster = 240 tasks. For each task, run 3 interventions (A, B, C) producing one primary generated configuration per arm; confirmatory output count = 240 tasks × 3 arms = 720 primary generated artifacts. Repair attempts are additional model calls in arm C (bounded by max_attempts = 3 per task). All task selection scripts, RNG seeds, and the deterministic sampling procedure are preregistered and archived.",
+  "analysis_plan": "Primary comparisons: (C vs A) and (C vs B), paired by task intent. Use the registered analysis executor 'paired_binary_analysis_v1' (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary test: paired McNemar-style exact test implemented by the executor; compute absolute risk reduction and 95% Wilson CIs. Multiple-comparison correction: Bonferroni across two primary comparisons (alpha_family = 0.05 → per-comparison alpha = 0.025). Failed-call treatment: primary: 'complete_pair_primary' (pairs with provider/infrastructure failures documented and handled per analysis contract); sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' (treating failed calls as worst-case zeros). Secondary analyses (exploratory) use preregistered logistic regression and iteration-to-acceptance summaries; these are explicitly labeled exploratory.",
+  "multiplicity_plan": "Two prespecified primary comparisons (C vs A, C vs B). Apply Bonferroni correction (per-comparison alpha = 0.025). Report unadjusted p-values for transparency and adjusted decision at alpha_family = 0.05. All other tests are exploratory and reported as such.",
+  "missingness_plan": "API/infra failures or timeouts during a pair are recorded in the execution manifest. Primary analysis follows executor's 'complete_pair_primary' handling: pairs with irrecoverable infrastructure/model-call failures are excluded from the paired test only if both arms completed; otherwise missingness is handled by the executor; a sensitivity analysis will treat missing/failed model-call outputs as semantic-violation positives (conservative) to bound effect estimates. Verifier timeouts are flagged and counted separately; pre-specified rule: verifier timeout → item flagged and placed into sensitivity analysis (conservative treatment as violation unless golden-reference indicates otherwise).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public synthetic NetOps task bank v1"
+    ],
+    "risk_factors": [
+      "Verifier incompleteness (false negatives)",
+      "Repair loop overfitting to verifier oracle (passing checks but introducing undesirable edits)",
+      "Model non-determinism from hosted API",
+      "Task-bank distribution gap vs production topologies"
+    ],
+    "detection_procedures": [
+      "Deterministic verifier (pybatfish-based checks) returns structured diagnostics: reachability matrix, ACL-violation list, and explicit counterexample flows. Any non-empty diagnostic indicates a semantic violation.",
+      "Golden-reference tasks (10% of N = 24 tasks) with hand-curated ground-truth expected-verifier outcomes are injected to validate verifier soundness automatically (no human scoring during the run). Discrepancies between verifier outcome and golden-reference expected label are reported and used to quantify verifier error rates.",
+      "Repair-change diagnostics compute token-level and semantic diffs; a bounded-change metric flags large or structural edits."
+    ],
+    "item_flagging_rules": [
+      "If verifier timeout → automatic flag (exclude from primary but include in conservative sensitivity as violation).",
+      "If repair edit exceeds allowed edit budget (see repair template: max 8 atomic edit actions or >30% token change) → automatic flag and exclude from primary 'successful repair' tally; counted separately in failure-mode analysis.",
+      "If golden-reference diagnostic mismatch occurs → mark verifier as suspect for that cluster and include cluster-level sensitivity analysis."
+    ],
+    "analysis_treatment": "Primary analysis excludes flagged items only when they represent infrastructure failures per missingness rules; all flagged items are included in a conservative sensitivity analysis treating flagged items as violations. Report counts of flagged items and their effect on estimates.",
+    "residual_uncertainty": [
+      "Residual verifier incompleteness despite golden-reference checks (unobserved false negatives possible).",
+      "Potential for repairs that satisfy verifier predicates but are operationally undesirable (oracle overfitting).",
+      "External-validity gap between synthetic tasks and production devices/topologies."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended",
+      "description": "Balanced (recommended) — assume average repair attempts per failing task ≈ 1 (empirically plausible bound), typical verifier acceptance on first repair for many failures.",
+      "planned_model_calls": 960,
+      "models": [
+        "gpt-4o"
+      ],
+      "transformations": [
+        "A: 1 generation call per task",
+        "B: 1 generation call per task (constrained decoding call)",
+        "C: generation + average 1 repair attempt per task"
+      ],
+      "discovery_items": 24,
+      "confirmatory_items": 240,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Derivation: N=240 tasks × arms (A,B,C) produce 240 calls each for A and B (240+240). For C, assume 1 generation + 1 repair attempt on average → 2 calls/task → 240×2 = 480. Total model calls = 240 + 240 + 480 = 960. This is within the manifest limit (maximum_planned_model_calls=10000) and within the candidate's estimated_model_calls (1500). Per-cluster: 20 tasks × 3 arms = 60 primary outputs; repair attempts add 20 average extra calls per cluster in C."
+    },
+    {
+      "scenario_id": "conservative_maxrepairs",
+      "description": "Conservative (upper-bound) — assume worst-case: every C task uses max repairs (3).",
+      "planned_model_calls": 1440,
+      "models": [
+        "gpt-4o"
+      ],
+      "transformations": [
+        "A: 1 generation call per task",
+        "B: 1 generation call per task (constrained decoding call)",
+        "C: generation + up to 3 repair attempts per task (max_attempts = 3)"
+      ],
+      "discovery_items": 24,
+      "confirmatory_items": 240,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Derivation: A=240 calls, B=240 calls. C worst-case = 1 generation + 3 repairs = 4 calls/task → 240×4 = 960. Total = 240 + 240 + 960 = 1440 calls. Still within manifest model-call budget (maximum_planned_model_calls=10000) and near the original estimate (1500). Use this scenario for budgeting and cost/latency ceilings."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired binary difference in semantic-violation rate C vs baseline).",
+    "target_effect": "Absolute reduction of 10 percentage points (e.g., baseline violation rate 20% → target 10% in GVR arm).",
+    "clustering_unit": "Task (paired across arms); clusters used only for stratified subgroup analyses (12 clusters).",
+    "calculation_method": "Approximate paired McNemar power heuristic: with N=240 paired tasks, detecting an absolute paired difference of ~10% yields >80% power under typical paired-variance assumptions. Exact power will be computed by the registered analysis executor and reported in pre-execution power check artifacts.",
+    "assumptions": [
+      "Baseline semantic-violation rate ≈ 20% (plausible from prior literature and pilot runs).",
+      "Moderate within-task correlation across arms (paired design reduces variance).",
+      "Two primary comparisons corrected by Bonferroni (alpha_family = 0.05)."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With N=240 and paired design, MDE is approximately 8–12 percentage points depending on within-pair discordance; exact MDE will be computed and archived prior to execution. Sensitivity analyses will report detectable-effect curves.",
+    "sensitivity_analyses": [
+      "Power recalculated under baseline rates of 10% and 30%.",
+      "Power recalculated under higher within-pair correlation (conservative) assumptions.",
+      "Budget-to-power trade-off: report power at N=120 and N=360 to allow downstream decisions."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Grammar/schema constrained decoding validation (syntactic validity check).",
+      "Repair-prompt bounded-edit transformations (semantic-preserving constraints).",
+      "Deterministic verifier diagnostics (semantic invariants)."
+    ],
+    "semantic_equivalence_checks": [
+      "Automated semantic diff: compare pre- and post-repair generated configs on semantics-preserving predicates (e.g., intended allowed-flows remain allowed) using verifier-derived flow traces.",
+      "Bounded-change check: repairs that modify only localized ACL entries or interfaces (per repair template) pass equivalence; repairs that alter topology-level attributes are flagged.",
+      "Golden-reference automatic checks across the 24 injected tasks evaluate whether verifier outcomes match expected ground truth."
+    ],
+    "automatic_rejection_rules": [
+      "Reject repair as 'not allowed' (counted as failed repair) if repair exceeds the allowed edit budget (≥9 atomic edits or ≥30% token-level change).",
+      "Reject repair as 'oracle-overfit' and flag if post-repair verifier acceptance co-occurs with semantic-diff showing removal of intended allowed flows.",
+      "Automatically exclude outputs with malformed syntax (schema validator failure) from being considered syntactically valid; these are tallied separately."
+    ],
+    "audit_sample_policy": "Automated audit uses 10% golden-reference tasks (24 tasks) with precomputed expected verifier labels and stored expected diagnostics. Audit is deterministic (no human annotation during the run). Audit results quantify verifier mismatch rate and automatic flags.",
+    "mapping_validation": "Mapping from intent→reference topology→expected invariants is generated deterministically by dataset scripts; mapping validation uses unit tests and round-trip checks (intent→generated config→verifier counterexample→replayed scenario) included in the preregistered repo.",
+    "residual_risks": [
+      "Residual semantic gaps not covered by verifier predicates.",
+      "Possible repair behaviors that pass verifier but remain operationally undesirable (oracle overfitting)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Verifier incompleteness: golden-reference checks reduce but do not eliminate the possibility of undetected semantic violations in unseen topologies.",
+    "External-validity: synthetic public task bank may not fully reflect vendor/device diversity in production.",
+    "Model non-determinism: hosted-model API nondeterminism may cause run-to-run variability even with fixed prompts/seeds; we mitigate by recording full call metadata and running sensitivity analyses."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413757586",
+    "doi:10.3389/frai.2024.1406857",
+    "10.26434/chemrxiv.15005091/v1",
+    "https://openalex.org/W4411522870",
+    "https://openalex.org/W4411523078"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "summary": "Well-executed, fully archived preregistered paired experiment testing a Generate–Verify–Repair (GVR) intervention on a synthetic intent-to-configuration NetOps task bank (N=240). All generated candidates in both executed arms satisfied the deterministic validator, producing a null confirmatory result. Artifacts, hashes, and analysis outputs are comprehensive and reproducible. However, the manuscript as supplied contains important clarity and consistency defects that must be fixed before finalisation (see required revisions).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript language claims a three-arm comparison (A: unconstrained, B: schema-constrained, C: GVR) but the archived execution and analysis artifacts show a single paired condition pair (baseline vs guarded) using a shared initial-generation semantics. The paper must reconcile its experimental-claim wording with the actual executed conditions.",
+    "The experiment used 'shared_initial_candidate' generation_semantics (the same initial generator output was reused across conditions). That design choice materially reduces the opportunity for GVR to change outcomes (repairs never applied because initial shared candidates already satisfied the verifier). The manuscript does not clearly and prominently explain this design choice, its rationale, or its effect on sensitivity to detect GVR benefits.",
+    "The reported accounting of planned vs. used model calls and episode counts is confusing (planned_episode_count=480, completed_episode_count=480, but model_calls_used=240 and 'condition_counts': {\"shared\":240}). The Methods should explicitly explain how calls were shared across conditions and why model_calls_used is half the episode count, with clear treatment in analysis.",
+    "The Abstract and Introduction state comparisons with schema-constrained decoding (B) but the confirmatory analysis artifact includes only one primary confirmatory result. This mismatch between claims and archived analysis must be corrected (either by adjusting claims to reflect the executed experiment or by providing the archived evidence that the second comparison was executed)."
+  ],
+  "required_revisions": [
+    "Correct and reconcile all textual claims about arms/conditions with the archived execution artifacts: explicitly state which comparisons were actually executed and update Abstract, Introduction, Methods, Results, and Conclusion accordingly (if schema-constrained baseline was not executed, remove or rephrase all claims that it was compared).",
+    "Add an explicit Methods subsection (or expand existing text) that documents the generation_semantics = 'shared_initial_candidate' decision, describes exactly how the single generation was reused across conditions, explains why this approach was preregistered, and analyses how this design choice affects the ability of GVR to demonstrate benefit (including explicit wording that repair could not run when the shared initial candidate already passed the verifier). Cite the exact execution_manifest paths/hashes as supporting provenance.",
+    "Resolve and explain the apparent accounting mismatch: planned_episode_count, completed_episode_count, and model_calls_used. Add a brief deterministic reconciliation paragraph (pointing to deterministic_reconciliation.json or equivalent) that clarifies that one model call per task produced the shared candidate and that both arms were scored against that candidate; confirm that no separate schema-constrained generation calls were present unless archived evidence shows otherwise.",
+    "Modify the Abstract and any contribution statements that assert a three-arm confirmatory comparison to reflect the actual executed experiment. If the preregistration included two adapter-configured experiments but only one was executed, add a clear preregistration-fidelity disclosure (in Methods and the Disclosure Statement) describing that only the unconstrained-baseline vs GVR adapter-configured experiment was run, why (technical or design reason archived), and where the corresponding artifacts are located."
+  ],
+  "optional_revisions": [
+    "Add a concise table in Methods summarizing which arms, model-call counts, and artifact paths correspond to each executed condition (pointing to representative artifact hashes).",
+    "Expand the Discussion slightly to report cluster-level example artifacts (one or two representative tasks where the shared candidate satisfied verifier predicates) with artifact SHAs cited, to help readers understand the task/verifier difficulty qualitatively (no new experiments required).",
+    "Explicitly recommend, referencing archived artifacts, how a future run could alter generation semantics (independent per-condition generation or adversarial task injection) to better test GVR sensitivity; point to the existing planned outputs in the preregistration as a guide for replication."
+  ],
+  "accept_for_finalisation": false
+}

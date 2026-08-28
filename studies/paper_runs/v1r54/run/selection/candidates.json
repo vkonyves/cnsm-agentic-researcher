@@ -1,0 +1,155 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1_gvr_semantic_eval",
+      "title": "Effectiveness of Generate–Verify–Repair (GVR) for Preventing Semantic NetOps Violations",
+      "research_question": "Does inserting deterministic network verification and targeted repair into LLM-driven configuration synthesis (GVR) reduce semantic invariant violations (reachability and policy breaches) compared to unconstrained LLM generation and schema-constrained decoding alone?",
+      "hypotheses": [
+        "GVR yields a lower rate of semantic invariant violations than unconstrained LLM generation.",
+        "GVR yields a lower rate of semantic invariant violations than schema-constrained decoding without verifier-guided repair."
+      ],
+      "proposed_design": "Controlled, paired experiment using a public synthetic NetOps task bank: sample N=240 configuration-intent tasks across varied topologies and policies. For each task, generate configurations under three interventions: (A) unconstrained LLM generation, (B) schema-constrained decoding (grammar/schema enforced), (C) GVR pipeline where generated config is checked by a deterministic network verifier (reachability and ACL checks) and repairs are attempted via a bounded LLM repair prompt until verifier acceptance or 3 repair attempts. Use the same LLM model/version and fixed prompts/seeds across arms. Record verifier outcomes, syntactic validity, number of repairs, and execution-equivalent metrics. Publicly release tasks, prompts, and raw outputs.",
+      "expected_data": "Per-task records: intervention label, generated config text, syntactic-validity flag, verifier pass/fail for reachability and policy invariants, number of repair iterations, time/latency, and human-inspection labels for a 10% stratified sample. Aggregate counts of semantic violations per arm, syntactic-error rates, and repair success rates.",
+      "primary_outcome": "Proportion of tasks with verifier-detected semantic invariant violations (reachability or security-policy breach) per intervention arm.",
+      "analysis_outline": "Compare primary-outcome proportions between (C vs A) and (C vs B) with paired McNemar tests (tasks paired by intent). Compute absolute risk reduction and 95% Wilson CIs. Adjust for two primary comparisons with Bonferroni correction. Secondary analyses: logistic regression with covariates (topology size, policy complexity) to assess effect heterogeneity; survival-style analysis for number of repair iterations until verifier acceptance. Report effect sizes, p-values, and exact counts. Include failure-mode tallies and qualitative examples from human-inspected sample.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413757586"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.3389/frai.2024.1406857",
+        "10.26434/chemrxiv.15005091/v1",
+        "https://openalex.org/W4411522870"
+      ],
+      "risks": [
+        "Verifier incompleteness: deterministic verifier may not capture all semantic invariants, producing false negatives.",
+        "Repair loop may overfit to verifier checks and introduce unintended config changes.",
+        "LLM prompt sensitivity and seed dependence may inflate variability.",
+        "Compute and API cost risk for repeated repair iterations.",
+        "Public task bank may not fully reflect production device diversity (external validity)."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c2_smt_hybrid_proof",
+      "title": "Hybrid LLM-to-SMT Pipeline for Provable Network-Policy Conformance",
+      "research_question": "Can a hybrid pipeline that translates LLM-generated configurations into SMT constraints and uses an SMT solver to either prove policy conformance or produce concrete counterexamples reduce undetected semantic errors compared to purely heuristic validators?",
+      "hypotheses": [
+        "Integrating SMT-based formal checks reduces undetected policy violations (measured by solver-found counterexamples) relative to heuristic/deterministic validators alone.",
+        "SMT-assisted repair (using counterexamples as repair guidance) achieves higher final prover acceptance than LLM-only repair guided by heuristic validators."
+      ],
+      "proposed_design": "Implement a translator that maps generated configs and network semantics (topology, ACLs, routing) into SMT formulas (bounded model). Use a public suite of 120 medium-complexity topology-policy tasks. For each task: (1) generate configs via LLM; (2) run heuristic deterministic validator (baseline) and record outcome; (3) run SMT prover to attempt a formal proof of invariant preservation or produce counterexample; (4) when SMT finds counterexample, perform a bounded LLM repair using the counterexample as input, then re-check. Measure final prover acceptance and compare with baseline validator acceptance. Use fixed solver timeout (30s) and deterministic solver seeds.",
+      "expected_data": "Per-task records: original config, validator result, SMT result (proved/counterexample/timeout), counterexample data, repaired configs, final SMT result, time-to-solution, and failure reason (timeout/unsat/unknown). Summaries: prover-acceptance rates, disagreement rates between heuristic validator and SMT, repair success rate guided by counterexamples.",
+      "primary_outcome": "Proportion of tasks with SMT-proved invariant preservation after repair versus proportion accepted by heuristic validator after repair.",
+      "analysis_outline": "Compute paired proportions (SMT-accepted vs validator-accepted) and test differences with McNemar's test; report Cohen’s h for effect size. Report solver timeout rates and analyze disagreement cases qualitatively. Estimate required sample size a priori for 80% power to detect a 15% absolute difference (report calculation). Perform sensitivity analyses varying solver timeout and repair attempt limits. Correct for multiple secondary comparisons.",
+      "novelty_evidence_ids": [
+        "doi:10.1007/s10703-024-00468-9",
+        "https://openalex.org/W4393160302",
+        "https://openalex.org/W4406484968"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "SMT translation may be incomplete or undecidable for unbounded semantics leading to timeouts or spurious unknowns.",
+        "High solver CPU/time cost may limit scale or create selection bias toward simpler tasks.",
+        "Counterexample-guided repairs may produce syntactically valid but operationally undesirable configs if repair prompts are poorly constrained.",
+        "Mapping vendor-specific primitives into solver encodings may be labor-intensive and error-prone."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "c3_vendor_shift_robustness",
+      "title": "Robustness of Schema-Constrained and Hybrid LLM Decoding under Vendor and Syntax Distribution Shift",
+      "research_question": "How does distribution shift in vendor-specific syntax and unseen device families affect the semantic correctness of schema-constrained decoding and hybrid GVR pipelines, and can few-shot vendor adapters recover performance?",
+      "hypotheses": [
+        "Schema-constrained decoding performance degrades significantly under vendor-syntax shift (unseen vendors) compared to in-distribution vendors.",
+        "A lightweight few-shot adapter (5–10 vendor-specific examples) combined with schema constraints partially recovers semantic correctness under vendor shift.",
+        "GVR pipelines are more robust to vendor-syntax shift than schema-constrained-only pipelines when paired with adapter examples."
+      ],
+      "proposed_design": "Construct a dataset of 300 tasks evenly split across three vendor families (A,B,C) using publicly available device syntax corpora. Train no models but create prompt adapters: in-distribution (examples from same vendor) and few-shot cross-vendor adapters (5 and 10 examples). Run three interventions per task: (1) schema-constrained decoding without adapter, (2) schema-constrained with few-shot adapter, (3) GVR with adapter. Use deterministic verifier for semantic checks (reachability/policy). Measure semantic correctness per task. Evaluate transfer by holding out one vendor as unseen during adapter selection.",
+      "expected_data": "Task-level outcomes: vendor id, intervention, syntactic-validity, verifier pass/fail, adapter size, and per-task latency. Aggregates: semantic pass rates per vendor and intervention, delta recovery from adapter, and per-vendor confusion/error modes.",
+      "primary_outcome": "Change in semantic pass rate (verifier pass proportion) between schema-constrained without adapter and schema-constrained with few-shot adapter for unseen-vendor tasks.",
+      "analysis_outline": "Estimate paired differences in pass rates with bootstrapped 95% CIs. Test adapter effect with stratified permutation tests across tasks. Compare three-arm performance using Cochran’s Q test and pairwise McNemar post-hoc with Holm correction. Report interaction effects between vendor complexity and adapter size using logistic regression. Provide qualitative error taxonomy for residual failures.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4407163436",
+        "10.26434/chemrxiv.15005091/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.3389/frai.2024.1406857",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Public vendor corpora may be incomplete or biased, limiting generality.",
+        "Few-shot adapter examples may leak vendor-unique idiosyncrasies that harm other vendors.",
+        "Verifiers may misattribute failures to syntax rather than semantic mismatch.",
+        "Unseen vendor complexity may exceed capacity of few-shot adaptation, producing null results."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "c4_adversarial_redteam_mitigation",
+      "title": "Red-Team Adversarial Effects on LLM NetOps Outputs and Mitigation Efficacy",
+      "research_question": "How do adversarially-crafted prompts (red-team) affect rates of critical semantic NetOps errors in LLM-generated configurations, and to what extent do schema constraints and GVR mitigate adversarially-induced failures?",
+      "hypotheses": [
+        "Adversarial red-team prompts significantly increase the rate of critical semantic violations compared to benign prompts.",
+        "Combining schema constraints with GVR reduces the adversarially-induced semantic violation rate relative to constrained generation alone.",
+        "Some classes of adversarial prompts remain effective against GVR due to oracle limitations or targeted prompt engineering."
+      ],
+      "proposed_design": "Generate an adversarial prompt bank of 180 prompts using established red-team tactics (confusing intents, contradictory constraints, instruction-mixing), validated by prior adversarial literature. For each prompt, produce configurations under three defenses: (A) no defense (baseline), (B) schema-constrained decoding, (C) schema-constrained + GVR. Use a fixed set of 60 NetOps tasks (3 prompts per task). Measure semantic violation rates, rate of bypass (adversary succeeds despite defenses), and repair iterations. Randomize prompt-task pairing and fix seeds. Publish adversarial prompt bank and defense prompts.",
+      "expected_data": "Per-prompt-task records: prompt text, defense arm, config outputs, verifier pass/fail, bypass flag, number of repairs, and case-level qualitative notes. Aggregates: adversarial success rate per defense, types of successful adversarial patterns, and mitigation residuals.",
+      "primary_outcome": "Adversarial success rate (proportion of prompt-task pairs producing verifier-detected semantic violations) per defense arm.",
+      "analysis_outline": "Compare adversarial success rates across defenses using paired McNemar tests and estimate absolute/relative risk reductions. Stratify results by adversarial tactic taxonomy and report which tactics remain effective under each defense. Use logistic regression to model predictors of bypass (tactic type, task complexity, defense). Report inter-rater agreement on qualitative taxonomy from human review of 10% sample.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6619466",
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W4411523078"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4416927413",
+        "doi:10.3389/frai.2024.1406857"
+      ],
+      "risks": [
+        "Adversarial prompt generation may inadvertently include unrealistic or impossible operator intents, limiting external validity.",
+        "Defenses may be tuned to the specific red-team bank (overfitting) producing optimistic mitigation estimates.",
+        "Ethical risk: publishing adversarial prompts could enable misuse; must redact or responsibly disclose vectors.",
+        "API costs and rate limits for large adversarial bank evaluations."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "c5_human_vs_auto_gate_tradeoff",
+      "title": "Quantifying the Tradeoff Between Human Approval and Automated Validators in LLM-driven NetOps Workflows",
+      "research_question": "What is the marginal reduction in operationally-critical semantic errors achieved by adding human operator approval after automated validators, and what is the associated human workload cost (time and false-positive burden)?",
+      "hypotheses": [
+        "Adding human approval after automated validation reduces residual semantic errors relative to validator-only acceptance.",
+        "Human approval imposes non-trivial time and false-positive workload costs that may limit throughput; the marginal error-reduction diminishes beyond a modest automated-validation quality threshold."
+      ],
+      "proposed_design": "Simulate operator approval using a pool of N=30 network engineers recruited as annotators on public synthetic tasks (consented, compensated). Use 180 tasks and run LLM-generated configs passed by an automated validator; present a randomized subset (50% of validator-accepted and 50% of validator-rejected repaired configs) to human operators under two UI conditions: (1) minimal context (config only), (2) augmented context (config + verifier counterexample + concise invariants). Measure operator decision (approve/reject), decision time, inter-annotator agreement, and resulting verifier-checked acceptance after operator-guided edits (if any). Compare residual error rates with and without human approval.",
+      "expected_data": "Per-case records: validator result, human decision, decision time, context condition, final config state, verifier pass/fail post-human edit, and annotator metadata. Aggregates: residual semantic-error rate with validator-only vs validator+human, average decision time, false-positive reject rate, and inter-rater kappa.",
+      "primary_outcome": "Absolute reduction in verifier-detected semantic violations attributable to human approval (difference in error rate between validator-only and validator+human arms).",
+      "analysis_outline": "Estimate marginal error reduction with paired comparisons and compute 95% CIs via bootstrapping. Analyze operator time distribution (median, IQR) and model human workload per 1000 configs. Use mixed-effects logistic regression (case random effects, annotator fixed effects) to model approval probability. Report precision/recall of human approval relative to verifier ground truth and compute cost-benefit curves (time vs errors prevented).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7141119996",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411522870",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Simulated human pool may not reflect real operational staffing or expertise (external validity).",
+        "Human reviewers may be biased by presented context leading to over-rejection (evaluation paradox).",
+        "Ethical/consent overhead and cost for human annotation; must follow approved protocols.",
+        "Potential leakage of sensitive config semantics even with synthetic tasks."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

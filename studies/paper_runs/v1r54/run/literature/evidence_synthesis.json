@@ -1,0 +1,180 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "Large language models (LLMs) commonly produce hallucinations and incorrect or fabricated outputs when generating code, tooling calls, or structured artifacts relevant to NetOps, creating a substantive operational risk if consumed unchecked.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411523078",
+        "doi:10.36227/techrxiv.177219979.94060974/v1",
+        "doi:10.2139/ssrn.6619466",
+        "https://openalex.org/W4411523078"
+      ],
+      "evidence_type": "Empirical/Survey literature",
+      "confidence": 0.85,
+      "limitations": [
+        "Most cited studies analyze benchmarks, controlled experiments, or adversarial prompting rather than large-scale production NetOps incidents.",
+        "Failure rates depend on model family, prompt design, and tooling integration; numbers vary by study."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Generate–Verify–Repair (GVR) or iterative generate–verify–repair architectures—where deterministic validators and repair feedback are interposed between stochastic LLM generation and acceptance—are a reproducible mitigation that improves detection and correction of mechanically verifiable defects.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4411522870",
+        "doi:10.36227/techrxiv.175393532.27338752/v1"
+      ],
+      "evidence_type": "Method / case-study literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported improvements focus on mechanically checkable properties (compilation, syntactic validity, tests); semantic correctness in domain-specific NetOps logic is less exhaustively measured.",
+        "Case studies are often single-repo or benchmark-focused rather than broad multi-site deployments."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Constraining LLM outputs with explicit schemas, grammar-constrained decoding, or constraint-based adaptation substantially increases syntactic/executable output rates and reduces surface-level hallucinations.",
+      "evidence_record_ids": [
+        "10.26434/chemrxiv.15005091/v1",
+        "doi:10.3389/frai.2024.1406857",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "Empirical / systems literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Schema/granularity trade-offs: strict grammar enforcement can improve syntax but may disrupt model internal reasoning (Chain-of-Thought) unless hybrid approaches are used.",
+        "Syntactic/executable gains do not automatically imply semantic correctness for complex NetOps policies."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Practical NetOps deployments and research prototypes integrate LLM generation with network-specific validators and verification tools (e.g., syntax checkers, validation frameworks, domain primitives) as a recommended architecture to prevent regressions and improve reliability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4406484968"
+      ],
+      "evidence_type": "Systems / deployment reports",
+      "confidence": 0.75,
+      "limitations": [
+        "Descriptions vary in scope from production frameworks (Confucius) to research prototypes; independent replication details and failure-rate quantification are not uniformly reported.",
+        "The effectiveness of particular validators depends on the completeness of the verification oracle (e.g., topology-aware semantic checks)."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Human-in-the-loop oversight, operator approval workflows, and governance patterns are repeatedly recommended in the literature as necessary controls for high-stakes LLM-driven NetOps functions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7141119996",
+        "https://openalex.org/W4413757586",
+        "doi:10.59324/ejsmt.2026.2(3).12"
+      ],
+      "evidence_type": "Survey / procedural literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Recommendations are high-level and vary in concrete implementation; few studies provide controlled trials comparing oversight regimes in NetOps.",
+        "Human oversight may reduce throughput and introduce socio-technical failure modes (evaluation paradox) if not designed carefully."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "Adversarial or red-team testing amplifies LLM hallucination and fabrication rates and is an effective method to surface safety failures relevant to operational deployment.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6619466",
+        "doi:10.64898/2026.02.26.26347212",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "Adversarial testing / survey literature",
+      "confidence": 0.75,
+      "limitations": [
+        "Adversarial evaluations show vulnerability but do not quantify real-world exploit frequency in operational NetOps contexts.",
+        "Attack taxonomies and methods vary; transferability across models and prompt contexts is not uniform."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Do LLM-generated configurations or agentic NetOps actions demonstrably cause documented production-scale network outages in publicly available incident reports?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4413304852"
+      ],
+      "evidence_type": "Absence-of-evidence check within supplied records",
+      "confidence": 0.3,
+      "limitations": [
+        "The supplied records include deployment reports and prototypes but do not contain public, corroborated incident reports attributing outages to LLM-driven actions.",
+        "Absence of documented incidents in this record set is not proof that such outages have not occurred elsewhere or are not unpublished."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "To what extent do schema-constrained or hybrid decoding approaches guarantee semantic correctness (network-policy conformance, reachability, security) across diverse, large-scale network topologies?",
+      "evidence_record_ids": [
+        "10.26434/chemrxiv.15005091/v1",
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "Method-efficacy boundary",
+      "confidence": 0.4,
+      "limitations": [
+        "Existing evidence shows improvements in syntactic/executable rates and outlines hybrid strategies, but domain-level semantic guarantees (e.g., policy-preservation across arbitrary topologies) are not fully established in the supplied records.",
+        "Empirical evaluations are often benchmark- or task-limited rather than comprehensive network-scale proofs."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for standardized NetOps-focused benchmarks and metrics that measure semantic and operational correctness (policy conformance, reachability, security invariants) rather than only surface-level syntactic or final-answer accuracy.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W7166901903",
+        "https://openalex.org/W7166900660"
+      ],
+      "evidence_type": "Benchmark / gap identification literature",
+      "confidence": 0.7,
+      "limitations": [
+        "Some benchmarks and datasets exist (NetConfEval, AIOps-oriented datasets) but they remain limited in scope and do not fully capture operational invariant checks used by network verifiers.",
+        "Developing such benchmarks requires access to realistic topologies, policies, and validated oracles."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Stronger integration between LLM-based generation and formal network verification/program-synthesis approaches (e.g., SMT/constraint solving, network semantics) is an open gap that could improve provable correctness of synthesized configurations.",
+      "evidence_record_ids": [
+        "doi:10.1007/s10703-024-00468-9",
+        "https://openalex.org/W4393160302",
+        "https://openalex.org/W4406484968"
+      ],
+      "evidence_type": "Methods / research-direction literature",
+      "confidence": 0.65,
+      "limitations": [
+        "Foundational program synthesis and verification literature exists, but concrete, evaluated hybrids specifically combining LLM planners with formal network verifiers at scale are limited in the supplied records.",
+        "Bridging stochastic generation and symbolic proof requires careful interface and oracle design; cost and operator workflow impacts remain understudied."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Operational evaluations of LLM-driven NetOps systems under distribution shift (new devices, vendor-specific syntax, evolving protocols) and long-term maintenance scenarios are underrepresented and needed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406779522",
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W4413304852"
+      ],
+      "evidence_type": "Robustness / survey literature",
+      "confidence": 0.7,
+      "limitations": [
+        "Surveys and analyses highlight distribution-shift risks broadly, but empirical NetOps studies quantifying degradation across vendor syntax and evolving topologies are sparse in the supplied set.",
+        "Creating realistic longitudinal benchmarks requires production collaboration and careful data governance."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs have been documented in the supplied records as having directly caused production-scale network outages (no supplied record provides a corroborated incident attributing an outage to LLM-generated config/actions).",
+    "Schema-constrained decoding or constraint enforcement alone guarantees semantic correctness (the supplied evidence shows improved syntactic/executable rates but not universal semantic guarantees).",
+    "LLM-only agents (without validators, human oversight, or verification gates) are established as safe for NetOps in the supplied literature.",
+    "There is broad, replicated evidence in the supplied records that any single architectural mitigation (e.g., RAG, constrained decoding, or GVR) fully eliminates operational risk across all NetOps tasks."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "study_id": "c1_gvr_semantic_eval_prereg_v1",
+  "title": "Effectiveness of Generate–Verify–Repair (GVR) for Preventing Semantic NetOps Violations — Repaired Preregistration",
+  "research_question": "Does deterministic verification plus bounded LLM-guided repair (GVR) reduce verifier-detected semantic invariant violations (reachability or policy/ACL breaches) relative to (A) unconstrained LLM generation and (B) schema-constrained decoding alone on a public synthetic NetOps task bank?",
+  "confirmatory_hypotheses": [
+    "H1: The GVR arm (C) has a lower proportion of verifier-detected semantic invariant violations than unconstrained LLM generation (A) on paired tasks.",
+    "H2: The GVR arm (C) has a lower proportion of verifier-detected semantic invariant violations than schema-constrained decoding (B) on paired tasks."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does repair-iteration count correlate with topology size and policy complexity?",
+    "EQ2: What semantic failure modes remain after GVR (category tallies from deterministic diagnostics)?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4413757586",
+    "doi:10.3389/frai.2024.1406857",
+    "10.26434/chemrxiv.15005091/v1",
+    "https://openalex.org/W4411522870",
+    "https://openalex.org/W4411523078"
+  ],
+  "benchmark_scope": [
+    "Public synthetic NetOps task bank v1 (released subset): 12 topology/policy clusters × 20 tasks each = 240 tasks; each task = intent + reference topology + policy predicates. (See dataset-generation procedure; license: permissive public dataset release.)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 240,
+    "planned_episode_count": 480,
+    "maximum_model_calls": 480,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion of tasks with verifier-detected semantic violations; estimand computed as paired difference: rate(C) - rate(baseline) using paired_binary_analysis_v1 executor).",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute risk reduction (C vs A and C vs B) with 95% Wilson CIs.",
+    "Distribution of repair iterations until verifier acceptance (empirical survival function).",
+    "Logistic regression coefficients for topology_size and policy_complexity as moderators of GVR effectiveness (exploratory)."
+  ],
+  "sampling_plan": "Confirmatory sample: N = 240 tasks as a single paired experiment per adapter run. Structure: 12 topology/policy clusters × 20 tasks per cluster = 240 tasks. For each task the adapter produces paired outputs for baseline and guarded conditions (one primary generated configuration per condition). Confirmatory primary analysis compares guarded vs baseline in a paired manner. To address the two prespecified primary comparisons (H1 and H2), the study will execute two adapter-configured paired experiments (same task set, same RNG seeds, separate adapter baseline parameterization): (i) baseline parameterized as unconstrained generation (test H1), (ii) baseline parameterized as schema-constrained decoding (test H2). Each adapter-configured paired experiment uses the same preregistered sampling script and RNG seed set; each experiment has task_count = 240. All scripts, RNG seeds, and deterministic sampling procedures are archived prior to execution.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction of 10 percentage points (e.g., baseline violation rate 20% → target 10% in GVR arm). With N=240 paired tasks and paired-analysis heuristics (paired McNemar-like), power >80% for an approximate 10 percentage-point paired reduction under plausible discordance assumptions. Exact pre-execution power calculations will be run by the registered analysis executor and archived. Sensitivity power recalculations will be performed for baseline rates 10% and 30% and for alternative within-pair correlation assumptions.",
+  "exclusion_rules": [
+    "Pairs with irrecoverable infrastructure/model-call failures are handled per analysis executor 'complete_pair_primary' rules (documented in execution manifest).",
+    "Repair attempts that exceed the allowed edit budget are not counted as successful repairs and are tallied separately; such pairs remain in the dataset but flagged and included in conservative sensitivity analyses."
+  ],
+  "missingness_plan": "API/infra failures or timeouts during a pair are recorded in the execution manifest. Primary analysis follows the registered executor's 'complete_pair_primary' handling: pairs with irrecoverable infrastructure/model-call failures are excluded from the paired test only when exclusion criteria per executor are met; otherwise the executor's rules determine inclusion. A sensitivity analysis ('complete_pair_primary_with_failure_as_zero_sensitivity') will treat failed/missing model-call outputs as semantic-violation positives (conservative). Verifier timeouts are flagged and placed into sensitivity analyses (conservative treatment as violation unless golden-reference indicates otherwise).",
+  "analysis_plan": "Primary comparisons: (C vs A) and (C vs B), executed as two adapter-configured paired experiments (same task set). Use the registered analysis executor 'paired_binary_analysis_v1' (primary_estimand_id). Primary test: paired McNemar-style exact test implemented by the executor; compute absolute risk reduction and 95% Wilson CIs. Multiple-comparison correction: Bonferroni across the two prespecified primary comparisons (alpha_family = 0.05 → per-comparison alpha = 0.025). Report unadjusted p-values and corrected decision. Primary failed-call treatment: 'complete_pair_primary'; sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity'. Exploratory analyses: logistic regression for moderators, iteration-to-acceptance survival summaries, and failure-mode tallies. All exploratory tests are labeled and interpreted as exploratory.",
+  "multiplicity_plan": "Two prespecified primary comparisons (C vs A, C vs B). Apply Bonferroni correction (per-comparison alpha = 0.025). Unadjusted p-values provided for transparency; all other tests are exploratory and reported as such.",
+  "contamination_plan": "{\"benchmark_names\": [\"Public synthetic NetOps task bank v1\"], \"risk_factors\": [\"Verifier incompleteness (false negatives)\", \"Repair loop overfitting to verifier oracle (passing checks but introducing undesirable edits)\", \"Model non-determinism from hosted API\", \"Task-bank distribution gap vs production topologies\"], \"detection_procedures\": [\"Deterministic verifier (pybatfish-based checks) returns structured diagnostics: reachability matrix, ACL-violation list, and explicit counterexample flows. Any non-empty diagnostic indicates a semantic violation.\", \"Golden-reference tasks (10% of N = 24 tasks) with hand-curated expected-verifier outcomes are injected to validate verifier soundness automatically (no human scoring during the run). Discrepancies between verifier outcome and golden-reference expected label are reported and used to quantify verifier error rates.\", \"Repair-change diagnostics compute token-level and semantic diffs; a bounded-change metric flags large or structural edits.\"], \"item_flagging_rules\": [\"If verifier timeout → automatic flag (exclude from primary but include in conservative sensitivity as violation).\", \"If repair edit exceeds allowed edit budget (see repair template: max 8 atomic edit actions or >30% token change) → automatic flag and exclude from primary 'successful repair' tally; counted separately in failure-mode analysis.\", \"If golden-reference diagnostic mismatch occurs → mark verifier as suspect for that cluster and include cluster-level sensitivity analysis.\"], \"analysis_treatment\": \"Primary analysis excludes flagged items only when they represent infrastructure failures per missingness rules; all flagged items are included in a conservative sensitivity analysis treating flagged items as violations. Report counts of flagged items and their effect on estimates.\", \"residual_uncertainty\": [\"Residual verifier incompleteness despite golden-reference checks (unobserved false negatives possible).\", \"Potential for repairs that satisfy verifier predicates but are operationally undesirable (oracle overfitting).\", \"External-validity gap between synthetic tasks and production devices/topologies.\"]}",
+  "stopping_rule": "Fixed-N confirmatory design: do not stop early for efficacy. Full preregistered execution of N=240 tasks per adapter-configured paired experiment is required. Technical restarts for infrastructure failures are permitted only to recover from genuine infra errors and must be logged; scientific reruns to change outcomes are prohibited.",
+  "planned_outputs": [
+    "Raw generated configurations (all arms, all calls).",
+    "Verifier diagnostics (structured) for every generated artifact.",
+    "Repair-attempt transcripts and diffs (C arm).",
+    "Execution manifest and hashes.",
+    "Analysis outputs: paired tests, CIs, logistic regressions, failure-mode tallies.",
+    "Complete IEEE-format manuscript and disclosure.",
+    "NotebookLM presentation brief (machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}

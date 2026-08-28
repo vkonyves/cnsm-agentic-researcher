@@ -1,0 +1,32 @@
+{
+  "study_id": "c1_gvr_semantic_eval_prereg_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Paired McNemar-style exact test using the paired_binary_analysis_v1 executor comparing guarded (C) vs baseline (A) and guarded (C) vs schema-constrained (B) on the paired boolean outcome 'verifier-detected semantic violation' from paired_binary_episode_v1. Compute paired difference (rate(C) - rate(baseline)), unadjusted two-sided exact p-values, absolute risk reduction, and 95% Wilson confidence intervals. Apply primary failed-call handling per contract: complete_pair_primary. Report unadjusted p-values and Bonferroni-corrected decisions (per-comparison alpha=0.025).",
+  "secondary_analyses": [
+    "Absolute risk reduction (C vs A and C vs B) with 95% Wilson CIs reported overall and stratified by the 12 topology/policy clusters.",
+    "Empirical survival function of repair iterations until verifier acceptance (C arm) derived from repair transcripts/diffs in raw_results.jsonl.",
+    "Exploratory logistic regression of task-level success (verifier-accepted) on topology_size and policy_complexity (coefficients, SEs, Wald p-values) — labeled exploratory.",
+    "Tabulation of deterministic verifier diagnostics (reachability failures, ACL-violation lists) by category and frequency."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat failed/missing model-call outputs as semantic-violation positives in conservative sensitivity).",
+    "Exclude flagged infrastructure-failure pairs and re-run paired tests (per preregistered exclusion_rules) to confirm robustness.",
+    "Cluster-level sensitivity: exclude clusters where golden-reference mismatches indicate verifier suspectness and recompute primary estimates."
+  ],
+  "uncertainty_quantification": "Report exact two-sided paired-test p-values from paired_binary_analysis_v1; 95% Wilson CIs for absolute risk reductions; provide unadjusted p-values and Bonferroni-corrected decision. Provide cluster-stratified CI estimates and report counts to show sampling precision.",
+  "multiplicity_implementation": "Two prespecified primary comparisons (C vs A and C vs B). Bonferroni correction across these two tests (family alpha=0.05 → per-comparison alpha=0.025). Unadjusted p-values reported alongside corrected decision.",
+  "contamination_analysis": "Follow preregistered contamination_plan: (1) use pybatfish-based deterministic verifier diagnostics (reachability matrix, ACL-violation list, counterexample flows) to detect semantic violations; (2) inject 10% golden-reference tasks (24 tasks) to detect verifier mismatches and quantify verifier error rates; (3) compute repair-change diagnostics (token-level and semantic diffs) and flag edits exceeding edit budget (>30% token change or >8 atomic edit actions); (4) flag verifier timeouts and treat per missingness_plan; (5) report counts of flagged items and include flagged-item sensitivity analyses to quantify contamination impact; (6) report residual uncertainties (verifier incompleteness, potential oracle overfitting, task-bank distribution gap).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired contingency tables for C vs A and C vs B (counts: both pass, only guarded pass, only baseline/schema pass, both fail) derived from paired_binary_episode_v1 outcomes (raw_results.jsonl).",
+    "Table 2: Absolute risk reduction and 95% Wilson CIs for both primary comparisons — overall and by cluster (12 clusters × per-cluster counts).",
+    "Table 3: Flagged-item tallies: infrastructure/API failures, verifier timeouts, edit-budget-exceeded repairs, golden-reference mismatches; inclusion/exclusion status and effect on estimates.",
+    "Table 4: Exploratory logistic regression results (coefficients, SEs, p-values) for topology_size and policy_complexity as moderators (clearly labeled exploratory)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Empirical survival curve of repair iterations until verifier acceptance (C arm) using repair transcripts (raw_results.jsonl).",
+    "Figure 2: Bar chart of verifier-detected violation rates per cluster and arm (A,B,C) with 95% Wilson error bars (derived from paired outcomes).",
+    "Figure 3: Histogram of repair-change size (token % change) with vertical line indicating edit-budget exceedance threshold; annotate fraction exceeding budget."
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1_gvr_semantic_eval",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Deterministic verifier may be incomplete (false negatives) — undermines primary outcome validity.",
+        "Repair loop may overfit to verifier oracle, producing configs that pass checks but are operationally undesirable.",
+        "Prompt/seed sensitivity not fully characterized (single-model, single-prompt risks).",
+        "Public task bank representativeness (topology/device diversity) is uncertain."
+      ],
+      "required_design_repairs": [
+        "Specify exact verifier tool(s), version, and formal invariants checked (reachability, ACL semantics) and provide canonical oracle cases for verifier validation.",
+        "Preregister exact LLM model identifier, prompts, seeds, and schema constraints; publish prompts verbatim.",
+        "Define repair-prompt templates, bounded edit operations, and deterministic stopping rules (including handling of verifier timeouts).",
+        "Increase human-inspection sampling plan (clear labeling protocol, inter-rater reliability) and/or include golden-reference tasks to estimate verifier/human error rates.",
+        "Document dataset generation procedure and ensure public release of topology/policy corpora and scripts."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2_smt_hybrid_proof",
+      "novelty": 0.95,
+      "falsifiability": 0.85,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.85,
+      "reproducibility": 0.55,
+      "compute_feasibility": 0.5,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Translation from configs/topology to SMT is labor-intensive and error-prone; incomplete encoding can produce misleading solver results.",
+        "SMT undecidability/timeouts likely at chosen scale; high CPU/time cost may bias task selection toward easy cases.",
+        "Lack of a bounded-semantics specification (what is encoded, what is abstracted) threatens interpretability of 'proved' results.",
+        "Reproducibility hinges on releasing the translator and precise encodings; without that, results are not verifiable."
+      ],
+      "required_design_repairs": [
+        "Specify bounded semantic model (exact abstractions, finite-domain bounds) and provide formal translation specification.",
+        "Choose and state SMT solver (e.g., Z3) with version, deterministic settings, and solver-timeout policy; include solver resource plan.",
+        "Provide unit tests and a public translator implementation with canonical examples and round-trip checks (config→SMT→counterexample→replayed scenario).",
+        "Include fallback or escalation policy for solver timeouts (e.g., fallback to heuristic validator) and prespecify how timed-out cases are analyzed.",
+        "Re-evaluate sample size or task complexity to match solver throughput and avoid selection bias; preregister power calculation and timeout sensitivity analyses."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3_vendor_shift_robustness",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Public vendor syntax corpora may be incomplete or inconsistently licensed — threatens reproducibility and external validity.",
+        "'Few-shot adapter' needs precise operationalization (prompt format, selection criteria for examples) to avoid irreproducible ad-hoc choices.",
+        "Verifier attribution of failures to syntax versus higher-level semantic mismatch must be defined to avoid misinterpretation.",
+        "Holding out a vendor requires careful sampling to avoid confounding vendor complexity with task difficulty."
+      ],
+      "required_design_repairs": [
+        "List exact vendor corpora sources and versions, licensing, and preprocessing steps; publish corpora or stable subsets used.",
+        "Provide precise adapter construction (example selection method, prompt templates) and preregister the few-shot sets for each vendor.",
+        "Specify verifier implementation and diagnostic measures to disambiguate syntax vs semantic failures.",
+        "Define vendor hold-out and stratified sampling procedures and preregister analyses for interaction effects between vendor and topology complexity."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4_adversarial_redteam_mitigation",
+      "novelty": 0.85,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Ethical risk from publishing actionable adversarial prompts — needs responsible-disclosure policy.",
+        "Red-team bank generation methodology must avoid overfitting defenses to the bank (optimistic mitigation estimates).",
+        "Adversarial prompts may include unrealistic operator intents reducing external validity.",
+        "Reproducibility requires exact prompt texts, but publication may be restricted for safety."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethical review and redaction/responsible-disclosure plan for adversarial prompts (publish taxonomy/metrics, redact exploitative details).",
+        "Preregister red-team generation procedure, validation rules, and ensure randomization in prompt-task pairing to avoid selection bias.",
+        "Specify mitigation overfitting controls (e.g., separate tuning vs evaluation red-team splits) and report defense tuning records.",
+        "Define criteria for deciding which adversarial prompts are too sensitive to release and provide a safe-summary alternative for sharing research artifacts."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c5_human_vs_auto_gate_tradeoff",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.15,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Proposed design requires recruiting/compensating N=30 network engineers — conflicts with declared capability manifest (human_scientific_labour_allowed: false).",
+        "Human-subjects work introduces ethics/consent review, protected-data risk, and logistical overhead that are not supported in the manifest.",
+        "Simulated or synthetic surrogate operators would materially change the scientific question and interpretation.",
+        "Reproducibility is low if human pool, expertise, and UI are not tightly specified and provided."
+      ],
+      "required_design_repairs": [
+        "This candidate is infeasible under the supplied capability manifest; either (A) remove human-subject requirement and replace with validated existing datasets of operator decisions (if available) and preregister that substitution, or (B) defer until human-participant procedures, IRB/ethics, and staffing are provisioned outside the current manifest.",
+        "If proceeding with humans, preregister recruitment, consent, compensation, annotator selection criteria, UI screenshots, and IRB/ethics approvals; otherwise provide a validated simulation protocol and defend construct validity."
+      ],
+      "verdict": "veto"
+    }
+  ]
+}
