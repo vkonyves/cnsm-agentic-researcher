@@ -52,11 +52,7 @@ def test_underfill_recovery_freezes_science():
         in SOURCE
     )
     assert (
-        "genuine scientific "
-        in SOURCE
-    )
-    assert (
-        "explanation and synthesis"
+        "genuine supported scientific substance"
         in SOURCE
     )
     assert (
@@ -102,9 +98,9 @@ def test_underfill_recovery_rerenders_before_final_audits():
     assert recovery < rerender_marker < final_audit_comment
 
 
-def test_underfill_recovery_is_bounded_to_three_attempts():
+def test_underfill_recovery_is_bounded_to_five_attempts():
     assert (
-        "maximum_post_hygiene_underfill_attempts = 3"
+        "maximum_post_hygiene_underfill_attempts = 5"
         in SOURCE
     )
     assert (
@@ -113,40 +109,28 @@ def test_underfill_recovery_is_bounded_to_three_attempts():
     )
 
 
-def test_underfill_recovery_is_cumulative():
+def test_underfill_recovery_starts_each_attempt_from_best_candidate():
     assert (
-        "current_manuscript"
+        "best_recovery_manuscript"
         in SOURCE
     )
     assert (
-        "revised_manuscript.model_dump()"
+        "best_recovery_manuscript.model_dump()"
         in SOURCE
     )
     assert (
-        "This revision is cumulative"
-        in SOURCE
-    )
-    assert (
-        "Do not restart from, revert to, or imitate an "
+        "every attempt starts from the best successfully compiled"
         in SOURCE
     )
 
 
 def test_underfill_recovery_stops_at_exact_page_budget():
     assert (
-        "current_page_count"
+        "best_recovery_page_count"
         in SOURCE
     )
     assert (
-        "current_page_count"
-        in SOURCE
-        and "== current_maximum_pages"
-        in SOURCE
-    )
-    assert (
-        "recovered_page_count"
-        in SOURCE
-        and "== recovered_maximum_pages"
+        "== post_hygiene_maximum_pages"
         in SOURCE
     )
 
@@ -166,16 +150,92 @@ def test_underfill_recovery_renders_each_attempt():
     )
 
 
-def test_underfill_recovery_does_not_continue_after_overshoot():
+def test_underfill_recovery_rejects_non_improving_or_overshooting_candidates():
     assert (
-        "current_page_count"
-        in SOURCE
-        and "> current_maximum_pages"
+        "candidate_is_improvement"
         in SOURCE
     )
     assert (
-        "recovered_page_count"
+        "candidate_page_count"
         in SOURCE
-        and "> recovered_maximum_pages"
+    )
+    assert (
+        "> best_recovery_page_count"
+        in SOURCE
+    )
+    assert (
+        "<= post_hygiene_maximum_pages"
+        in SOURCE
+    )
+
+
+def test_underfill_recovery_tracks_best_successful_candidate():
+    assert "best_recovery_manuscript" in SOURCE
+    assert "best_recovery_validation" in SOURCE
+    assert "best_recovery_page_count" in SOURCE
+
+
+def test_underfill_recovery_accepts_only_page_improvement():
+    assert "candidate_is_improvement" in SOURCE
+    assert "candidate_page_count" in SOURCE
+    assert "> best_recovery_page_count" in SOURCE
+
+
+def test_underfill_recovery_rejects_overshoot():
+    assert "<= post_hygiene_maximum_pages" in SOURCE
+
+
+def test_underfill_recovery_restores_best_candidate_after_loop():
+    assert (
+        "revised_manuscript = best_recovery_manuscript"
+        in SOURCE
+    )
+    assert (
+        "publication_validation = ("
+        in SOURCE
+    )
+
+
+def test_recovery_candidate_must_pass_publication_sanity():
+    assert (
+        "candidate_publication_sanity"
+        in SOURCE
+    )
+    assert (
+        "audit_manuscript_publication_sanity("
+        in SOURCE
+    )
+    assert (
+        'candidate_publication_sanity.get('
+        in SOURCE
+    )
+
+
+def test_recovery_candidate_must_pass_artifact_audit():
+    assert (
+        "candidate_artifact_reference_audit"
+        in SOURCE
+    )
+    assert (
+        "audit_manuscript_artifact_references("
+        in SOURCE
+    )
+    assert (
+        'candidate_artifact_reference_audit.get('
+        in SOURCE
+    )
+
+
+def test_recovery_attempt_audits_are_archived():
+    assert (
+        "publication_sanity_audit_"
+        in SOURCE
+    )
+    assert (
+        "artifact_reference_audit_"
+        in SOURCE
+    )
+    assert (
+        "post_hygiene_underfill_"
         in SOURCE
     )

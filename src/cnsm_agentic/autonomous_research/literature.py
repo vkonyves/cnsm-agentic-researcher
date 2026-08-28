@@ -141,6 +141,33 @@ def _abstract(
     )
 
 
+def _sanitize_openalex_query(
+    query: str,
+) -> str:
+    """
+    Normalize an autonomous OpenAlex search query and remove wildcard
+    characters unsupported by OpenAlex's ordinary stemmed `search`
+    parameter.
+
+    This is API-compatibility normalization only: it preserves the
+    generated search terms and removes only `*` and `?` wildcard
+    operators that would otherwise cause HTTP 400.
+    """
+    cleaned = " ".join(
+        query.strip().split()
+    )
+
+    cleaned = (
+        cleaned
+        .replace("*", "")
+        .replace("?", "")
+    )
+
+    return " ".join(
+        cleaned.split()
+    )
+
+
 def search_openalex(
     query: str,
     *,
@@ -151,9 +178,22 @@ def search_openalex(
     """
     Search OpenAlex for scholarly works.
     """
-    cleaned_query = " ".join(
+    cleaned_query = _sanitize_openalex_query(
+        query
+    )
+
+    original_cleaned_query = " ".join(
         query.strip().split()
     )
+
+    if cleaned_query != original_cleaned_query:
+        print(
+            "Sanitized unsupported OpenAlex wildcard "
+            "characters:",
+            repr(original_cleaned_query),
+            "->",
+            repr(cleaned_query),
+        )
 
     if not cleaned_query:
         return []
