@@ -456,6 +456,8 @@ def audit_manuscript_publication_sanity(
         "raw_command_count": 0,
         "artifact_path_count": 0,
         "reviewer_meta_phrase_count": 0,
+        "undefined_reference_warning_count": 0,
+        "missing_character_warning_count": 0,
     }
 
     tex = (
@@ -659,6 +661,58 @@ def audit_manuscript_publication_sanity(
             + ", ".join(
                 sorted(set(reviewer_meta_hits))
             )
+        )
+
+    # ---------------------------------------------------------
+    # F. Undefined citations/references in the final LaTeX log.
+    # ---------------------------------------------------------
+    undefined_reference_patterns = [
+        r"(?i)LaTeX Warning: Citation .* undefined",
+        r"(?i)LaTeX Warning: Reference .* undefined",
+        r"(?i)There were undefined references",
+        r"(?i)There were undefined citations",
+    ]
+
+    undefined_reference_hits: list[str] = []
+
+    for pattern in undefined_reference_patterns:
+        undefined_reference_hits.extend(
+            match.group(0)
+            for match in re.finditer(
+                pattern,
+                log,
+            )
+        )
+
+    metrics["undefined_reference_warning_count"] = len(
+        undefined_reference_hits
+    )
+
+    if undefined_reference_hits:
+        issues.append(
+            "Final manuscript compilation contains "
+            f"{len(undefined_reference_hits)} undefined "
+            "citation/reference warning(s)."
+        )
+
+    # ---------------------------------------------------------
+    # G. Missing glyphs / characters in the final LaTeX log.
+    # ---------------------------------------------------------
+    missing_character_hits = re.findall(
+        r"(?im)^Missing character:.*$",
+        log,
+    )
+
+    metrics["missing_character_warning_count"] = len(
+        missing_character_hits
+    )
+
+    if missing_character_hits:
+        issues.append(
+            "Final manuscript compilation contains "
+            f"{len(missing_character_hits)} missing-character "
+            "warning(s); one or more manuscript glyphs may not "
+            "render correctly."
         )
 
     issues = sorted(set(issues))
@@ -920,6 +974,34 @@ def _compact_evidence_synthesis_for_manuscript(
             "archived in literature/evidence_synthesis.json."
         ),
     }
+
+
+
+
+def _compact_execution_manifest_for_analysis_planning(
+    execution_manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Deterministic bounded projection of the completed execution manifest
+    for ANALYSIS_PLANNER.
+
+    Preserve all execution-semantic and accounting fields, but omit the
+    potentially very large artifact_hashes inventory. The complete manifest
+    remains archived and authoritative for deterministic validation.
+    """
+    compact = dict(execution_manifest)
+
+    artifact_hashes = compact.pop(
+        "artifact_hashes",
+        None,
+    )
+
+    if isinstance(artifact_hashes, dict):
+        compact["artifact_hashes_total_count"] = len(
+            artifact_hashes
+        )
+
+    return compact
 
 
 
@@ -3936,7 +4018,11 @@ class FinalAutonomousResearchPipeline:
                 "capability_manifest": capability_manifest,
                 "preregistration": preregistration.model_dump(),
                 "experiment_plan": experiment_plan.model_dump(),
-                "execution_manifest": execution_manifest,
+                "execution_manifest": (
+                    _compact_execution_manifest_for_analysis_planning(
+                        execution_manifest
+                    )
+                ),
                 "available_analysis_families": (
                     available_analysis_families
                 ),
@@ -4359,7 +4445,9 @@ class FinalAutonomousResearchPipeline:
                         preregistration.model_dump()
                     ),
                     "execution_manifest": (
-                        execution_manifest
+                        _compact_execution_manifest_for_manuscript(
+                            execution_manifest
+                        )
                     ),
                     "analysis_results": (
                         analysis_results
@@ -5565,7 +5653,9 @@ class FinalAutonomousResearchPipeline:
                         preregistration.model_dump()
                     ),
                     "execution_manifest": (
-                        execution_manifest
+                        _compact_execution_manifest_for_manuscript(
+                            execution_manifest
+                        )
                     ),
                     "analysis_results": (
                         analysis_results
@@ -6785,7 +6875,9 @@ class FinalAutonomousResearchPipeline:
                     preregistration.model_dump()
                 ),
                 "execution_manifest": (
-                    execution_manifest
+                    _compact_execution_manifest_for_manuscript(
+                        execution_manifest
+                    )
                 ),
                 "analysis_results": (
                     analysis_results

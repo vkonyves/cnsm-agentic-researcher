@@ -180,3 +180,63 @@ def test_excessive_artifact_paths_fail(tmp_path):
 
     assert audit["passed"] is False
     assert audit["metrics"]["artifact_path_count"] == 9
+
+
+def test_undefined_citation_warning_fails_publication_sanity(
+    tmp_path,
+):
+    final_dir = tmp_path / "manuscript" / "final"
+    final_dir.mkdir(parents=True)
+
+    (final_dir / "manuscript.tex").write_text(
+        r"\begin{document}Scientific text.\end{document}",
+        encoding="utf-8",
+    )
+
+    (final_dir / "manuscript.log").write_text(
+        "LaTeX Warning: Citation `ref1' on page 2 undefined "
+        "on input line 42.\n"
+        "There were undefined references.\n",
+        encoding="utf-8",
+    )
+
+    result = audit_manuscript_publication_sanity(
+        run_dir=tmp_path
+    )
+
+    assert result["passed"] is False
+    assert (
+        result["metrics"][
+            "undefined_reference_warning_count"
+        ]
+        >= 1
+    )
+
+
+def test_missing_character_warning_fails_publication_sanity(
+    tmp_path,
+):
+    final_dir = tmp_path / "manuscript" / "final"
+    final_dir.mkdir(parents=True)
+
+    (final_dir / "manuscript.tex").write_text(
+        r"\begin{document}Scientific text.\end{document}",
+        encoding="utf-8",
+    )
+
+    (final_dir / "manuscript.log").write_text(
+        "Missing character: There is no Ω in font ptmr7t!\n",
+        encoding="utf-8",
+    )
+
+    result = audit_manuscript_publication_sanity(
+        run_dir=tmp_path
+    )
+
+    assert result["passed"] is False
+    assert (
+        result["metrics"][
+            "missing_character_warning_count"
+        ]
+        == 1
+    )
