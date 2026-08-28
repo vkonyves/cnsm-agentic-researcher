@@ -6332,7 +6332,11 @@ class FinalAutonomousResearchPipeline:
                 "not use generic filler, vague transitions, provenance boilerplate, "
                 "or metadata restatements to maintain page count. "
                 "Remove unnecessary artifact inventories and "
-                "filesystem paths. Keep detailed machine provenance in the "
+                "filesystem paths. In the Disclosure Statement, do not include "
+                "a repository path merely to establish that the required master "
+                "prompt was archived; state that provenance fact in normal prose "
+                "and retain the required immutable master-prompt SHA-256. Keep "
+                "detailed machine provenance in the "
                 "archived run rather than copying it into the paper. Remove "
                 "full SHA-256 digests except the one immutable master-prompt "
                 "digest required in the mandatory Disclosure Statement. Do not "
@@ -6450,8 +6454,178 @@ class FinalAutonomousResearchPipeline:
                 publication_validation,
             )
 
-            # Re-run BOTH deterministic audits on the remediated
-            # authoritative manuscript/PDF.
+            # -------------------------------------------------
+            # Bounded post-hygiene scientific underfill recovery
+            # -------------------------------------------------
+            #
+            # Publication-hygiene remediation may correctly remove
+            # machine-oriented provenance material and thereby reduce
+            # an exact-page manuscript below the frozen page budget.
+            #
+            # Permit exactly ONE additional manuscript revision whose
+            # sole purpose is to restore the page budget using scientific
+            # material already supported by the frozen evidence.
+            #
+            # This is a presentation/convergence operation only:
+            # - no new experiments;
+            # - no new analyses;
+            # - no new citations or evidence records;
+            # - no new scientific results;
+            # - no changed numerical results or conclusions.
+            post_hygiene_page_count = (
+                publication_validation.get("page_count")
+                if publication_validation is not None
+                else None
+            )
+            post_hygiene_maximum_pages = (
+                publication_validation.get("maximum_pages")
+                if publication_validation is not None
+                else None
+            )
+
+            if (
+                publication_validation is not None
+                and publication_validation.get("compile_status")
+                == "passed"
+                and isinstance(post_hygiene_page_count, int)
+                and isinstance(post_hygiene_maximum_pages, int)
+                and post_hygiene_page_count
+                < post_hygiene_maximum_pages
+            ):
+                scientific_underfill_instruction = (
+                    "The manuscript is scientifically frozen but underfills "
+                    "the required IEEE page budget after publication-hygiene "
+                    "cleanup. Perform exactly one bounded scientific-prose "
+                    "expansion using ONLY information already supported by the "
+                    "supplied verified literature synthesis, preregistration, "
+                    "completed methodology, execution evidence, analysis "
+                    "results, deterministic reconciliation, and existing "
+                    "manuscript evidence. "
+                    "\n\n"
+                    "SCIENTIFIC CONTENT IS FROZEN. Do not change or introduce "
+                    "the research question, hypotheses, preregistration, study "
+                    "design, execution, sample sizes, numerical results, "
+                    "statistical tests, effect sizes, confidence intervals, "
+                    "p-values, supported interpretations, limitations, "
+                    "scientific conclusions, citations, evidence records, "
+                    "experiments, analyses, model calls, data, artifacts, "
+                    "paths, hashes, DOI metadata, repository locations, or "
+                    "results. "
+                    "\n\n"
+                    "Expand only scientifically substantive material that is "
+                    "already supported. Prefer deeper synthesis and comparison "
+                    "of verified prior literature; clearer explanation of "
+                    "methodology and design choices; interpretation of existing "
+                    "quantitative results; discussion of observed failure modes "
+                    "and uncertainty; threats to validity and limitations; and "
+                    "operational implications for reliable LLM/agent NetOps. "
+                    "\n\n"
+                    "Do not add generic filler, repetition, vague transitions, "
+                    "provenance boilerplate, artifact inventories, filesystem "
+                    "paths, additional hashes, DOI labels, raw commands, or "
+                    "reviewer-response language. Do not manipulate fonts, "
+                    "margins, spacing, geometry, or the IEEE template. "
+                    "\n\n"
+                    "Preserve every existing factual and numerical value and "
+                    "all supported scientific conclusions. Use the available "
+                    "space for genuine scientific explanation and synthesis. "
+                    "Target exactly the frozen IEEE page budget."
+                )
+
+                revised_manuscript = await run_agent(
+                    MANUSCRIPT_REVISER,
+                    {
+                        "current_manuscript": (
+                            revised_manuscript.model_dump()
+                        ),
+                        "verified_records": (
+                            manuscript_revision_context[
+                                "verified_records"
+                            ]
+                        ),
+                        "execution_manifest": (
+                            manuscript_revision_context[
+                                "execution_manifest"
+                            ]
+                        ),
+                        "manuscript_evidence_bundle": (
+                            manuscript_revision_context[
+                                "manuscript_evidence_bundle"
+                            ]
+                        ),
+                        "evidence_synthesis": (
+                            manuscript_revision_context[
+                                "evidence_synthesis"
+                            ]
+                        ),
+                        "preregistration": (
+                            preregistration.model_dump()
+                        ),
+                        "analysis_results": (
+                            analysis_results
+                        ),
+                        "deterministic_reconciliation": (
+                            deterministic_reconciliation
+                        ),
+                        "publication_validation": (
+                            publication_validation
+                        ),
+                        "paper_run_constraints": (
+                            paper_run_constraints
+                        ),
+                        "revision_mode": (
+                            "post_hygiene_scientific_underfill_recovery"
+                        ),
+                        "revision_instruction": (
+                            scientific_underfill_instruction
+                        ),
+                    },
+                    expected_type=ManuscriptPackage,
+                    stage_name=(
+                        "Post-hygiene scientific underfill recovery"
+                    ),
+                )
+
+                write_json(
+                    revision_rounds_dir
+                    / "post_hygiene_underfill_recovered_package.json",
+                    revised_manuscript,
+                )
+
+                # Synchronize the authoritative manuscript alias.
+                write_json(
+                    run_dir
+                    / "manuscript"
+                    / "revised_package.json",
+                    revised_manuscript,
+                )
+
+                # Re-render after the one bounded scientific expansion.
+                publication_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            revised_manuscript.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_validation_"
+                        "post_hygiene_underfill_recovery.json"
+                    ),
+                    publication_validation,
+                )
+
+            # Re-run BOTH deterministic audits on the final
+            # post-remediation candidate, including any bounded
+            # scientific underfill recovery.
             publication_sanity_audit = (
                 audit_manuscript_publication_sanity(
                     run_dir=run_dir,

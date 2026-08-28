@@ -180,6 +180,34 @@ def _latex_escape(value: str) -> str:
     for token, latex in protected_tokens.items():
         value = value.replace(token, latex)
 
+    # A SHA-256 digest is a 64-character unbroken token. In IEEE
+    # two-column layout it can exceed the column width even though the
+    # digest itself is mandatory disclosure content. Add invisible
+    # TeX line-break opportunities every eight hexadecimal characters.
+    #
+    # This is a presentation-only transformation: every hexadecimal
+    # character remains unchanged and in the same order.
+    sha256_pattern = re.compile(
+        r"(?<![0-9A-Fa-f])"
+        r"([0-9A-Fa-f]{64})"
+        r"(?![0-9A-Fa-f])"
+    )
+
+    def make_sha256_breakable(
+        match: re.Match[str],
+    ) -> str:
+        digest = match.group(1)
+
+        return r"\allowbreak{}".join(
+            digest[index:index + 8]
+            for index in range(0, 64, 8)
+        )
+
+    value = sha256_pattern.sub(
+        make_sha256_breakable,
+        value,
+    )
+
     return value
 
 

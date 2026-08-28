@@ -172,7 +172,7 @@ def test_all_reviser_calls_use_compact_context():
         for match in pattern.finditer(text)
     ]
 
-    assert len(call_blocks) == 6
+    assert len(call_blocks) == 7
 
     for block in call_blocks:
         assert (
@@ -194,7 +194,7 @@ def test_all_reviser_calls_use_compact_context():
             "manuscript_revision_context"
         ) >= 4
 
-        # None of the six reviser calls may inject the original
+        # None of the seven reviser calls may inject the original
         # unbounded sources directly.
         assert (
             '"verified_records": records'
