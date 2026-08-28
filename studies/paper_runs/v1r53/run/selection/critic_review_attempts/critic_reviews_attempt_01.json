@@ -1,0 +1,92 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "predictive-oracle-simulator-2026",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulator realism and SLO/traffic assumptions are underspecified (threat to external validity).",
+        "Rollback-cost and MTTR estimands rely on strong, site-specific assumptions.",
+        "Risk of overfitting predictive models to simulated scenarios and limited topology diversity.",
+        "Potential lack of multi-vendor realism in configuration corpus."
+      ],
+      "required_design_repairs": [
+        "Specify simulator modeling assumptions and justify SLO/failure models; provide sensitivity ranges for key simulator parameters.",
+        "Include multi-vendor config samples or explicit synthesis procedure and provenance for all config artifacts.",
+        "Preregister binary thresholds for ",
+        "high-impact",
+        "events and justify chosen thresholds.",
+        "Add explicit regularization and external-validation plan (e.g., holdout topologies) and publish all artifacts/hashes and tool versions for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "contamination-audit-netops-2026",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.9,
+      "causal_interpretability": 0.8,
+      "reproducibility": 1.0,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Contamination-detection heuristics risk false positives/negatives; provenance inferences are probabilistic.",
+        "Limited access to authoritative training-corpus manifests constrains claims about contamination source.",
+        "Potential reputational/legal sensitivity when reporting dataset maintainers' artifacts."
+      ],
+      "required_design_repairs": [
+        "Define and justify detection thresholds and provide estimated FP/FN rates with a manual spot-check protocol.",
+        "Include a clear, conservative responsible-disclosure policy and redact sensitive provenance evidence where appropriate.",
+        "Provide explicit list of datasets evaluated, seeds, and reproducible scripts to re-run contamination checks; publish sampled manual annotations used for heuristic validation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "adversarial-agentic-eval-2026",
+      "novelty": 1.0,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "High risk of producing actionable adversarial guidance; ethical and disclosure concerns are prominent.",
+        "Adversarial scenarios and multi-agent interactions may be unrealistic without modeling human operator mitigation.",
+        "Attribution of failure modes to specific components may be confounded by complex interactions."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethical review / responsible-disclosure plan and redact exploitable details in artifacts.",
+        "Preregister adversary generation heuristics with bounded budgets and conservative realism constraints; include human-operator mitigation models or clearly bound external validity.",
+        "Strengthen analysis plan to include ablations and causal attribution methods (e.g., disabling components, counterfactual runs) and publish sanitized transcripts and verification logs for reproducibility."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "oracle-benchmark-multivendor-2026",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Potential inclusion of sensitive vendor templates; legal/sensitivity risk if provenance not carefully controlled.",
+        "Oracle semantics (what verifier guarantees) need precise specification to avoid ambiguous evaluation.",
+        "Long-term maintenance and hosting of benchmark artifacts not specified, threatening reproducibility."
+      ],
+      "required_design_repairs": [
+        "Constrain corpora to public or fully synthesized templates and document synthesis/provenance procedure; add redaction rules.",
+        "Define verifier input/output contracts and clearly enumerate properties checked (reachability, isolation, etc.) and tool versions used.",
+        "Provide a reproducibility and hosting plan (artifact hashes, persistent storage links or containerized runners) and a minimal reference implementation for baseline methods."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

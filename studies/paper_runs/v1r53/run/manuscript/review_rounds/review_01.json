@@ -1,0 +1,27 @@
+{
+  "summary": "Well-executed, fully preregistered artifact-backed confirmatory audit that executed the planned pipeline and archived comprehensive artifacts. The study returned a precise null effect (no high-confidence contamination flags, identical baseline and guarded pass rates). The manuscript and artifacts are reproducible, but there are manuscript-level defects to fix before finalisation: (1) inconsistent hypothesis/identifier labeling between preregistration and analysis outputs, (2) metadata-heavy presentation that should be recast into normal scholarly prose with an explicit evidence‑to‑claim table, and (3) inadequate discussion of statistical degeneracy (no discordant pairs) and of how the preregistered shared_initial_generation semantics and synthetic sampling limit sensitivity and generalizability. All required corrections appear resolvable from the supplied artifacts and preregistration bundle.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Inconsistent labeling/mapping of preregistered hypotheses vs analysis results: preregistration lists H1/H2/H3 with H2 as the primary confirmatory test, but analysis/confirmatory_results uses hypothesis_id 'H1' for the paired estimand. This mismatch must be corrected for preregistration fidelity and traceability.",
+    "Manuscript relies heavily on artifact/path/hash inventories and provenance lists in main text; this reads like an artifact report rather than conventional scientific prose. The paper must be rewritten to present literature-grounded motivation, methods, results, and interpretation in normal scholarly narrative while keeping artifact pointers concise.",
+    "Statistical degeneracy: all 150 pairs were concordant (n11=150, n10=n01=n00=0). McNemar and the bootstrap produced degenerate p-value and CI (p=1.0, CI [0.0,0.0]). The manuscript must explicitly acknowledge the inferential limits of this outcome (no discordant pairs → no evidence for or against the intervention effect beyond reporting concordance) and interpret the null accordingly.",
+    "Design choice that shared_initial_candidate generation (independent_condition_generation=false) produced identical model outputs across conditions when no exclusions occurred. This substantially reduces the experiment's sensitivity to detect guarded vs baseline differences and must be clearly explained in Methods and Discussion (including why the preregistered choice was made and its consequences).",
+    "Sample provenance: executed items are synthetic/deterministic (source_identifier 'synthetic-netops:...'), so the null finding does not generalize to real-world/wider benchmark corpora. The manuscript must strengthen and foreground this limitation and avoid broader claims about contamination prevalence."
+  ],
+  "required_revisions": [
+    "Fix the preregistration ↔ analysis identifier mismatch: update manuscript (and, if necessary, the analysis manifest) so the primary confirmatory estimand, its hypothesis identifier, and the preregistered hypothesis names (H1/H2/H3) are consistently and unambiguously labeled. Provide exact preregistration file path and SHA reference when making the mapping explicit (artifact evidence available).",
+    "Add an explicit, short paragraph in Results/Discussion that explains the degeneracy of the inferential outcome (n10=n01=0), why McNemar/bootstrap outputs are uninformative in that case, and how this affects interpretation of the null effect. Cite/point to the paired_contingency_table.csv artifact for reproducibility.",
+    "Rework main-text presentation to replace extensive in-line artifact inventories with concise scholarly prose. Include a one-page (or compact) evidence-to-claim table that maps each principal claim to its supporting artifact/file (paths and SHA references are available in the bundle). Move long hash/manifest listings to a single compact paragraph or a brief referenced bundle location to preserve page budget.",
+    "Explicitly document and justify the shared_initial_candidate generation semantics in Methods (state that model_calls_used=150 due to shared-initial generation; point to execution/model_configuration.json and execution/execution_manifest.json), and add a clear statement in Limitations that this choice limited sensitivity and explain how independent-condition generation would change the intervention test.",
+    "Tighten and foreground the limitations section to make plain that (a) items were synthetic, (b) single-model execution (gpt-5-mini) limits generality, and (c) preregistered heuristics (exact-match and 5-gram thresholds) are conservative and could miss subtler contamination. Ensure the Abstract and Conclusion do not overstate generality given these bounds."
+  ],
+  "optional_revisions": [
+    "Include the (empty/zero) contamination_summary.csv table and the paired contingency table (analysis/paired_contingency_table.csv) as compact figures or tables in the manuscript to make the null pattern immediately accessible to readers.",
+    "Add a brief recommended protocol paragraph with concrete changes for future audits (e.g., sample provenance-rich corpora, independent-condition generation, multi-model runs, manual adjudication for borderline flags, and threshold sensitivity analysis).",
+    "Minor copyediting to reduce remaining metadata-style sentences and improve narrative flow; compress the artifact manifest text further if needed to meet page constraints."
+  ],
+  "accept_for_finalisation": false
+}

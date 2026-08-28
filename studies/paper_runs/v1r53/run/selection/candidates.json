@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "predictive-oracle-simulator-2026",
+      "title": "Predicting Operational Impact by Combining Formal Verifier Outputs with an Operational Simulator",
+      "research_question": "Does combining deterministic verifier outputs with lightweight operational-simulator features improve prediction of high operational-impact events (outages, high rollback cost, long MTTR) compared with verifier outputs alone for LLM/agent-generated NetOps changes?",
+      "hypotheses": [
+        "Combining verifier pass/fail signals and counterexample structure with simulator-derived operational features will yield higher discriminative performance (AUC-ROC) for predicting high-impact events than using verifier outputs alone.",
+        "Verifier outputs will correlate with functional metrics (reachability violations) but will have limited calibration for operational impact metrics (outage probability, rollback cost) without simulator features.",
+        "A simple logistic-regression baseline augmented with simulator features will achieve meaningful calibration improvements over verifier-only models, while more flexible models (random forest) will further increase discrimination but risk overfitting without careful cross-validation."
+      ],
+      "proposed_design": "Preregister a corpus of synthetic and public multi-vendor configuration change tasks (intent-to-change pairs). For each candidate change: (1) generate an LLM/agent-produced configuration change using fixed prompts and model versions; (2) run a formal verifier (reachability/policy checks) to produce pass/fail and counterexample artifacts; (3) execute a deterministic operational simulator that estimates outage probability, simulated rollback cost, and MTTR under injected failure scenarios; (4) compute topology and traffic lightweight features (redundancy, affected prefix counts). Freeze seeds, models, verifier/tool versions, simulator parameters, and a maximum of 1,800 model calls. Split tasks into training/validation/test folds. Train predictive models (verifier-only features; verifier+simulator features) using nested cross-validation and report held-out metrics. Save all raw artifacts for reproducibility.",
+      "expected_data": "Per-change records: verifier pass/fail, counterexample traces, simulator outage probability, estimated rollback cost, MTTR, topology/traffic features, model-generation logs. Aggregates: Pearson/Spearman correlations between verifier signals and operational metrics, AUC-ROC/AUPRC/Brier score for each model variant with 95% CIs, calibration curves, permutation feature importance and SHAP-like summaries, decision-curve analysis outputs.",
+      "primary_outcome": "Increase in held-out AUC-ROC for predicting high operational-impact events when using verifier+simulator features versus verifier-only features, reported with 95% confidence intervals and p-value from a paired test across folds.",
+      "analysis_outline": "Compute descriptive correlations between verifier outputs and continuous operational metrics. Train logistic regression and random-forest classifiers for binary high-impact prediction (predefined outage/rollback thresholds) with nested cross-validation. Report AUC-ROC, AUPRC, Brier score, and 95% CIs via bootstrap. Use paired Wilcoxon or paired t-tests across folds for primary outcome. Produce calibration plots and compute calibration-in-the-large and calibration slope. Compute permutation feature importance and SHAP summaries. Conduct sensitivity analyses varying simulator severity parameters and retraining to assess robustness.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W2742515467",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162218766"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W7162123183",
+        "https://openalex.org/W4404602270"
+      ],
+      "risks": [
+        "Operational simulator abstractions (traffic models, SLO thresholds) may misrepresent real-world operator priorities, limiting external validity.",
+        "Predictive models may overfit to simulated scenarios and not generalize to unseen topologies or traffic patterns.",
+        "Estimating rollback cost requires assumptions about change propagation and operator intervention that may be site-specific."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "contamination-audit-netops-2026",
+      "title": "Audit of Data Contamination and Construct Validity in LLM-for-NetOps Benchmarks",
+      "research_question": "How prevalent are dataset contamination and construct-invalidity issues in public LLM-for-NetOps benchmarks, and how much do contamination controls and realism adjustments affect measured model performance?",
+      "hypotheses": [
+        "A nontrivial fraction of evaluated NetOps benchmark items will show probable overlap with public LLM training corpora according to exact-match and fuzzy-overlap heuristics, inflating measured performance.",
+        "Applying preregistered contamination controls (removing/holding out overlapping items and temporal splits) and realism adjustments (multi-vendor retemplating, added topology complexity) will produce a statistically significant decrease in measured model performance across evaluated benchmarks.",
+        "Tasks classified as highly templated or low-complexity will exhibit the largest performance drops after contamination control and realism adjustments, indicating construct-invalidity bias in published evaluations."
+      ],
+      "proposed_design": "Select a representative set of public NetOps/LLM benchmarks and datasets from the literature leads. Preregister contamination-detection heuristics: exact fingerprint matching, fuzzy n-gram overlap thresholds, and metadata provenance tracing. For each dataset: (1) compute contamination flags; (2) create contamination-controlled splits by removing/holding out flagged items; (3) produce realism-adjusted variants (vendor retemplating, increased topology complexity). Evaluate a fixed set of LLMs and in-context prompting strategies on original vs controlled/realistic splits using identical prompts and scoring. Limit model calls to 1,200. Record provenance traces for flagged items and all evaluation logs.",
+      "expected_data": "Per-dataset contamination rates (counts and percentages), model performance on original vs controlled splits (accuracy, repair rate), per-task performance deltas, distribution of contamination across sources, and classification of tasks by construct-validity (templated vs realistic). Aggregates: mean performance drop with 95% CIs and sensitivity curves across contamination thresholds.",
+      "primary_outcome": "Average relative drop in model performance (percentage points) across evaluated benchmarks after applying preregistered contamination controls and realism adjustments, with 95% confidence intervals and task-level variance estimates.",
+      "analysis_outline": "Report contamination prevalence descriptively. Use paired comparisons (paired t-test or Wilcoxon signed-rank) of per-task model scores original vs cleaned splits. Compute effect sizes (Cohen’s d or equivalent). Stratify results by task construct categories and perform sensitivity analyses across contamination-detection thresholds. Document provenance traces and estimate false-positive/false-negative rates for heuristics using manual spot checks on random samples.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W7140000903",
+        "https://openalex.org/W7157506260"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4404534210"
+      ],
+      "risks": [
+        "Contamination-detection heuristics can produce false positives/negatives; overly aggressive cleaning may remove valid evaluation items.",
+        "Access to authoritative LLM training-corpus manifests is limited, so overlap inferences remain probabilistic.",
+        "Audit results are potentially sensitive for dataset maintainers and require careful non-defamatory reporting and responsible disclosure."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "adversarial-agentic-eval-2026",
+      "title": "Safety Evaluation of Agentic NetOps Repair Systems under Adversarial and Multi-Agent Interactions",
+      "research_question": "How do agentic NetOps repair systems combining LLMs, retrieval, and formal verifiers behave under adversarial input perturbations and emergent multi-agent interactions, and which failure modes are most likely to lead to unsafe operational outcomes?",
+      "hypotheses": [
+        "Agentic systems that include retrieval and verifier steps will outperform naive LLM-only repair on benign scenarios but will still be vulnerable to targeted adversarial prompt/intent perturbations that induce unsafe repairs.",
+        "Emergent multi-agent interactions (conflicting agent goals or chained autonomous changes) will increase the frequency of regressions and increase outage probability relative to single-agent baselines.",
+        "Specific failure modes (retrieval poisoning, verifier-bypass via crafted outputs, and conflicting change sequences) will account for a majority of high-impact adverse events observed in adversarial scenarios."
+      ],
+      "proposed_design": "Construct a suite of NetOps repair tasks with benign misconfigurations and adversarial variants (crafted prompts, poisoned retrieval context, and chained multi-agent change sequences). Implement an agentic repair pipeline (LLM generation + retrieval + verifier + iterative repair loop) and a baseline LLM-only repair pipeline. Define adversarial attack types and severity levels, and preregister attack generation heuristics and budgets. For multi-agent experiments, simulate multiple agents issuing sequential or conflicting changes under timing schedules. Run verifiers and an operational simulator to measure outages/rollback/MTTR. Limit model calls to 2,000. Log all interactions, retrieval contexts, verifier traces, and agent message transcripts.",
+      "expected_data": "Per-task and per-attack records: repair proposals, retrieval context snapshots, verifier results and counterexamples, simulator outage probability, rollback cost, MTTR, and timelines of multi-agent interactions. Aggregates: attack success rates, relative regression rates vs baselines, breakdown of failure modes, and per-attack impact distributions.",
+      "primary_outcome": "Increase in regression/unsafe-event rate (and operational impact metrics) for agentic and LLM-only pipelines under adversarial perturbations and multi-agent interactions versus benign baselines, reported with 95% CIs and attack-type stratification.",
+      "analysis_outline": "Compute attack success rates and compare pipelines using paired statistical tests. Estimate relative risk ratios for unsafe events under each attack class. Use survival-style analysis for time-to-recovery (MTTR) across scenarios. Produce confusion-matrix-style breakdowns of observed failure modes and attribute impact via manual and automated clustering of verifier counterexamples. Perform ablation studies disabling retrieval or verifier components to measure their protective effects.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415030290",
+        "https://openalex.org/W7170225212",
+        "https://openalex.org/W7163636922"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7162123183",
+        "https://openalex.org/W1882012874"
+      ],
+      "risks": [
+        "Designing realistic adversarial scenarios risks producing unrealistic worst-case attacks that overstate real-world prevalence.",
+        "Simulated multi-agent interactions may not capture human operator mitigation behaviors, reducing external validity.",
+        "Ethical disclosure of adversarial vulnerabilities must avoid actionable guidance that could be misused; responsible disclosure procedures are required."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "oracle-benchmark-multivendor-2026",
+      "title": "Design and Pilot of an Oracle-Backed Multi-Vendor NetOps Benchmark Linking Functional Verification to Operational Impact",
+      "research_question": "Can a standardized pilot benchmark that couples multi-vendor configuration corpora, realistic topologies, formal verification oracles, and simulated operational-impact metrics provide reproducible, auditable evaluation of LLM/agentic NetOps methods and reveal gaps between functional correctness and operational risk?",
+      "hypotheses": [
+        "An oracle-backed benchmark combining formal verifier outputs with operational-simulator metrics will expose cases where verifier-passed changes still produce non-negligible operational risk (outage probability, rollback cost).",
+        "LLM and agentic methods that optimize for verifier pass rate alone will underperform methods that explicitly optimize or gate on combined operational-impact metrics when measured under the benchmark.",
+        "A compact, well-documented pilot benchmark (public topologies, templated multi-vendor configs, verifier contracts) will be feasible to run reproducibly and will enable clearer nearest-work comparisons than existing fragmented suites."
+      ],
+      "proposed_design": "Create a pilot benchmark repository containing: (1) a small set of public realistic topologies and synthesized multi-vendor configuration corpora; (2) a formal verifier integration (reachability and policy oracles) with standardized input/output contracts; (3) an operational simulator for outage/rollback/MTTR estimation; and (4) a task suite (intent-to-change, misconfiguration repair, and policy update). Define evaluation metrics that include functional pass rates and operational-impact measures. Pilot the benchmark by evaluating several public LLMs and a simple agentic pipeline, recording all artifacts and a reproducible setup. Preregister dataset construction procedures, template sources, and oracle semantics. Limit model calls to 1,500 for the pilot.",
+      "expected_data": "Benchmark artifacts: topology and config corpora, verifier logs, simulator outputs per task (outage prob, rollback cost, MTTR), per-model scores (functional and operational metrics), and reproducibility manifests. Aggregates: task-level discrepancies between verifier pass rates and operational-impact measurements, per-method rankings under combined metrics, and benchmark reproducibility checksums.",
+      "primary_outcome": "Measured prevalence of tasks where verifier pass does not imply low operational risk (percentage of verifier-pass cases with nontrivial outage probability or rollback cost) in the pilot benchmark, with 95% CIs.",
+      "analysis_outline": "Report descriptive statistics on verifier pass vs operational-impact distributions. Compute conditional probabilities P(high-risk | verifier-pass). Compare method rankings under functional-only metrics vs combined operational metrics using rank-correlation measures (Spearman rho). Evaluate reproducibility by re-running a subset and comparing checksums and result variance. Provide example case studies illustrating divergence between verifier signals and operational impact.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W2742515467"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W7162123183",
+        "https://openalex.org/W4404602270"
+      ],
+      "risks": [
+        "Creating multi-vendor realistic config corpora risks inadvertent inclusion of sensitive templates; use only public or synthesized sources.",
+        "Pilot benchmark simulator and oracle abstractions may not generalize to all operator SLOs; users must treat metrics as indicative rather than definitive.",
+        "Maintaining reproducibility requires careful artifact hashing and hosting; broken links or changed external resources can degrade long-term reproducibility."
+      ],
+      "estimated_model_calls": 1500
+    }
+  ]
+}

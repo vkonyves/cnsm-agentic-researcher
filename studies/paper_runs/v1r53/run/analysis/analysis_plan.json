@@ -1,0 +1,35 @@
+{
+  "study_id": "contamination-audit-netops-2026-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis executed by paired_binary_analysis_v1 computing the estimand paired_success_rate_difference_guarded_minus_baseline over the preregistered paired episodes (300 paired episodes: 150 items × baseline vs guarded). Binary outcomes come from the adapter verifier/raw validators in execution/raw_results.jsonl. Failed-call handling for the primary analysis: complete_pair_primary.",
+  "secondary_analyses": [
+    "contamination_rate_per_dataset (proportion of items flagged high-confidence by preregistered heuristics per dataset)",
+    "templated_vs_realistic subgroup paired difference (paired_success_rate_difference_guarded_minus_baseline stratified by templating detector)",
+    "per-dataset paired_success_rate_difference_guarded_minus_baseline (descriptive, effect sizes and 95% CIs reported)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity",
+    "fuzzy_threshold_sensitivity_fuzzy>=0.50",
+    "fuzzy_threshold_sensitivity_fuzzy>=0.65",
+    "fuzzy_threshold_sensitivity_fuzzy>=0.80"
+  ],
+  "uncertainty_quantification": "Report 95% confidence intervals and two-sided p-value for the primary paired test as implemented by paired_binary_analysis_v1; report absolute percentage-point effect sizes and 95% CIs for all secondary and sensitivity analyses. Provide sample counts, paired concordance tables, and exact failure counts from execution/raw_results.jsonl.",
+  "multiplicity_implementation": "Single prespecified confirmatory test (primary estimand) only. Secondary and sensitivity analyses are reported descriptively with effect sizes and 95% CIs; no additional confirmatory p-value claims or multiplicity-adjusted confirmatory claims are made.",
+  "contamination_analysis": "Use preregistered detection procedures from the contamination_plan: exact-match fingerprinting and fuzzy 5-gram overlap with preregistered thresholds (high-confidence if exact-match OR fuzzy overlap ≥ 0.80; medium if [0.50,0.80)). Metadata provenance tracing also used per preregistration. Guarded-condition treatment: deterministically exclude high-confidence-flagged items (≥0.80) and deterministically replace them with preregistered retemplated + topology-augmented replacements (seed=42) that pass intent-preservation embedding check (cosine ≥0.85) and functional checks. All flags, replacements, and provenance evidence are drawn from artifacts (execution/transformation_manifest.json, execution/task_manifest.json, execution/raw_results.jsonl) and reported.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Dataset summary: dataset_id, preregistered item counts, items excluded (high-confidence contamination), replacements used (IDs), source URLs/timestamps (from execution/task_manifest.json).",
+    "Table 2 — Contamination flags: per-item contamination flag status, fuzzy overlap score, exact-match flag, provenance timestamp comparison (from transformation_manifest.json and raw_results.jsonl).",
+    "Table 3 — Primary paired results: per-item baseline pass (0/1), guarded pass (0/1), pairwise difference, aggregate paired success-rate difference (absolute percentage points), 95% CI, two-sided p-value, N paired episodes (from execution/raw_results.jsonl).",
+    "Table 4 — Subgroup results: templated vs realistic subgroup counts and paired effect sizes with 95% CIs (templating detector labels from transformation_manifest.json).",
+    "Table 5 — Sensitivity results: failed-call-as-zero sensitivity and fuzzy-threshold sensitivity table summarizing effect sizes at thresholds 0.50, 0.65, 0.80 (computed from raw_results.jsonl using recomputed flags).",
+    "Table 6 — Execution manifest summary: model_calls_used, completed_episode_count, failed_episode_count, execution start/stop timestamps, artifact hash counts (from execution/execution_manifest.json)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of contamination rate per dataset (high-confidence proportion) with 95% binomial CIs (data from execution/raw_results.jsonl and transformation_manifest.json).",
+    "Figure 2 — Paired-success-rate difference (guarded − baseline) visual: point estimate with 95% CI and per-dataset effect markers (derived from Table 3 and Table 5).",
+    "Figure 3 — Sensitivity curve: effect size (absolute percentage points) vs fuzzy-overlap threshold (points at 0.50, 0.65, 0.80) including the primary threshold (0.80), generated from recomputed flags in raw_results.jsonl.",
+    "Figure 4 — Subgroup comparison: templated vs realistic paired effect bars with 95% CIs (data from transformation_manifest.json and raw_results.jsonl)."
+  ]
+}

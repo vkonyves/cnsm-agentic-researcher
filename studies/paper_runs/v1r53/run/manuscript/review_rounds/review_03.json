@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑documented, fully‑archived preregistered audit that executed as described and whose artifact bundle supports the reported degenerate null result. The study is a valuable methodological diagnostic (audit) with strong reproducibility artifacts, but the manuscript should add a concise preregistration→execution reconciliation table, tighten wording about inferential limits (degenerate McNemar outcome), and explicitly cite the reduced power / detectable‑effect implications for the realized single‑model, shared‑generation sampling so readers cannot overgeneralize the null.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript does not contain a short, explicit preregistration→execution reconciliation table listing the key preregistered parameters and their observed executed values (e.g., preregistration SHA, planned_episode_count, completed_episode_count, planned_model_calls vs model_calls_used, independent_condition_generation setting, and the executed sample provenance). Although these values appear in the artifact bundle, a concise in‑manuscript mapping is required for traceable reader verification.",
+    "The inferential claims and concluding language should be tightened: with zero discordant pairs (n10=n01=0) the McNemar test and paired bootstrap CI are degenerate and provide no evidence of an effect; the current wording risks being read as implying a broader null generalization. The manuscript must explicitly state the inferential vacuity and avoid any language suggesting contamination absence beyond the executed, synthetic sample and chosen detectors.",
+    "The manuscript does not clearly quantify or point readers directly to the exact detectable effect size / power implications for the executed sample (Npairs=150, single model, shared_initial_generation). The preregistration discusses sensitivity curves, but the paper should explicitly state that the originally targeted 5‑pp detection with 80% power was not attainable under the executed single‑model plan and either report or point to the precise MDE or sensitivity artifact for N=150 so readers understand the study's limits."
+  ],
+  "required_revisions": [
+    "Add a concise preregistration→execution reconciliation (table or short paragraph) in the manuscript that lists key preregistered values and the corresponding executed artifact values and SHA‑256 references (e.g., preregistration SHA, planned_episode_count=300, completed_episode_count=300, planned maximum_model_calls=300, model_calls_used=150, independent_condition_generation=false, sample provenance prefix 'synthetic‑netops:', execution/model_configuration.json SHA, execution/task_manifest.jsonl SHA). Use the archived artifact hashes already present in the evidence bundle for traceability.",
+    "Revise the Results/Discussion/Conclusion wording to explicitly state that (a) all 150 pairs were concordant passes (n11=150) producing n10=n01=0, (b) under that degeneracy McNemar and the paired bootstrap yield vacuous inferential outputs (p=1.0; CI collapsed) and therefore cannot support an effect claim, and (c) the null outcome applies only to the executed sample, detectors, and model—do not generalize beyond those conditions.",
+    "Add a short explicit statement quantifying (or pointing to the exact archived sensitivity artifact) the detectable effect / power implications for the executed design (Npairs=150, single model, shared generation). If the precise minimal detectable effect for N=150 is not recomputed in the paper, provide a direct pointer to the preregistration artifact or analysis artifact that documents the sensitivity curves or state explicitly that the originally targeted 5‑pp detection at 80% power required a larger plan and therefore was not achieved here."
+  ],
+  "optional_revisions": [
+    "Consider including a single small table (or an inset figure) that reproduces analysis/paired_contingency_table.csv and analysis/contamination_summary.csv in‑paper for quick reader access (these artifacts are already archived).",
+    "Expand the Discussion with a brief prioritized checklist for future audits (sample provenance selection, independent condition generation, multi‑model scope, human adjudication thresholds) — the manuscript already mentions recommendations, but a short actionable checklist would improve impact.",
+    "Clarify earlier in Methods why deterministic synthetic tasks were chosen for this run (reproducibility rationale) and more directly contrast that choice with tradeoffs for sensitivity to contamination detection (briefly cross‑referencing the Disclosure Statement and task_manifest SHA)."
+  ],
+  "accept_for_finalisation": false
+}

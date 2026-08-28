@@ -1,0 +1,184 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can translate high-level network intent into concrete configuration artifacts (e.g., JSON or device configs) with promising accuracy when using fine-tuning or in‑context learning in controlled evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "empirical evaluation / system paper",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations are typically on constrained use cases (e.g., NFV, templated outputs) rather than broad multi-vendor production configs",
+        "Reported accuracy depends on dataset construction and prompting/fine-tuning choices"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Benchmarks and empirical studies of LLM-driven configuration repair find that LLMs can propose plausible fixes but often introduce regressions and their effectiveness degrades with scale; integrating formal verification or iterative validate–repair loops improves overall reliability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7163636922"
+      ],
+      "evidence_type": "benchmark / experimental study",
+      "confidence": 0.85,
+      "limitations": [
+        "Benchmarks use synthesized or curated misconfiguration scenarios that may not capture all real-world heterogeneity",
+        "Model sets and evaluation scopes vary between studies"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Agentic architectures that combine LLMs with context retrieval, external validators, and iterative validation loops show measurable improvements in repair efficacy and safety versus base LLMs in published evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163636922",
+        "https://openalex.org/W7163777690"
+      ],
+      "evidence_type": "empirical comparison",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported improvements are average effects; per-case regressions still occur",
+        "Architecture and toolset details (retrieval, verifier) materially affect outcomes"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Deterministic/formal network verification and analysis tools (e.g., Header Space Analysis, NetPlumber/NetPlumber-family, Minesweeper) exist and are practical validators for reachability/policy correctness and can be used as oracles in generate–validate workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344",
+        "https://openalex.org/W2742515467"
+      ],
+      "evidence_type": "tool paper / systems research",
+      "confidence": 0.95,
+      "limitations": [
+        "Scalability and modeling assumptions vary by tool and property checked",
+        "Some tools focus on specific property classes (reachability, isolation) rather than full semantic correctness"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Syntax-driven automatic configuration repair approaches (e.g., Astragalus) can achieve high repair rates on production or production-like incidents using localize–fix–validate iterations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7162123183"
+      ],
+      "evidence_type": "system / empirical results",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness depends on error types injected/observed and on dataset/topology studied",
+        "Syntax-driven methods may miss deeper semantic faults without strong validators"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Surveys and methodological analyses highlight persistent evaluation validity issues for LLMs (hallucination, benchmark construct/contamination risks) and call for evidence‑bounded, contamination‑aware benchmarks and verification-driven evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W7140000903"
+      ],
+      "evidence_type": "surveys / conceptual frameworks",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize evidence but do not by themselves resolve empirical generalization questions",
+        "Recommendations vary in specificity and operational feasibility"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM- or agentic-driven configuration repair and intent-translation approaches generalize reliably to diverse, large-scale, multi-vendor production networks without human oversight?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162218766"
+      ],
+      "evidence_type": "empirical gap highlighted by benchmarks and system papers",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing benchmarks report scale-related degradation but differ in topology and vendor realism",
+        "Production generalization requires broader, standardized datasets and field studies"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Which agentic integration patterns, tool contracts, and verifier guarantees are necessary to provide auditable, provable safety guarantees for autonomous NetOps actions in production?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164092904",
+        "https://openalex.org/W7170225212",
+        "https://openalex.org/W7163636922"
+      ],
+      "evidence_type": "architectural surveys and empirical studies indicating open design questions",
+      "confidence": 0.5,
+      "limitations": [
+        "Proposals exist but systematic empirical evaluation of safety guarantees under real-world adversities is limited",
+        "Guarantee definitions (auditable vs. provable) differ across works"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How prevalent and impactful are benchmark contamination and construct-invalidity problems specifically in LLM-for-NetOps evaluations, and what standardized defenses and reporting practices should be adopted?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7166900660",
+        "https://openalex.org/W7140000903"
+      ],
+      "evidence_type": "meta-evaluation / framework papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Frameworks identify the risk but concrete audits for NetOps benchmarks remain limited",
+        "Mitigations require coordinated benchmark curation and artifact sharing"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A standardized, oracle-backed benchmark that combines realistic topologies, multi-vendor configuration corpora, and formal verification oracles is missing and would materially improve comparability of LLM/agentic NetOps evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "benchmark proposal / survey indicating gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Cornetto and surveys propose directions, but no broadly adopted standard artifact is yet established",
+        "Creating such a benchmark requires access to diverse real-world config corpora and agreed oracles"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "There is limited published evaluation of agentic NetOps systems under adversarial, emergent multi-agent interactions or attack scenarios—an important gap for assessing safety in deployed settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415030290",
+        "https://openalex.org/W7170225212"
+      ],
+      "evidence_type": "survey / position papers identifying research gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Cross-domain surveys highlight risks but system-level adversarial evaluations in NetOps are sparse",
+        "Reproducing adversarial multi-agent scenarios at scale is experimentally challenging"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Metrication that links functional correctness (reachability/policy) to operational impact (e.g., outage risk, rollback cost, mean-time-to-repair) is underdeveloped in current LLM-for-NetOps studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2742515467",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "tool/benchmark papers pointing to evaluation focus gaps",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing verifiers focus on functional properties; translating those to operational risk requires additional modeling",
+        "Operational metrics depend on deployment context and SLO definitions"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs (alone, without external validators or agentic safeguards) are proven production‑ready to autonomously operate multi-vendor, large-scale networks without human oversight.",
+    "Any single published work claims comprehensive superiority of LLM-based NetOps across all network scales and protocols (no supplied record supports such a universal claim).",
+    "Benchmarks and surveys in the supplied records establish contamination‑free, fully generalizable evaluation practices for LLMs in NetOps (supplied records instead highlight validity/contamination concerns)."
+  ]
+}

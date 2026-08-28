@@ -1,0 +1,85 @@
+{
+  "study_id": "contamination-audit-netops-2026-v1",
+  "title": "Audit of Data Contamination and Construct Validity in LLM-for-NetOps Benchmarks (Repaired Preregistration)",
+  "research_question": "How prevalent are dataset contamination and construct-invalidity issues in selected public LLM-for-NetOps benchmarks, and how much does applying preregistered contamination controls plus realism adjustments reduce measured model success rates?",
+  "confirmatory_hypotheses": [
+    "H1: A measurable fraction of benchmark items will be flagged as probable contamination by preregistered deterministic heuristics (exact fingerprint + fuzzy n-gram overlap + metadata provenance), producing nonzero contamination rates per dataset.",
+    "H2: The paired success-rate difference (guarded_minus_baseline) across items and models will be negative (performance decreases) and detectably different from zero under the paired_binary_analysis_v1 estimand when comparing baseline items to contamination-controlled + realism-adjusted variants.",
+    "H3: Items classified as \"templated/low-complexity\" by an automated templating detector will show larger paired success-rate drops than items classified as \"realistic/high-complexity\"."
+  ],
+  "exploratory_questions": [
+    "E1: How contamination-flag prevalence varies by dataset provenance (OpenAlex/DOI source) and by simple vs complex NetOps task classes?",
+    "E2: How sensitive the paired effect is to the fuzzy-overlap threshold (sensitivity curve)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7166900660",
+    "https://openalex.org/W7140000903",
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W4404602270",
+    "https://openalex.org/W4404534210"
+  ],
+  "benchmark_scope": [
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W4404602270",
+    "https://openalex.org/W4404534210",
+    "https://openalex.org/W7166900660"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 150,
+    "planned_episode_count": 300,
+    "maximum_model_calls": 300,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "contamination_rate_per_dataset (proportion of items flagged by heuristics)",
+    "templated_vs_realistic subgroup paired difference (paired success-rate difference stratified by templating detector)"
+  ],
+  "sampling_plan": "Confirmatory sample units are item × model pairs, paired across baseline vs guarded conditions. Datasets: the four public datasets listed in benchmark_scope. Deterministic random-seed sampling selects 150 items total (50 per dataset when available); task_count = 150 (required_confirmatory_task_count). Single model (gpt-5-mini). Confirmatory evaluations: 150 items × 1 model × 2 conditions = 300 model calls. All sampling uses fixed random seed(s) and published sampling script hashes. Replacement items for excluded contaminated items are generated deterministically with fixed augmentation seeds and paired alignment maintained where possible.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Planning target: detect a 5 percentage-point absolute decrease with 80% power at α=0.05 using normal approximation for paired proportion differences. Conservative planning assumptions: baseline success ≈ 0.60, within-pair correlation ρ≈0.4. With 600 pairs (original recommended multi-model plan) detectable difference ≈0.04–0.06; under this preregistration's single-model executable plan (300 pairs), detectable difference is larger—sensitivity curves by baseline rate (0.4,0.6,0.8) and correlation (0.2–0.6) will be reported. Report 95% CIs and effect sizes; primary hypothesis H2 remains the single prespecified confirmatory test.",
+  "exclusion_rules": [
+    "Exclude items lacking required metadata (source/timestamp) after deterministic normalization only if provenance tracing cannot be performed; excluded items are deterministically replaced from the same dataset split using fixed seeds.",
+    "Guarded condition: exclude deterministically all high-confidence flagged contaminated items (exact-match OR fuzzy 5-gram overlap ≥ 0.80) and replace using preregistered deterministic augmentation; medium-confidence flags handled per scenario-specific rule (this preregistration's execution excludes only high-confidence flags)."
+  ],
+  "missingness_plan": "On model/API call failure: one automated retry within 5 minutes. If retry fails, follow analysis contract default 'complete_pair_primary' for primary analysis (pair treated as missing per executor rules) and run sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treating failed-call outcome as failure (zero). All failed-call counts, timestamps, and causes will be logged and reported.",
+  "analysis_plan": "Confirmatory analysis uses the registered analysis executor 'paired_binary_analysis_v1' with estimand 'paired_success_rate_difference_guarded_minus_baseline' (primary_estimand_id identical to this string). Each item-model-condition episode yields a binary success/failure determined by deterministic validators: (a) for intent→configuration tasks: hosted_netops_gvr_v1 verifier checks functional properties (e.g., reachability/policy) returning binary pass/fail; (b) for templated-answer tasks: exact-match or normalized canonical comparator yields binary pass/fail. Primary executor run: complete_pair_primary (paired test across baseline vs guarded within item×model pairs). Secondary/sensitivity runs: complete_pair_primary_with_failure_as_zero_sensitivity, fuzzy-threshold sensitivity (0.50, 0.65, 0.80), and stratified subgroup analysis by templated vs realistic items. All code, seeds, validators, and result artifacts will be published with hashes.",
+  "multiplicity_plan": "Primary confirmatory estimand is the single prespecified paired test (H2). Secondary stratified analyses are prespecified but will report effect sizes and 95% CIs rather than claim additional confirmatory p-values; all reported p-values will be two-sided. No unregistered multiplicity-corrected claims will be made beyond the primary test.",
+  "contamination_plan": "{\"benchmark_names\": [\"https://openalex.org/W7157506260\",\"https://openalex.org/W4404602270\",\"https://openalex.org/W4404534210\",\"https://openalex.org/W7166900660\"], \"risk_factors\": [\"Public availability of near-identical items in web-crawled corpora used by hosted LLMs\",\"Templated task phrasing leading to memorized outputs\",\"Dataset provenance timestamps predating model training cutoffs\"], \"detection_procedures\": [\"Exact-match fingerprinting: normalize whitespace and canonicalize tokens; flag exact duplicates between dataset item text and collected public corpus fingerprints.\", \"Fuzzy n-gram overlap: compute 5-gram shingle overlap (Jaccard/overlap); preregistered thresholds: flag if overlap ≥ 0.80 (high-confidence) or ≥ 0.50 (low-confidence).\", \"Metadata provenance tracing: compare dataset item timestamps and source DOIs/URLs to public archives and flag likely pretraining-era items when source timestamp < model-public-cutoff.\"], \"item_flagging_rules\": [\"High-confidence contamination flag if exact-match OR fuzzy 5-gram overlap ≥ 0.80.\", \"Medium-confidence flag if fuzzy overlap in [0.50,0.80) OR provenance timestamp strongly predates model cutoff and source matches public archive.\"], \"analysis_treatment\": \"Guarded variant deterministically excludes high-confidence flagged items (holdout) and deterministically replaces them with synthetic retemplated + topology-augmented items sampled from the same dataset distribution using fixed seeds. Replacements pass intent-preservation embedding similarity (cosine ≥ 0.85) and functional checks before acceptance.\", \"residual_uncertainty\": [\"Attribution of contamination to proprietary LLM training corpora remains probabilistic; flags are heuristic estimates.\", \"Fuzzy-overlap thresholds entail tradeoffs; sensitivity curves will be reported.\"]}",
+  "stopping_rule": "No interim early-stopping for scientific reasons. Execution stops when all preregistered model calls (300) complete or have recorded failures per missingness_plan. Technical restarts only per infrastructure recovery policy and fully logged.",
+  "planned_outputs": [
+    "Preregistered experiment code and sampling scripts with hashes",
+    "Transformation and detection code (retemplating, topology augmentation, fingerprinting) with unit-test fixtures and hashes",
+    "Raw model outputs and validator logs (sanitized for sensitive provenance when required) with hashes",
+    "Execution manifest and timestamps",
+    "Analysis scripts and paired_binary_analysis_v1 executor artifacts with hashes",
+    "Statistical-results file (primary and sensitivity analyses)",
+    "Evidence-to-claim table and nearest-work comparison matrix",
+    "Complete IEEE-formatted 5-page manuscript including Disclosure Statement",
+    "NotebookLM presentation brief (machine-readable)",
+    "Final-output hash manifest"
+  ],
+  "unresolved_critical_issues": []
+}
