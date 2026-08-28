@@ -117,11 +117,26 @@ def test_combined_revision_context_is_bounded():
         ],
     }
 
+    synthesis = {
+        "findings": [
+            {
+                "claim": "scientific finding " + ("y" * 6000),
+                "references": [
+                    f"R{j}"
+                    for j in range(30)
+                ],
+            }
+            for _ in range(40)
+        ],
+        "research_gap": "gap " + ("z" * 12000),
+    }
+
     full_size = encoded_size(
         {
             "records": records,
             "manifest": manifest,
             "bundle": bundle,
+            "synthesis": synthesis,
         }
     )
 
@@ -129,6 +144,7 @@ def test_combined_revision_context_is_bounded():
         records=records,
         execution_manifest=manifest,
         manuscript_evidence_bundle=bundle,
+        evidence_synthesis=synthesis,
     )
 
     assert encoded_size(compact) < full_size * 0.25
@@ -156,7 +172,7 @@ def test_all_reviser_calls_use_compact_context():
         for match in pattern.finditer(text)
     ]
 
-    assert len(call_blocks) == 5
+    assert len(call_blocks) == 6
 
     for block in call_blocks:
         assert (
@@ -168,14 +184,17 @@ def test_all_reviser_calls_use_compact_context():
         assert (
             '"manuscript_evidence_bundle"' in block
         )
+        assert (
+            '"evidence_synthesis"' in block
+        )
 
-        # All three potentially large fields must come from the
+        # All four potentially large fields must come from the
         # deterministic bounded manuscript revision context.
         assert block.count(
             "manuscript_revision_context"
-        ) >= 3
+        ) >= 4
 
-        # None of the five reviser calls may inject the original
+        # None of the six reviser calls may inject the original
         # unbounded sources directly.
         assert (
             '"verified_records": records'

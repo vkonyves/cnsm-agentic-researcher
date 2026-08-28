@@ -806,11 +806,129 @@ def _compact_manuscript_evidence_bundle(
     return compact
 
 
+
+def _compact_evidence_synthesis_for_manuscript(
+    synthesis: Any,
+    *,
+    max_list_items: int = 12,
+    max_string_chars: int = 5000,
+    max_total_chars: int = 50000,
+) -> Any:
+    """
+    Deterministically compact the autonomous literature synthesis for
+    manuscript drafting/revision.
+
+    The purpose is to keep scientific synthesis readily available to the
+    manuscript agents without reintroducing the large-context failure that
+    motivated manuscript context compaction.
+
+    This preserves structure and leading substantive content while bounding
+    large lists and long strings. It does not generate, reinterpret, or add
+    scientific content.
+    """
+
+    def compact(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                str(key): compact(child)
+                for key, child in value.items()
+            }
+
+        if isinstance(value, list):
+            bounded = [
+                compact(child)
+                for child in value[:max_list_items]
+            ]
+
+            if len(value) > max_list_items:
+                bounded.append(
+                    {
+                        "_context_truncation": True,
+                        "_total_items": len(value),
+                        "_included_items": max_list_items,
+                    }
+                )
+
+            return bounded
+
+        if isinstance(value, str):
+            if len(value) <= max_string_chars:
+                return value
+
+            return (
+                value[:max_string_chars]
+                + "\n[deterministically truncated for manuscript context]"
+            )
+
+        return value
+
+    compacted = compact(synthesis)
+
+    encoded = json.dumps(
+        compacted,
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+    if len(encoded) <= max_total_chars:
+        return compacted
+
+    # Second deterministic tightening pass if a structurally large synthesis
+    # still exceeds the manuscript-context budget.
+    def tighten(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                str(key): tighten(child)
+                for key, child in value.items()
+            }
+
+        if isinstance(value, list):
+            bounded = [
+                tighten(child)
+                for child in value[:6]
+            ]
+
+            if len(value) > 6:
+                bounded.append(
+                    {
+                        "_context_truncation": True,
+                        "_total_items": len(value),
+                        "_included_items": 6,
+                    }
+                )
+
+            return bounded
+
+        if isinstance(value, str):
+            if len(value) <= 2500:
+                return value
+
+            return (
+                value[:2500]
+                + "\n[deterministically truncated for manuscript context]"
+            )
+
+        return value
+
+    tightened = tighten(synthesis)
+
+    return {
+        "scientific_literature_synthesis": tightened,
+        "_context_note": (
+            "Deterministically bounded projection of the autonomous "
+            "literature evidence synthesis. The complete synthesis remains "
+            "archived in literature/evidence_synthesis.json."
+        ),
+    }
+
+
+
 def _manuscript_revision_context(
     *,
     records: list[Any],
     execution_manifest: dict[str, Any],
     manuscript_evidence_bundle: dict[str, Any],
+    evidence_synthesis: Any,
 ) -> dict[str, Any]:
     """
     Build the bounded deterministic context shared by all manuscript
@@ -830,6 +948,11 @@ def _manuscript_revision_context(
         "manuscript_evidence_bundle": (
             _compact_manuscript_evidence_bundle(
                 manuscript_evidence_bundle
+            )
+        ),
+        "evidence_synthesis": (
+            _compact_evidence_synthesis_for_manuscript(
+                evidence_synthesis
             )
         ),
     }
@@ -4134,6 +4257,11 @@ class FinalAutonomousResearchPipeline:
                         records
                     )
                 ),
+                "evidence_synthesis": (
+                    _compact_evidence_synthesis_for_manuscript(
+                        synthesis
+                    )
+                ),
                 "evidence_verification": (
                     evidence_report
                 ),
@@ -4203,6 +4331,7 @@ class FinalAutonomousResearchPipeline:
                 manuscript_evidence_bundle=(
                     manuscript_evidence_bundle
                 ),
+                evidence_synthesis=synthesis,
             )
         )
 
@@ -4218,6 +4347,11 @@ class FinalAutonomousResearchPipeline:
                 PEER_REVIEWER,
                 {
                     "master_prompt": master_prompt,
+                    "evidence_synthesis": (
+                        _compact_evidence_synthesis_for_manuscript(
+                            synthesis
+                        )
+                    ),
                     "evidence_verification": (
                         evidence_report
                     ),
@@ -4296,10 +4430,15 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                            manuscript_revision_context[
-                                "manuscript_evidence_bundle"
-                            ]
-                        ),
+                        manuscript_revision_context[
+                            "manuscript_evidence_bundle"
+                        ]
+                    ),
+                    "evidence_synthesis": (
+                        manuscript_revision_context[
+                            "evidence_synthesis"
+                        ]
+                    ),
                     "manuscript": (
                         current_manuscript
                         .model_dump()
@@ -4711,10 +4850,15 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                            manuscript_revision_context[
-                                "manuscript_evidence_bundle"
-                            ]
-                        ),
+                        manuscript_revision_context[
+                            "manuscript_evidence_bundle"
+                        ]
+                    ),
+                    "evidence_synthesis": (
+                        manuscript_revision_context[
+                            "evidence_synthesis"
+                        ]
+                    ),
                     "manuscript": (
                         revision_base_manuscript
                         .model_dump()
@@ -4953,10 +5097,15 @@ class FinalAutonomousResearchPipeline:
                                 deterministic_reconciliation
                             ),
                             "manuscript_evidence_bundle": (
-                            manuscript_revision_context[
-                                "manuscript_evidence_bundle"
-                            ]
-                        ),
+                                manuscript_revision_context[
+                                    "manuscript_evidence_bundle"
+                                ]
+                            ),
+                            "evidence_synthesis": (
+                                manuscript_revision_context[
+                                    "evidence_synthesis"
+                                ]
+                            ),
                             "manuscript": (
                                 modular_base_manuscript
                                 .model_dump()
@@ -5519,10 +5668,15 @@ class FinalAutonomousResearchPipeline:
                         deterministic_reconciliation
                     ),
                     "manuscript_evidence_bundle": (
-                            manuscript_revision_context[
-                                "manuscript_evidence_bundle"
-                            ]
-                        ),
+                        manuscript_revision_context[
+                            "manuscript_evidence_bundle"
+                        ]
+                    ),
+                    "evidence_synthesis": (
+                        manuscript_revision_context[
+                            "evidence_synthesis"
+                        ]
+                    ),
                     "manuscript": (
                         terminal_review_revision_base_manuscript
                         .model_dump()
@@ -5824,6 +5978,11 @@ class FinalAutonomousResearchPipeline:
                                 "manuscript_evidence_bundle"
                             ]
                         ),
+                        "evidence_synthesis": (
+                            manuscript_revision_context[
+                                "evidence_synthesis"
+                            ]
+                        ),
                         "manuscript": (
                             terminal_revision_base_manuscript.model_dump()
                         ),
@@ -6105,74 +6264,19 @@ class FinalAutonomousResearchPipeline:
         # typesetting/layout and machine-generated manuscript
         # hygiene. Scientific outcomes are never modified here.
         # -----------------------------------------------------
+        # -----------------------------------------------------
+        # Deterministic final manuscript hygiene/provenance audit
+        # with one bounded autonomous remediation opportunity.
+        #
+        # The remediation is publication/infrastructure-only:
+        # scientific design, execution, results, statistics, and
+        # supported conclusions are frozen.
+        # -----------------------------------------------------
         publication_sanity_audit = (
             audit_manuscript_publication_sanity(
                 run_dir=run_dir,
             )
         )
-
-        write_json(
-            run_dir
-            / "manuscript"
-            / "final"
-            / "publication_sanity_audit.json",
-            publication_sanity_audit,
-        )
-
-        if publication_sanity_audit.get(
-            "passed"
-        ) is not True:
-            publication_sanity_issues = list(
-                publication_sanity_audit.get(
-                    "issues",
-                    [],
-                )
-            )
-
-            final_report = FinalReadinessReport(
-                ready=False,
-                passed_gates=[
-                    "Autonomous research execution completed",
-                    "Final manuscript compilation completed",
-                ],
-                failed_gates=[
-                    (
-                        "Deterministic manuscript "
-                        "publication-sanity audit failed."
-                    )
-                ],
-                warnings=publication_sanity_issues,
-                final_state=(
-                    "MANUSCRIPT_PUBLICATION_SANITY_AUDIT_FAILED"
-                ),
-            )
-
-            write_json(
-                run_dir
-                / "final_readiness_report.json",
-                final_report.model_dump(
-                    mode="json"
-                ),
-            )
-
-            write_json(
-                run_dir / "state.json",
-                {
-                    "ready": False,
-                    "final_state": (
-                        "MANUSCRIPT_PUBLICATION_SANITY_AUDIT_FAILED"
-                    ),
-                    "failed_gates": [
-                        (
-                            "Deterministic manuscript "
-                            "publication-sanity audit failed."
-                        )
-                    ],
-                    "warnings": publication_sanity_issues,
-                },
-            )
-
-            return final_report
 
         artifact_reference_audit = (
             audit_manuscript_artifact_references(
@@ -6182,37 +6286,281 @@ class FinalAutonomousResearchPipeline:
         )
 
         write_json(
-            run_dir
-            / "manuscript"
-            / "final"
-            / "artifact_reference_audit.json",
+            publication_dir
+            / "publication_sanity_audit_pre_remediation.json",
+            publication_sanity_audit,
+        )
+        write_json(
+            publication_dir
+            / "artifact_reference_audit_pre_remediation.json",
             artifact_reference_audit,
         )
 
-        if not artifact_reference_audit["passed"]:
+        manuscript_hygiene_needs_remediation = (
+            publication_sanity_audit.get("passed") is not True
+            or artifact_reference_audit.get("passed") is not True
+        )
+
+        if manuscript_hygiene_needs_remediation:
+            remediation_instruction = (
+                "Perform one bounded final publication-hygiene and provenance "
+                "repair of the supplied manuscript. The deterministic audits "
+                "listed below are authoritative. Correct only those reported "
+                "publication, typesetting, metadata-pollution, and artifact-"
+                "reference defects. "
+                "\n\n"
+                "SCIENTIFIC CONTENT IS FROZEN. Do not change the research "
+                "question, preregistration, experimental design, execution, "
+                "sample sizes, numerical results, statistical tests, effect "
+                "sizes, confidence intervals, p-values, supported scientific "
+                "interpretation, limitations, scientific conclusions, or "
+                "verified citation set. Do not perform or invent any new "
+                "analysis, experiment, model call, datum, statistic, citation, "
+                "artifact, path, hash, DOI, repository location, or result. "
+                "\n\n"
+                "Rewrite machine-oriented material as normal concise scientific "
+                "conference prose. Do not merely delete offending metadata. "
+                "Where removed text carried a real supported scientific point, "
+                "replace it with concise prose grounded in the supplied verified "
+                "literature, execution evidence, or completed analysis. Preserve "
+                "the purpose of each section and preserve scientific information "
+                "density. Related-work prose should summarize and compare prior "
+                "findings with normal citations; methodology prose should explain "
+                "design and measurement choices; results prose should report and "
+                "interpret completed outcomes; discussion prose should explain "
+                "implications, failure modes, uncertainty, and limitations. Do "
+                "not use generic filler, vague transitions, provenance boilerplate, "
+                "or metadata restatements to maintain page count. "
+                "Remove unnecessary artifact inventories and "
+                "filesystem paths. Keep detailed machine provenance in the "
+                "archived run rather than copying it into the paper. Remove "
+                "full SHA-256 digests except the one immutable master-prompt "
+                "digest required in the mandatory Disclosure Statement. Do not "
+                "print DOI metadata in body prose. Remove raw reproduction "
+                "commands and reviewer-response/meta-review language. "
+                "\n\n"
+                "If an artifact/path/hash claim is unsupported, remove or "
+                "rephrase that provenance claim; never invent a replacement. "
+                "When a real scientific fact is already supported, state the "
+                "scientific fact directly rather than substituting an artifact "
+                "pointer. "
+                "\n\n"
+                "Repair any reported LaTeX column or margin overflow by concise "
+                "scientific rewriting and removal of machine metadata. Do not "
+                "use smaller fonts, margin changes, spacing tricks, geometry "
+                "changes, or other formatting hacks. Preserve normal IEEE "
+                "formatting and the exact five-page publication requirement. "
+                "\n\n"
+                "Make the minimum edits needed to satisfy the deterministic "
+                "audits. Preserve all unaffected manuscript material."
+            )
+
+            revised_manuscript = await run_agent(
+                MANUSCRIPT_REVISER,
+                {
+                    "current_manuscript": (
+                        revised_manuscript.model_dump()
+                    ),
+
+                    # Use the same deterministic bounded evidence
+                    # context as every other manuscript revision.
+                    # This gives the hygiene remediation enough
+                    # verified provenance/scientific context to
+                    # preserve factual content without reintroducing
+                    # the r46 context-overflow problem.
+                    "verified_records": (
+                        manuscript_revision_context[
+                            "verified_records"
+                        ]
+                    ),
+                    "execution_manifest": (
+                        manuscript_revision_context[
+                            "execution_manifest"
+                        ]
+                    ),
+                    "manuscript_evidence_bundle": (
+                        manuscript_revision_context[
+                            "manuscript_evidence_bundle"
+                        ]
+                    ),
+                    "evidence_synthesis": (
+                        manuscript_revision_context[
+                            "evidence_synthesis"
+                        ]
+                    ),
+
+                    "publication_validation": (
+                        publication_validation
+                    ),
+                    "publication_sanity_audit": (
+                        publication_sanity_audit
+                    ),
+                    "artifact_reference_audit": (
+                        artifact_reference_audit
+                    ),
+                    "paper_run_constraints": (
+                        paper_run_constraints
+                    ),
+                    "revision_mode": (
+                        "deterministic_publication_hygiene_remediation"
+                    ),
+                    "revision_instruction": (
+                        remediation_instruction
+                    ),
+                },
+                expected_type=ManuscriptPackage,
+                stage_name=(
+                    "Deterministic publication hygiene remediation"
+                ),
+            )
+
+            write_json(
+                revision_rounds_dir
+                / "publication_hygiene_remediated_package.json",
+                revised_manuscript,
+            )
+
+            # Keep the conventional authoritative manuscript alias
+            # synchronized with the manuscript actually carried forward.
+            write_json(
+                run_dir
+                / "manuscript"
+                / "revised_package.json",
+                revised_manuscript,
+            )
+
+            # Re-render the remediated manuscript. The resulting PDF/TeX
+            # becomes authoritative only for this post-audit candidate.
+            publication_validation = (
+                build_publication_artifacts(
+                    manuscript=(
+                        revised_manuscript.model_dump()
+                    ),
+                    verified_records=records,
+                    output_dir=publication_dir,
+                    paper_run_constraints=(
+                        paper_run_constraints
+                    ),
+                )
+            )
+
+            write_json(
+                publication_dir
+                / "publication_validation_post_hygiene_remediation.json",
+                publication_validation,
+            )
+
+            # Re-run BOTH deterministic audits on the remediated
+            # authoritative manuscript/PDF.
+            publication_sanity_audit = (
+                audit_manuscript_publication_sanity(
+                    run_dir=run_dir,
+                )
+            )
+
+            artifact_reference_audit = (
+                audit_manuscript_artifact_references(
+                    manuscript=revised_manuscript,
+                    run_dir=run_dir,
+                )
+            )
+
+            write_json(
+                publication_dir
+                / "publication_sanity_audit_post_remediation.json",
+                publication_sanity_audit,
+            )
+            write_json(
+                publication_dir
+                / "artifact_reference_audit_post_remediation.json",
+                artifact_reference_audit,
+            )
+
+        # Compatibility/final aliases always describe the manuscript
+        # that is actually entering the final readiness decision.
+        write_json(
+            publication_dir
+            / "publication_sanity_audit.json",
+            publication_sanity_audit,
+        )
+        write_json(
+            publication_dir
+            / "artifact_reference_audit.json",
+            artifact_reference_audit,
+        )
+        write_json(
+            publication_dir
+            / "publication_validation.json",
+            publication_validation,
+        )
+
+        final_deterministic_gate_failures: list[str] = []
+
+        if publication_validation.get("passed") is not True:
+            final_deterministic_gate_failures.append(
+                "Final manuscript publication validation failed after "
+                "publication-hygiene remediation."
+            )
+
+        if publication_sanity_audit.get("passed") is not True:
+            final_deterministic_gate_failures.append(
+                "Deterministic manuscript publication-sanity audit failed."
+            )
+
+        if artifact_reference_audit.get("passed") is not True:
+            final_deterministic_gate_failures.append(
+                "Deterministic manuscript artifact-reference audit failed."
+            )
+
+        if final_deterministic_gate_failures:
+            final_deterministic_warnings = list(
+                publication_sanity_audit.get(
+                    "issues",
+                    [],
+                )
+            )
+            final_deterministic_warnings.extend(
+                artifact_reference_audit.get(
+                    "issues",
+                    [],
+                )
+            )
+
+            if publication_validation.get("passed") is not True:
+                final_deterministic_warnings.append(
+                    "Post-remediation publication validation did not pass; "
+                    f"page_count={publication_validation.get('page_count')}, "
+                    f"maximum_pages={publication_validation.get('maximum_pages')}, "
+                    f"compile_status={publication_validation.get('compile_status')}."
+                )
+
+            final_deterministic_warnings = sorted(
+                set(final_deterministic_warnings)
+            )
+
             final_report = FinalReadinessReport(
                 ready=False,
                 passed_gates=[
                     "Autonomous research execution completed",
                     "Final manuscript compilation completed",
                 ],
-                failed_gates=[
-                    (
-                        "Deterministic manuscript artifact-reference "
-                        "audit failed."
-                    )
-                ],
+                failed_gates=(
+                    final_deterministic_gate_failures
+                ),
                 warnings=(
-                    artifact_reference_audit["issues"]
+                    final_deterministic_warnings
                 ),
                 final_state=(
-                    "MANUSCRIPT_ARTIFACT_REFERENCE_AUDIT_FAILED"
+                    "MANUSCRIPT_FINAL_DETERMINISTIC_AUDIT_FAILED"
                 ),
             )
 
             write_json(
-                run_dir / "final_readiness_report.json",
-                final_report,
+                run_dir
+                / "final_readiness_report.json",
+                final_report.model_dump(
+                    mode="json"
+                ),
             )
 
             write_state(
@@ -6226,8 +6574,14 @@ class FinalAutonomousResearchPipeline:
                 ),
                 additional_fields={
                     "ready": False,
+                    "publication_sanity_audit": (
+                        publication_sanity_audit
+                    ),
                     "artifact_reference_audit": (
                         artifact_reference_audit
+                    ),
+                    "publication_validation": (
+                        publication_validation
                     ),
                 },
             )

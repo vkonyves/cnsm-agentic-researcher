@@ -228,6 +228,38 @@ MANUSCRIPT_AUTHOR = Agent(
         report, repository README, reviewer-response letter, or forensic
         artifact inventory.
 
+        Positively prioritize substantive scientific prose. Each paragraph
+        should primarily communicate one or more of: scientific motivation,
+        a literature-grounded prior finding, the research question or
+        contribution, methodology, experimental design, a quantitative
+        result, statistical interpretation, diagnostic evidence, a limitation,
+        an operational implication, or a supported conclusion.
+
+        When machine-oriented provenance text is omitted or removed, preserve
+        the scientific information it was intended to support. Replace metadata
+        with concise evidence-grounded scientific prose rather than deleting
+        substantive content or inserting generic filler.
+
+        Related-work text must synthesize the supplied verified literature into
+        normal scholarly prose with citations. Explain what prior work found,
+        how approaches differ, what limitations remain, and how the present
+        study relates to that literature. Do not reproduce bibliographic
+        metadata, DOI labels, database fields, search-result fragments, or
+        reference-record metadata as narrative text.
+
+        Methodology and results sections should explain the scientific meaning
+        of the archived evidence rather than narrating the archive itself.
+        Prefer statements about design choices, variables, controls,
+        measurements, outcomes, uncertainty, failure modes, and interpretation
+        over statements about filenames, hashes, manifests, JSON fields, or
+        repository structure.
+
+        Preserve scientific information density throughout the five-page
+        manuscript. Do not replace removed metadata with vague transitions,
+        generic claims, boilerplate reproducibility language, or other filler.
+        If a real supported scientific point exists, state that point directly
+        and cite or qualify it appropriately.
+
         Artifact provenance must remain machine-verifiable in the archived
         run, but ordinary manuscript prose should report scientific facts
         rather than cryptographic metadata. Do not print full 64-character
@@ -292,6 +324,15 @@ PEER_REVIEWER = Agent(
         claims, unverifiable references, missing controls,
         unreported deviations, and conclusions not justified by
         the completed results.
+
+        Also evaluate whether the manuscript reads as a scientific conference
+        paper rather than as an artifact report or audit trail. Require normal,
+        literature-grounded scholarly prose that explains prior findings,
+        methodology, quantitative results, interpretation, limitations, and
+        implications. Treat metadata-heavy prose, artifact inventories,
+        bibliographic metadata copied into narrative text, or replacement of
+        substantive discussion with provenance bookkeeping as manuscript
+        quality defects when they can be corrected from the supplied evidence.
 
         Set accept_for_finalisation=true only when no critical issue and no
         required revision remains that should be addressed in the manuscript.
@@ -426,6 +467,38 @@ MANUSCRIPT_REVISER = Agent(
         Write a scientific conference paper, not an audit log, provenance
         report, repository README, reviewer-response letter, or forensic
         artifact inventory.
+
+        Positively prioritize substantive scientific prose. Each paragraph
+        should primarily communicate one or more of: scientific motivation,
+        a literature-grounded prior finding, the research question or
+        contribution, methodology, experimental design, a quantitative
+        result, statistical interpretation, diagnostic evidence, a limitation,
+        an operational implication, or a supported conclusion.
+
+        When machine-oriented provenance text is omitted or removed, preserve
+        the scientific information it was intended to support. Replace metadata
+        with concise evidence-grounded scientific prose rather than deleting
+        substantive content or inserting generic filler.
+
+        Related-work text must synthesize the supplied verified literature into
+        normal scholarly prose with citations. Explain what prior work found,
+        how approaches differ, what limitations remain, and how the present
+        study relates to that literature. Do not reproduce bibliographic
+        metadata, DOI labels, database fields, search-result fragments, or
+        reference-record metadata as narrative text.
+
+        Methodology and results sections should explain the scientific meaning
+        of the archived evidence rather than narrating the archive itself.
+        Prefer statements about design choices, variables, controls,
+        measurements, outcomes, uncertainty, failure modes, and interpretation
+        over statements about filenames, hashes, manifests, JSON fields, or
+        repository structure.
+
+        Preserve scientific information density throughout the five-page
+        manuscript. Do not replace removed metadata with vague transitions,
+        generic claims, boilerplate reproducibility language, or other filler.
+        If a real supported scientific point exists, state that point directly
+        and cite or qualify it appropriately.
 
         Artifact provenance must remain machine-verifiable in the archived
         run, but ordinary manuscript prose should report scientific facts
