@@ -1,0 +1,116 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "C1-GenVal-Batfish",
+      "title": "Effectiveness of Generate→Validate→Repair with Batfish for Intent-to-Configuration Translation",
+      "research_question": "Does integrating a Batfish-based validator into a generate→validate→repair pipeline reduce deployment-risk configurations produced by LLM intent-to-configuration translation compared to LLM-only generation?",
+      "hypotheses": [
+        "Using a Batfish validator in a generate→validate→repair pipeline will produce fewer validator-detected configuration errors than LLM-only generation.",
+        "An automated repair loop driven by the LLM and validator will correct a majority (>50%) of initial validator-detected errors without human intervention under a matched model-call budget."
+      ],
+      "proposed_design": "Paired controlled experiment using a corpus of 200 intent-to-configuration tasks derived from public configuration templates and synthetic multi-vendor topologies. For each task generate a configuration with (A) LLM-only prompt-to-config and (B) LLM generate→Batfish validate→LLM repair loop (bounded to three repair iterations). Record validator-detected errors, repair iterations, and final configuration. Freeze prompting, model identifier, seeds, and a maximum model-call budget per task. Use Batfish as sandbox verifier. Include vendor stratification (e.g., IOS-like, JunOS-like) and complexity strata (single-rule vs multi-step changes).",
+      "expected_data": "Per-task raw validator outputs before and after repair, binary error flags per policy/property, number of repair iterations, repaired config diffs, time and model-call counts per task, per-vendor and per-complexity breakdowns.",
+      "primary_outcome": "Reduction in proportion of validator-detected configuration errors between LLM-only outputs and generate→validate→repair pipeline outputs (paired per task).",
+      "analysis_outline": "Compute paired proportions of validator-detected errors (LLM-only vs pipeline) and apply McNemar's test for paired binary outcomes; estimate absolute risk reduction with 95% bootstrap confidence intervals. Report per-vendor and per-complexity subgroup analyses. Report repair success rate (fraction of initial errors corrected) with CIs. Perform failure-mode taxonomy on unrepaired errors and sensitivity analysis to prompt variants.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388891721",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7161451689"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "doi:10.1109/icmlca66850.2025.11336788"
+      ],
+      "risks": [
+        "Sandbox verifier (Batfish) abstraction may not perfectly represent production device semantics, limiting external validity.",
+        "Repair loop may overfit to verifier checks and introduce other operational regressions not detected by the verifier.",
+        "Prompt sensitivity may cause non-deterministic repair behavior across seeds and model versions.",
+        "Model API failures or rate limits could force retries and affect paired comparisons."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "C2-Adversarial-Prompt",
+      "title": "Robustness of Guarded Agentic Workflows to Adversarial Prompt Injection in NetOps",
+      "research_question": "How resilient are guarded agentic NetOps workflows that combine prompt constraints and verifier-based guards to adversarial prompt injections compared to unguarded LLM agents?",
+      "hypotheses": [
+        "Guarded agentic workflows with verifier- and constraint-based guards will exhibit a lower rate of successful adversarially induced harmful configurations than unguarded LLM agents.",
+        "Certain adversarial strategies (e.g., token obfuscation, multi-stage social engineering prompts) will still bypass naive guard heuristics, producing non-negligible attack success rates (>10%) against guarded pipelines."
+      ],
+      "proposed_design": "Construct a red-team style adversarial prompt generator based on recent red-teaming taxonomies. Select 150 realistic NetOps intent tasks. For each task run three treatments: (A) unguarded LLM, (B) LLM with static prompt-constraint wrappers, (C) guarded workflow combining prompt constraints + Batfish verifier + repair loop. For each treatment, run multiple adversarial prompt variants crafted automatically and record whether the final configuration (post-repair) contains harmful changes as determined by sandbox harm oracle (reachability violations, policy-violations). Use bounded model-call budget and fixed seeds; log all prompts and outputs for reproducibility. Ethical safeguards: attacks limited to sandbox-only non-production topologies and non-sensitive templates.",
+      "expected_data": "Per-task and per-attack success indicators (harmful config passed to oracle), attack type labels, number of iterations to bypass guards, false-positive detection counts, per-treatment attack success rates, and trace logs of prompts and tool outputs.",
+      "primary_outcome": "Proportion of adversarial attempts that result in harmful configurations passing the acceptance oracle for each treatment (A, B, C), with focus on reduction from A to C.",
+      "analysis_outline": "Compare attack success proportions across treatments using chi-square or Fisher exact tests; compute attack success risk ratios and bootstrap CIs. Stratify results by attack class and task complexity. Report attacker strategies that succeed against guarded workflows and perform qualitative failure analysis to identify guard weaknesses.",
+      "novelty_evidence_ids": [
+        "doi:10.1109/icsft66733.2026.11508065",
+        "doi:10.2139/ssrn.7041478",
+        "https://openalex.org/W7158378160"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.7248799",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Creating adversarial prompts has dual-use potential; experiments limited to sandbox and non-sensitive artifacts and documented red-team ethics required.",
+        "Automated adversary templates may not cover all real-world social-engineering attacks, limiting generality.",
+        "Guard design choices may bias results toward specific failure modes; implementation bugs in guard integration could confound comparisons."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "C3-Traceability-OperatorSim",
+      "title": "Impact of Structured Evidence Traces on Automated Operator-Simulated Acceptance of LLM-Suggested Network Changes",
+      "research_question": "Do structured evidence traces (tool outputs, reachability proofs, counterexample artifacts) increase the precision of an automated operator proxy in accepting safe LLM-suggested network changes compared to presenting proposed changes alone?",
+      "hypotheses": [
+        "Providing structured evidence traces with LLM-generated change proposals will increase the precision of an automated operator proxy's accept/reject decisions compared to proposals without traces.",
+        "The precision improvement from evidence traces will be larger for multi-step or cross-device changes than for single-rule local changes."
+      ],
+      "proposed_design": "Generate 300 change proposals via an LLM across a range of tasks and complexity levels. For each proposal produce two presentations: (1) change text only, (2) change plus structured evidence traces (Batfish reachability results, counterexample packet traces, compliance checks). Use an automated operator proxy (rule-based oracle trained/validated on a held-out labeled dataset) to accept/reject proposals. Paired within-task comparison (change-only vs change+trace). Record proxy decisions, proxy confidence scores, and trace artifacts. Fix model, prompts, seeds, and model-call budget.",
+      "expected_data": "Per-proposal proxy accept/reject labels, proxy confidence, true safety labels from sandbox oracle, precision/recall for both presentation conditions, trace artifacts, and stratified results by change complexity.",
+      "primary_outcome": "Increase in precision (positive predictive value) of the automated operator proxy when evidence traces are provided versus when they are not (paired comparison).",
+      "analysis_outline": "Compute paired differences in precision and apply bootstrap or paired-sample tests to estimate CIs and p-values. Provide stratified analyses by complexity (single-step vs multi-step). Evaluate proxy calibration changes (Brier score) and produce confusion matrices. Qualitative analysis of cases where traces mislead the proxy or where traces fail to expose hidden faults.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161451689",
+        "https://openalex.org/W7167738837"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Automated operator proxy may not reflect real human decision-making and could misestimate practical benefits.",
+        "Evidence traces may be gamed by adversarially crafted outputs, producing false confidence.",
+        "Dataset and proxy biases could overstate trace benefits for certain vendors or topologies."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "C4-Orch-Frameworks",
+      "title": "Comparative Evaluation of Agent Orchestration Frameworks for Traceability and Failure Recovery in NetOps Tasks",
+      "research_question": "How do different agent orchestration frameworks (e.g., LangChain-style minimal orchestrator vs OctoTools-style explicit tool-orchestration) compare on traceability, failure detection and recovery rate, and model-call cost for NetOps repair tasks?",
+      "hypotheses": [
+        "An orchestration framework that records explicit tool-call traces and enforces recovery policies will detect and recover from failures at a higher rate than a minimal orchestration baseline.",
+        "The improved detection and recovery will incur additional model-call overhead, but will reduce undetected harmful actions by at least 20% relative to the minimal baseline under matched task sets."
+      ],
+      "proposed_design": "Implement two orchestration patterns using public frameworks: (A) minimal orchestration that issues prompts and records outputs, (B) explicit tool-orchestration with recorded tool-call traces, enforced recovery policies, and verifier integration. Run both on 200 NetOps repair tasks with injected faults and realistic complexity. For each run measure trace completeness, failure detection rate, recovery success (sandbox-verified), model-call counts, latency, and qualitative traceability score via an automated rubric. Paired within-task runs with fixed seeds and identical models/prompts.",
+      "expected_data": "Per-task detection flags, recovery success indicators, model-call counts, trace logs, latency measurements, and rubric scores for trace quality; aggregated per-framework comparisons.",
+      "primary_outcome": "Difference in undetected harmful action rate (tasks with harmful action not detected by framework) between the explicit orchestration framework and the minimal baseline.",
+      "analysis_outline": "Perform paired comparison of undetected harmful action rates using McNemar or paired proportion tests; analyze model-call overhead and compute cost-effectiveness ratios. Report 95% CIs via bootstrap. Present qualitative example traces for representative failure and recovery episodes and analyze framework-specific failure modes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7166862435",
+        "https://openalex.org/W4393247776",
+        "https://doi.org/10.21203/rs.3.rs-10485157/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7166862435",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Implementation differences between frameworks may confound framework-level effects if integration effort differs.",
+        "Measured benefits in a synthetic or sandboxed testbed may not fully generalize to heterogeneous production environments.",
+        "Framework overhead may interact with model rate limits and increase experiment variance."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

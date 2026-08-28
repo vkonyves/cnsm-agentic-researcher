@@ -1,0 +1,78 @@
+{
+  "study_id": "CNSM2026-GenVal-Batfish-PR-v1",
+  "title": "Effectiveness of Generate→Validate→Repair with Batfish for Intent-to-Configuration Translation (Provisional Preregistration)",
+  "research_question": "Does integrating a Batfish-based validator into a bounded generate→validate→repair pipeline reduce validator-detected deployment-risk configuration errors produced by LLM intent-to-configuration translation compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The generate→validate→repair pipeline (guarded) produces a lower per-task rate of validator-detected configuration errors than LLM-only generation (baseline).",
+    "H2 (secondary): Under the preregistered model-call budget and repair bound (≤1 repair per task, per the selected execution contract), the automated repair loop will correct >50% of initial validator-detected errors (repair success rate > 50%)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do vendor-like syntax strata (IOS-like vs JunOS-like) and complexity strata (single-rule vs multi-step changes) moderate the pipeline benefit?",
+    "EQ2: What failure modes remain after repair (verifier-unchecked regressions, semantic misinterpretations), as categorized by an automated failure taxonomy?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388891721",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W7161451689",
+    "doi:10.1002/nem.2313",
+    "doi:10.1109/icmlca66850.2025.11336788"
+  ],
+  "benchmark_scope": [
+    "Public synthetic multi-vendor topologies and templates released with the artifact (sandbox-only; non-production).",
+    "Validator-in-the-loop tests limited to sandbox semantics verifiable by Batfish and an independent static reachability checker implemented in the experiment harness."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute difference in per-task validator-clean rate: guarded minus baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "repair_success_rate (fraction of tasks with initial validator-detected errors where final config is validator-clean)",
+    "per-stratum paired success-rate differences (IOS-like vs JunOS-like; single-step vs multi-step)"
+  ],
+  "sampling_plan": "Confirmatory sample: 200 distinct intent-to-configuration tasks (paired design). For each task obtain two condition outputs: (A) LLM-only generation (one model call) and (B) guarded pipeline (generate→validate→repair bounded to 1 repair iteration per the selected adapter). Thus: 200 tasks × 2 conditions = 400 configuration-generation episodes; pipeline episodes include up to 2 model calls each (1 initial + up to 1 repair). Vendor and complexity stratification: 4 strata (IOS-like single-step, IOS-like multi-step, JunOS-like single-step, JunOS-like multi-step) with balanced assignment: 50 tasks per stratum = 200 total. Inclusion: tasks derived from the public task corpus released with artifacts; exclusion: tasks whose canonicalized intent maps to unsupported features in Batfish scenario (pre-declared and removed before execution). All task selection and randomization seeds are preregistered.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction of 10 percentage points in validator-detected error rate (guarded minus baseline). Assumptions: two-sided alpha=0.05, power=0.80, assumed discordant-pair proportion (p12+p21)=0.25. Normal-approximation McNemar-based sample calculation justifies n≈200 paired tasks (approx. (1.96+0.84)^2*0.25/0.10^2 ≈196). Paired bootstrap (10,000 resamples) used to estimate 95% CIs for absolute risk reduction. Sensitivity analyses recompute detectable effect for discordant rates 0.15 and 0.35 and report achieved power post-hoc.",
+  "exclusion_rules": [
+    "Exclude tasks whose canonicalized intent uses unsupported Batfish scenario features (list enumerated in pre-execution harness).",
+    "Exclude individual pairs where parser/canonicalizer fails (treated as technical failure per missingness_plan)."
+  ],
+  "missingness_plan": "Primary analysis uses 'complete-pair' policy: exclude any task pair where either condition failed to produce a usable configuration due to technical failure (API outage, harness crash, parser failure). A sensitivity analysis will re-run the primary estimand with the conservative assumption that any failed generation in the guarded arm is treated as a validator-detected error (failed_call_treatment: 'complete_pair_primary_with_failure_as_zero_sensitivity'). All failure events and counts are reported with reasons and hashes.",
+  "analysis_plan": "Primary confirmatory analysis: paired binary outcome per task defined as 'validator-detected error present' (1) vs 'validator-clean' (0) on the final artifact. Use the supplied analysis executor 'paired_binary_analysis_v1' to compute the estimand 'paired_success_rate_difference_guarded_minus_baseline'. Primary test: McNemar's test (two-sided, alpha=0.05) on paired binary outcomes. Estimate absolute risk reduction with 95% bootstrap CIs (paired bootstrap with 10,000 resamples). Secondary analyses: compute repair_success_rate with bootstrap CIs; per-stratum paired analyses reported as exploratory with unadjusted p-values. All modeling code, exact prompt texts, seeds, and raw validator outputs are archived; analysis is fully automated using the registered analysis executor. Technical failures handled per missingness_plan; sensitivity analysis treats failed pairs conservatively as baseline-errors where specified.",
+  "multiplicity_plan": "Single primary endpoint (paired validator-detected error reduction). Exploratory subgroup analyses (4 strata) are explicitly labeled exploratory. No multiplicity adjustment for exploratory analyses in the confirmatory claim. If additional secondary confirmatory endpoints are later promoted, we will adjust via Holm-Bonferroni; current preregistration contains only the single primary confirmatory test.",
+  "contamination_plan": "Benchmark name: CNSM2026-GenVal-Batfish-task-corpus-v1. Risk factors: verifier-overfitting (repairs may satisfy Batfish checks while introducing other regressions), sandbox semantic mismatch vs production vendor quirks, training-data leakage (models may memorize public templates), sensitive/exploitable command generation (dual-use risk). Detection procedures: Automated Batfish scenario runs for reachability, ACL/policy violations, routing-loop detection, and interface-state regressions; independent static reachability checker (graph-based) run on canonicalized configs; regex-based dangerous-command detector to flag disallowed commands; repository-wide diff checks of AST-like command sets to detect large semantic deltas. Item-flagging rules: Batfish/static checker harm properties count as validator-detected error; items flagged by dangerous-command detector are excluded from public release artifacts and retained only internally for analysis and reporting; parser/canonicalizer failures recorded as technical failures. Analysis treatment: primary analysis uses Batfish-defined validator-detected error as the outcome. Flagged items retained internally but withheld from public corpus; sensitivity analyses report results with and without flagged items. Residual uncertainty: how well Batfish scenarios emulate production device semantics; possibility of undetected semantic regressions outside preregistered harm-oracle.",
+  "stopping_rule": "Fixed-sample design: no interim efficacy stopping. Data collection stops when the full preregistered sample of 200 paired tasks (400 episodes) has been collected and validated, or if an infrastructure failure prevents completion within declared compute/model-call budgets. Any deviation or early termination will be logged and reported with reasons and hashes.",
+  "planned_outputs": [
+    "Preregistered analysis code and manifest",
+    "Raw model outputs and validator logs",
+    "Canonicalized configurations and ASTs",
+    "Statistical result files and bootstrap CI outputs",
+    "Artifact release: sanitized public task corpus and benign configurations (excluding items flagged by dangerous-command detector)",
+    "Five-page IEEE-format manuscript with Disclosure Statement"
+  ],
+  "unresolved_critical_issues": []
+}

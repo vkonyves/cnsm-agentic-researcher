@@ -1,0 +1,28 @@
+{
+  "study_id": "CNSM2026-GenVal-Batfish-PR-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory primary analysis executed by paired_binary_analysis_v1 on the sealed paired_binary_episode_v1 results (n_pairs=200, completed_episode_count=400). Per-task paired binary outcome: validator-detected error = 1, validator-clean = 0 on final artifact. Compute McNemar two-sided test (alpha=0.05) on paired outcomes (guarded vs baseline) and estimate absolute risk reduction (guarded minus baseline) with paired bootstrap 10,000 resamples to produce 95% CI. Implement complete-pair primary missingness policy per preregistration (exclude pairs with technical failures). All inputs taken from execution/raw_results.jsonl and canonicalized configurations and validator logs archived in execution manifest.",
+  "secondary_analyses": [
+    "repair_success_rate: fraction of tasks with initial validator-detected errors where final guarded-config is validator-clean (bootstrap 10,000 resamples for 95% CI).",
+    "Per-stratum paired success-rate differences for four preregistered strata (IOS-like single-step, IOS-like multi-step, JunOS-like single-step, JunOS-like multi-step) reported as exploratory with unadjusted p-values."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call conservative sensitivity: rerun primary estimand treating any technical failure in either arm as a validator-detected error for the guarded arm per contract identifier complete_pair_primary_with_failure_as_zero_sensitivity.",
+    "Contamination sensitivity: repeat primary and secondary analyses excluding tasks flagged by the dangerous-command detector and report results with and without flagged-item exclusion."
+  ],
+  "uncertainty_quantification": "Paired bootstrap (10,000 resamples) for 95% CI on absolute risk reduction and repair_success_rate; report exact McNemar two-sided p-value (alpha=0.05). Report bootstrap distribution summaries, percentile CIs, and empirical standard errors. Include reporting of achieved sample size, concordant/discordant pair counts, and post-hoc power recalculation per preregistration.",
+  "multiplicity_implementation": "Single prespecified confirmatory primary endpoint (paired_success_rate_difference_guarded_minus_baseline). Exploratory subgroup (per-stratum) analyses explicitly labeled exploratory and reported with unadjusted p-values; no multiplicity adjustment applied to the confirmatory claim. Per preregistration, future promotion of secondary confirmatory endpoints would trigger Holm-Bonferroni adjustment.",
+  "contamination_analysis": "Use Batfish-based deterministic sandbox validator (reachability, ACL/policy checks, routing-loop and interface regressions) as primary harm oracle; independent static reachability checker applied to canonicalized configs; regex-based dangerous-command detector flags disallowed commands (flagged items withheld from public release); AST-diff checks and parser/canonicalizer failure recording. Primary outcome uses Batfish-defined validator-detected error. All flagged-item counts, reasons, and hashes reported; sensitivity analyses report results with and without flagged items.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired results: per-condition counts (validator-clean vs validator-detected error), discordant pair counts (baseline-only, guarded-only), McNemar two-sided p-value, absolute risk reduction (guarded − baseline) with 95% paired-bootstrap CI; data sourced from execution/raw_results.jsonl and validator_logs.",
+    "Table 2 — Repair outcomes: tasks with initial validator-detected errors, number repaired to validator-clean by bounded single-repair loop, repair_success_rate and 95% bootstrap CI, counts of repair-invoked vs repair-unused; include model_response_hashes and validator_log references.",
+    "Table 3 — Exploratory per-stratum summary: for each of 4 strata report paired success rates (baseline, guarded), absolute paired differences, discordant counts, and unadjusted p-values; include per-stratum sample sizes (n=50 each) and relevant hashes."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Validator-clean rate by condition (baseline vs guarded): bar plot with 95% paired-bootstrap CIs; underlying counts and bootstrap distributions from execution/raw_results.jsonl.",
+    "Figure 2 — Discordant-pair Sankey or stacked bar: visualization of pair-level transitions (both-clean, both-error, baseline-only-error, guarded-only-error) with counts and percentages derived from paired results.",
+    "Figure 3 — Repair outcome breakdown: histogram of initial-error categories (from Batfish/static checker taxonomy) and repair-success vs persistent-failure counts; data from validator_logs and automated failure taxonomy extraction."
+  ]
+}

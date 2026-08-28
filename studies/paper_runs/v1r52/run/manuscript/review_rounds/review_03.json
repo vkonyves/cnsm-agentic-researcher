@@ -1,0 +1,19 @@
+{
+  "summary": "Carefully preregistered, well-executed paired confirmatory study of a bounded generate→validate→repair pipeline (gpt-5-mini + Batfish-like validator) on a 200-task synthetic intent→configuration corpus. All archived artifacts are consistent and reproducible; both arms were validator-clean on every task (200/200), so no repairs were invoked and the primary estimand is degenerate (paired difference = 0.0; McNemar p = 1.0; paired-bootstrap CI [0.0,0.0]). Manuscript appropriately frames the null outcome and discusses design sensitivity limits (shared_initial_generation, synthetic tasks, single model, single-repair bound).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "Add one concise, explicit sentence in Methods (and a pointer to the archived artifact) stating that the baseline condition used the same shared initial generation candidate as the guarded condition (independent_condition_generation=false), and explain in a single sentence how this choice restricts detectable differences to validator-triggered repairs (cite execution/model_configuration.json and deterministic_reconciliation provider_call_audit).",
+    "In Results, add an explicit, short statement (with artifact pointers) that no repairs were invoked (repair count = 0), that the preregistered secondary estimand (repair_success_rate > 50%) is therefore not empirically computable, and list the archived files that support this (e.g., execution/scoring/*.json, analysis/paired_contingency_table.csv).",
+    "Replace or complete any metadata-only citations flagged in the evidence-verification warnings by supplying full bibliographic entries (title, authors, venue/year and DOI/arXiv where available) for the following records identified in the verification summary: doi:10.1109/icmlca66850.2025.11336788, doi:10.1109/icnp65844.2025.11192391, doi:10.1109/icsft66733.2026.11508065, doi:10.1109/netsoft60951.2024.10588881, doi:10.2139/ssrn.5896270 (these are present in the evidence bundle; insert complete citation lines in Related Work/References)."
+  ],
+  "optional_revisions": [
+    "Briefly (one short paragraph) enumerate practical alternative preregistered designs that would increase sensitivity (e.g., independent_condition_generation, larger repair budget, multiple models) and point readers to the specific artifact files a future run would reuse; this is useful but not required because related recommendations already appear in Discussion.",
+    "Consider adding a one-sentence caption annotation beside Figure 1 or Figure 2 noting that the shared_initial_generation contract explains why discordant cells are empty (improves reader comprehension).",
+    "If space permits, include the exact prompt text (or an appendix-like quoted reference) for the generation and repair prompts or, if space prevents quoting, add an explicit artifact pointer in the Disclosure to the exact prompt file path (provenance/master_prompt.txt is present but an explicit in-text pointer helps reviewers/readers)."
+  ],
+  "accept_for_finalisation": false
+}

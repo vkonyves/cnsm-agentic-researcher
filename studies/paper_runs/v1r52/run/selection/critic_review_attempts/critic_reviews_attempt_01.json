@@ -1,0 +1,104 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "C1-GenVal-Batfish",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "External validity: Batfish sandbox may not capture production device semantics or vendor quirks.",
+        "Repair-overfitting: repair loop may satisfy verifier while introducing undetected regressions.",
+        "Prompt/model sensitivity and retry policy not fully specified; could bias paired comparisons.",
+        "Definition of ‘validator-detected error’ and harm oracle needs precise specification.",
+        "Public release and artifact reproducibility must be ensured for replication."
+      ],
+      "required_design_repairs": [
+        "Precisely define validator properties, harm oracle, and non-verifier regression checks (e.g., performance/policy tests).",
+        "Specify exact model identifiers, prompt templates, seeds, and retry policy in preregistration; fix maximum model-call budget per task.",
+        "Add secondary checks to detect verifier-overfitting (e.g., randomized test packets, orthogonal validators).",
+        "Commit to public dataset/topology release and provide experiment code, Batfish configs, and hashes.",
+        "Clarify vendor stratification criteria and ensure balanced sample across vendors/complexities."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C2-Adversarial-Prompt",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Dual-use risk from publishing adversarial prompt templates and red-team methods.",
+        "Operationalization of ‘harmful configuration’ must be precisely bounded to sandbox metrics.",
+        "Guard implementations may be ad-hoc; integration bugs could confound results.",
+        "Automated adversary generator may not reflect realistic social-engineering vectors.",
+        "Ethical oversight and safe-release policies are not described in detail."
+      ],
+      "required_design_repairs": [
+        "Embed an explicit red-team ethics and safety plan in the preregistration; prohibit release of actionable adversarial templates without mitigation guidance.",
+        "Define and document sandbox-only harm oracle with precise checks; log and isolate all artifacts.",
+        "Provide detailed guard implementation specs and unit tests to rule out integration bugs.",
+        "Pre-register adversary generation algorithm and include human-red-team validation for realism (without releasing templates).",
+        "Add a baseline human-in-the-loop or human-review comparison if feasible, or justify its omission."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C3-Traceability-OperatorSim",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Automated operator proxy may poorly approximate real human decision-making and bias precision estimates.",
+        "Proxy training/validation data and held-out labels need specification and public release.",
+        "Risk that traces can be gamed, producing false confidence in proxy decisions.",
+        "Definition of ‘true safety labels’ from sandbox oracle must be explicit.",
+        "Calibration and confidence measures for the proxy are underspecified."
+      ],
+      "required_design_repairs": [
+        "Provide full specification, data, and code for the automated operator proxy; include held-out validation metrics and calibration analysis.",
+        "If possible, include a small human-operator validation subset to demonstrate proxy fidelity or justify proxy-only design.",
+        "Explicitly define the sandbox oracle used for true safety labels and release test topologies/configs.",
+        "Include adversarial-trace tests to assess whether traces can be gamed and quantify their effect on proxy misclassification.",
+        "Pre-register proxy decision thresholds, confidence metrics, and evaluation rubric."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C4-Orch-Frameworks",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Implementation and integration effort differences between frameworks may confound results.",
+        "Traceability rubric appears partly subjective; needs objective, automatable metrics.",
+        "Ensuring comparable feature parity (tooling, verifier hooks) across frameworks is nontrivial.",
+        "Potential bias from unequal engineering polish or libraries used for each framework.",
+        "Cost and model-call accounting methods need precise definition."
+      ],
+      "required_design_repairs": [
+        "Standardize integration requirements and enforce parity (same tools/verifiers) across frameworks; document integration effort.",
+        "Replace or augment subjective rubric with objective metrics (tool-call completeness, provenance entropy, automated detect/recover rates).",
+        "Pre-register concrete recovery policies, detection thresholds, and cost accounting methods (model calls, latency).",
+        "Open-source all orchestration implementations, test harness, and scripts; provide reproducibility checklist and hashes.",
+        "Include sensitivity analysis to integration effort and perform blinded assessment of trace quality where human judgment is used."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

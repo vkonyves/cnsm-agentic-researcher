@@ -1,0 +1,30 @@
+{
+  "selected_candidate_id": "C1-GenVal-Batfish",
+  "selection_rationale": "C1 directly targets a central, actionable NetOps reliability gap (generate→validate→repair with a verifier), has a clear paired experimental design and statistical plan, fits the venue and compute budget, and is judged feasible by reviewers provided the listed design repairs are implemented.",
+  "runner_up_candidate_id": "C2-Adversarial-Prompt",
+  "unresolved_uncertainties": [
+    "Degree to which Batfish sandbox semantics match real production-device/vendor quirks",
+    "Risk that repair loops will overfit to Batfish checks and introduce undetected regressions",
+    "Prompt/model-call nondeterminism and sensitivity across seeds or model versions",
+    "Generalisability across vendors/protocols and heterogeneous topologies",
+    "Potential for provider/API failures or rate limits to bias paired comparisons"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388891721",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W7161451689",
+    "doi:10.1002/nem.2313",
+    "doi:10.1109/icmlca66850.2025.11336788"
+  ],
+  "required_repairs_before_preregistration": [
+    "Precisely specify validator properties and the sandbox harm-oracle (explicit checks: reachability, ACL/policy violations, routing loops, interface-state regressions) and document Batfish config versions used.",
+    "Pre-register exact model identifiers, model versions, all prompt templates (including repair prompts), prompt variants, random seeds, maximum model-call budget per task, retry policy, and logging/trace schema.",
+    "Add secondary, orthogonal checks to detect verifier-overfitting (e.g., randomized test-packet probes, alternate verifier or independent reachability tests, and performance/regression tests) and pre-register their use.",
+    "Define and publicize the dataset: release task corpus, topologies, vendor-syntax templates, Batfish scenarios, and all experiment code/configs with hashes and reproducibility instructions.",
+    "Clarify vendor stratification and sampling rules; ensure balanced representation across vendor-like syntaxes (e.g., IOS-like, JunOS-like) and complexity strata; pre-register inclusion/exclusion criteria.",
+    "Operationalize precise definitions for ‘validator-detected error’ and repair-success metrics and pre-register primary/secondary outcomes, statistical tests (McNemar/bootstraps), confidence-interval methods, and stopping rules.",
+    "Implement unit and integration tests for the generate→validate→repair pipeline; include test fixtures that exercise edge cases to rule out integration bugs before data collection.",
+    "Specify artifact sanitization and ethical safeguards: experiments limited to sandbox/non-production topologies, no production device access, and a release policy that avoids publishing exploitable adversarial artifacts.",
+    "Commit to public artifact release (code, batfish scenarios, data) and a reproducibility checklist (build/run steps, environment versions) as part of the preregistration."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Careful, well-documented preregistered paired study of a bounded generate→validate→repair pipeline using gpt-5-mini and a Batfish-like deterministic validator. Execution and analysis followed the sealed preregistration; all archived artifacts and hashes are present. The observed outcome is degenerate (baseline = guarded = 200/200 validator-clean), correctly reported and interpreted. The manuscript is reproducible and appropriately cautious about external validity, but needs targeted clarifications and a small set of presentation edits to meet conference-paper expectations.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Make the implications of the preregistered shared_initial_generation design explicit in the abstract and introduction (one clear sentence stating that a single initial generation was reused for both arms, reducing sensitivity to generator stochasticity and therefore limiting the kinds of detectable differences to those introduced by repairs). This can be done by copying the documented execution/provider_call accounting lines into a concise explanatory sentence; no new experiments required.",
+    "Add a short, machine-readable evidence-to-claim table (≤1 paragraph or a single compact table row set) in the manuscript that maps each principal contribution claim to the specific archived artifact(s) (by path and sha256) used to support it; use the artifacts already listed in the disclosure/manifest (e.g., execution/raw_results.jsonl, analysis/paired_contingency_table.csv, analysis/condition_summary.csv, execution/model_configuration.json, provenance/master_prompt.txt).",
+    "Insert a nearest-work comparison matrix (compact paragraph or single table) that lists the 3–5 closest prior works cited in the paper and, for each, states (a) how it differs from the present study (design, scope, evaluated components), and (b) which specific gap from the preregistration candidate_gaps this study targeted. Populate this matrix from the verified bibliography already archived; no additional literature search is required.",
+    "Clarify in the Results and Conclusion (brief sentence) that the preregistered secondary estimand (repair_success_rate >50%) could not be evaluated because no initial validator-detected errors occurred and therefore no repair calls were invoked, and explicitly remove or reword any phrasing that implies the repair hypothesis was empirically tested to completion.",
+    "Edit the manuscript prose to reduce artifact-inventory tone: condense long artifact-path lists into parenthetical pointers (maintain hashes), move longer provenance lists into a single compact paragraph in the Disclosure Statement, and preserve the five-page limit. All content for these edits is available in the supplied artifact bundle."
+  ],
+  "optional_revisions": [
+    "Discuss more explicitly (one or two sentences) the threat of model memorization/template alignment as a concrete mechanism explaining the zero-error baseline and point to the contamination_summary.csv artifact as supporting evidence for the checks performed.",
+    "Add a brief sensitivity paragraph (1–2 sentences) noting that an independent-generation design (independent_condition_generation=true) and/or larger repair budgets could produce discordant pairs and therefore enable a different confirmatory test; cite this as future work using existing artifacts as rationale.",
+    "Include one small figure or table (if space permits) summarizing provider_call accounting and stage counts to make the shared_initial_generation design immediately visible to readers."
+  ],
+  "accept_for_finalisation": false
+}

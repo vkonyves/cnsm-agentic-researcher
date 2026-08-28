@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, preregistered paired trial testing a bounded generate→validate→repair pipeline (gpt-5-mini + deterministic Batfish-style validator) on 200 synthetic intent-to-configuration tasks. All archived artifacts are present and reconciled. Both arms were validator-clean on every task, yielding a degenerate null (no discordant pairs; estimate=0.0; McNemar p=1.0). The manuscript is honest about limits and preregistered choices. Key concerns are clarifications needed (task-difficulty distribution, concise validator semantics, artifact-access pointers) and a small ambiguous sentence about representative difficulty that should be corrected. After these clarifications the manuscript will be suitable for finalisation.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Ambiguous reporting of task difficulty: the manuscript's phrasing (e.g., \"representative sample: medium = 1/6, hard = 2/6, very_hard = 3/6\") is unclear and insufficient. Readers cannot assess whether the task bank meaningfully challenged the generator without exact per-task difficulty counts.",
+    "Insufficiently specific validator semantics in the paper: the manuscript states that a deterministic Batfish-style validator was used, but does not provide a concise, authoritative summary of the validator's harm/violation definitions (what exactly counts as a 'validator-detected error', violation codes, and the rule set), nor short examples illustrating errors that would have triggered repairs.",
+    "Artifact-access and pointer clarity: the manuscript references archived artifacts and representative hashes in the execution bundle, but does not provide a clear, explicit pointer in the paper text to the artifact bundle location(s) (or which archived hashes correspond to the primary reproducibility bundle) and instructions for reviewers/readers to locate the authoritative files accompanying the submission."
+  ],
+  "required_revisions": [
+    "Replace the vague \"representative sample\" language with an explicit tabulation (or short paragraph) giving exact counts of task difficulty labels across the full 200-task set (e.g., counts for medium/hard/very_hard) and per-stratum counts; cite the archived task_manifest.jsonl artifact (include its SHA256) as the source.",
+    "Add a concise validator-semantics subsection (≤1 short paragraph + a single example) that enumerates the deterministic validator's failure conditions used to define 'validator-detected error' (e.g., reachability violations, ACL/policy violations, routing-loop detection, interface-state invariants), list the violation codes used in scoring, and cite the validator log artifact(s) (with representative hash) that implement these rules.",
+    "Insert in the manuscript a single explicit reproducibility pointer: name the archived execution bundle path(s) and representative manifest/hash entries (e.g., execution/execution_manifest.json and its SHA256) and state how the reviewer can access the submitted artifact bundle included with the paper. Ensure the Disclosure Statement or methods section contains this pointer so the artifact record is discoverable from the paper itself."
+  ],
+  "optional_revisions": [
+    "Shorten or move some provenance-heavy metadata (long manifest descriptions, many hash lists) out of the main narrative and into a clearly labeled reproducibility appendix or a single compact paragraph, improving readability while preserving traceability in the archived bundle.",
+    "Add a small table summarizing per-stratum outcomes (even though all are identical) and the number of model calls observed per arm to make readers' inspection easier.",
+    "Expand the Discussion by briefly contrasting the preregistered shared_initial_generation contract with independent_generation variants and explicitly restating which operational questions each contract answers (this is helpful but not required because the preregistration already documents the choice)."
+  ],
+  "accept_for_finalisation": false
+}
