@@ -1,0 +1,19 @@
+{
+  "summary": "Closure review focused on whether the prior requested artifact‑referenced proof against prompt/response contamination was added. The study is preregistered and well‑archived; execution and analysis artifacts appear comprehensive and internally consistent. However the manuscript still does not explicitly cite or display representative execution/provider_calls/* provider_call artifacts or quote the exact prompts for representative tasks so readers can independently verify absence of canonical‑reference leakage into model prompts. This omission was the single critical unresolved item from the previous_terminal_review and must be corrected before finalisation. Otherwise the manuscript's restricted estimand (validator‑acceptance parity under shared_initial_candidate semantics) is clearly stated and supported by archived scoring traces; the degenerate all‑success outcome and unobserved repairs are properly disclosed.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 3,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Manuscript lacks explicit, artifact‑referenced evidence (representative execution/provider_calls/task-000XXX-shared-initial.json files and their hashes or quoted prompt contents) demonstrating that the canonical reference answers were not leaked into the LLM prompts for representative tasks. Without this, readers cannot independently verify the absence of prompt contamination or inadvertent seeding of the generator with canonical answers."
+  ],
+  "required_revisions": [
+    "Add a short Methods or Results subsection that cites at least three representative provider_call artifacts (example paths and SHA‑256 hashes already present in the execution manifest, e.g. execution/provider_calls/task-000001-shared-initial.json and two others). For each cited provider_call artifact either (a) quote the exact prompt text sent to the hosted model (copied verbatim from the archived provider_call JSON) or (b) provide the exact artifact path(s) and SHA‑256 hash(es) and state that the artifact contains the full prompt so reviewers can inspect it. Ensure the cited provider_call artifact paths/hashes match those listed in the execution manifest.",
+    "In that same subsection, explain briefly and cite the specific provider_call fields and audit checks used to confirm context/isolation (for example: presence of explicit context‑reset tokens, cross_condition_cache_key_reuse_observed = false in the deterministic_reconciliation/provider audit, and the provider_call artifact fields that prove no canonical reference string was injected). Point to the artifact paths and hashes that show these audit fields (execution/deterministic_reconciliation.json, execution/provider_calls/...)."
+  ],
+  "optional_revisions": [
+    "Optionally include one side‑by‑side representative example (provider_call prompt → shared_initial_candidate response → execution/scoring/task‑000XXX‑*.json validator trace) with artifact paths and hashes to guide readers through the provenance chain.",
+    "Optionally add a tiny summary (one paragraph or short table) using execution/scoring/*.json showing the distribution of parsed_command_count vs required_command_count across tasks to illustrate how closely shared candidates matched canonical requirements."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,196 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs show promise for NetOps tasks (intent translation, config synthesis, RCA), but operational reliability largely depends on surrounding tooling, validators, and workflow machinery rather than on the model alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W7169923237"
+      ],
+      "evidence_type": "Survey / Position",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence is primarily survey/position and prototype-reporting; not all claims validated at Internet-scale production.",
+        "Degree of dependence on external tooling varies by task and deployment."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Agentic LLM systems exhibit a broad, documented set of failure modes (reasoning/planning errors, tool/action execution errors, memory/context problems, coordination failures); formal taxonomies and evaluation protocols have been proposed.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6572478",
+        "10.2139/ssrn.7248799",
+        "10.2139/ssrn.7121598"
+      ],
+      "evidence_type": "Taxonomy / Analytical Study",
+      "confidence": 0.9,
+      "limitations": [
+        "Taxonomies synthesize published reports but do not quantify prevalence across all NetOps deployments.",
+        "Practical mitigation effectiveness depends on system implementation."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Closed-loop generate→validate→repair pipelines (including simulation/NDT, retrieval/validation, and iterative revision) improve end-to-end execution success in configuration/deployment and playbook/execution tasks relative to naive generation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7169689235",
+        "https://openalex.org/W7163413045",
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W4407384737"
+      ],
+      "evidence_type": "Empirical / Systems",
+      "confidence": 0.8,
+      "limitations": [
+        "Improvements are task- and dataset-specific; reported gains differ across studies.",
+        "Not all domains (vendor CLIs, production WANs) have comparable published evaluation suites."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Deterministic/formal network-verification tools and domain-specific verification systems (NetKAT/Weighted NetKAT, Hoyan, MEV, VeriFlow-style approaches) are effective for checking reachability, isolation, and change-impact properties and have been scaled and deployed in production contexts.",
+      "evidence_record_ids": [
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4413756540",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4407384737"
+      ],
+      "evidence_type": "Tool / Deployment Report",
+      "confidence": 0.9,
+      "limitations": [
+        "Verification requires an accurate formal model/translation of network artifacts; creating and maintaining such models can be costly.",
+        "Verifiers cover specific property classes; they do not eliminate upstream translation errors."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Constrained-generation approaches (schema-guided generation, DSLs, schema-preserving repair) substantially reduce structural and schema errors in generated configuration-like artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7131475702",
+        "10.2139/ssrn.6172544",
+        "doi:10.36227/techrxiv.176045741.13024122/v1"
+      ],
+      "evidence_type": "Empirical / Method",
+      "confidence": 0.85,
+      "limitations": [
+        "Schema/syntax validity does not guarantee semantic correctness (reachability, policy compliance).",
+        "Constrained methods may require additional engineering (schemas, DSLs, validators) per vendor/task."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Reasoning-augmentation techniques such as chain-of-thought (CoT) and retrieval-augmentation (RAG) can improve LLM outputs in some NetOps-related reasoning tasks, but they are not universally beneficial and can degrade structured/numerical accuracy in some settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416048259",
+        "doi:10.1051/e3sconf/202671606015",
+        "10.2139/ssrn.6856159"
+      ],
+      "evidence_type": "Empirical / Survey",
+      "confidence": 0.7,
+      "limitations": [
+        "Effects are task-dependent; some studies report strong gains while others report degradation for numerical/structured outputs.",
+        "Proper grounding and deterministic post-checks influence net benefit."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM-agent NetOps pipelines generalize across heterogeneous, production-scale networks (multi-vendor, large-scale topologies) without human-in-the-loop gating?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7117292294"
+      ],
+      "evidence_type": "Empirical Gap / Workshop Reports",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing production reports and benchmarks are encouraging but limited in breadth and independent replication.",
+        "Published field trials often include human oversight or constrained scopes."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Which architectural pattern is generally superior for safe NetOps automation: (A) LLM→formal-model translation + solver (translation-first) or (B) end-to-end agentic LLMs with integrated validators and rollback (agentic-first)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7161354925",
+        "doi:10.1145/3808318"
+      ],
+      "evidence_type": "Position / Comparative Question",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing work argues for both approaches but lacks head-to-head, multi-task comparisons under shared evaluation metrics.",
+        "Task characteristics likely determine the preferred architecture."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What are robust, task-general best practices (prompts, decoding settings, validator integration) that minimize semantic hallucinations across vendor-specific network configuration generation?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7131475702",
+        "10.2139/ssrn.6856159",
+        "https://openalex.org/W4407384737"
+      ],
+      "evidence_type": "Methodological Gap",
+      "confidence": 0.5,
+      "limitations": [
+        "Available studies show mixed results; many evaluate limited model families, vendors, or tasks.",
+        "Decoding/prompt effects interact with model size, fine-tuning, and retrieval."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A systematic empirical comparison is lacking that measures end-to-end operational correctness (reachability, isolation, policy compliance, safe rollback) of (i) constrained-DSL + deterministic verifier pipelines vs (ii) generate→validate→repair agentic pipelines across multiple vendor CLIs and realistic topologies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W7171748677",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W7163413045"
+      ],
+      "evidence_type": "Observed Literature Gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Literature contains components of such comparisons but not a unified, multi-vendor, multi-metric study.",
+        "Building such a benchmark requires curated vendor datasets and verified simulators/emulators."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "There is a need for standardized, workflow-centered NetOps benchmarks that report operational metrics (execution success, reachability correctness, rollback safety, false positive/negative of validators) for LLM-driven agents; existing benchmarks (e.g., ITBench) show low agent success but do not yet cover full NetOps property suites.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Benchmark Gap",
+      "confidence": 0.7,
+      "limitations": [
+        "ITBench and related efforts provide initial scenarios but are limited in scope and task diversity.",
+        "Standardization requires community agreement on properties and acceptance criteria."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Reliable, LLM-assisted translation pipelines that produce formally checkable models (automated, verifiable translation of live configs/topology into NetKAT/NetModel) need more validation and tooling to be practical at scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171748677",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "Implementation Gap",
+      "confidence": 0.6,
+      "limitations": [
+        "TypoNet and NetKAT work are promising but require more cross-vendor evaluation and robustness testing.",
+        "Translation correctness is a single-point dependency for downstream verification."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are ready to perform fully autonomous, unsupervised production NetOps change execution without validators, human approval, or rollback mechanisms (unsupported by supplied records).",
+    "Chain-of-thought prompting universally and reliably eliminates hallucinations in configuration generation (evidence shows task-dependent effects and possible degradation).",
+    "Deterministic verification tools are unnecessary if an LLM is sufficiently capable (contradicted by surveys and deployment reports emphasizing surrounding machinery).",
+    "A single LLM model family has been shown to generalize across all NetOps vendors and tasks without per-vendor adaptation or verification (no supplied record supports this broad claim)."
+  ]
+}

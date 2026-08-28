@@ -1,0 +1,25 @@
+{
+  "summary": "Careful, fully archived preregistered execution that honestly reports a degenerate paired outcome caused by the preregistered shared_initial_candidate semantics. Artefacts and hashes appear complete and consistent; the run measures deterministic validator acceptance parity for identical LLM candidates rather than independent generator or repair robustness. The manuscript is reproducible and transparent but needs targeted clarifications to avoid misleading claims and to document preregistration↔execution mismatches more explicitly.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The preregistered primary hypotheses (H1, H2) are not testable under the implemented shared_initial_candidate semantics (one shared LLM generation per pair). Although the manuscript discloses this, it still frames the study as a head‑to‑head comparison of architectures; that phrasing is misleading because the executed design removed generator/repair variance and therefore cannot support claims about architectural superiority or repair coverage.",
+    "The manuscript title and abstract risk overstating the claim (\"Head‑to‑head Evaluation\") despite the degenerate outcome; readers may interpret the run as an independent comparison of pipelines when it only measures validator acceptance parity of identical candidates.",
+    "The preregistration power assumptions (which assumed independent generation variance and N model calls per arm) do not apply to the shared_candidate execution. The manuscript must explicitly document this mismatch, show the planned vs actual model_call accounting, and state the consequence for interpretation (i.e., that the confirmatory test is not powered to detect generator/repair differences).",
+    "The preregistered secondary estimands concerning repair coverage and repair iterations were unobserved because no repairs applied; the manuscript should explicitly state that H2 and related secondary tests were not executed/observed and revise any wording that implies they were assessed."
+  ],
+  "required_revisions": [
+    "Explicitly and unambiguously mark H1 and H2 in the manuscript as untested (or as not evaluated) given the implemented shared_initial_candidate semantics, and remove or rephrase any text that could be read as claiming a discriminating head‑to‑head architectural comparison. This change must be implemented in the Abstract, Introduction (end), Results summary, and Conclusion. (Resolvable from archived preregistration and execution artifacts.)",
+    "Modify the title and/or add a prominent tagline in the abstract that states the study measured validator‑acceptance parity for identical LLM candidates (shared_initial_candidate) rather than independent generation/repair robustness; present this language exactly and prominently so readers cannot miss the limitation. (Manuscript text change only; artifacts available.)",
+    "Add a short table or paragraph (derived from execution/task_manifest.jsonl or condition_summary.csv) that verifies the actual confirmatory task distribution across vendors×topology clusters and shows planned vs actual model_calls_used and episode counts (planned episodes 240, completed 240, model_calls_used 120). Explicitly state that the shared generation semantics produced model_calls_used = 120 and explain how that differs from the preregistered power assumptions. (Resolvable from archived execution artifacts and manifests.)",
+    "Explicitly state that preregistered secondary analyses about repair coverage/iterations were unobserved (repair_applied = false for all episodes) and remove any interpretive language suggesting repair efficacy was compared. Provide the artifact reference(s) (execution/scoring/*.json and analysis/missingness_summary.csv) showing repair_applied=false. (Resolvable from archived scoring JSONs and analysis CSVs.)"
+  ],
+  "optional_revisions": [
+    "Consider adjusting the manuscript title to more narrowly communicate the measured quantity (e.g., append '— Validator‑Acceptance Parity under Shared‑Candidate Semantics').",
+    "Add a brief worked example (one paired task excerpt) in a short figure or appendix paragraph showing the shared_initial_candidate, validator trace, and normalized configuration to illustrate what was actually tested. Use representative artifacts already in execution/responses and execution/scoring as the source. (Optional but improves clarity and pedagogy.)",
+    "In the Discussion, expand the recommended minimal preregistered changes (independent generation per arm, per‑arm budget, multi‑model sampling) into a concise, artifact‑grounded protocol blueprint that maps each proposed change to the manifest fields that would differ (e.g., model_calls_used, nonzero repair_applied, increased provider_call events). This is resolvable from existing manifests and would help readers plan reproducible follow‑ups."
+  ],
+  "accept_for_finalisation": false
+}

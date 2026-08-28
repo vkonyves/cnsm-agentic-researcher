@@ -1,0 +1,19 @@
+{
+  "summary": "Carefully executed, well‑documented preregistered artifactized study that measured validator‑acceptance parity under an explicit shared_initial_candidate design. Execution and analysis artifacts are comprehensive and correctly support the narrow estimand reported. The manuscript correctly discloses limitations, but needs a small set of clarifications (all resolvable from supplied artifacts) to avoid reader misinterpretation about what was and was not tested.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly document and point to the artifact evidence that rules out prompt/response contamination or inadvertent leakage of the canonical reference into the LLM prompt for each task (e.g., cite representative execution/provider_calls/... traces and describe the exact prompt sent for several representative tasks). This must be added to Methods or Results with direct artifact path references so readers can verify no reference‑echo produced the degenerate perfect matches.",
+    "Add an explicit, unambiguous statement in the Abstract and in the Introduction (and in the Evidence→Claim table) that the preregistered hypotheses H1 and H2 about comparative architecture performance (generator/repair robustness) were not tested by this execution because the confirmatory estimand used shared_initial_candidate semantics; describe precisely which estimand was tested (validator‑acceptance parity) and label the original H1/H2 as ‘preregistered but unobserved under shared_candidate semantics’. Point to the preregistration and analysis artifact that make this design choice explicit.",
+    "In Results or Discussion, include a short artifact‑referenced explanation showing why repair was never invoked (i.e., show representative scoring JSON fields parsed_command_count vs required_command_count and repair_applied=false) and confirm that the repair subsystem was live but not triggered. Add explicit references to the execution/scoring/*.json files used to support this statement."
+  ],
+  "optional_revisions": [
+    "Include a small, self‑contained example (one task) showing the exact prompt sent to the model (from provider_calls) and the normalized_validator trace side‑by‑side to help readers follow the pipeline; cite the exact artifact paths and hashes used in the manuscript.",
+    "Provide a brief summary statistic (distribution) of parsed_command_count minus required_command_count across tasks (artifacted in execution/scoring/*.json) to show how often generated candidates matched canonical requirements exactly versus had ordering differences; this can be added as a short paragraph or a small supplementary table.",
+    "Clarify in the Discussion actionable next‑step preregistration modifications (precise resource counts) to test the original H1/H2 (e.g., independent per‑arm generation → model_calls_used=240, enable repair_applied instrumentation) and point to the artifacts that would change if that follow‑up were executed."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,164 @@
+{
+  "selected_candidate_id": "CAND-2026-001",
+  "title": "Head-to-head: DSL+Formal-Verifier vs Agentic Generate→Validate→Repair for Multi-Vendor NetOps Changes (Repaired Preregistration)",
+  "research_question": "For intent-driven network changes across heterogeneous vendor CLIs and realistic topologies, which architecture yields higher end-to-end operational correctness (reachability and policy isolation): (A) translation-first (constrained vendor DSL → formal verifier → solver) or (B) agentic generate→validate→repair pipelines using a single hosted LLM plus deterministic validators and bounded rollback?",
+  "confirmatory_hypotheses": [
+    "H1: The translation-first pipeline (A) produces a higher end-to-end operational correctness rate than the agentic generate→validate→repair pipeline (B) on a paired set of intent tasks (A − B > 0).",
+    "H2: The agentic pipeline (B) achieves higher repair coverage (fraction of initially failing generations corrected within the allowed repair budget) but produces more transient unsafe proposals that would require rollback than pipeline A."
+  ],
+  "exploratory_questions": [
+    "E1: How do per-vendor (Cisco, Juniper, Arista) and per-topology (small datacenter, campus, WAN) subgroup differences modulate the confirmatory effect?",
+    "E2: What are the dominant failure-mode categories (translation error, semantic hallucination, verifier-model mismatch, simulator-model mismatch) and their relative frequencies per pipeline?"
+  ],
+  "benchmark_scope": [
+    "Public, emulator-derived NetOps simulator corpus (Mininet-derived topologies and community-sourced vendor examples).",
+    "Vendor CLIs: Cisco IOS-like, Juniper Junos-like, Arista EOS-like (public grammar/specs published in project repo)."
+  ],
+  "model_scope": [
+    "Single hosted LLM instance (experiment deployment: hosted_llm_v1 — the same model instance/config locked for all runs).",
+    "Deterministic decoding settings locked in preregistration (see Analysis Plan)."
+  ],
+  "transformation_scope": [
+    "Vendor-specific constrained DSL generation templates (one per vendor) used by translation-first pipeline.",
+    "Agentic prompt templates and bounded repair loop (max 3 repair iterations) for agentic pipeline."
+  ],
+  "primary_estimand": "Paired difference in binary end-to-end operational correctness rate (pipeline A success rate minus pipeline B success rate) computed by the registered paired_binary_analysis_v1 executor (estimand: paired_success_rate_difference_guarded_minus_baseline).",
+  "secondary_estimands": [
+    "Repair coverage difference (fraction of initial failures successfully repaired within max iterations) between B and A.",
+    "Mean number of repair iterations per task (pipeline B).",
+    "Transient unsafe-proposal rate (proposals that pass syntactic checks but violate verifier/simulator safety properties) per pipeline."
+  ],
+  "sampling_plan": "Confirmatory design: N_confirmatory = 120 paired intent tasks. Tasks are balanced across 3 vendors × 3 topology-classes = 9 task clusters. Distribution: 3 clusters assigned 14 tasks each (3×14=42) and 6 clusters assigned 13 tasks each (6×13=78) yielding total 42+78=120. Additionally, preregistered discovery/pilot set: N_discovery = 30 tasks (for prompt/template debugging only; discovery tasks excluded from confirmatory analysis). Each confirmatory task is executed by both pipelines (paired design). Totals derived: number of vendors (3) × topology classes (3) = 9 clusters; per-cluster assignment as above yields 120 tasks; each task results in one paired comparison (A and B).",
+  "analysis_plan": "Primary analysis: paired analysis using the registered paired_binary_analysis_v1 executor. For each confirmatory task, compute binary end-to-end operational correctness for pipeline A and B (1 = final applied change satisfies formal verifier and simulator reachability/isolation checks; 0 = otherwise). The executor will compute the paired difference (A − B), bootstrap 95% CI, and McNemar's test for paired binary outcomes. Failed-call treatment: preregistered primary treatment = complete_pair_primary (exclude task pair only if both pipeline runs fail due to infrastructure/API outage); sensitivity analysis = complete_pair_primary_with_failure_as_zero_sensitivity (treat failed pipeline invocation as zero success). Secondary analyses: compare repair coverage and mean repair iterations with nonparametric tests (Wilcoxon) and report effect sizes. Per-vendor subgroup analyses will be performed with Benjamini–Hochberg multiplicity control (false discovery rate 0.05). All code and exact analysis executor configuration used will be recorded and archived.",
+  "multiplicity_plan": "Primary confirmatory test: single paired estimand (A − B) controls Type I error at α=0.05. Secondary and subgroup tests are labeled exploratory/confirmatory as follows: subgroup (vendor/topology) analyses are confirmatory but multiplicity-adjusted via Benjamini–Hochberg; repair-coverage and repair-iteration tests are secondary (reported with effect sizes and CIs) and multiplicity-adjusted for the reported family of secondary tests.",
+  "missingness_plan": "If a single pipeline invocation fails due to transient infrastructure or hosted-model API outage, follow preregistered retry/backoff policy (two immediate retries with exponential backoff: wait 1s then 3s). If retry attempts exhaust or a non-recoverable error occurs, apply failed_call_treatment per analysis executor: primary analysis uses complete_pair_primary (exclude the pair only if both pipelines fail or the pair is incomplete in a way that makes the paired outcome undefined). Sensitivity analysis treats single-pipeline failures as zero (failure-as-zero). All failures and retries will be logged and included in the execution manifest.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Project public emulator corpus (Mininet-derived) and published vendor example set (project repo)"
+    ],
+    "risk_factors": [
+      "Simulator fidelity differences from real vendor devices producing misclassified operational correctness.",
+      "Vendor-CLI grammar incompleteness leading to translator false negatives.",
+      "Shared prompts or retrieval/context contamination across paired runs (prompt state leakage)."
+    ],
+    "detection_procedures": [
+      "Simulator fidelity check: deterministic suite of 50 held-out public vendor examples (not used in confirmatory tasks) applied to simulator vs. documented device behavior from public corpora; compute disagreement rate.",
+      "Grammar coverage tests: unit tests enumerating grammar constructs from curated vendor examples; report uncovered constructs count.",
+      "Execution isolation: ensure fresh model context per task invocation by explicit context reset in orchestration and log a context-reset token per call."
+    ],
+    "item_flagging_rules": [
+      "Flag task if simulator↔public-device disagreement > 5% on held-out fidelity suite: such tasks are excluded from confirmatory analysis and listed in a contamination report.",
+      "Flag task if grammar parser reports 'unknown construct' for a confirmatory task; flagged tasks are subject to sensitivity analyses (exclude vs include)."
+    ],
+    "analysis_treatment": "Primary analysis excludes tasks flagged by the contamination rules (exclusion documented and sensitivity analysis reported). All exclusions, counts, and their effect on estimates are reported. Residual contamination effects are addressed in remaining_noncritical_uncertainties.",
+    "residual_uncertainty": [
+      "Simulator-to-hardware divergence for corner-case vendor constructs may remain after validation.",
+      "Incomplete coverage of rare vendor-specific constructs in public corpora."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "SCEN-REC-120",
+      "description": "Recommended (registered) scenario: 120 confirmatory tasks + 30 discovery tasks; expected average model usage with conservative per-task repair behavior.",
+      "planned_model_calls": 500,
+      "models": [
+        "hosted_llm_v1 (single locked hosted LLM instance / deployment token)"
+      ],
+      "transformations": [
+        "vendor-specific DSL generation templates (A)",
+        "agentic LLM prompt templates with bounded repair loop (B)"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Planned_model_calls computed as: confirmatory pairs = 120 tasks × expected average 3 LLM calls per task across both pipelines (1 for A + 2 for B) = 360 calls; discovery/pilot = 30 × 3 = 90 calls; API retry buffer (bounded worst-case additions) = 50 calls; total = 360+90+50 = 500 calls. This fits within manifest limit (max 10000). All verifier/solver work runs on CPU-local execution or deterministic toolchains (no local GPU required); hosted-model API usage is within allowed hosted_model_api_available capacity."
+    },
+    {
+      "scenario_id": "SCEN-CONS-120-WORST",
+      "description": "Conservative (fault-tolerant) scenario: same task counts but budget for worst-case repair and additional retries.",
+      "planned_model_calls": 800,
+      "models": [
+        "hosted_llm_v1 (single locked hosted LLM instance / deployment token)"
+      ],
+      "transformations": [
+        "vendor-specific DSL generation templates (A)",
+        "agentic LLM prompt templates with bounded repair loop (B) [budgeted at max 4 generations per task]"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 120,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Planned_model_calls computed as worst-case: confirmatory pairs = 120 × (1 call for A + up to 4 calls for B) = 600 calls; discovery = 30 × 4 = 120; additional retry and robustness buffer = 80; total = 600+120+80 = 800 calls. Still within the manifest limit (10000). This scenario is preregistered as a conservative budget if initial runs suggest higher-than-expected repair counts or retries."
+    },
+    {
+      "scenario_id": "SCEN-LOW-80",
+      "description": "Low-cost (reduced-sample) scenario: 80 confirmatory tasks + 20 discovery tasks for constrained-budget execution.",
+      "planned_model_calls": 330,
+      "models": [
+        "hosted_llm_v1 (single locked hosted LLM instance / deployment token)"
+      ],
+      "transformations": [
+        "vendor-specific DSL generation templates (A)",
+        "agentic LLM prompt templates with bounded repair loop (B)"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 80,
+      "task_cluster_count": 9,
+      "feasibility_rationale": "Planned_model_calls computed as: confirmatory = 80 × expected average 3 calls = 240; discovery = 20 × 3 = 60; retry buffer = 30; total = 330. This scenario reduces power but is included as a preregistered alternative if API quotas or time constraints force sample reduction."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "Paired difference in binary end-to-end operational correctness rate (A − B) computed by paired_binary_analysis_v1.",
+    "target_effect": "Detect a paired difference of approximately 0.15 (15 percentage points) with ~80% power at α=0.05 under plausible discordant-rate assumptions.",
+    "clustering_unit": "Intent task (paired across pipelines A and B).",
+    "calculation_method": "Approximate paired-proportion (McNemar-style) power reasoning matched to planned N_confirmatory. We will use the available paired_binary_analysis_v1 executor to compute exact bootstrap CIs and report power-relevant minimum detectable effect notes.",
+    "assumptions": [
+      "Planned N_confirmatory = 120 paired tasks.",
+      "Baseline end-to-end success rate around 0.6 (based on literature synthesis and pilot discovery tasks).",
+      "Discordant-pair fraction (p01 + p10) assumed ≈ 0.30 for power approximation.",
+      "Two-sided α = 0.05 and target power 1 − β = 0.80."
+    ],
+    "recommended_scenario_id": "SCEN-REC-120",
+    "minimum_detectable_effect_notes": "Under the assumptions above (discordant fraction ≈ 0.30) and N=120, the approximate minimum detectable paired difference is ~0.12–0.15 (12–15 percentage points) at 80% power. Exact CI and sensitivity will be computed by paired_binary_analysis_v1 and reported in results.",
+    "sensitivity_analyses": [
+      "Recompute primary estimand CIs and p-values excluding tasks flagged by contamination checks.",
+      "Sensitivity analysis treating single-pipeline failures as zero (failure-as-zero).",
+      "Alternate sample scenario reporting for SCEN-LOW-80 and SCEN-CONS-120-WORST."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Vendor-CLI → constrained-DSL generation (translation-first pipeline A).",
+      "LLM-agent prompts → CLI snippet generation and iterative repair (agentic pipeline B)."
+    ],
+    "semantic_equivalence_checks": [
+      "Roundtrip check: deterministic translation (config → formal model) and reverse-mapping to config where applicable; check property-preservation (reachability/isolation predicates) using formal verifier.",
+      "Unit tests: curated set of 100 ground-truth config→model pairs (drawn from public vendor examples) must exhibit zero divergence in verified predicates (syntax-checked and verifier-checked) for the translation-first pipeline prior to confirmatory runs.",
+      "Structured extraction tests: parsing/extraction of critical fields (ACL entries, interface assignments, route-maps) validated on a held-out set of 100 examples; parser failure rate must be documented."
+    ],
+    "automatic_rejection_rules": [
+      "Reject translation output automatically if parser signals 'unknown construct' or if constrained-DSL generation fails schema validation; flagged tasks subject to contamination rules.",
+      "Reject agentic pipeline generation if the syntactic schema validator fails (schema-preserving rejection), increment repair iteration counter; if repairs exhaust (max 3), mark final status as failure for that pipeline for that task.",
+      "If verifier input translation from generated config fails deterministically (parsing/translation error), classify failure as 'translator-originated' and treat according to contamination rules (exclusion vs sensitivity analysis)."
+    ],
+    "audit_sample_policy": "Automatic deterministic logging of all translation traces. Additionally, deterministic audit sample: random seeded selection of 10% of confirmatory tasks will be fully instrumented with extra semantic equivalence checks and stored; no human audit required (checks are deterministic tool-based).",
+    "mapping_validation": "Publish vendor grammars and parser test-suite used; mapping validation requires unit-test pass threshold ≥ 98% on held-out grammar coverage suite before confirmatory run.",
+    "residual_risks": [
+      "Edge-case vendor constructs not present in public corpora may remain uncovered.",
+      "Formal-model abstraction mismatches (verifier model granularity vs real device behavior) can produce verifier-model mismatch errors."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator-to-real-device fidelity for rare vendor-specific CLI semantics may remain imperfect despite validation; mitigated by explicit contamination detection and exclusion rules.",
+    "Generality beyond the single hosted LLM instance (hosted_llm_v1) is limited; results speak to the tested configuration and must not be generalized to all LLM families without further runs.",
+    "Public corpora-driven DSL/grammar coverage may miss proprietary or vendor-extended constructs found in production configurations."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7131475702",
+    "https://openalex.org/W7171748677",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W7163413045",
+    "https://openalex.org/W7169689235"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "summary": "Closure review: the revision addressed most previous requests (explicitly stating shared_initial_candidate semantics; documenting that repairs were never invoked with artifact references). However the manuscript still lacks the explicit, artifact‑referenced proof the prior review requested that rules out prompt/response contamination or leakage of canonical reference into the LLM prompts (representative execution/provider_calls/... traces and exact prompts for representative tasks are not cited/described).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Missing explicit, artifact‑referenced evidence that rules out prompt/response contamination or inadvertent leakage of the canonical reference into the model prompts. The manuscript does not cite or display representative execution/provider_calls/*.json traces or quote the exact prompts sent for representative tasks, so readers cannot verify the absence of prompt contamination from the supplied artifacts."
+  ],
+  "required_revisions": [
+    "Add an explicit Methods or Results subsection that cites representative execution/provider_calls/task-000XXX-shared-initial.json (and at least two additional task provider_call artifacts) and shows the exact prompt content sent to the hosted model for those tasks (or points to the exact provider_call artifact paths and hashes) so readers can verify there was no leakage of the canonical reference into the LLM prompt. Explain briefly how provider_call traces were audited to exclude prompt contamination and cite the provider_call artifact paths used for the check."
+  ],
+  "optional_revisions": [
+    "Optionally include a short, side‑by‑side example (provider_calls prompt → shared_initial_candidate → execution/scoring/task-000001-*.json validator trace) with artifact paths and hashes to guide readers through the pipeline.",
+    "Optionally add a small supplementary summary (one paragraph or tiny table) of parsed_command_count minus required_command_count distribution across tasks using execution/scoring/*.json to illustrate how often candidates matched canonical requirements exactly vs ordering differences."
+  ],
+  "accept_for_finalisation": false
+}

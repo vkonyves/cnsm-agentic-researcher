@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator fidelity may not capture vendor-specific CLI subtleties (threat to internal/external validity).",
+        "Translation-first pipeline depends critically on completeness/ correctness of vendor DSLs—missing constructs bias comparison.",
+        "Verifier-model translation errors could produce false negatives attributed to generation.",
+        "Potential asymmetry in engineering effort between pipelines (hand-crafted DSLs vs agentic heuristics) may confound results.",
+        "Retry and API-failure handling needs clearer operationalization to avoid silent reruns."
+      ],
+      "required_design_repairs": [
+        "Provide concrete vendor-CLI grammar/specs and validation tests; publish grammars used.",
+        "Include an isolated verification of translation correctness (unit tests: ground-truth config→formal-model roundtrip).",
+        "Define and validate simulator fidelity with a small held-out set of real vendor examples or community datasets.",
+        "Specify exact LLM model identifiers, decoding settings, seeds, and full retry policy for API failures.",
+        "Predefine metrics and thresholds for rollback triggers and treatment of translator/verifier-originated failures."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Effectiveness of schema-constrained decoding hinges on accuracy/completeness of vendor grammars.",
+        "RAG results are sensitive to retrieval corpus coverage; missing vendor docs will bias comparisons.",
+        "Evaluating explanatory (CoT) quality requires human annotation—annotation protocol and agreement not specified.",
+        "Regeneration policy (when schema rejects) can alter effective budget and must be bounded."
+      ],
+      "required_design_repairs": [
+        "Produce and release vendor grammars/DSLs and tests demonstrating coverage.",
+        "Curate and document the retrieval corpus used for RAG; include retrieval evaluation (recall@k on vendor docs).",
+        "Define annotation protocol for CoT explanatory utility, annotator selection, and inter-annotator agreement thresholds.",
+        "Preregister exact regeneration strategy (max attempts, backoff) and power analysis linking sample size to detectable effect on semantic-violation rates."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Injected-fault distributions may not reflect real-world fault prevalence (external validity risk).",
+        "Operational-availability simulation omits human-operator latencies and scheduling constraints unless modeled explicitly.",
+        "Choice of cost weights for trade-off analyses is subjective and can change conclusions.",
+        "Validator implementations and tunable thresholds need careful specification; different validators are not equivalent."
+      ],
+      "required_design_repairs": [
+        "Justify and document injected-fault generation process; include multiple plausible distributions and sensitivity runs.",
+        "Model human operator latency and maintenance windows or justify omission; include sensitivity analysis.",
+        "Predefine a set of cost-weight scenarios (stakeholder-driven) and report results across them rather than a single weighting.",
+        "Specify validator implementations, training/threshold procedures, and provide their confusion-matrix baseline on held-out tasks."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Full factorial design may exceed the practical model-call budget or reduce per-cell power.",
+        "RAG effectiveness again depends on retrieval corpus quality; unspecified index threatens interpretability.",
+        "Findings may be model-family specific if only one hosted LLM is used; generality limited.",
+        "CoT may produce verbose outputs complicating structured extraction; extraction method not specified."
+      ],
+      "required_design_repairs": [
+        "Perform a preregistered power analysis and, if necessary, reduce factor levels or sampling per cell to guarantee interpretable CIs.",
+        "Specify and publish retrieval index and retrieval quality metrics; include sensitivity runs with degraded retrieval.",
+        "Prespecify parsing/extraction pipeline for structured CLI fields and validate it on held-out examples.",
+        "If only one LLM is available, explicitly state limits to generality and, where possible, include at least one alternative decoding/size setting as robustness check."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

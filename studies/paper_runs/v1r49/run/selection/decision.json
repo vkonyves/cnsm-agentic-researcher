@@ -1,0 +1,26 @@
+{
+  "selected_candidate_id": "CAND-2026-001",
+  "selection_rationale": "CAND-2026-001 targets a high-impact, operationally meaningful gap (head-to-head translation-first vs agentic generate→validate→repair) with clear, falsifiable outcomes, direct connection to deterministically verifiable NetOps properties, and strong relevance to the CNSM Agentic AI Researcher track. Its design is feasible within the stated compute budget if the listed engineering repairs are completed prior to preregistration.",
+  "runner_up_candidate_id": "CAND-2026-002",
+  "unresolved_uncertainties": [
+    "Simulator fidelity to vendor-specific CLI semantics (risk of misclassifying semantic correctness).",
+    "Completeness and coverage of vendor DSLs/grammars (translation-first pipeline bias if incomplete).",
+    "Potential verifier↔model translation mismatches producing non-generation faults (false failures).",
+    "Asymmetry in engineering effort between pipelines (hand-crafted DSLs vs agentic heuristics) and its effect on fair comparison.",
+    "LLM-model variability and hosted-API availability/rate-limit risks affecting reproducibility and rerun policy."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7131475702",
+    "https://openalex.org/W7171748677",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W7163413045",
+    "https://openalex.org/W7169689235"
+  ],
+  "required_repairs_before_preregistration": [
+    "Provide concrete vendor-CLI grammars/DSL specifications and publish the grammars used (coverage tests).",
+    "Implement and publish unit tests validating translation correctness (config → formal-model roundtrip) with ground-truth examples.",
+    "Validate and document simulator fidelity: run an external held-out set of real vendor examples or community dataset to quantify simulator↔real-device divergence.",
+    "Specify exact LLM model identifiers, prompt templates, decoding/settings, random seeds, and an explicit retry/backoff policy for API failures (bounded reruns only per preregistered rules).",
+    "Predefine rollback triggers and numeric thresholds; specify how translator/verifier-originated failures will be classified and treated in analysis."
+  ]
+}

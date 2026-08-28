@@ -1,0 +1,21 @@
+{
+  "summary": "Well‑executed, fully preregistered paired run with complete artifact archive; however the preregistered and implemented \"shared_initial_candidate\" semantics mean both arms received identical LLM outputs, so the confirmatory test measured deterministic‑validator acceptance of the same candidates rather than a head‑to‑head comparison of independent generation or repair robustness. Manuscript correctly documents this ceiling effect and provides artifact evidence, but a small set of clarifications and stronger framing edits are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered/implemented shared_initial_candidate semantics make the primary confirmatory estimand uninformative about independent architectural differences (generation/repair robustness). Although the authors disclose this after the fact, the manuscript must unambiguously and prominently reframe claims to avoid implying a conventional independent head‑to‑head evaluation.",
+    "Statistical reporting requires a concise clarification: with zero discordant pairs the usual McNemar asymptotic inference is uninformative and readers need an explicit statement that (a) the exact McNemar procedure returns p=1 in this degenerate case, and (b) the paired bootstrap produces a degenerate CI of [0,0] because the observed paired differences are constant. This should be noted where hypothesis tests and CIs are reported."
+  ],
+  "required_revisions": [
+    "Revise title and key claim language to clearly state the shared‑candidate design and its consequences (e.g., include “shared‑candidate” or equivalent in the title and first paragraph of the Abstract and Introduction) so readers are not misled into expecting an independent generation head‑to‑head comparison.",
+    "Add an explicit statistical caveats paragraph in Methods/Results: explain the handling and interpretation of McNemar and paired bootstrap when n_10=n_01=0, cite the analysis log/artifacts that produced p=1 and CI=[0,0], and state that the confirmatory test is therefore a ceiling‑effect result about validator acceptance, not evidence of architectural equivalence."
+  ],
+  "optional_revisions": [
+    "Consider moving one brief example validator trace (e.g., execution/scoring/task-000001-*.json excerpt) into the main paper (short excerpt or inline JSON fragment) to make the shared‑candidate, no‑repair fact immediate to the reader.",
+    "Add one clear sentence in Discussion recommending the precise preregistered follow‑up (independent generation per arm) and explicitly link to the relevant archived artifacts and analysis files for reproducibility (paths/hashes already present in the bundle).",
+    "In the Threats to Validity or Limitations list, add an explicit note on how deterministic validator strictness can mask differences in explanation quality, human‑readability, or other operational concerns not captured by the binary correctness metric."
+  ],
+  "accept_for_finalisation": false
+}

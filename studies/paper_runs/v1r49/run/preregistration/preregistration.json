@@ -1,0 +1,79 @@
+{
+  "study_id": "CAND-2026-001-prereg-v1",
+  "title": "Head-to-head: DSL+Formal-Verifier vs Agentic Generate→Validate→Repair for Multi-Vendor NetOps Changes (Repaired Preregistration)",
+  "research_question": "For intent-driven network changes across heterogeneous vendor CLIs and realistic topologies, which architecture yields higher end-to-end operational correctness (reachability and policy isolation): (A) translation-first (constrained vendor DSL → formal verifier → solver) or (B) agentic generate→validate→repair pipelines using a single hosted LLM plus deterministic validators and bounded rollback?",
+  "confirmatory_hypotheses": [
+    "H1: The translation-first pipeline (A) produces a higher end-to-end operational correctness rate than the agentic generate→validate→repair pipeline (B) on a paired set of intent tasks (A − B > 0).",
+    "H2: The agentic pipeline (B) achieves higher repair coverage (fraction of initially failing generations corrected within the allowed repair budget) but produces more transient unsafe proposals that would require rollback than pipeline A."
+  ],
+  "exploratory_questions": [
+    "E1: How do per-vendor (Cisco, Juniper, Arista) and per-topology (small datacenter, campus, WAN) subgroup differences modulate the confirmatory effect?",
+    "E2: What are the dominant failure-mode categories (translation error, semantic hallucination, verifier-model mismatch, simulator-model mismatch) and their relative frequencies per pipeline?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7131475702",
+    "https://openalex.org/W7171748677",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W7163413045",
+    "https://openalex.org/W7169689235"
+  ],
+  "benchmark_scope": [
+    "Public, emulator-derived NetOps simulator corpus (Mininet-derived topologies and community-sourced vendor examples).",
+    "Vendor CLIs: Cisco IOS-like, Juniper Junos-like, Arista EOS-like (public grammar/specs published in project repo)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 120,
+    "planned_episode_count": 240,
+    "maximum_model_calls": 240,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired difference in binary end-to-end operational correctness rate (pipeline A success rate minus pipeline B success rate), measured per intent task and aggregated across paired confirmatory tasks.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Repair coverage difference (fraction of initial failures successfully repaired within max iterations) between B and A.",
+    "Mean number of repair iterations per task (pipeline B).",
+    "Transient unsafe-proposal rate (proposals that pass syntactic checks but violate verifier/simulator safety properties) per pipeline."
+  ],
+  "sampling_plan": "Confirmatory design: N_confirmatory = 120 paired intent tasks. Tasks balanced across 3 vendors × 3 topology-classes = 9 clusters. Distribution: 3 clusters assigned 14 tasks each and 6 clusters assigned 13 tasks each (total 120). Preregistered discovery/pilot set: N_discovery = 30 tasks solely for prompt/template debugging (discovery excluded from confirmatory analysis). Each confirmatory task executed by both pipelines (paired design). Task_count set exactly to 120 to match registered adapter contract.",
+  "power_and_precision_plan": "Target: detect a paired difference ≈ 0.15 (15 percentage points) with ~80% power at α=0.05 under assumed discordant fraction ≈ 0.30. Planned N=120 (recommended scenario SCEN-REC-120). Primary results will report bootstrap 95% CIs produced by paired_binary_analysis_v1 executor and note minimum detectable effect approximations; sensitivity analyses for lower/higher sample-budget scenarios (SCEN-LOW-80 and SCEN-CONS-120-WORST) are preregistered.",
+  "exclusion_rules": [
+    "Exclude a confirmatory task pair if contamination detection flags it (simulator↔public-device disagreement > 5% on held-out fidelity suite) per contamination_plan.",
+    "Exclude a task pair when the translation-first pipeline output is rejected automatically by parser/schema validator (unknown construct) and the task is flagged per contamination rules; exclusions recorded and sensitivity analyses reported.",
+    "If both pipeline runs for a task are lost due to infrastructure/API outage and retries are exhausted, exclude the pair per missingness_plan; such exclusions logged and sensitivity analyses reported."
+  ],
+  "missingness_plan": "Transient hosted-model/API outages: two immediate retries with exponential backoff (wait 1s then 3s). If retries exhaust or non-recoverable error occurs: primary analysis uses failed_call_treatment = complete_pair_primary (exclude pair only if both pipeline runs fail or pair outcome undefined). Sensitivity analysis treats single-pipeline failures as zero (complete_pair_primary_with_failure_as_zero_sensitivity). All failures, retries, and outcomes logged in the execution manifest.",
+  "analysis_plan": "Primary analysis executed by paired_binary_analysis_v1 executor (exact machine-readable executor available in registered analysis contracts). For each confirmatory task compute binary end-to-end operational correctness for pipeline A and B (1 = final applied change satisfies formal verifier and simulator reachability/isolation checks; 0 = otherwise). Paired difference (A − B), bootstrap 95% CI, and McNemar's test for paired binary outcomes reported. Failed-call primary treatment = complete_pair_primary; sensitivity = complete_pair_primary_with_failure_as_zero_sensitivity. Secondary analyses: repair coverage and mean repair iterations compared with Wilcoxon tests and effect sizes. Per-vendor/topology subgroup analyses adjusted by Benjamini–Hochberg (FDR 0.05). All analysis code, random seeds, and executor configurations archived.",
+  "multiplicity_plan": "Primary confirmatory test: single paired estimand (A − B) at α=0.05. Secondary tests (repair coverage, repair-iterations) reported with CIs and effect sizes; subgroup analyses (vendor/topology) are confirmatory but multiplicity-adjusted using Benjamini–Hochberg (FDR 0.05). Exploratory analyses labeled and interpreted as such.",
+  "contamination_plan": "{\"benchmark_names\": [\"Project public emulator corpus (Mininet-derived) and published vendor example set (project repo)\"], \"risk_factors\": [\"Simulator fidelity differences from real vendor devices producing misclassified operational correctness.\", \"Vendor-CLI grammar incompleteness leading to translator false negatives.\", \"Shared prompts or retrieval/context contamination across paired runs (prompt state leakage).\"], \"detection_procedures\": [\"Simulator fidelity check: deterministic suite of 50 held-out public vendor examples (not used in confirmatory tasks) applied to simulator vs. documented device behavior from public corpora; compute disagreement rate.\", \"Grammar coverage tests: unit tests enumerating grammar constructs from curated vendor examples; report uncovered constructs count.\", \"Execution isolation: ensure fresh model context per task invocation by explicit context reset in orchestration and log a context-reset token per call.\"], \"item_flagging_rules\": [\"Flag task if simulator↔public-device disagreement > 5% on held-out fidelity suite: such tasks excluded from confirmatory analysis and listed in contamination report.\", \"Flag task if grammar parser reports 'unknown construct' for a confirmatory task; flagged tasks subject to sensitivity analyses (exclude vs include).\"], \"analysis_treatment\": \"Primary analysis excludes tasks flagged by contamination rules (exclusion documented and sensitivity analysis reported). All exclusions and their effect on estimates reported.\", \"residual_uncertainty\": [\"Simulator-to-hardware divergence for corner-case vendor constructs may remain after validation.\", \"Incomplete coverage of rare vendor-specific constructs in public corpora.\"]}",
+  "stopping_rule": "Stop when all preregistered confirmatory task pairs (120) have been executed and their deterministic checks completed, or when the execution adapter's maximum_model_calls (240) is reached, or when a persistent infrastructure/API outage prevents progress beyond preregistered retry policy; all early stops must be logged and reported with reasons.",
+  "planned_outputs": [
+    "Complete execution manifest with raw model I/O, logs, and hashes.",
+    "Analysis artifacts: paired_binary_analysis_v1 outputs (point estimates, bootstrap CIs, McNemar p-value).",
+    "Failure-mode taxonomy and counts.",
+    "Full IEEE two-column short paper (≤5 pages) with mandatory Disclosure Statement.",
+    "Machine-readable preregistration archive (this document, code, and deterministic seeds)."
+  ],
+  "unresolved_critical_issues": []
+}

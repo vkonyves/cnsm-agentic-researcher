@@ -1,0 +1,127 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "title": "Head-to-head: DSL+Formal-Verifier vs Agentic Generate→Validate→Repair for Multi-Vendor NetOps Changes",
+      "research_question": "For intent-driven network changes across heterogeneous vendor CLIs and realistic topologies, which architecture yields higher end-to-end operational correctness: (A) translation-first (constrained-DSL → formal verifier → solver) or (B) agentic generate→validate→repair pipelines that use LLMs plus validators and rollback?",
+      "hypotheses": [
+        "H1: The translation-first pipeline will achieve higher semantic correctness (reachability and policy compliance) than the agentic generate→validate→repair pipeline on average across vendors.",
+        "H2: The agentic pipeline will exhibit higher repair coverage (fraction of initial failures corrected by iterative repair) but will incur more transient unsafe proposals requiring rollback than the translation-first pipeline."
+      ],
+      "proposed_design": "Create a paired evaluation corpus of 120 intent tasks covering routing, ACLs, and zone isolation across Cisco, Juniper, and Arista CLI snippets and three topology classes (small datacenter, campus, WAN). Implement two pipelines: (A) prompt-driven structured-DSL generation (vendor-specific DSL templates) followed by deterministic translation into a formal model checked by an established verifier (NetKAT/VeriFlow-like) and solver-driven patch synthesis; (B) an agentic LLM pipeline that generates configs, runs an integrated validator, and iteratively repairs until validator pass or max iterations. Use the same hosted LLM(s) and same retrieval/context sources where applicable. Execute each accepted change on a simulator (publicly available emulators/mininet-derived testbeds) to measure run-time reachability and isolation. Record raw prompts, model outputs, verifier traces, repair iterations, and simulator reachability traces. Preregister inclusion/exclusion, seeds, stopping rules (max 3 repairs), and retry policy.",
+      "expected_data": "Per-task: binary verdicts for syntax validity, verifier pass/fail, simulator reachability/isolation correctness, number of repair iterations, whether rollback would be triggered, time-to-decision, and raw artifacts (model outputs, verifier counterexamples). Aggregate per-pipeline counts and per-vendor breakdowns.",
+      "primary_outcome": "Difference in end-to-end operational correctness rate (proportion of tasks where final applied change satisfies verifier and simulator-checked reachability/isolation) between pipelines A and B, with 95% confidence intervals.",
+      "analysis_outline": "Paired analysis per intent task: compute difference in proportions (A−B) with bootstrap CIs; McNemar's test for paired binary outcomes; secondary analyses: compare mean repair iterations (t-test or Wilcoxon), per-vendor subgroup analyses with multiplicity adjustment (Benjamini–Hochberg). Report effect sizes, CIs, and raw counts. Conduct failure-mode categorization (translation error, semantic hallucination, verifier mismatch, simulator-model mismatch). Perform sensitivity analysis excluding tasks with vendor-CLI parsing ambiguity.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W7171748677",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W7163413045"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3808318",
+        "https://openalex.org/W7169689235",
+        "https://openalex.org/W7131475702"
+      ],
+      "risks": [
+        "Simulator fidelity may not capture subtle vendor-specific CLI semantics leading to misestimated operational correctness.",
+        "Translation-first pipeline depends on DSL completeness; missing constructs could bias results in favor of agentic repair.",
+        "Hosted-model API rate limits or outages could force reruns outside preregistered retry policy.",
+        "Verifier-model translation errors (formal model mismatch) could produce false failures not attributable to generation."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "title": "Schema-Constrained Decoding vs CoT+RAG: Reducing Semantic Hallucinations in Vendor-Specific Configuration Generation",
+      "research_question": "Does schema-preserving constrained decoding (vendor DSL/schema enforcement) reduce semantic hallucinations and downstream policy violations more than chain-of-thought (CoT) and retrieval-augmented generation (RAG) when generating vendor-specific network configurations?",
+      "hypotheses": [
+        "H1: Schema-constrained decoding will produce fewer semantic violations (policy/reachability errors) than unconstrained CoT+RAG generation while achieving comparable syntactic validity.",
+        "H2: CoT+RAG will increase correct explanatory traces (useful for human inspection) but will not reliably reduce semantic hallucinations without schema constraints."
+      ],
+      "proposed_design": "Assemble a public-task set of 150 configuration generation prompts across three vendors (Cisco IOS, Juniper Junos, Arista EOS) covering ACLs, route-maps, and interface policies. Implement three generation conditions per prompt: (1) unconstrained LLM baseline; (2) LLM with CoT+RAG (explicit chain-of-thought plus retrieval of vendor docs); (3) LLM with schema-constrained decoding enforced by a grammar/DSL validator (rejects outputs violating grammar and requests regeneration up to 3 times). Validate outputs with deterministic syntactic checks, formal verifier reachability/isolation checks, and a semantic policy checker. Record explanatory text and confidence signals when provided.",
+      "expected_data": "Per-prompt: syntactic-validity flag, verifier pass/fail, semantic-violation labels (binary and taxonomy), counts of regeneration attempts, presence/quality of CoT explanations, and retrieval provenance logs. Aggregated per-condition error rates and explanatory utility scores (annotated subset).",
+      "primary_outcome": "Reduction in semantic-violation rate (proportion of verifier-specified semantic errors) for schema-constrained decoding vs CoT+RAG, reported with 95% CIs.",
+      "analysis_outline": "Compare proportions across three conditions using generalized linear mixed models (logistic mixed-effects) with prompt and vendor as random effects. Pairwise contrasts with Holm correction. Report absolute and relative reductions and compute number-needed-to-regenerate to prevent one semantic error. Exploratory analysis: correlation between explanatory-text fidelity and semantic correctness.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7131475702",
+        "10.2139/ssrn.6172544",
+        "doi:10.36227/techrxiv.176045741.13024122/v1",
+        "https://openalex.org/W4407384737"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7169689235",
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W4416048259"
+      ],
+      "risks": [
+        "Constrained decoding requires accurate vendor grammars; incomplete grammars can force excessive regenerations or false rejections.",
+        "CoT prompts may increase verbosity leading to extraction/parsing errors for structured outputs.",
+        "RAG quality depends on retrieval corpus coverage; missing vendor docs bias results.",
+        "Interpreting CoT explanatory quality requires manual annotation for a subset — annotation disagreement risk."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "title": "Validator Reliability and Operational Availability: Measuring False Positives/Negatives and Rollback Impact in Agentic NetOps Pipelines",
+      "research_question": "What are the precision and recall characteristics of typical validators used in LLM-driven agentic NetOps pipelines, and how do validator error types (false positive blocks vs false negative misses) affect operational availability and rollback decisions?",
+      "hypotheses": [
+        "H1: Validators tuned for high safety produce nontrivial false-positive rates that reduce operational availability by blocking safe changes.",
+        "H2: Validators with higher recall reduce unsafe deployments but can impose higher operational cost via unnecessary rollbacks, and there exists an intermediate operating point that balances safety and availability for common NetOps tasks."
+      ],
+      "proposed_design": "Construct an agentic pipeline that proposes changes via an LLM and subjects proposals to a configurable validator with tunable thresholds (strict/medium/lenient). Use a synthetic corpus of 200 tasks and inject ground-truth faults at controlled rates (semantic violations, subtle policy-negation, benign variations). For each validator threshold, measure true positives, false positives, false negatives, true negatives using simulator-checked ground truth. Simulate pipeline behavior over time to measure availability (fraction of time changes accepted), mean time-to-apply, and rollback frequency. Preregister injection rates and simulator seed. Log validator signals, counterexamples, and rollback triggers.",
+      "expected_data": "Per-task and per-threshold confusion matrices (TP/FP/FN/TN), counts of rollbacks, accepted-change throughput, mean time-to-apply, and simulated operational availability metrics across injected-fault scenarios.",
+      "primary_outcome": "Validator operating-characteristic curves (precision vs recall) and the derived trade-off metric: operational availability loss per avoided unsafe deployment (delta availability per avoided unsafe change) at each threshold.",
+      "analysis_outline": "Compute ROC/precision-recall curves per validator implementation; compute area-under-curve metrics. For each operating point, simulate long-run availability and unsafe-deployment rate; estimate expected cost under several cost-weighting scenarios (weighted sum of availability loss and unsafe-deployment costs). Use bootstrap CIs for availability and unsafe-deployment rates. Perform subgroup analysis by fault type and vendor.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7161354925",
+        "10.2139/ssrn.6572478",
+        "10.2139/ssrn.7248799"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1145/3808318",
+        "https://openalex.org/W7169689235",
+        "https://openalex.org/W4413756540"
+      ],
+      "risks": [
+        "Injected faults may not perfectly reflect production fault distribution, limiting external validity.",
+        "Simulator-based availability estimates may miss real-world human-operator latencies and change windows.",
+        "Choosing cost weights for trade-off analysis introduces subjectivity; results must be reported across multiple plausible weightings."
+      ],
+      "estimated_model_calls": 1000
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "title": "Prompting and Decoding Robustness Study: Effects of Decoding, CoT, and RAG on Structured CLI and Numerical Accuracy",
+      "research_question": "How do decoding strategies (temperature/top-k/top-p), chain-of-thought prompting, and retrieval augmentation (RAG) interact to affect structural (syntax/schema) and numerical/semantic accuracy in LLM-generated vendor CLI outputs for NetOps tasks?",
+      "hypotheses": [
+        "H1: Lower-temperature constrained decoding improves syntactic and numeric accuracy but may reduce diversity needed for ambiguous intent tasks.",
+        "H2: CoT increases explainability but can degrade exact numeric and structural outputs; RAG mitigates some CoT degradation if retrieval is high-quality.",
+        "H3: There exist stable region(s) in the joint decoding×CoT×RAG parameter space that optimize both structural correctness and semantic accuracy for common NetOps tasks."
+      ],
+      "proposed_design": "Factorial experiment crossing three decoding regimes (low-temp deterministic-like, medium, high), CoT on/off, and RAG on/off across 120 prompts focused on structured outputs (interface configs with numeric values, ACLs with sequence numbers, BGP numeric attributes). For each condition generate 3 samples per prompt and validate structural correctness with grammar validators and semantic correctness with verifier/simulator. Measure numeric exact-match rates, parse success, and semantic pass rates. Preregister sampling, seeds, and evaluation metrics. Store raw outputs and decoding metadata.",
+      "expected_data": "Per-sample: decoding parameters, CoT/RAG flags, syntactic parse success, numeric-field exact-match booleans, verifier pass/fail, and per-prompt variability statistics. Aggregated tables showing interactions and stability regions.",
+      "primary_outcome": "Identification (and quantification) of decoding×CoT×RAG settings that maximize joint metric: structural correctness and semantic pass rate; report trade-offs with numeric exact-match rates and variability.",
+      "analysis_outline": "Analyze with factorial ANOVA and mixed-effects logistic regression (random intercepts for prompt/vendor). Visualize interaction surfaces and compute regions of high joint performance. Report stability (variance) across repeated draws. Perform post-hoc pairwise contrasts with appropriate corrections. Produce recommendation grid of robust settings with CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416048259",
+        "10.2139/ssrn.6856159",
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W4407384737"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7131475702",
+        "https://openalex.org/W7169689235",
+        "https://openalex.org/W7163413045"
+      ],
+      "risks": [
+        "High-dimensional parameter grid may require more model calls than budgeted; preregistered budget caps may force reduced sampling per cell.",
+        "RAG effectiveness depends on retrieval index quality; incomplete corpora bias comparisons.",
+        "Findings may be model-family dependent; using a single hosted LLM limits external generality."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}
