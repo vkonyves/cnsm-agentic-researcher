@@ -1,0 +1,80 @@
+{
+  "study_id": "cnsmair-2026-pp-c1-gnr-netops-001",
+  "title": "Head-to-head evaluation of constrained-decoding vs verify-and-repair pipelines for intent→configuration synthesis (repaired preregistration)",
+  "research_question": "For intent→configuration NetOps tasks, which mitigation strategy—constrained-decoding (hard-constraint generation) or an external deterministic verify-and-repair pipeline—produces fewer residual safety violations while preserving functional correctness across vendor heterogeneity and controlled perturbations?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The deterministic verify-and-repair pipeline yields a lower residual safety-violation rate than constrained-decoding alone (paired difference in violation rate > 0).",
+    "H2 (secondary): Constrained-decoding yields a lower syntactic parser-error rate than unconstrained generation, but constrained-decoding exhibits higher functional under-generation (lower functional-correctness coverage) compared with verify-and-repair."
+  ],
+  "exploratory_questions": [
+    "E1: How do method effects vary by vendor family (Cisco, Juniper, Arista) and by perturbation type (state-mismatch, telemetry-noise, adversarial-prompt variants)?",
+    "E2: How many deterministic repair-iterations are typically required for verify-and-repair to reach verifier acceptance, and which violation classes dominate repairs?",
+    "E3: Sensitivity of primary effect to different severity thresholds in the deterministic policy-checker."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6116106",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W4404534210",
+    "doi:10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4399629579"
+  ],
+  "benchmark_scope": [
+    "Synthetic intent→configuration corpus (public vendor templates and parameterized variants).",
+    "Controlled perturbation injections: state-mismatch, telemetry-noise, adversarial prompt patterns (seeded)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 750,
+    "planned_episode_count": 1500,
+    "maximum_model_calls": 1500,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_functional_correctness_rate_difference",
+    "paired_parser_error_rate_difference",
+    "distribution of repair-iterations until acceptance (median and IQR)"
+  ],
+  "sampling_plan": "Two-stage sampling (pilot + confirmatory). Pilot: 75 paired tasks used only for technical validation of deterministic verifiers and pipeline execution (no hypothesis testing). Confirmatory: 750 paired tasks (3 vendor families × 5 vendor-variant templates each = 15 vendor-variant clusters; 50 randomized tasks per variant = 750). For each task, one perturbation is sampled uniformly from the preregistered pool {none, state_mismatch_A, state_mismatch_B, telemetry_noise_low, telemetry_noise_high, adversarial_prompt_1..adversarial_prompt_6} using preregistered RNG seeds. All seeds, template pools, variant-generation code, and perturbation strings are published with the preregistration artifact. Pilot items = 75, confirmatory items = 750.",
+  "power_and_precision_plan": "Primary estimand: detect an absolute paired reduction in residual safety-violation rate of 4 percentage points (e.g., constrained-decoding 8% → verify-and-repair 4%) with ≥80% power at alpha=0.05. Calculation based on conservative discordant pair proportion = 0.07; N=750 paired tasks yields ≥80% power for the specified MDE. Sensitivity analyses: report achieved power curves under observed pilot discordant proportions and recompute MDE at N=750 and N=1200.",
+  "exclusion_rules": [
+    "Exclude items flagged ADVERSARIAL by the preregistered prompt-injection detector from primary confirmatory analysis.",
+    "Exclude DUPLICATE template+seed items (deterministic hash-based de-duplication) from primary confirmatory analysis.",
+    "Exclude outputs with parser errors after the pre-registered maximum repair iterations (max_repair_iterations = 3) from primary analysis numerator; include in sensitivity analyses per missingness_plan."
+  ],
+  "missingness_plan": "Log API/model-call failures and other technical failures. Primary analysis uses 'complete_pair_primary' policy: paired task excluded from primary confirmatory analysis only if both method outputs are missing. Sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' includes failed pairs treating missing method output as conservative fail (safety_violation_present = 1 for missing method output). All exclusions and failure rates reported with deterministic reasons and hashes; no human imputation or adjudication.",
+  "analysis_plan": "Primary confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' using estimand 'paired_success_rate_difference_guarded_minus_baseline' (primary_estimand_id = paired_binary_analysis_v1). For each paired task the binary outcome is 'safety_violation_present' after method output processed by deterministic verifier (1 = violation remains; 0 = accepted). Primary test: paired McNemar exact test with 95% CI for absolute paired difference. Secondary: paired proportion tests for functional-correctness outcome. Exploratory: stratified effect estimates (vendor, perturbation) and logistic regression with predictors method, vendor, perturbation and interactions; exploratory results labeled and FDR-controlled within families using Benjamini–Hochberg.",
+  "multiplicity_plan": "One pre-specified primary confirmatory hypothesis (H1) tested at alpha=0.05 (two-sided). All secondary and stratified analyses are explicitly labeled exploratory. Benjamini–Hochberg FDR control applied within each family of exploratory secondary tests (e.g., per-vendor subgroup comparisons). No hypothesis-switching after seeing data; all planned contrasts listed in preregistration.",
+  "contamination_plan": "{\"benchmark_names\": [\"Synthetic intent→configuration corpus v1 (public vendor templates)\", \"Perturbation pool v1 (seeded state/telemetry/adversarial injections)\"], \"risk_factors\": [\"Adversarial prompt-injection templates in perturbation pool\", \"Template reuse leading to overfitting to narrow template shapes\", \"Verifier or repair heuristics unintentionally favoring one method if unspecified\", \"Model API rate limits or outages causing reruns\"], \"detection_procedures\": [\"Deterministic prompt-injection detector (regex and token-pattern rules) applied to each input; flagged items recorded.\", \"Template-duplication detector: hash-based de-duplication of generated tasks and inputs; duplicates flagged.\", \"Verifier-consistency check: run vendor parser and policy-checker on independent parameter permutations; if failure-rate deviates from pilot expectations by >2×, trigger sensitivity analysis.\", \"Model-call quota monitor: automated logging of API quota usage; if quota-exceeded, stop with recorded state and follow pre-registered retry-policy.\"], \"item_flagging_rules\": [\"Flag as ADVERSARIAL if prompt-injection detector matches any preregistered adversarial pattern (these items are excluded from primary analysis; included in dedicated sensitivity analysis).\", \"Flag as DUPLICATE if identical template+seed pair appears more than once; duplicates removed deterministically prior to analysis.\", \"Flag as UNRESOLVED_VERIFIER_CONFLICT if deterministic repair changes any pre-registered critical property — such tasks are excluded from primary safety-rate numerator but included in sensitivity analyses where failure-as-zero is applied.\"], \"analysis_treatment\": \"Primary confirmatory analysis excludes items flagged ADVERSARIAL or DUPLICATE. Sensitivity analyses include flagged items with explicit indicators and report primary estimand recalculated under (a) inclusion of ADVERSARIAL items, (b) treating UNRESOLVED_VERIFIER_CONFLICT as failure, and (c) treating missing calls as failure per missingness_plan.\", \"residual_uncertainty\": [\"Deterministic adversarial-pattern detector cannot guarantee coverage of all real-world adversarial strategies.\", \"Synthetic template families may not fully capture production variability; flagged in noncritical uncertainties.\", \"Model-provider nondeterminism (API internal sampling) introduces run-to-run variation despite fixed seeds and decoding mode; quantified by pilot-run repeatability checks.\"]}",
+  "stopping_rule": "Stop the run if (a) model-provider quota is exceeded or (b) wall-clock execution approaches capability manifest bound (7 days). If quota exceeded or provider outage occurs, record full execution state and follow the pre-registered retry-policy (no unregistered reruns). All stoppages and rationale are recorded deterministically with hashes and included in final artifact.",
+  "planned_outputs": [
+    "IEEE-format short paper (≤5 pages) including Disclosure Statement",
+    "Preregistration artifact (this document and published code/seeds/templates)",
+    "Raw model outputs, verifier logs, repair traces, and execution manifest with hashes",
+    "Statistical-results file and analysis notebooks",
+    "Evidence-to-claim table, nearest-work matrix, and NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

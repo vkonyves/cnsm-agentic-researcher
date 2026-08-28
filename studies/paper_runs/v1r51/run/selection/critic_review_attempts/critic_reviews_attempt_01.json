@@ -1,0 +1,72 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Potential bias from verifier/repair heuristics if not strictly preregistered; limited vendor template diversity may underrepresent production variability; realism of injected perturbations (state mismatch, adversarial prompts) may be insufficient to generalize to operators' settings; ground-truth safety labels and adjudication procedures are not fully specified."
+      ],
+      "required_design_repairs": [
+        "Fully preregister verifier and repair heuristics and publish them with code; increase vendor diversity or explictly justify template representativeness and include randomized vendor-variant sampling; define blinded adjudication and ground-truth labeling protocol (including inter-annotator checks or synthetic-oracle validation); expand and justify perturbation generation procedures to better mimic production telemetry noise and attack strategies; include sensitivity analyses for repair budget and retry policies."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Digital-twin fidelity may not reflect production telemetry/state dynamics leading to misleading robustness estimates; adversarial prompt templates may be narrow and not cover realistic threat surface; simulator-specific artifacts could bias measured blast-radius or impact metrics; seed/attack-template diversity may be insufficient."
+      ],
+      "required_design_repairs": [
+        "Characterize and report digital-twin fidelity limits and run sensitivity experiments varying twin fidelity; expand adversarial prompt catalogue and preregister attack-generation rules (include random perturbations plus targeted patterns); validate simulator impact measures against at least one external baseline or historical incident template; preregister noise models with justification and include broader RNG seeds for robustness; report cases where simulator diverges from expected operator outcomes."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Composite-weight selection risks overfitting to validation split; simulation-derived impact proxies may not map to operator cost or real-world severity; single linear-combination assumption may miss nonlinearity between components; absence of human-labeled impact ground truth reduces external validity."
+      ],
+      "required_design_repairs": [
+        "Preregister weight-selection procedure with cross-validation and regularization or use holdout for final evaluation; provide sensitivity and ablation analyses for weights and consider non-linear aggregation alternatives; validate simulated impact proxies against an external baseline or small human-annotated sample; report calibration and uncertainty for composite scores and propagate metric measurement error into correlation tests."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Automated root-cause heuristics may misclassify complex failures, biasing frequency estimates; the validation oracle is synthetic and may not substitute for human adjudication; rare but high-impact failures may be undersampled; taxonomy boundaries may be ambiguous without rigorous definitions."
+      ],
+      "required_design_repairs": [
+        "Preregister and publish deterministic heuristics and taxonomy definitions; validate automated classifier against a held-out human-adjudicated sample (report precision/recall) and propagate classifier uncertainty into reported frequencies; include targeted sampling methods to surface rare high-impact failures; refine taxonomy with explicit decision rules and examples to reduce ambiguity."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

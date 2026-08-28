@@ -1,0 +1,201 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs are actively applied to intent-driven network management and intent→configuration translation, with prototypes, benchmarks, and at least one production-framed framework reported.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "empirical and system papers / framework reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Scope and maturity vary by work (from prototype/testbed to claimed production); independent cross-vendor, large-scale validation is limited in these records."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Tool-augmented architectures (LLMs invoking external tools, RAG, multi-tool agents) are a common pattern proposed and evaluated to improve grounding, factuality, and task automation in domain workflows relevant to NetOps.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202604.1820.v1",
+        "doi:10.2139/ssrn.6647800",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4396723768"
+      ],
+      "evidence_type": "system papers, focused studies, and surveys",
+      "confidence": 0.85,
+      "limitations": [
+        "Many demonstrations are cross-domain (statistics, chemistry, drilling) or survey-level; direct NetOps-only empirical head-to-head comparisons are fewer in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "There is substantial literature documenting hallucination and constraint-violation failures in LLM outputs and proposing detection/mitigation techniques (e.g., entropy-based detectors, constrained decoding, self-consistency/verification).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404534210"
+      ],
+      "evidence_type": "method papers and surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Mitigation methods reduce but do not eliminate failures; many evaluations target general-language or non-NetOps benchmarks rather than large-scale operational NetOps deployments."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Architectural guardrails—protocol-mediated execution, runtime authorization (twin/verification), and execution-witness or proof-carrying authorization—are proposed as necessary governance layers for agentic systems that act on infrastructure.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6426760",
+        "doi:10.2139/ssrn.7218206",
+        "doi:10.2139/ssrn.7290820",
+        "doi:10.2139/ssrn.6352164"
+      ],
+      "evidence_type": "architectural and prototype defense papers / surveys",
+      "confidence": 0.88,
+      "limitations": [
+        "Prototypes show efficacy under modeled conditions; robustness under real-world sensor/state mismatch and adversarial adaptation varies across studies."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Benchmarks and evaluation suites for LLMs in networking/security contexts exist (e.g., NetConfEval, CyberMetric, AIOpsArena, LLM honeypot benchmarks), but cover different tasks and axes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4391799320",
+        "https://openalex.org/W4410553099",
+        "doi:10.3390/ai7080287"
+      ],
+      "evidence_type": "benchmark and evaluation papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Existing benchmarks focus on disparate subtasks (QA, configuration translation, microservice AIOps, honeypot realism) and no single unified safety/verification NetOps benchmark is evident in these records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-driven intent→configuration pipelines produce operationally safe, deployment-grade network changes across diverse vendors and real production states?",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "mixed (prototype reports and surveys highlighting limited external validation)",
+      "confidence": 0.7,
+      "limitations": [
+        "Some frameworks report production use (e.g., Confucius) but independent, quantified, cross-vendor failure-rate reporting is limited in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Can verifier/authorization layers (digital twins, protocol-mediated governance) maintain safety under realistic measurement noise, state mismatch, and adversarial or indirect prompt-injection in NetOps settings?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7290820",
+        "doi:10.2139/ssrn.6426760",
+        "https://openalex.org/W4388886073"
+      ],
+      "evidence_type": "prototype evaluation papers and security attack study",
+      "confidence": 0.75,
+      "limitations": [
+        "Some papers evaluate model-mismatch scenarios; full-spectrum adversarial robustness evaluations specific to NetOps remain sparse in these records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Is there a consensus metric suite that jointly captures functional correctness, safety (policy compliance), and risk (blast radius) for generated network changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4410553099"
+      ],
+      "evidence_type": "benchmark and survey papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Multiple proposals exist but no single, widely-adopted integrated metric suite appears in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "Which is more effective for preventing harmful NetOps actions on configuration synthesis tasks: constrained-decoding (hard-constraint generation) or external verify-and-repair workflows?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4404534210"
+      ],
+      "evidence_type": "method papers and surveys indicating methodological alternatives",
+      "confidence": 0.65,
+      "limitations": [
+        "Constrained-decoding methods and verify/repair are evaluated mainly outside NetOps in these records; direct head-to-head NetOps comparisons are not present among the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A unified, safety-focused NetOps benchmark that evaluates end-to-end generate→verify→authorize→apply pipelines (including measurement noise, vendor heterogeneity, and adversarial data injections) is not evident in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4410553099",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "gap inference from benchmark and survey literature",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmarks cover portions of the pipeline; this absence claim is limited to the supplied record set."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Systematic empirical studies that quantify real-world failure modes (frequency, root causes, operational impact) of LLM-generated network configurations under production-like perturbations are scarce in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404534210"
+      ],
+      "evidence_type": "inference from prototypes and surveys lacking extensive failure-data",
+      "confidence": 0.75,
+      "limitations": [
+        "Some authors report operational experience but systematic, quantified failure-mode datasets are not prominent in these records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Standardized evaluation metrics that integrate security threat models (indirect prompt injection, malicious tool use) with NetOps correctness metrics are underdeveloped in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.7218206",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "security studies and benchmark surveys",
+      "confidence": 0.78,
+      "limitations": [
+        "Security taxonomies and threat mappings exist, but their formal integration with operational NetOps correctness benchmarks is not evident among the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Direct comparative evaluations of constrained-decoding (hard-constraint generation) versus external verifier-first architectures specifically on network-configuration synthesis tasks are missing from the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404534210"
+      ],
+      "evidence_type": "method papers and surveys indicating methodological divergence",
+      "confidence": 0.7,
+      "limitations": [
+        "Constrained-decoding research is present but primarily assessed outside NetOps; direct comparative NetOps studies are not supplied."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are ready to operate unguarded as autonomous NetOps agents in production without external verification or governance (no supplied record provides unqualified empirical support).",
+    "Any single architectural pattern (e.g., tool-augmented agents) universally eliminates hallucination or unsafe outputs across NetOps (unsupported by supplied empirical evidence).",
+    "There is conclusive evidence that constrained decoding alone guarantees production-grade safety for network configuration generation (no NetOps-specific proof in the supplied records)."
+  ]
+}

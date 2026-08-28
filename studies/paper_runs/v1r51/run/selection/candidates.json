@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1",
+      "title": "Head-to-head evaluation of constrained-decoding vs verify-and-repair pipelines for intent→configuration synthesis",
+      "research_question": "For intent→configuration NetOps tasks, which mitigation strategy—constrained-decoding (hard-constraint generation) or an external verify-and-repair pipeline—produces fewer safety violations while preserving functional correctness across vendor heterogeneity and injected perturbations?",
+      "hypotheses": [
+        "An external verify-and-repair pipeline yields a lower residual safety-violation rate than constrained-decoding alone.",
+        "Constrained-decoding produces fewer syntactic vendor errors but at the cost of reduced coverage of valid configurations (higher functional under-generation)."
+      ],
+      "proposed_design": "Construct a corpus of intent→configuration tasks covering three vendor families (Cisco, Juniper, Arista) using public configuration templates and synthetic intents. For each intent: (1) generate configurations with an LLM using constrained-decoding (hard constraints encoding vendor syntax + policy masks); (2) generate unconstrained LLM outputs followed by an external verifier that detects violations and an automated repair module that applies deterministic fixes; (3) introduce controlled perturbations: state mismatch (stale inventory), measurement noise (randomized interface states), and adversarial prompt-injection variants. Evaluate on the same task set with paired comparisons. Freeze prompts, seeds, and repair heuristics in a preregistration file prior to runs.",
+      "expected_data": "Per-task paired records containing: generated configuration text (both methods), binary safety-violation label (policy violations), functional-correctness label (passes unit/syntax checks and vendor parser), number of repair iterations until verifier acceptance, types of violations, task metadata (vendor, perturbation type). Aggregated counts and per-vendor summaries.",
+      "primary_outcome": "Paired difference in safety-violation rate (%) between constrained-decoding and verify-and-repair across tasks (primary metric: reduction in residual safety violations for verify-and-repair).",
+      "analysis_outline": "Compute per-task paired outcomes and summary rates. Use McNemar's test for paired binary safety-violation outcomes and report exact p-values and 95% confidence intervals for rate differences. Compare functional-correctness rates with paired proportion tests. Stratify by vendor and perturbation type; report interaction effects via logistic regression with method, vendor, and perturbation as predictors. Report effect sizes and number-needed-to-change for operational impact.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4404534210"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Limited vendor templates may not capture production variability.",
+        "Verifier or repair heuristics might encode biases favoring one method if not strictly preregistered.",
+        "Simulation of state mismatch may not perfectly represent production telemetry noise.",
+        "Model API rate limits or outages could force reruns beyond preregistered budget."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c2",
+      "title": "Robustness of digital-twin verifier layers under measurement noise and adversarial prompt injection",
+      "research_question": "How does a digital-twin–based verifier/authorization layer perform at detecting and blocking unsafe LLM-proposed network changes as sensor noise and adversarial prompt-injection strength increase?",
+      "hypotheses": [
+        "Verifier true-positive detection rate degrades monotonically with increasing measurement noise in the observed state supplied to the verifier.",
+        "Targeted adversarial prompt injections can increase the verifier false-negative rate by a measurable margin compared with benign prompts at the same noise level."
+      ],
+      "proposed_design": "Implement a compact digital-twin verifier using an open-source network simulator (Mininet-based topology templates) and a policy-checker that verifies reachability, ACLs, and interface configurations. Generate config proposals from an LLM given the (noisy) observed state. Create noise levels by injecting randomized differences into inventory and interface states. Create adversarial prompts designed to subtly bias the LLM toward unsafe changes (preregistered attack patterns). For each combination (noise level × prompt type), sample N tasks and record verifier decision and ground-truth simulated impact (apply to twin in sandbox). Freeze verifier logic, attack templates, and noise RNG seeds before experiments.",
+      "expected_data": "Per-sample records: prompt type (benign/adversarial), noise level, proposed configuration, verifier decision (accept/reject), ground-truth simulated impact label (unsafe/safe), and severity metric (simulated blast radius). Aggregated ROC curves, detection rates, and false-negative counts by condition.",
+      "primary_outcome": "False-negative rate (proportion of unsafe proposals accepted by verifier) as a function of measurement-noise level and prompt class; main test is difference in false-negative rates between benign and adversarial prompts at each noise level.",
+      "analysis_outline": "Compute detection metrics (TPR, FNR, FPR) and ROC AUC for each noise × prompt condition. Use logistic regression with interaction terms (noise × prompt_type) to quantify effect sizes and test significance. Report bootstrapped 95% CIs for false-negative rates and for differences between conditions. Perform sensitivity analysis over verifier thresholds.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7290820",
+        "doi:10.2139/ssrn.6426760",
+        "https://openalex.org/W4388886073"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Digital-twin fidelity may not reflect production telemetry; results may under- or over-estimate real-world robustness.",
+        "Design of adversarial prompts might not cover all real-world attack strategies.",
+        "Sandboxed application of unsafe configs may have simulator-specific artifacts.",
+        "Random seeds or frozen attack templates could bias outcomes if not sufficiently diverse."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "c3",
+      "title": "Design and validation of a composite operational-impact metric (correctness+safety+blast-radius) for generated network changes",
+      "research_question": "Does a composite metric that combines functional correctness, policy-violation severity, and simulated blast-radius predict simulated operational impact better than individual constituent metrics on LLM-generated network changes?",
+      "hypotheses": [
+        "A weighted composite metric (combining correctness score, policy-violation severity, and blast-radius) correlates more strongly with simulated operational-impact measures than any single metric alone.",
+        "The composite metric provides improved discrimination (higher AUC) for identifying high-impact misconfigurations compared with baseline metrics (e.g., syntax+policy binary labels)."
+      ],
+      "proposed_design": "Define metric components: (1) functional-correctness score from vendor parsers/unit tests (0–1), (2) policy-violation severity score (0–1) from a rule-based classifier, (3) blast-radius estimated by sandbox simulation measuring number of affected prefixes, reachability drops, or service-impact proxies normalized to 0–1. Construct a composite as a preregistered linear combination with weights chosen via a small validation split. Generate a dataset of LLM-produced configs across vendors and perturbations (noisy state, adversarial prompts). For each config, compute composite and simulate operational-impact ground truth (quantitative impact measures). Evaluate correlation and discrimination against baselines.",
+      "expected_data": "Per-config records containing component scores, composite score, simulated operational-impact numeric measures (e.g., affected prefixes count, service-disruption proxy), and binary high-impact label. Aggregate correlation matrices, AUCs, and calibration plots.",
+      "primary_outcome": "Increase in Spearman rank correlation between composite metric and simulated operational-impact measure compared with best single-component metric (primary comparison: composite vs best single-component).",
+      "analysis_outline": "Compute Spearman correlations and 95% bootstrap CIs for composite and each single metric against simulated impact. Test whether composite correlation is significantly larger using paired bootstrap. Compute AUC for binary high-impact classification and compare using DeLong's test. Report calibration (Brier score) and perform ablation on weight choices. Provide sensitivity analysis across vendor and perturbation strata.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4410553099"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4391799320",
+        "doi:10.3390/ai7080287"
+      ],
+      "risks": [
+        "Simulation-derived impact proxies may not perfectly map to real operator cost.",
+        "Choice of composite weights could overfit the validation split if not properly regularized.",
+        "Vendor parser limitations could bias functional-correctness scores.",
+        "Absence of human impact labels may limit external validity."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "c4",
+      "title": "Systematic failure-mode taxonomy and frequency analysis for LLM-generated network configurations under production-like perturbations",
+      "research_question": "What are the dominant root causes and relative frequencies of failures (e.g., hallucinated parameters, state-mismatch, policy-violation, vendor-syntax errors) in LLM-generated network configurations when subjected to production-like perturbations including stale state, noise, and adversarial prompts?",
+      "hypotheses": [
+        "The plurality of failures in perturbed conditions are due to hallucinated or fabricated parameters (missing inventory references), followed by state-mismatch-induced incorrect modifications.",
+        "Adversarial prompt injections increase the proportion of policy-violation failures more than they increase syntactic vendor errors."
+      ],
+      "proposed_design": "Assemble a broad paired dataset of intent→configuration tasks spanning vendors and perturbations. For each LLM-generated config, apply an automated failure-classifier that assigns root-cause labels using deterministic heuristics (e.g., references to nonexistent interfaces → hallucination; mismatch with golden state → state-mismatch; parser errors → vendor-syntax). Validate classifier precision on a preregistered held-out manual review subset (limited and automated to respect autonomy constraints: use synthetic oracle checks). Run the full corpus, tally failure types and conditional frequencies by perturbation type and vendor. Preregister taxonomy, heuristics, and validation protocol prior to runs.",
+      "expected_data": "Per-sample root-cause label, perturbation metadata, vendor, and binary safety/functional outcomes. Aggregate frequency tables of failure types, joint distributions with perturbation types, and confusion matrix of automated classifier vs oracle on validation subset.",
+      "primary_outcome": "Relative frequency distribution of failure root causes (proportions with 95% CIs) under production-like perturbations; main comparisons are proportion differences between benign and adversarial prompt conditions.",
+      "analysis_outline": "Estimate multinomial proportions for failure categories with bootstrap 95% CIs. Use multinomial logistic regression to model how perturbation types and vendor predict failure-category probabilities; report likelihood-ratio tests for predictors. Quantify classifier precision/recall on the validation subset and propagate uncertainty into frequency estimates. Report rate ratios for adversarial vs benign conditions with Wald CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404534210"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4399803256"
+      ],
+      "risks": [
+        "Automated root-cause heuristics may mislabel complex failures leading to biased frequency estimates.",
+        "Validation oracle is synthetic and may not fully emulate human adjudication.",
+        "Dataset may not cover rare but high-impact failure modes.",
+        "Large model-call budget may be consumed if repair/retry policies are triggered excessively."
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

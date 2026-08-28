@@ -1,0 +1,158 @@
+{
+  "selected_candidate_id": "c1",
+  "title": "Head-to-head evaluation of constrained-decoding vs verify-and-repair pipelines for intent→configuration synthesis (repaired preregistration)",
+  "research_question": "For intent→configuration NetOps tasks, which mitigation strategy—constrained-decoding (hard-constraint generation) or an external deterministic verify-and-repair pipeline—produces fewer residual safety violations while preserving functional correctness across vendor heterogeneity and controlled perturbations?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The deterministic verify-and-repair pipeline yields a lower residual safety-violation rate than constrained-decoding alone (paired difference in violation rate > 0).",
+    "H2 (secondary): Constrained-decoding yields a lower syntactic parser-error rate than unconstrained generation, but constrained-decoding exhibits higher functional under-generation (lower functional-correctness coverage) compared with verify-and-repair."
+  ],
+  "exploratory_questions": [
+    "E1: How do method effects vary by vendor family (Cisco, Juniper, Arista) and by perturbation type (state-mismatch, telemetry-noise, adversarial-prompt variants)?",
+    "E2: How many deterministic repair-iterations are typically required for verify-and-repair to reach verifier acceptance, and which violation classes dominate repairs?",
+    "E3: Sensitivity of primary effect to different severity thresholds in the deterministic policy-checker."
+  ],
+  "benchmark_scope": [
+    "Synthetic intent→configuration corpus (public vendor templates and parameterized variants).",
+    "Controlled perturbation injections: state-mismatch, telemetry-noise, adversarial prompt patterns (seeded)."
+  ],
+  "model_scope": [
+    "A single hosted LLM API (as available under capability_manifest).",
+    "Two generation modes implemented via the same hosted model API: (A) constrained-decoding call with precompiled hard masks/format constraints, (B) unconstrained generation followed by deterministic verify-and-repair pipeline (no additional model calls used by repair; repair uses deterministic programmatic transforms and parser-guided edits)."
+  ],
+  "transformation_scope": [
+    "Constrained-decoding masks and template fillers.",
+    "Deterministic verifier (policy-checker + vendor parser) implemented as programmatic checks.",
+    "Deterministic repair heuristics that perform syntactic fixes, parameter normalization, and safe defaulting according to pre-registered rules."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_functional_correctness_rate_difference",
+    "paired_parser_error_rate_difference",
+    "distribution of repair-iterations until acceptance (median and IQR)"
+  ],
+  "sampling_plan": "Two-stage sampling (pilot + confirmatory). Pilot: 75 paired tasks (5% of full run) used only for technical validation of deterministic verifiers and pipeline execution (no hypothesis testing). Confirmatory: 750 paired tasks used for the primary confirmatory analysis. Sampling structure: 3 vendor families × 5 randomized vendor-variant templates each = 15 vendor-variant clusters; tasks per variant = 50 (750 = 3 vendors × 5 variants × 50 tasks). Variants are parameterized templates (publicly sourced) with randomized parameter draws under preregistered seeds. Perturbations: for each task one perturbation is sampled uniformly from the pre-registered pool {none, state_mismatch_A, state_mismatch_B, telemetry_noise_low, telemetry_noise_high, adversarial_prompt_1..adversarial_prompt_6} using preregistered RNG seeds. All seeds, template pools, variant-generation code, and the full list of perturbation strings are published in the preregistration artifact. Confirmatory item counts: discovery_items = 75 (pilot), confirmatory_items = 750, task_cluster_count = 15. Totals derived: 15 vendor-variant clusters × 50 tasks/cluster = 750 confirmatory tasks.",
+  "analysis_plan": "Primary confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' using the estimand 'paired_success_rate_difference_guarded_minus_baseline'. For each paired task the binary outcome is 'safety_violation_present' after method output has been processed by the deterministic verifier (1 = violation remains; 0 = accepted). Primary test: paired McNemar test on per-task binary outcomes (exact p-value reported) with 95% CI for absolute paired difference. Secondary: paired proportion tests for functional-correctness outcome; stratified analyses (vendor, perturbation) are exploratory and reported with effect estimates and CIs. A logistic regression (exploratory) will model task-level outcome with predictors method, vendor, perturbation, and their interactions; reported as exploratory only with multiplicity control (see multiplicity_plan). All analyses are deterministic transformations of the stored raw outputs and verifier results; no manual adjudication is used.",
+  "multiplicity_plan": "One pre-specified primary confirmatory hypothesis (H1) tested at alpha=0.05 (two-sided). Secondary and stratified analyses are explicitly labeled exploratory. For exploratory multiple comparisons we will control false discovery rate using Benjamini–Hochberg within each family of secondary tests (e.g., per-vendor subgroup comparisons). No hypothesis-switching after seeing data; all planned contrasts are listed in the preregistration.",
+  "missingness_plan": "API/model-call failures and other technical failures are logged. Primary analysis uses executor-compatible 'failed_call_treatment' policy: (1) complete_pair_primary — when one method call fails, that paired task is excluded from primary confirmatory analysis only if both method outputs are missing; (2) sensitivity: 'complete_pair_primary_with_failure_as_zero_sensitivity' — include failed-pairs treating missing method output as a conservative fail (safety_violation_present = 1 for method whose output is missing) to assess robustness. All exclusions and failure rates reported with reasons and hashes. No human imputation or adjudication; all treatments are deterministic and preregistered.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic intent→configuration corpus v1 (public vendor templates)",
+      "Perturbation pool v1 (seeded state/telemetry/adversarial injections)"
+    ],
+    "risk_factors": [
+      "Adversarial prompt-injection templates in perturbation pool",
+      "Template reuse leading to overfitting to narrow template shapes",
+      "Verifier or repair heuristics unintentionally favoring one method if unspecified",
+      "Model API rate limits or outages causing reruns"
+    ],
+    "detection_procedures": [
+      "Deterministic prompt-injection detector (regex and token-pattern rules) applied to each input; flagged items recorded.",
+      "Template-duplication detector: hash-based de-duplication of generated tasks and inputs; duplicates flagged.",
+      "Verifier-consistency check: run vendor parser and policy-checker on an independent set of parameter permutations; if failure-rate deviates from pilot expectations by >2×, trigger sensitivity analysis.",
+      "Model-call quota monitor: automated logging of API quota usage; if quota-exceeded, stop with recorded state and follow pre-registered retry-policy."
+    ],
+    "item_flagging_rules": [
+      "Flag as ADVERSARIAL if prompt-injection detector matches any preregistered adversarial pattern (these items are excluded from primary analysis; included in dedicated sensitivity analysis).",
+      "Flag as DUPLICATE if identical template+seed pair appears more than once; duplicates removed deterministically prior to analysis.",
+      "Flag as UNRESOLVED_VERIFIER_CONFLICT if deterministic repair changes any pre-registered critical property (see transformation_validation) — such tasks are excluded from primary safety-rate numerator but included in sensitivity analyses where failure-as-zero is applied."
+    ],
+    "analysis_treatment": "Primary confirmatory analysis excludes items flagged ADVERSARIAL or DUPLICATE. Sensitivity analyses include flagged items with explicit indicators and report primary estimand recalculated under (a) inclusion of ADVERSARIAL items, (b) treating UNRESOLVED_VERIFIER_CONFLICT as failure, and (c) treating missing calls as failure per missingness_plan.",
+    "residual_uncertainty": [
+      "Deterministic adversarial-pattern detector cannot guarantee coverage of all real-world adversarial strategies.",
+      "Synthetic template families may not fully capture production variability; flagged in noncritical uncertainties.",
+      "Model-provider nondeterminism (API internal sampling) introduces run-to-run variation despite fixed seeds and decoding mode; quantified by pilot-run repeatability checks."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_recommended",
+      "description": "Recommended (confirmatory): pilot 75 paired tasks + confirmatory 750 paired tasks; single hosted-model call per method per task; deterministic verifier and repair are programmatic (no model calls). Planned model calls = 750 tasks × 2 methods × 1 call/method = 1500 model calls. Task clustering: 15 vendor-variant clusters (3 vendors × 5 variants) × 50 tasks/variant = 750 confirmatory tasks. Feasible within capability_manifest max planned model calls (10000) and original candidate estimated_model_calls (1500).",
+      "planned_model_calls": 1500,
+      "models": [
+        "hosted_LLM_API (single model provider as allowed in capability_manifest)"
+      ],
+      "transformations": [
+        "constrained_decoding_masks_v1",
+        "deterministic_verifier_policy_checker_v1",
+        "deterministic_repair_heuristics_v1"
+      ],
+      "discovery_items": 75,
+      "confirmatory_items": 750,
+      "task_cluster_count": 15,
+      "feasibility_rationale": "Each paired task uses one LLM call for constrained-decoding and one for unconstrained generation. The repair pipeline is deterministic program code (no LLM calls). 1500 model calls is within the capability manifest limit and matches the selected candidate's estimated_model_calls. Wall-clock execution feasible within 7 days given parallel API throughput typical of hosted-model providers (quota permitting) and programmatic processing on CPU."
+    },
+    {
+      "scenario_id": "scenario_conservative",
+      "description": "Larger confirmatory run with more coverage: pilot 150 paired tasks + confirmatory 1200 paired tasks; single model call per method per task. Planned model calls = 1200 × 2 = 2400. Same deterministic verifier/repair strategy. Used as a conservative robustness scenario if extra budget is available.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted_LLM_API (single model provider as allowed in capability_manifest)"
+      ],
+      "transformations": [
+        "constrained_decoding_masks_v1",
+        "deterministic_verifier_policy_checker_v1",
+        "deterministic_repair_heuristics_v1"
+      ],
+      "discovery_items": 150,
+      "confirmatory_items": 1200,
+      "task_cluster_count": 15,
+      "feasibility_rationale": "Same per-task call accounting as recommended scenario; 2400 model calls remain under the host-model call budget (capability_manifest: 10000). Chosen when additional sampling desired; increases power for smaller absolute effect sizes at cost of additional runtime and API budget."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute paired reduction in residual safety-violation rate of 4 percentage points (e.g., baseline 8% → 4%) with ≥80% power at alpha=0.05.",
+    "clustering_unit": "single task (paired comparison across the two methods)",
+    "calculation_method": "Approximate McNemar/power for paired proportions using assumed baseline paired-discordance implied by expected marginal rates. Conservative discordant-rate assumption used in calculation: discordant proportion = 0.07. Sample-size target chosen to exceed required N under this discordance assumption.",
+    "assumptions": [
+      "Baseline residual safety-violation rate under constrained-decoding ≈ 8% (conservative estimate from prior work ranges).",
+      "Verify-and-repair expected reduction to ≈ 4% (absolute reduction 4pp).",
+      "Discordant pair proportion (tasks where methods disagree) ≈ 7%; this drives McNemar power.",
+      "Alpha = 0.05 (two-sided), desired power = 0.80.",
+      "Clustered dependence within vendor-variants is small relative to across-task variance; stratified analyses reported separately."
+    ],
+    "recommended_scenario_id": "scenario_recommended",
+    "minimum_detectable_effect_notes": "Under the assumed discordant proportion (0.07) and N=750 paired tasks, power exceeds 0.80 to detect an absolute paired reduction ≈4 percentage points. If actual discordant proportion is lower, detectable absolute effect increases; scenario_conservative (N=1200) reduces minimum detectable effect accordingly. Sensitivity analyses (reported) will present detectable-effect curves vs sample size and discordant-rate assumptions.",
+    "sensitivity_analyses": [
+      "Report achieved power curves under observed discordant proportions from the pilot (75 tasks) and recalculate minimum detectable effect (MDE) at N=750 and N=1200.",
+      "Recompute primary estimand with conservative treatment of missing calls as failures (per missingness_plan) to bound effect estimates."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "constrained_decoding_masks_v1 (syntactic masks, token-filter rules)",
+      "deterministic_verifier_policy_checker_v1 (policy rules encoded as boolean predicates over parse trees)",
+      "deterministic_repair_heuristics_v1 (rule-based syntactic/parameter fixes and safe defaults)",
+      "vendor_parsers_v1 (open-source parser implementations invoked deterministically)"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated property-check suite: for each intent the preregistered set of critical properties (reachability, interface-up assignment, ACL effect on an example flow) are encoded as programmatic predicates; any transformation (repair) that changes a critical property compared to original intent is flagged.",
+      "Round-trip consistency tests: generation→parse→canonicalize→render→parse must preserve canonical parse structure for at least 99% of non-flagged tasks in pilot; failures are recorded and trigger pre-registered corrective action (adjust masks or repair rules)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject repaired outputs for primary analysis if deterministic repair modifies any preregistered critical property (UNRESOLVED_VERIFIER_CONFLICT).",
+      "Reject outputs with parser errors after at most the pre-registered maximum repair iterations (max_repair_iterations = 3)."
+    ],
+    "audit_sample_policy": "Automated audit: deterministically sample 5% of confirmatory tasks (seeded) for deeper parser-structure diffs and property trace logs. Audit is programmatic; no human audit is permitted. Audit outputs and hashes are published with the study artifact.",
+    "mapping_validation": "Mapping from intent to canonical test predicates is generated deterministically from the template parameterization code and validated on the pilot set to ensure predicates reflect intended semantics. All mapping code and examples are published.",
+    "residual_risks": [
+      "Property predicates are an approximation of operational semantics; some semantics (e.g., timing, dynamic routing interactions) are not captured by programmatic predicates.",
+      "Deterministic repairs may not reflect more sophisticated model-based repairs used in production; this limits external generalizability."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Representativeness of public vendor templates vs real production configs—external validity limited to template-derived families.",
+    "Adversarial pattern detector is rule-based and may not capture sophisticated adaptive prompt-injection strategies; adversarial robustness conclusions are bounded to the seeded attack catalogue.",
+    "Hosted model API internal nondeterminism and rate-limiting behavior may cause run-to-run variability despite fixed seeds; quantified by pilot repeatability checks but remains a noncritical source of variance.",
+    "Programmatic property predicates approximate real operator intent; some dynamic operational properties are out of scope."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6116106",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W4404534210",
+    "doi:10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4399629579"
+  ]
+}
