@@ -47,40 +47,19 @@ def test_reviewer_checks_scientific_paper_quality():
 
 
 def test_hygiene_remediation_replaces_metadata_with_science():
-    assert (
-        "Do not merely delete offending metadata."
-        in PIPELINE
-    )
-
-    assert (
-        "replace it with concise prose grounded in the supplied verified"
-        in PIPELINE
-    )
-
-    assert (
-        "literature, execution evidence, or completed analysis"
-        in PIPELINE
-    )
-
-    assert (
-        "the purpose of each section"
-        in PIPELINE
-    )
-
-    assert (
-        "preserve scientific information"
-        in PIPELINE
-    )
-
-    assert (
-        "generic filler"
-        in PIPELINE
-    )
+    assert "Do not merely delete offending metadata." in PIPELINE
+    assert "CONTENT-PRESERVING" in PIPELINE
+    assert "not as summarization, compression" in PIPELINE
+    assert "approximately the same rendered scientific volume" in PIPELINE
+    assert "SAME already-supported scientific substance" in PIPELINE
+    assert "Preserve all unaffected manuscript material" in PIPELINE
+    assert "Do not trade scientific completeness for metadata " in PIPELINE
+    assert "cleanliness." in PIPELINE
 
 
 def test_positive_section_specific_scientific_prose_is_required():
     assert (
-        "Related-work prose should summarize and compare prior"
+        "Related-work prose should synthesize and compare prior findings"
         in PIPELINE
     )
 
@@ -90,7 +69,11 @@ def test_positive_section_specific_scientific_prose_is_required():
     )
 
     assert (
-        "results prose should report and"
+        "results prose should report "
+        in PIPELINE
+    )
+    assert (
+        "and interpret completed outcomes"
         in PIPELINE
     )
 
@@ -98,3 +81,65 @@ def test_positive_section_specific_scientific_prose_is_required():
         "discussion prose should explain"
         in PIPELINE
     )
+
+
+def test_hygiene_remediation_is_not_summarization_or_compression():
+    assert (
+        "CONTENT-PRESERVING"
+        in PIPELINE
+    )
+    assert (
+        "not as summarization, compression"
+        in PIPELINE
+    )
+    assert (
+        "approximately the same rendered scientific volume"
+        in PIPELINE
+    )
+    assert (
+        "hygiene repair must not turn a full scientific "
+        in PIPELINE
+    )
+    assert (
+        "paper into an underfilled one by deleting supported exposition"
+        in PIPELINE
+    )
+
+
+def test_hygiene_remediation_preserves_supported_exposition():
+    assert (
+        "Do not collapse several substantive sentences"
+        in PIPELINE
+    )
+    assert (
+        "SAME already-supported scientific substance"
+        in PIPELINE
+    )
+    assert (
+        "Do not trade scientific completeness for metadata "
+        in PIPELINE
+    )
+    assert (
+        "cleanliness."
+        in PIPELINE
+    )
+
+
+def test_manuscript_agents_require_conventional_academic_titles():
+    from pathlib import Path
+
+    agents = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        agents.count(
+            "Use a conventional academic research-paper title"
+        )
+        == 2
+    )
+    assert "Do not use arrow chains" in agents
+    assert '"A → B → C"' in agents
+    assert '"A -> B -> C"' in agents
+    assert "slide-style titles" in agents
+    assert "question-based title" in agents

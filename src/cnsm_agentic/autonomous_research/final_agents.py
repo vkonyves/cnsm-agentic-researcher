@@ -193,6 +193,14 @@ MANUSCRIPT_AUTHOR = Agent(
         distinguish confirmatory and exploratory results and include
         limitations and disclosure.
 
+        Use a conventional academic research-paper title appropriate for
+        IEEE/CNSM. Do not use arrow chains, workflow notation, pipeline
+        notation, slogans, or slide-style titles. In particular, do not use
+        title sequences such as "A → B → C" or "A -> B -> C". Prefer a
+        concise descriptive title or, where scientifically appropriate, a
+        question-based title. A conventional title with an optional colon is
+        preferred.
+
         The final CNSM manuscript has a five-page IEEE conference budget,
         including references and the mandatory Disclosure Statement.
 
@@ -432,6 +440,14 @@ MANUSCRIPT_REVISER = Agent(
         path. Do not invent URLs, repository locations, access commands,
         validator statistics, model identifiers, or configuration values
         that are not present in the supplied artifacts.
+
+        Use a conventional academic research-paper title appropriate for
+        IEEE/CNSM. Do not use arrow chains, workflow notation, pipeline
+        notation, slogans, or slide-style titles. In particular, do not use
+        title sequences such as "A → B → C" or "A -> B -> C". Prefer a
+        concise descriptive title or, where scientifically appropriate, a
+        question-based title. A conventional title with an optional colon is
+        preferred.
 
         The final CNSM manuscript has a five-page IEEE conference budget,
         including references and the mandatory Disclosure Statement.
