@@ -232,3 +232,51 @@ def test_r44_exact_audit_sentence_is_not_dependency():
     )
 
     assert positive_dependencies(text) == set()
+
+
+def test_passive_purpose_denial_is_not_human_dependency():
+    cases = [
+        "The flag is logged for analysis, not used for manual adjudication.",
+        "The score is diagnostic only and not used for human annotation.",
+        "The automatic flag is not intended for manual review.",
+        "The metric is not required for human annotation.",
+    ]
+
+    for case in cases:
+        assert positive_dependencies(case) == set(), case
+
+
+def test_positive_used_for_human_dependency_still_detected():
+    cases = [
+        (
+            "The flag is used for manual adjudication.",
+            "manual adjudication",
+        ),
+        (
+            "The score is used for human annotation.",
+            "human annotation",
+        ),
+        (
+            "Ambiguous outputs are intended for manual review.",
+            "manual review",
+        ),
+    ]
+
+    for text, expected in cases:
+        found = positive_dependencies(text)
+        assert expected in found, text
+
+
+def test_r59_contamination_wording_is_feasible():
+    text = (
+        "If verifier signals unreachable required invariants or "
+        "contradictory constraints, mark as 'verifier-contradiction' "
+        "and log for analysis (not used for manual adjudication). "
+        "No human annotation is required; all treatments and flags "
+        "are deterministic and automated."
+    )
+
+    found = positive_dependencies(text)
+
+    assert "manual adjudication" not in found
+    assert "human annotation" not in found

@@ -589,6 +589,24 @@ def _human_dependency_occurrence_is_negated(
         return True
 
     # --------------------------------------------------------
+    # 1b. Passive-purpose denial before dependency.
+    #
+    # not used for manual adjudication
+    # not intended for human annotation
+    # not required for manual review
+    #
+    # Here the dependency noun follows a denied purpose phrase,
+    # so the direct "not <dependency>" rule above does not apply.
+    # --------------------------------------------------------
+    if re.search(
+        r"\bnot\s+"
+        r"(?:used|intended|required|needed)\s+for\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
+    # --------------------------------------------------------
     # 2. Contrastive replacement.
     #
     # deterministic resolution instead of manual adjudication
