@@ -1,0 +1,195 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLM-based approaches for network configuration and repair show promise but frequently produce incorrect fixes, regressions, or other failure modes when evaluated at scale or in closed-loop execution.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4412158322"
+      ],
+      "evidence_type": "empirical_benchmark_and_survey",
+      "confidence": 0.9,
+      "limitations": [
+        "Many benchmarked scenarios are synthetic or emulated rather than large-scale production deployments (see W7157506260, W7204209332).",
+        "Model and tool diversity in published evaluations is limited, so measured failure rates may vary with other models or integrations."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Iterative generate→validate→repair workflows that integrate formal verification or executable emulation materially improve the ability to detect and prevent semantic/network-level errors in LLM-produced configurations or fixes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7117292294"
+      ],
+      "evidence_type": "tool_paper_and_benchmark",
+      "confidence": 0.85,
+      "limitations": [
+        "Integration complexity and performance cost of verification/digital-twin steps vary by tool and topology (reported studies focus on representative scenarios rather than exhaustive production heterogeneity).",
+        "Reported improvements derive from controlled experiments; operational rollouts may introduce additional telemetry/state-consistency challenges."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Tool-augmented agent architectures and bounded-autonomy guardrails (e.g., veto layers, canary deployments, secure tool registries, runtime validation) are repeatedly proposed and evaluated as practical safety measures for agentic NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "10.21203/rs.3.rs-9829773/v1",
+        "10.36227/techrxiv.177006109.97957916/v1",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "survey_and_architectural_reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Empirical validation of these architectures in long-running production settings is limited; many evaluations are conceptual, prototype, or testbed-based.",
+        "Different guardrail designs trade off autonomy, latency, and operator burden in ways not fully quantified across studies."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Executable, emulation-grounded benchmarks that evaluate closed-loop behavior (not just generated commands) reveal failure modes beyond syntax or command errors and are necessary to assess operational reliability of LLM agents for NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "benchmark_and_survey",
+      "confidence": 0.88,
+      "limitations": [
+        "Creating and maintaining high-fidelity executable benchmarks is resource intensive; existing benchmarks cover a subset of protocols/topologies.",
+        "Benchmark task design choices (hidden tests, task templates) influence which failure classes are exposed."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Confining LLMs to translation/translation-to-formal-model roles (i.e., using LLMs to build/verbalize formal models) and delegating long-horizon reasoning to verified solvers or formal engines reduces reliance on probabilistic model reasoning and improves verifiability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171748677",
+        "https://openalex.org/W7155247165"
+      ],
+      "evidence_type": "tool_paper_and_position_paper",
+      "confidence": 0.8,
+      "limitations": [
+        "Translation accuracy and up-to-dateness of the generated formal model depend on input artifacts and LLM translation quality.",
+        "Building and maintaining formal models at production scale remains engineering-heavy and may not be feasible for all operators."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Operator trust, human-in-the-loop oversight, and strong auditability (including concerns about operator-side audit independence) are central to deploying agentic NetOps; production-grade evidence for fully autonomous action without these assurances remains weak.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4410307541",
+        "10.2139/ssrn.7221561"
+      ],
+      "evidence_type": "narrative_review_and_policy_analysis",
+      "confidence": 0.8,
+      "limitations": [
+        "Human-factors findings rely on case studies and surveys; quantitative operator behavior under agentic NetOps deployments is still an emerging evidence stream.",
+        "The audit-independence argument addresses governance architecture rather than empirical failure rates."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what degree can LLM-driven automation safely enact network changes in live production without substantial guardrails, canaries, or external verification?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7117292294"
+      ],
+      "evidence_type": "survey_and_narrative_review",
+      "confidence": 0.5,
+      "limitations": [
+        "Available studies document principles, prototypes, and limited testbed/cluster experiments but do not establish broad production-case safety envelopes.",
+        "Operational heterogeneity (vendor devices, legacy protocols, partial observability) complicates generalization."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How well do current synthetic or emulation-based benchmarks and repair datasets generalize to diverse production topologies, scale, and multi-vendor heterogeneity?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "10.2139/ssrn.6857419",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "benchmark_and_evaluation_critique",
+      "confidence": 0.6,
+      "limitations": [
+        "Benchmarks illustrate important failure classes but many remain limited in the diversity and provenance of ground-truth incidents.",
+        "Empirical transfer studies from benchmark to production are scarce."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What are the most effective, operationally practical methods to provide calibrated, actionable uncertainty/confidence estimates for LLM outputs in NetOps workflows (so operators can decide when to trust/abstain)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W4411121371",
+        "10.1101/2025.09.28.25336834"
+      ],
+      "evidence_type": "survey_and_method_papers",
+      "confidence": 0.6,
+      "limitations": [
+        "Uncertainty-quantification methods are active ML research; domain-specific calibration for structured configuration outputs and tool-calls remains under-explored.",
+        "Operational cost and latency of calibration techniques in closed-loop NetOps are not well characterized."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a need for external, cryptographically anchored, independent audit trails and provenance mechanisms for agentic NetOps to avoid structural conflicts of interest inherent in operator-controlled audit records.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.7221561",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "policy_analysis_and_review",
+      "confidence": 0.7,
+      "limitations": [
+        "Architectural proposals exist, but deployment feasibility, integration cost, and standards adoption pathways require further study.",
+        "Cryptographic anchoring addresses audit independence but does not by itself prevent unsafe actions absent other controls."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Public, large-scale, reproducible corpora of production-rooted misconfiguration and repair incidents (with verifiable ground truth) are scarce and would materially improve external validity of NetOps LLM evaluations.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6857419",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "evaluation_critique_and_benchmark",
+      "confidence": 0.75,
+      "limitations": [
+        "Operational privacy, commercial sensitivity, and security concerns complicate creation and sharing of production incident corpora.",
+        "Synthetic generation pipelines partially mitigate scarcity but risk distributional mismatch to real incidents."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Comparative evidence on multi-model generality (open vs closed models, model sizes) in closed-loop NetOps tasks is limited; systematic cross-model studies under identical executable-test harnesses are needed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "10.2139/ssrn.6512800",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "survey_and_empirical_study",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing evaluations often test a selection of models rather than exhaustive families; cost and API constraints affect comparability.",
+        "Differences in prompting, tool integration, and runtime harnesses confound simple attribution to model architecture alone."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform unrestricted NetOps changes without guardrails or formal verification.",
+    "A single LLM model (or model family) reliably replaces formal verification/solvers for network correctness at production scale.",
+    "Benchmarks presented to date prove that LLM-driven NetOps will generalize across all real-world topologies and vendor ecosystems."
+  ]
+}

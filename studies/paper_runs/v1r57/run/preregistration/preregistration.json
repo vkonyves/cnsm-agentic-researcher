@@ -1,0 +1,74 @@
+{
+  "study_id": "CNSM2026-A-prereg-v1",
+  "title": "Effectiveness of an executable generate→validate→repair loop vs LLM-only NetOps changes",
+  "research_question": "Does integrating an executable network emulator as a validator in a generate→validate→repair pipeline reduce semantic/network-level failures when enacting LLM-generated configuration changes compared to an LLM-only suggestion workflow?",
+  "confirmatory_hypotheses": [
+    "A generate→validate→repair pipeline that uses an executable emulator to check LLM-generated configurations will produce a lower semantic failure rate (emulator-observed semantic violations) than an LLM-only suggestion pipeline on the same paired task set."
+  ],
+  "exploratory_questions": [
+    "How sensitive are repair effectiveness results to prompt perturbations (two perturbation variants per task)?",
+    "How does repair effectiveness vary by topology class (edge / core / leaf–spine) and by policy-complexity strata?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7161354925"
+  ],
+  "benchmark_scope": [
+    "Executable emulation test harness (Mininet-like Docker-based emulation with containerized router/switch images)",
+    "Curated intent→configuration task set (N=120 paired tasks; synthetic variants derived from publicly available NetOps task descriptions; see evidence ids in evidence_record_ids)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 120,
+    "planned_episode_count": 240,
+    "maximum_model_calls": 240,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion reduction in emulator-observed semantic failures per task: intervention minus baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Mean model calls per successful task (intervention vs baseline)",
+    "Proportion of tasks requiring a repair iteration",
+    "Distribution of failure-mode taxonomy frequencies (semantic categories) across conditions"
+  ],
+  "sampling_plan": "Paired design with exactly N=120 distinct intent→configuration tasks. Each task yields one paired observation: baseline (LLM-only synthetic-apply) and intervention (generate→validate→repair). Topology classes: 3 clusters (edge, core, leaf–spine) with 40 tasks deterministically assigned to each class. Inclusion: public / synthetic tasks meeting schema. Exclusion: tasks that fail harness instrumentation (infrastructure failure) — see missingness_plan.",
+  "power_and_precision_plan": "Primary estimand target: absolute reduction of 0.15 (15 percentage points) in semantic-failure rate (intervention vs baseline). With N=120 and plausible baseline failure ≈0.40, approximate paired McNemar power ≈80% at alpha=0.05 under stated discordant-pair assumptions; exact achieved power/MDE will be reported using exact McNemar computations in analysis artifacts. Recommended scenario: scenario_A_recommended (N=120).",
+  "exclusion_rules": [
+    "Exclude task pairs where harness instrumentation or emulator provisioning fails (technical/infrastructure failure). Each exclusion must be logged with reason and artifact hashes."
+  ],
+  "missingness_plan": "Distinguish technical/infrastructure failures vs scientific outcomes. Technical/instrumentation failures (e.g., emulator crash, container startup failure) are logged and the paired observation is excluded from the primary confirmatory analysis; exclusions and reasons are reported. Scientific failures (LLM produces a configuration that emulator flags as semantic violation) are counted as semantic failures in the confirmatory analysis. Sensitivity analysis will treat excluded technical failures as failures to assess robustness. All raw artifacts for excluded pairs will be archived and checksummed.",
+  "analysis_plan": "Confirmatory analysis executed by the paired_binary_analysis_v1 executor. Primary test: paired binary comparison (McNemar exact) on semantic-failure labels (fail/pass) with two-sided alpha=0.05; report exact p-value and 95% CI for the paired difference. Primary_estimand_id: paired_success_rate_difference_guarded_minus_baseline. Failed-run handling: primary = 'complete_pair_primary' (only pairs where both baseline and intervention produced an outcome recorded). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' treats technical failures as semantic failures. Secondary analyses: t-test or Wilcoxon for model-call counts (normality-checked), descriptive counts for failure taxonomy; subgroup analyses by topology and policy-complexity with Benjamini–Hochberg correction for secondary p-values.",
+  "multiplicity_plan": "One prespecified confirmatory hypothesis (primary McNemar test) — no multiplicity correction for primary. Secondary outcomes and subgroup tests will be reported as exploratory and controlled with Benjamini–Hochberg at q=0.05.",
+  "contamination_plan": "Controls and detection: deterministic emulator-state reset verification between tasks (container image checksum + deterministic seed); deterministic duplicate-output detection (LLM output hash compare across tasks); out-of-distribution prompt/output detectors (token-coverage and novelty heuristics). Flagging rules: exclude items if exact LLM output hash appears in >1 unrelated task, if emulator reset checksum differs from canonical reset, or if LLM output triggers repeated syntactic-parse rejection across perturbations. Flagged items are excluded from primary confirmatory analysis and archived; sensitivity analysis will include flagged items counted as failures to quantify bias.",
+  "stopping_rule": "Stop when all 120 paired tasks have completed both condition episodes and recorded outcomes OR when the execution_contract maximum_model_calls (240) is exhausted OR when the capability_manifest maximum wall-clock allowance (7 days) is reached; whichever occurs first. Any early stop must be logged with cause and artifact hashes.",
+  "planned_outputs": [
+    "Preregistered experiment artifacts (raw LLM responses, emulator traces, mapping scripts, checksums)",
+    "Analysis artifacts (paired_binary_analysis_v1 outputs, exact McNemar p-value and CI, sensitivity analyses)",
+    "Five-page IEEE-format manuscript including Disclosure Statement",
+    "Dataset and code archive (public datasets only) with deterministic replay instructions"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,118 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CNSM2026-A",
+      "title": "Effectiveness of an executable generate→validate→repair loop vs LLM-only NetOps changes",
+      "research_question": "Does integrating an executable network emulator as a validator in a generate→validate→repair pipeline reduce semantic/network-level failures when enacting LLM-generated configuration changes compared to an LLM-only suggestion workflow?",
+      "hypotheses": [
+        "A generate→validate→repair pipeline that uses an executable emulator to check LLM-generated configurations will produce a lower semantic failure rate (logical/regression/network-policy violations) than an LLM-only suggestion pipeline on the same task set."
+      ],
+      "proposed_design": "Controlled, paired experiment using a public emulation test harness (e.g., Mininet or containerized router/switch images) and a curated task set of 120 intent-to-configuration tasks (sourced from public benchmarks and synthetic variants). For each task: (1) prompt an LLM to produce a configuration change; (2a) baseline: record the LLM-only suggestion outcome if directly applied (synthetic apply); (2b) intervention: run the same LLM output through an executable emulator validator; if validator fails, invoke an automated repair loop (single repair iteration) that asks the LLM to revise under the validator’s counterexample; (3) record final applied configuration and emulator-observed network behavior. Use the frozen prompts, seeds, and retry policy in the preregistration; repeat paired runs to achieve N=120 paired observations.",
+      "expected_data": "Per-task records including raw LLM outputs, validator pass/fail flags, repair attempts and outcomes, binary semantic-failure labels from emulator (violation/no-violation), counts of syntactic errors, time-to-resolution, and number of model calls per task.",
+      "primary_outcome": "Paired difference in semantic failure rate (proportion of tasks with emulator-observed semantic violations) between LLM-only and generate→validate→repair pipelines.",
+      "analysis_outline": "Compute paired proportions of semantic failures; test paired difference using McNemar’s test (binary pass/fail) and report exact p-value and 95% confidence interval for the difference in proportions. Report secondary analyses: counts of syntactic errors, mean model calls per successful task (t-test or Wilcoxon if non-normal), and failure-mode taxonomy frequencies with descriptive statistics. Predefined subgroup analyses: topology class and policy-complexity strata; adjust for multiple comparisons using Benjamini–Hochberg for secondary tests.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7155247165"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7161354925"
+      ],
+      "risks": [
+        "Emulator fidelity may not capture all production failure modes, biasing measured gains.",
+        "Prompt sensitivity could inflate apparent repair effectiveness if prompts overfit the test harness.",
+        "Limited model diversity may reduce generalizability of results."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CNSM2026-B",
+      "title": "Operationally actionable confidence: comparing execution-derived validator scores to model-native confidence for predicting semantic correctness",
+      "research_question": "Which confidence signal—model-native likelihood, verifier/execution pass-fail score, or hybrid calibrated score—best predicts semantic correctness of LLM-produced NetOps actions so operators can reliably decide when to trust or abstain?",
+      "hypotheses": [
+        "Execution-derived validator scores (result of running generated configuration in an emulator/validator) will yield higher discriminative performance (AUC) for predicting semantic correctness than raw model-native likelihood scores.",
+        "A hybrid score that combines model-native signals with validator-derived features will outperform either signal alone in calibration and decision-threshold utility for operator abstention."
+      ],
+      "proposed_design": "Cross-sectional evaluation on a dataset of 300 LLM-generated configuration suggestions across diverse tasks and topologies. For each generated output compute: (A) model-native confidence proxy (e.g., token log-prob sum or provider-supplied likelihood where available); (B) execution-derived validator score (binary pass/fail plus graded violation counts); (C) hybrid score via logistic regression trained on a 70% train split and tested on 30% holdout. Ground truth semantic correctness obtained from emulator-executed behavior. Evaluate predictive performance (AUC, precision-recall, calibration Brier score) and operator-utility metrics (false-accept and false-reject rates at pre-specified thresholds).",
+      "expected_data": "Per-output records containing model-native scores, validator scores, hybrid score values, ground-truth binary semantic-correctness labels, calibration curves, and decision-threshold confusion matrices.",
+      "primary_outcome": "Comparison of AUC (receiver operating characteristic) for predicting semantic correctness: execution-derived validator score vs model-native score vs hybrid score on held-out test split.",
+      "analysis_outline": "Compute ROC AUC and 95% CIs via bootstrapping; compare AUCs with DeLong’s test. Report Brier scores for calibration and reliability diagrams. Compute decision-utility at operator-relevant thresholds (e.g., 95% precision) and compare false-reject/false-accept trade-offs. Report statistical significance for primary AUC comparisons and treat calibration/utility analyses as secondary, with BH correction for multiple comparisons.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W7204209332",
+        "10.2139/ssrn.6857419"
+      ],
+      "risks": [
+        "Closed-model APIs may not expose reliable model-native likelihoods, complicating direct comparison.",
+        "Validator-derived scores depend on emulator fidelity and may be slow for real-time decisioning.",
+        "Training hybrid models risks overfitting to the synthetic task distribution."
+      ],
+      "estimated_model_calls": 1000
+    },
+    {
+      "candidate_id": "CNSM2026-C",
+      "title": "External cryptographically anchored audit trails for agentic NetOps: detectability and tamper-resistance study",
+      "research_question": "Does using an external, cryptographically anchored append-only audit ledger for LLM-driven NetOps changes materially increase detectability of unauthorized log tampering and support independent verification compared to operator-controlled local logs?",
+      "hypotheses": [
+        "An external cryptographically anchored audit trail will reduce the probability that a malicious or erroneous local log modification remains undetected compared to relying on operator-controlled local logs alone.",
+        "Independent verifiers with access to the anchored trail can detect and reconstruct the original LLM-generated change record with higher fidelity than using only operator-side logs after an attempted tampering event."
+      ],
+      "proposed_design": "Prototype implementation where LLM-generated change requests and validator attestations are written both to local operator logs and to an external append-only ledger (cryptographic anchoring; e.g., public blockchain testnet or timestamping service). Simulated threat model: an adversary with write access to operator logs attempts to alter or delete records prior to auditor inspection in 200 randomized trials per condition. For each trial compare detection outcome and time-to-detection for (A) local-logs-only and (B) local-logs + external anchored-trail. Measure reconstruction fidelity of original record by independent auditor. Record performance overhead and storage/latency costs.",
+      "expected_data": "Per-trial binary detection labels (tamper detected/undetected), time-to-detection, success/failure of independent reconstruction, ledger write latencies, and storage/operational overhead metrics.",
+      "primary_outcome": "Difference in undetected tampering probability between local-logs-only and anchored-trail conditions.",
+      "analysis_outline": "Compare proportions of undetected tampering using Fisher’s exact test (or chi-square if assumptions met); report 95% CIs for difference in proportions. Report median time-to-detection with nonparametric tests (Wilcoxon) and quantify reconstruction fidelity with precision/recall metrics. Provide descriptive analysis of overhead (latency and storage) and a short cost-benefit discussion.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.7221561",
+        "https://openalex.org/W7203776655"
+      ],
+      "feasibility_evidence_ids": [
+        "10.2139/ssrn.7221561",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161165783"
+      ],
+      "risks": [
+        "Anchoring introduces latency and storage costs that may be operationally burdensome.",
+        "Privacy and data-sensitivity constraints may limit what can be anchored publicly; careful redaction/pseudonymization is required.",
+        "Using public testnets or third-party timestamping services may introduce availability dependencies."
+      ],
+      "estimated_model_calls": 500
+    },
+    {
+      "candidate_id": "CNSM2026-D",
+      "title": "Cross-model generality and failure-mode consistency under an identical closed-loop emulation harness",
+      "research_question": "Under an identical closed-loop emulation test harness and prompt suite, do different LLM families (open vs closed, varying sizes) exhibit consistent relative performance and failure-mode patterns on NetOps configuration and repair tasks, or do rankings and failure types vary substantially by model?",
+      "hypotheses": [
+        "Relative performance rankings and dominant failure modes will vary significantly across LLM families and model sizes when evaluated under an identical closed-loop emulator, i.e., no single model will dominate across all task classes.",
+        "Certain failure modes (e.g., silent regressions, policy-violation edits) will be common across models, while others (e.g., syntactic command errors) will show model-dependent prevalence."
+      ],
+      "proposed_design": "Systematic multi-model experiment using an identical prompt bank of 180 tasks and a single executable emulation harness. Include at least three accessible model families representative of open-source and hosted closed models (subject to API access): one large closed model, one mid-size open model, and one small open model. For each model-task pair, collect generated configuration, attempt optional single repair iteration, execute in emulator, and label outcomes (semantic-correct, syntactic-error, regression, partial-failure). Compute per-model metrics and produce confusion matrices of failure-mode frequencies. Ensure identical prompting, retry policy, and validator code across models.",
+      "expected_data": "Model-task outcome matrix, per-model semantic success rates, per-model failure-mode frequency distributions, repair-success rates, per-task agreement statistics across models, and raw outputs for qualitative analysis.",
+      "primary_outcome": "Statistical evidence of variability in model rankings across task classes: test whether model × task-class interaction explains significant variance in semantic success rates (e.g., ANOVA mixed-effects or nonparametric equivalent).",
+      "analysis_outline": "Fit a mixed-effects model with semantic success as outcome, fixed effects for model and task-class, and random intercepts for task; test model×task-class interaction. Report pairwise model comparisons with appropriate correction. Compute clustering of failure-mode profiles and inter-model agreement (Cohen’s kappa or Fleiss’ kappa across the model set). Provide qualitative examples of divergent failure cases.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7204209332",
+        "10.2139/ssrn.6512800"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7157506260"
+      ],
+      "risks": [
+        "API availability and cost limits access to some closed models, constraining model set diversity.",
+        "Differences in prompt-engineering sensitivity may confound model comparisons if not carefully controlled.",
+        "Results from synthetic/emulated tasks may not fully generalize to production multi-vendor environments."
+      ],
+      "estimated_model_calls": 4000
+    }
+  ]
+}

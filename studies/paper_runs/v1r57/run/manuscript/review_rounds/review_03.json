@@ -1,0 +1,28 @@
+{
+  "summary": "Well-executed, preregistered paired experiment with excellent artifact provenance and transparent reporting. However, the study produced a ceiling/null outcome (baseline and guarded both 100% success), and the manuscript needs targeted clarifications and tighter scholarly prose to make the scientific implications and limitations unambiguous. Several required, artifact-resolvable revisions are needed before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Confirmatory test rendered uninformative by ceiling effect (baseline=1.00, guarded=1.00; n_11=120, n_10=n_01=0): manuscript must explicitly state that the preregistered McNemar hypothesis test is not informative about the preregistered effect size and must avoid overinterpreting the null/zero-difference outcome as evidence of equivalence or generality.",
+    "Shared-generation design choice (one shared initial candidate per paired task) substantially constrains inference about generate→validate→repair pipelines vs independent-generation workflows; this design decision and its consequence for interpretability must be stated prominently and discussed quantitatively (resolvable from archived artifacts).",
+    "Manuscript contains metadata-heavy, provenance-oriented passages that read like an artifact inventory rather than concise scholarly exposition; rewrite to restore literature-grounded narrative flow while preserving artifact references (detailed manifests/hashes should be cited tersely, with full listings kept in the archived manifest).",
+    "The claim that the validator detected zero violations needs an artifact-grounded explanation: report the proportion of shared_initial candidates that exactly matched the reference answer (or other simple concordance statistics available in scoring JSONs) and use those numbers to explain why repair_applied=false for all guarded episodes.",
+    "Statistical reporting needs clarification: explain McNemar degeneracy when there are no discordant pairs, justify reporting p=1.0 and CI=[0,0] (bootstrap behavior in degenerate data), and explicitly state that the result does not provide evidence for equivalence or superiority. (These clarifications can be made from existing analysis artifacts.)"
+  ],
+  "required_revisions": [
+    "Add a concise, prominent statement (Methods and Conclusion, and expand Abstract) that the primary confirmatory McNemar test is uninformative given zero discordant pairs; explicitly say the study cannot support claims of equivalence or general absence of effect and must be interpreted as a ceiling/null observation on this task set.",
+    "Report a small, artifact-derived summary statistic quantifying model–reference concordance for the shared_initial candidates (e.g., count and percent of normalized_response == normalized_reference across the N=120 tasks) and include a one-paragraph explanation, grounded in archived scoring JSONs, of why validator traces show repair_applied = false for all guarded episodes.",
+    "Prominently explain the shared-generation design (independent_condition_generation=false) in Methods and state its rationale and implication for inference. Add a concise sentence in Limitations noting that this design reduces sensitivity to generation-variance effects and contributed to the ceiling outcome.",
+    "Replace or substantially shorten metadata-heavy provenance lists in the main narrative. Convert long manifest/filename lists into a single concise reproducibility statement (\"full artifact manifest and hashes archived in execution_manifest; representative filenames: ...\") and move any exhaustive file-hash listings to the archived manifest. Keep only minimal, essential filenames/hashes in-text to support reproducibility while preserving scholarly flow.",
+    "Add a short artifact-derived summary of task difficulty / topology composition (counts per topology class and counts per difficulty level) using the archived task_manifest; include this as a one-row table or one-paragraph summary to support claims about task coverage and to clarify external-validity limits.",
+    "Expand the statistical-methods text to explain why the bootstrap CI and exact McNemar produced degenerate results (CI=[0,0], p=1.0) for zero variance data and add an explicit interpretive sentence that the observed result does not provide statistical support for the preregistered minimum detectable effect (15 percentage points) due to violated baseline-failure assumptions."
+  ],
+  "optional_revisions": [
+    "If space permits, add one small illustrative example (one task where normalized_response != normalized_reference if any exist) or otherwise show a representative normalized_response→validator trace excerpt (one JSON snippet) to illustrate validator operation; use archived scoring JSONs for this.",
+    "Briefly (one paragraph) contrast the shared-generation design with an independent-per-condition design and indicate which follow-up analysis (already feasible from archived artifacts) would be most informative—but do not request new experiments.",
+    "Tighten Related Work to emphasize nearest methodological studies and remove broader bibliographic metadata from the narrative; rely on the verified bibliography for full citations."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,22 @@
+{
+  "summary": "Well-executed, preregistered paired experiment comparing an emulator-validated generate→validate→repair pipeline against an LLM-only suggestion workflow (N=120 paired tasks, gpt-5-mini). The run and analysis appear reproducible and adhere to the preregistered plan; all artifacts and checksums are present. The principal scientific outcome is a null/ceiling result: every baseline and guarded episode was judged valid by the deterministic validator (n_11=120; no discordant pairs), so the preregistered confirmatory test yields no evidence of guarded-loop benefit on this synthetic task bank. The manuscript is careful and generally well-documented, but several clarifications and small manuscript revisions are required to make the reported conclusion and its limits fully transparent and reproducible for reviewers/readers.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly document and justify the shared_initial_candidate design choice (shared initial generation per task across baseline and guarded), explain why initial_generation_calls_per_task=1 and model_calls_used=120 though planned maximum_model_calls=240, and discuss how the shared-generation semantics affect interpretability of the guarded vs baseline comparison. Point reviewers to the exact artifact(s) showing the shared-generation traces (e.g., execution/provider_calls/* and execution/responses/*) with representative hashes already present in the evidence bundle.",
+    "Add a concise in-manuscript artifact-hash table citing the key archived artifacts and their SHA-256 values so reviewers can locate reproducing files (at minimum: preregistration manifest SHA-256, execution/raw_results.jsonl, execution/model_configuration.json, analysis/paired_contingency_table.csv, analysis/analysis_log.jsonl). Use the supplied hashes from the execution manifest; do not invent new ones.",
+    "Provide explicit validator/repair-decision evidence in the Methods or Results: show the repair-trigger logic (repair prompt conditions), and include a short table or appendix paragraph (using archived traces) documenting that repair_applied=false for all guarded episodes and the recorded reason(s) for not invoking/applying repairs for each task (these are present in execution/scoring/*.json files).",
+    "Strengthen the statistical interpretation: explicitly state that the observed baseline success rate=1.00 produced a ceiling effect that renders the preregistered confirmatory hypothesis (targeting a 0.15 absolute reduction) untestable on this task bank; update the power/discussion text to show that realized data violated the power assumptions and that the McNemar test result is vacuous in this case. If desired, include the preregistered sensitivity analysis outputs (or a short justification why they are not informative) using the already-archived analysis artifacts.",
+    "Clarify and justify the single-model, single-prompting-budget choice in Methods and expand the Limitations to explicitly connect that design choice to external validity concerns; point to the recorded model_configuration.json and provider-call audit in the manifest as evidence of the frozen settings."
+  ],
+  "optional_revisions": [
+    "Polish prose in Related Work and Discussion to reduce embedded provenance/inventory language and increase literature-grounded narrative—move long artifact lists to a short appendix or the artifact-hash table (artifact evidence is already archived).",
+    "Add a short per-task difficulty / task-class summary figure (using analysis/condition_summary.csv and task_manifest.jsonl) to illustrate the task-bank composition (edge/core/leaf–spine and difficulty strata) for reader context.",
+    "Include a brief NotebookLM presentation brief as described by the track (concise machine-readable summary of question, method, main result, and limitations).",
+    "If space permits, add a short worked example (one representative task pair) showing the LLM-generated configuration, validator trace, and why no repair was applied; reference the corresponding execution/scoring JSON for exact reproducibility."
+  ],
+  "accept_for_finalisation": false
+}

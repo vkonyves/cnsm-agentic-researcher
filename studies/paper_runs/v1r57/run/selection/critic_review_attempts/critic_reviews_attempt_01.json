@@ -1,0 +1,90 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CNSM2026-A",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator fidelity may not reflect production failure modes (threat to external validity).",
+        "Prompt sensitivity and potential prompt-overfitting to the emulator could inflate apparent repair effectiveness.",
+        "Single-repair-iteration policy may understate practical repair needs or bias results toward modest improvements.",
+        "Details missing on exact emulator, topology selection, and synthetic-apply semantics for the LLM-only baseline."
+      ],
+      "required_design_repairs": [
+        "Specify exact emulator(s) (Mininet/version or container images) and include diverse topology classes with justification.",
+        "Predefine prompt templates and robustness perturbations; log and report prompt variants and seeds.",
+        "Clarify and justify repair-iteration budget; consider reporting results by repair-iteration count (including 0/1/>1).",
+        "Define synthetic-apply semantics for baseline (how an LLM-only suggestion is 'applied' for the paired comparison) and ensure parity of observation windows between conditions."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-B",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Closed-model APIs may not expose reliable model-native likelihoods or comparable proxies, complicating primary comparisons.",
+        "Validator-derived signals depend heavily on emulator fidelity and may be too slow for operator decisioning without latency analysis.",
+        "Risk of hybrid-model overfitting to synthetic distribution if train/holdout split not carefully stratified and repeated."
+      ],
+      "required_design_repairs": [
+        "Prespecify fallback model-native confidence proxies for closed APIs (e.g., token log-prob surrogates, sampling-based agreement estimates) and document limitations.",
+        "Preregister calibration and cross-validation procedures (e.g., repeated random splits or nested CV) to limit overfitting.",
+        "Include runtime/latency constraints and report latency-utility trade-offs for execution-derived signals to assess operational actionability."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-C",
+      "novelty": 0.85,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Privacy and sensitivity of anchored payloads are not addressed (redaction/pseudonymization required).",
+        "Using public testnets or third-party timestamping introduces availability and trust assumptions that should be enumerated.",
+        "Threat model (adversary privileges, timing, and capabilities) needs clearer definition to interpret detection rates."
+      ],
+      "required_design_repairs": [
+        "Specify ledger/timestamping service choice and justify (e.g., public testnet vs trusted timestamping); include availability and cost analysis.",
+        "Define payload redaction/pseudonymization procedures and evaluate how redaction affects detectability/reconstruction fidelity.",
+        "Operationalize the adversary threat model (exact privileges and actions) and ensure trials cover realistic attacker capabilities; preregister attacker scenarios."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CNSM2026-D",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Access, cost, and API constraints may prevent inclusion of representative closed models, threatening comparability.",
+        "Prompt-engineering sensitivity may confound inter-model comparisons unless prompts and temperature settings are strictly controlled and reported.",
+        "Large estimated model-call budget (4000) may be sensitive to provider rate limits and cost—operational feasibility must be demonstrated."
+      ],
+      "required_design_repairs": [
+        "Prespecify exact model candidates including fallback open models if closed models are unavailable; include API/versioning information.",
+        "Freeze and publish exact prompt templates, temperature/decoding settings, and retry policy; include prompt-robustness checks.",
+        "Provide cost and rate-limit plan (budgeting, throttling, and retry handling) and prespecify how missing model data will be treated in analysis (e.g., exclusion rules)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "summary": "The study is technically sound and preregistration-compliant; execution and archival artifacts are complete and internally consistent. The confirmatory outcome is degenerate (ceiling: 120/120 successes in both conditions), which the manuscript acknowledges and interprets appropriately. However, three previously requested required revisions remain unresolved in the submitted manuscript: (1) excessive provenance material in main text (artifact inventories not moved to supplementary/compact form); (2) no compact formal definition of the binary pass/fail scoring rule used for the McNemar test (decision logic and a concrete example are not presented in one place); (3) no nearest-work comparison matrix/table explicitly contrasting this design with the closest prior experiments. These are addressable using the supplied archived artifacts (execution and scoring JSON, task manifest, verified bibliography). Because these required revisions remain, the manuscript is not yet acceptable for finalisation.",
+  "novelty_score": 3,
+  "technical_depth_score": 4,
+  "soundness_score": 4,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Main text remains provenance-heavy with long manifest and artifact inventories presented inline rather than moved to a compact paragraph or supplementary reference; this impedes readable, literature-grounded exposition and must be corrected.",
+    "The manuscript does not contain a single compact, formal definition of the binary outcome used in the confirmatory test (i.e., explicit decision-rule mapping from validator/scorer fields to pass/fail labels and any tie-break rules). Readers cannot verify how scoring JSON fields were converted to the paired binary labels without searching artifacts.",
+    "Nearest-work comparison is asserted qualitatively but the required concise comparison matrix/table that enumerates closest prior experiments (and marks where this study differs: shared-generation paired design, executable emulator validator, repair budget ≤1, synthetic task corpus, single hosted model) is missing."
+  ],
+  "required_revisions": [
+    "Move provenance-heavy material out of the main narrative: condense artifact lists and file-path/hash enumerations into a single compact paragraph in Methods pointing to archived artifact bundles (e.g., execution/raw_results.jsonl, execution/task_manifest.jsonl, analysis/paired_contingency_table.csv, analysis/deterministic_reconciliation.json) and relocate long provenance inventories to supplementary material or an appendix within the 5 pages. (Resolvable from supplied execution and analysis artifacts.)",
+    "Add a compact formal definition of the binary scoring rule used in the confirmatory analysis (one clear decision logic statement mapping scorer/validator outputs to pass/fail used in McNemar; e.g., exact rule referencing scorer_id/version and validator fields such as validator.violation_count and normalized_response equality). Include one short concrete example illustrating a pass and a fail drawn from supplied scoring artifacts (for example, execution/scoring/task-000001-baseline.json). (Resolvable from supplied scoring/validator artifacts.)",
+    "Insert a concise nearest-work comparison matrix (table or compressed bullet matrix) that lists the closest prior experimental studies (use verified citations from the archived bibliography), and explicitly marks where this study differs (shared-generation paired design; executable emulator vs syntactic checks; repair budget ≤1; synthetic deterministic task corpus; single hosted model gpt-5-mini). Ensure cited sources are the verified primary references. (Resolvable from supplied verified bibliography and evidence records.)"
+  ],
+  "optional_revisions": [
+    "Optionally add a short illustrative synthetic example or textual simulation (no new experiments) showing how independent per-condition generation or targeted selection of 'very_hard' tasks would increase discordant-pair incidence and make the primary test informative; tie thresholds to task_manifest difficulty fields.",
+    "Condense the Disclosure Statement inline for narrative flow (keep full archival disclosure referenced by file path/hash) while ensuring it remains within pages 1–5.",
+    "Optionally expand a brief paragraph with representative validator_trace snippets to illustrate how workflow policies (must_be_down_for_fields, final_group_constraints, make-before-break) are encoded as executable checks and discuss limitations (vendor heterogeneity, partial observability)."
+  ],
+  "accept_for_finalisation": false
+}

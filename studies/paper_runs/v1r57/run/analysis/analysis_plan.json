@@ -1,0 +1,32 @@
+{
+  "study_id": "CNSM2026-A-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory: exact paired McNemar test (two-sided, alpha=0.05) on episode-level semantic_failure_label (fail|pass) comparing guarded minus baseline; report exact p-value and 95% CI for the paired difference. Primary analysis uses failed_call_treatment = complete_pair_primary (exclude pairs with technical/instrumentation failures or preregistered contamination flags).",
+  "secondary_analyses": [
+    "Mean model calls per successful task (guarded vs baseline) — parametric t-test if normality holds, otherwise Wilcoxon rank-sum; report means/medians, SD/IQR and 95% CIs",
+    "Proportion of tasks requiring a repair iteration (guarded condition) — descriptive proportion with 95% CI",
+    "Distribution (counts and proportions) of failure-mode taxonomy categories by condition — descriptive table and chi-square/Fisher tests as appropriate",
+    "Subgroup analyses by topology class (edge/core/leaf–spine) and by policy-complexity strata — exploratory; p-values adjusted via Benjamini–Hochberg (q=0.05)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat technical/instrumentation exclusions as semantic failures)",
+    "Include items flagged by contamination detectors counted as failures (sensitivity)",
+    "Repeat secondary mean-model-calls analysis using only paired tasks without any flagged or excluded episodes to assess robustness"
+  ],
+  "uncertainty_quantification": "Primary: exact McNemar two-sided p-value and exact 95% CI for paired difference. Secondary: 95% CIs reported for means/proportions; normality checks applied and nonparametric bootstrap (deterministic scripts in harness, 10,000 resamples) used for CIs when parametric assumptions fail. Report exact sample sizes and number of excluded/flagged pairs with artifact hashes.",
+  "multiplicity_implementation": "Prespecified single confirmatory test (no multiplicity correction for primary). All secondary and subgroup hypothesis tests treated as exploratory; apply Benjamini–Hochberg FDR control at q=0.05 across secondary/subgroup p-values and report both raw and BH-adjusted p-values.",
+  "contamination_analysis": "Apply preregistered contamination_plan: flag items if (a) exact LLM output hash duplicates across unrelated tasks, (b) emulator reset checksum differs from canonical reset, or (c) out-of-distribution detectors trigger token-coverage/novelty heuristics or repeated syntactic-parse rejections. Flagged episodes are excluded from the primary confirmatory analysis (archived with reasons and checksums). Report count and list of flagged episodes and run a sensitivity analysis counting flagged episodes as failures to quantify bias.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Task cohort counts — total tasks (N=120), completed paired observations used in primary analysis, number excluded (technical/instrumentation) with reasons and artifact-hash references; breakdown by topology class (edge/core/leaf–spine)",
+    "Table 2: Primary paired outcome contingency (paired pass/fail table) with McNemar discordant counts, paired difference estimate, exact McNemar p-value, 95% CI, and N_used; include preregistration and preregistration SHA256",
+    "Table 3: Secondary metrics by condition — mean (SD) and median (IQR) of model calls per successful task, proportion requiring repair (guarded), counts/proportions per failure-mode taxonomy with 95% CIs",
+    "Table 4: Sensitivity analyses summary — results for complete_pair_primary_with_failure_as_zero_sensitivity and contamination-included-as-failures scenarios (paired difference, p-value, N)"
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar plot of semantic-failure rates (proportion failing) by condition (baseline vs guarded) with exact 95% CIs; grouped bars for topology strata (edge/core/leaf–spine) — produced from paired outcome labels",
+    "Figure 2: Stacked-bar or horizontal bar chart of failure-mode taxonomy frequencies by condition (baseline vs guarded) — counts and proportions",
+    "Figure 3: Boxplot (or violin) of model-call counts per episode by condition (showing median, IQR, and outliers) — annotated with mean±SD and sample sizes"
+  ]
+}

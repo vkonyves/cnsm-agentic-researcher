@@ -1,0 +1,151 @@
+{
+  "selected_candidate_id": "CNSM2026-A",
+  "title": "Effectiveness of an executable generate→validate→repair loop vs LLM-only NetOps changes",
+  "research_question": "Does integrating an executable network emulator as a validator in a generate→validate→repair pipeline reduce semantic/network-level failures when enacting LLM-generated configuration changes compared to an LLM-only suggestion workflow?",
+  "confirmatory_hypotheses": [
+    "A generate→validate→repair pipeline that uses an executable emulator to check LLM-generated configurations will produce a lower semantic failure rate (emulator-observed semantic violations) than an LLM-only suggestion pipeline on the same paired task set."
+  ],
+  "exploratory_questions": [
+    "How sensitive are repair effectiveness results to prompt perturbations (two perturbation variants per task)?",
+    "How does repair effectiveness vary by topology class (edge / core / leaf–spine) and by policy-complexity strata?"
+  ],
+  "benchmark_scope": [
+    "Executable emulation test harness (Mininet-like Docker-based emulation with containerized router/switch images)",
+    "Curated intent→configuration task set (N=120 paired tasks; synthetic variants derived from publicly available NetOps task descriptions; see evidence ids in evidence_record_ids)"
+  ],
+  "model_scope": [
+    "Primary: hosted LLM API (provider model selected at execution time per model-selection policy below) with deterministic decoding (temperature=0) and token-log-prob / response integrity logging if available",
+    "Fallback: hosted open-model endpoint (provider-hosted LLaMA-family or similar) if primary unavailable; exact model id and provider will be recorded in execution artifacts"
+  ],
+  "transformation_scope": [
+    "Intent canonicalizer (deterministic parsing of natural-language intent into structured intent fields)",
+    "Template-driven prompt generation (frozen prompt templates and two prespecified robustness perturbations)",
+    "Syntactic normalizer for produced configuration snippets (parser + automatic rejection on parse failure)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion reduction in emulator-observed semantic failures per task: intervention minus baseline, computed by the registered paired_binary_analysis_v1 executor)",
+  "secondary_estimands": [
+    "Mean model calls per successful task (intervention vs baseline)",
+    "Proportion of tasks requiring a repair iteration",
+    "Distribution of failure-mode taxonomy frequencies (semantic categories) across conditions"
+  ],
+  "sampling_plan": "Paired design with N=120 distinct intent→configuration tasks. Each task yields one paired observation: baseline (LLM-only synthetic-apply) and intervention (generate→validate→repair). Topology classes: 3 clusters (edge, core, leaf–spine) with 40 tasks assigned deterministically to each class. Inclusion: public / synthetic tasks meeting schema; Exclusion: tasks that fail harness instrumentation (infrastructure failure) — see missingness_plan for handling.",
+  "analysis_plan": "Confirmatory analysis executed by the paired_binary_analysis_v1 executor. Primary test: paired binary comparison (McNemar exact) on semantic-failure labels (fail/pass) with two-sided alpha=0.05; report exact p-value and 95% CI for the paired difference. Failed-run handling: primary analysis setting = 'complete_pair_primary' (only pairs where both baseline and intervention produced an outcome recorded as per result_schema). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' will treat technical failures as semantic failures (conservative). Secondary analyses: t-test or Wilcoxon for model-call counts (normality-checked), descriptive counts for failure taxonomy; subgroup analyses by topology and policy-complexity, Benjamini–Hochberg correction applied to secondary p-values.",
+  "multiplicity_plan": "One prespecified confirmatory hypothesis (primary McNemar test) — no multiplicity correction for primary. Secondary outcomes (model calls, repair rates, subgroup tests) controlled with Benjamini–Hochberg at q=0.05 and reported as exploratory/secondary.",
+  "missingness_plan": "Distinguish technical/infrastructure failures vs scientific outcomes. Technical/instrumentation failures (e.g., emulator crash, container startup failure) are logged and the paired observation is excluded from the primary confirmatory analysis; exclusions and reasons are reported in results. Scientific failures (LLM produces a configuration that emulator flags as semantic violation) are counted as semantic failures in the confirmatory analysis. Sensitivity analysis will treat excluded technical failures as failures to assess robustness. All raw artifacts for excluded pairs will be archived and checksummed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "executable_emulation_taskset_v1 (curated public/synthetic intent→configuration tasks referenced in evidence_record_ids)"
+    ],
+    "risk_factors": [
+      "Prompt-overfitting to emulator behavior (prompt leaks or engineered cues)",
+      "Task leakage (if tasks derive from public sources indexed by model training data)",
+      "Stateful emulator artifacts causing cross-task contamination"
+    ],
+    "detection_procedures": [
+      "Deterministic duplicate-output detection (hash compare of LLM outputs across tasks)",
+      "Out-of-distribution prompt/output detectors (token-coverage and novelty heuristics)",
+      "Instrumented emulator-state reset verification between tasks (container image checksum + deterministic seed)"
+    ],
+    "item_flagging_rules": [
+      "Flag if exact LLM output hash appears in >1 unrelated task",
+      "Flag if emulator state-reset checksum differs from canonical reset",
+      "Flag if LLM output triggers syntactic-parse rejection repeatedly across perturbation variants"
+    ],
+    "analysis_treatment": "Flagged items are excluded from the confirmatory primary analysis and reported in contamination appendix. A sensitivity analysis will include flagged items counted as failures to quantify potential bias.",
+    "residual_uncertainty": [
+      "Undetected model memorization of public task answers (cannot be fully ruled out for closed models)",
+      "Emulator fidelity limits in reproducing vendor-specific behaviors"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_A_recommended",
+      "description": "Recommended (confirmatory): N=120 paired tasks; 3 topology clusters (edge/core/leaf–spine); 1 repair iteration cap per task; two exploratory prompt perturbations per intervention run; 10% contingency for retries.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted_primary_model (selected at execution time; deterministic decoding temperature=0; token-log-prob logging where available)",
+        "hosted_fallback_open_model (provider-hosted LLaMA-family or comparable) if primary unavailable"
+      ],
+      "transformations": [
+        "intent_canonicalizer_v1",
+        "prompt_template_v1 (frozen) + two perturbation variants",
+        "config_syntactic_normalizer_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Docker-based emulation (Mininet-like) runs on CPU; hosted model API calls within capability_manifest limits. Planned model calls (600) derived as: baseline calls = 120 (1 per task) + intervention initial =120 + expected repair calls (conservative expected 40% repair rate => 48) + exploratory perturbation calls (2 per task => 240) = 528; +10% retry contingency ≈ 581 → rounded up to 600 to fit hosting budget and rate-limit guardrails."
+    },
+    {
+      "scenario_id": "scenario_B_reduced",
+      "description": "Resource-reduced confirmatory variant: N=60 paired tasks; 1 exploratory perturbation per intervention; 1 repair iteration cap; 10% contingency.",
+      "planned_model_calls": 230,
+      "models": [
+        "hosted_primary_model (as above) with fallback"
+      ],
+      "transformations": [
+        "intent_canonicalizer_v1",
+        "prompt_template_v1 (frozen) + one perturbation variant",
+        "config_syntactic_normalizer_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 60,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Lower N trades power for feasibility under constrained API quotas; planned calls computed: baseline 60 + intervention initial 60 + expected repairs 0.4*60=24 + exploratory 60 = 204; +10% contingency ≈ 225 → rounded to 230."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "absolute reduction of 0.15 (15 percentage points) in semantic-failure rate (intervention vs baseline)",
+    "clustering_unit": "per-task paired observation",
+    "calculation_method": "Approximate McNemar paired-power reasoning using plausible discordant-pair rates: assuming baseline semantic-failure rate ≈0.40 and that discordant pairs roughly support a 15% absolute reduction, N=120 yields ~80% power at alpha=0.05 (exact paired test will be reported).",
+    "assumptions": [
+      "Baseline semantic-failure rate ≈ 0.40 (literature EF1/EF2 indicates substantial baseline error rates)",
+      "Intervention reduces failures principally by converting some baseline-fail/intervention-pass discordant pairs; symmetric discordant assumptions used for MDE estimate",
+      "Independence of tasks across the paired sample; emulator reset ensures deterministic isolation"
+    ],
+    "recommended_scenario_id": "scenario_A_recommended",
+    "minimum_detectable_effect_notes": "With N=120, and baseline failure ≈0.40, the minimum detectable absolute difference is approximately 0.12–0.17 (12–17 percentage points) depending on discordant-pair allocation; exact MDE and achieved power will be reported using exact McNemar power calculation in analysis artifacts.",
+    "sensitivity_analyses": [
+      "Recompute primary test treating technical exclusions as failures (conservative)",
+      "Recompute excluding topologically homogeneous subsets to inspect cluster-driven effects",
+      "Repeat analysis using only pairs where repair iteration was invoked to quantify repair conditional effect"
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "intent_canonicalization",
+      "prompt_template_generation",
+      "config_syntactic_normalization",
+      "emulator-instrumentation mapping (emulator-observed behaviors → semantic-failure labels)"
+    ],
+    "semantic_equivalence_checks": [
+      "For each transformation, deterministic unit-tests mapping known-intent inputs to canonicalized intent; recorded pass/fail per task",
+      "Emulator acceptance is the ultimate semantic check: a configuration passes semantic equivalence if all prespecified emulator tests (reachability, policy, routing) pass"
+    ],
+    "automatic_rejection_rules": [
+      "Reject and log LLM outputs that fail config syntactic parse (no human adjudication); these count as syntactic errors for secondary reporting",
+      "Reject outputs containing device-address placeholders or missing required statements per schema (automatic exclusion for primary but archived)"
+    ],
+    "audit_sample_policy": "Automated deterministic audit sample: 10% of all runs selected by fixed hashed seed (seed recorded) plus all runs flagged by contamination detectors; audit consists of automated replay and extended emulator traces — no human review required.",
+    "mapping_validation": "Mapping from emulator traces to binary semantic-failure labels is specified as deterministic check scripts (reachability pings, ACL deny counters, routing-table inconsistencies); mapping scripts are unit-tested on synthetic ground-truth cases prior to experiment.",
+    "residual_risks": [
+      "Emulator-to-production fidelity gap (some vendor-specific behaviors not modeled)",
+      "LLM non-determinism across providers may cause result variability despite temperature=0",
+      "Possible undetected memorized answers in closed-model outputs"
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Extent to which emulator fidelity maps to production device behavior and vendor heterogeneity (UQ2).",
+    "Operational methods for calibrated, actionable confidence estimates for LLM outputs remain an open research area (UQ3).",
+    "Degree to which LLMs may have memorized publicly available solutions for some synthetic tasks (affects external validity) (UQ1)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7161354925"
+  ]
+}

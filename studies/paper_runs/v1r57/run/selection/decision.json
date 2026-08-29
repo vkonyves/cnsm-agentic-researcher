@@ -1,0 +1,27 @@
+{
+  "selected_candidate_id": "CNSM2026-A",
+  "selection_rationale": "CNSM2026-A (executable generate→validate→repair vs LLM-only) best matches the programme goals: it tests operational reliability using a closed-loop emulator (addresses EF2/EF4), is falsifiable with a paired design, fits the short-paper scope, and has feasible model-call budget. It directly targets NetOps safety/reliability rather than a pure benchmark ranking, so it offers the clearest deliverable contribution for CNSM’s Agentic AI Researcher track.",
+  "runner_up_candidate_id": "CNSM2026-B",
+  "unresolved_uncertainties": [
+    "UQ1: To what degree can LLM-driven automation safely enact network changes in live production without substantial guardrails, canaries, or external verification? (refs: https://openalex.org/W7203776655, https://openalex.org/W7161354925, https://openalex.org/W7117292294)",
+    "UQ2: How well do synthetic/emulation-based benchmarks and repair datasets generalize to diverse production topologies, scale, and multi-vendor heterogeneity? (refs: https://openalex.org/W7157506260, https://doi.org/10.2139/ssrn.6857419, https://openalex.org/W7204209332)",
+    "UQ3: What operationally practical methods yield calibrated, actionable uncertainty/confidence estimates for LLM outputs in NetOps workflows? (refs: https://openalex.org/W4412158322, https://openalex.org/W4411121371, https://doi.org/10.1101/2025.09.28.25336834)"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W7157506260",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7161354925"
+  ],
+  "required_repairs_before_preregistration": [
+    "Specify exact emulator(s) and versions (e.g., Mininet X.Y or containerized router/switch images) and justify chosen topology classes (edge/core/leaf–spine, size ranges).",
+    "Predefine and freeze prompt templates, prompt-perturbation robustness checks, random seeds, and recording of all prompt variants; include prompt-variant logging in the preregistration.",
+    "Clarify and justify the repair-iteration budget (e.g., report 0,1,>1 iterations) and prespecify how repair attempts are invoked and capped; plan to report results stratified by iteration count.",
+    "Define synthetic-apply semantics for the LLM-only baseline (how an LLM suggestion is ‘applied’ in the synthetic harness), ensure parity of observation windows and instrumentation between baseline and intervention runs.",
+    "Prespecify validators’ pass/fail criteria and emulator test-cases (exact traffic/policy checks) and include the validator’s failure signal format used to seed LLM repairs.",
+    "Define model selection and diversity policy (which model(s)/versions to use, fallbacks if closed APIs unavailable) and freeze temperature/decoding/retry settings per model.",
+    "Preregister exact per-task data schema (raw LLM outputs, validator logs, emulator traces), hashing and archival procedure, and the paired-analysis plan including McNemar’s test details, confidence-interval method, and multiple-comparison correction for secondary analyses.",
+    "Provide a short power/sample-size justification for N=120 (or adjust N) for the primary paired-proportion comparison and prespecify handling of excluded or failed runs (infrastructure vs scientific failure).",
+    "Document latency and compute budgeting (model-call limits, emulator run-time caps) and a retry policy that distinguishes technical restarts from scientific reruns."
+  ]
+}
