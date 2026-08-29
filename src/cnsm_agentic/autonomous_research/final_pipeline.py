@@ -6628,6 +6628,21 @@ class FinalAutonomousResearchPipeline:
                 best_recovery_validation = publication_validation
                 best_recovery_page_count = post_hygiene_page_count
 
+                # The latest protected exact-page manuscript provides a
+                # deterministic rendered-volume reference. It is NOT a
+                # scientific-content source for recovery; all scientific
+                # additions must still come from the frozen verified evidence.
+                # Its text length is used only to estimate how much substantive
+                # manuscript volume hygiene/remediation removed.
+                protected_volume_target_chars = None
+
+                if protected_submission_manuscript is not None:
+                    protected_volume_target_chars = len(
+                        _manuscript_text(
+                            protected_submission_manuscript
+                        )
+                    )
+
                 for underfill_attempt in range(
                     1,
                     maximum_post_hygiene_underfill_attempts + 1,
@@ -6637,6 +6652,42 @@ class FinalAutonomousResearchPipeline:
                         == post_hygiene_maximum_pages
                     ):
                         break
+
+                    current_recovery_chars = len(
+                        _manuscript_text(
+                            best_recovery_manuscript
+                        )
+                    )
+
+                    if (
+                        isinstance(protected_volume_target_chars, int)
+                        and protected_volume_target_chars
+                        > current_recovery_chars
+                    ):
+                        remaining_volume_chars = (
+                            protected_volume_target_chars
+                            - current_recovery_chars
+                        )
+                        recovery_volume_guidance = (
+                            "The preserved exact-page manuscript had "
+                            f"approximately {protected_volume_target_chars} "
+                            "characters of manuscript text before publication "
+                            "hygiene, while the current clean manuscript has "
+                            f"approximately {current_recovery_chars}. "
+                            f"The remaining rendered-volume gap is therefore "
+                            f"approximately {remaining_volume_chars} characters. "
+                            "Use this ONLY as a coarse volume target, not as "
+                            "permission to reproduce provenance/path material. "
+                            "Restore comparable volume using already-supported "
+                            "scientific explanation from the supplied frozen "
+                            "evidence. "
+                        )
+                    else:
+                        recovery_volume_guidance = (
+                            "No larger protected exact-page text-volume target "
+                            "is available. Continue cumulative supported "
+                            "scientific expansion based on compiler feedback. "
+                        )
 
                     scientific_underfill_instruction = (
                         "The manuscript is scientifically frozen but "
@@ -6658,6 +6709,8 @@ class FinalAutonomousResearchPipeline:
                         "a different four-page manuscript of similar or smaller "
                         "scientific volume. "
                         "\n\n"
+                        + recovery_volume_guidance
+                        + "\n\n"
                         "SCIENTIFIC CONTENT IS FROZEN. Use ONLY material "
                         "already supported by the supplied verified "
                         "literature synthesis, preregistration, completed "

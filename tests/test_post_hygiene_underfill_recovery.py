@@ -350,3 +350,50 @@ def test_underfill_recovery_expands_cumulatively():
         "preserve every supported scientific "
         in SOURCE
     )
+
+
+def test_underfill_recovery_has_exact_page_volume_reference():
+    assert "protected_volume_target_chars" in SOURCE
+    assert (
+        "_manuscript_text("
+        in SOURCE
+    )
+    assert (
+        "protected_submission_manuscript"
+        in SOURCE
+    )
+
+
+def test_underfill_recovery_computes_remaining_volume_gap():
+    assert "current_recovery_chars" in SOURCE
+    assert "remaining_volume_chars" in SOURCE
+    assert (
+        "protected_volume_target_chars"
+        in SOURCE
+        and "- current_recovery_chars"
+        in SOURCE
+    )
+
+
+def test_volume_target_cannot_authorize_provenance_copying():
+    # SOURCE is raw Python source, so adjacent string literals may split
+    # phrases that are contiguous at runtime. Normalize those boundaries
+    # before asserting semantic prompt requirements.
+    import re
+
+    normalized = re.sub(
+        r'"\s*"',
+        "",
+        SOURCE,
+    )
+
+    assert "Use this ONLY as a coarse volume target" in normalized
+    assert (
+        "not as permission to reproduce provenance/path material"
+        in normalized
+    )
+    assert (
+        "already-supported scientific explanation"
+        in normalized
+    )
+
