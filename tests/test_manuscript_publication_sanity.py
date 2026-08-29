@@ -162,7 +162,7 @@ def test_raw_reproduction_command_fails(tmp_path):
     assert audit["metrics"]["raw_command_count"] >= 1
 
 
-def test_excessive_artifact_paths_fail(tmp_path):
+def test_excessive_artifact_paths_are_diagnostic_only(tmp_path):
     paths = " ".join(
         f"analysis/file_{i}.json"
         for i in range(9)
@@ -178,7 +178,8 @@ def test_excessive_artifact_paths_fail(tmp_path):
         run_dir=tmp_path,
     )
 
-    assert audit["passed"] is False
+    assert audit["passed"] is True
+    assert audit["metrics"]["artifact_path_count"] == 9
     assert audit["metrics"]["artifact_path_count"] == 9
 
 

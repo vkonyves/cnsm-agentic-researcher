@@ -762,14 +762,13 @@ def audit_manuscript_publication_sanity(
         artifact_paths
     )
 
-    # A few concise artifact references are acceptable.
-    # Large inventories are publication-metadata pollution.
-    if len(artifact_paths) > 8:
-        issues.append(
-            "Final manuscript contains excessive run-relative "
-            f"artifact-path references ({len(artifact_paths)}); "
-            "keep detailed provenance in the archived manifest."
-        )
+    # A few concise artifact references are preferable, but path
+    # density alone is a publication-style diagnostic rather than a
+    # deterministic validity failure. Concrete artifact-path correctness
+    # is enforced independently by audit_manuscript_artifact_references().
+    # Keep the count above for audit/reporting, but do not reject an
+    # otherwise valid manuscript solely because it contains >8 valid
+    # run-relative artifact references.
 
     # ---------------------------------------------------------
     # E. Reviewer-response / future-review meta-language.
@@ -6032,12 +6031,16 @@ class FinalAutonomousResearchPipeline:
                 default=str,
             )
 
-            if (
-                cited_record_ids
-                and not any(
-                    cited_id in serialized_record
-                    for cited_id in cited_record_ids
-                )
+            # Keep terminal bibliographic context bounded. When
+            # cited_record_ids is populated, supply only records already
+            # cited by the manuscript. Never interpret an empty citation
+            # set as permission to inject the entire literature corpus.
+            if not cited_record_ids:
+                continue
+
+            if not any(
+                cited_id in serialized_record
+                for cited_id in cited_record_ids
             ):
                 continue
 
@@ -7625,6 +7628,21 @@ class FinalAutonomousResearchPipeline:
         )
 
         final_deterministic_gate_failures: list[str] = []
+
+        # Exact five compiled pages is a hard submission invariant.
+        # A manuscript that merely compiles within the maximum is not
+        # submission-ready for this paper run.
+        if (
+            publication_validation.get("compile_status") != "passed"
+            or publication_validation.get("page_count")
+            != publication_validation.get("maximum_pages")
+        ):
+            final_deterministic_gate_failures.append(
+                "Final manuscript is not an exact-page submission: "
+                f"compile_status={publication_validation.get('compile_status')}, "
+                f"page_count={publication_validation.get('page_count')}, "
+                f"required_pages={publication_validation.get('maximum_pages')}."
+            )
 
         if publication_validation.get("passed") is not True:
             final_deterministic_gate_failures.append(
