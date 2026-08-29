@@ -1,0 +1,25 @@
+{
+  "summary": "Solid, well-executed confirmatory study with high reproducibility hygiene and a useful public artifact bundle; however the manuscript currently emphasizes provenance metadata over concise scientific exposition, omits a compact technical specification of the deterministic validator and its scoring rules, and does not explicitly connect the preregistered power assumptions to the observed ceiling effect. These issues must be fixed before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Insufficient in‑manuscript specification of the deterministic validator semantics and scoring rule used to produce the binary pass/fail outcomes (readers cannot verify construct validity from the paper text alone).",
+    "The preregistered power assumptions (used to choose N=300) are not explicitly reconciled with the observed baseline success rate ≈0.997; the manuscript does not clearly state that the observed ceiling undermines the preregistered sensitivity to detect the originally targeted effect size.",
+    "The manuscript contains extensive provenance and manifest metadata inline, which impairs readable, literature‑grounded scientific prose; essential scientific descriptions (validator spec, rationale for task difficulty, and concise related‑work comparisons) are partially obscured by provenance bookkeeping.",
+    "References and related‑work statements are currently generic (e.g., “surveys & empirical reports”) rather than explicit, verified citations with brief statements of how each cited work relates to this study’s gap and contribution."
+  ],
+  "required_revisions": [
+    "Add a concise, self‑contained description (in the main text, ≤1 paragraph) of deterministic_netops_validator_v5 semantics and the precise scoring rule used for binary pass/fail (e.g., what constraints are checked, how required sequences are enforced, tie‑breaking, normalization steps). Use the archived validator artifacts (execution/scoring/*.json) to supply exact wording; do not require new computations.",
+    "Explicitly reconcile the preregistered power assumptions with the observed outcomes: state the preregistered power calculation assumptions (baseline p0 range and targeted effect size), report the observed baseline success rate (299/300), and explicitly explain that this ceiling effect invalidates the originally planned sensitivity to detect the preregistered effect. This is a disclosure/interpretation edit that must reference the preregistration and the analysis artifacts (analysis/condition_summary.csv, analysis/paired_contingency_table.csv).",
+    "Replace excessive inline provenance and raw manifest fragments with concise narrative references. Move long provenance listings and raw hashes to a single, clearly referenced artifact manifest entry (cite execution_manifest.json and its path) and in‑text use short concise statements (e.g., “artifacts archived; manifest at execution_manifest.json”). Ensure the main narrative focuses on method, rationale, results, interpretation, and limitations rather than manifest bookkeeping.",
+    "Improve the Related Work section by replacing generic phrases with explicit, verified citations (use the provided verified bibliography records) and 1–2 sentences per closest prior work explaining how that work differs from or motivates the present benchmark/preregistered design. Ensure each cited reference in the body has a matching bibliographic entry in the references list (use the archived BibTeX)."
+  ],
+  "optional_revisions": [
+    "If space allows, include the archived figures (paired_difference_figure.svg, condition_summary figure, and difficulty histogram) inline to aid interpretation; these files are available in the analysis/artifacts bundle.",
+    "Add a brief table or boxed paragraph that summarizes task‑generator difficulty metadata (counts per difficulty level) using task_manifest entries to make the ceiling discussion concrete; this is optional but would strengthen the interpretation.",
+    "Add a short paragraph in Discussion that outlines exact next steps the archived bundle enables (e.g., how others can extend with stateful validators or multi‑model evaluations) to better position the contribution for community uptake."
+  ],
+  "accept_for_finalisation": false
+}

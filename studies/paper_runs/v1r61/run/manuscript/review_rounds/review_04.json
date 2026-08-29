@@ -1,0 +1,25 @@
+{
+  "summary": "This submission preregistered, executed, and archived a sealed synthetic NetOps benchmark, a deterministic validator, and a paired confirmatory comparison of a generate–validate–repair (GVR) pipeline versus a frozen single‑pass LLM (declared gpt-5-mini) on N=300 intent→configuration tasks. The run completed as preregistered; baseline pass = 299/300, guarded pass = 300/300; McNemar two‑sided p = 1.0 and paired bootstrap 95% CI [0.00,0.01]. The manuscript is transparent about the null/ceiling result, preserves rich execution artifacts, and documents preregistration and provenance. Overall the work is methodologically careful and reproducible, but the paper currently omits a few concise artifact‑trace disclosures and per‑task summary values that are required for verification and reader interpretation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Key per‑task artifact identifiers and explicit hashes needed to verify the single repair invocation and the single baseline failure are not presented verbatim in the manuscript body (they are present in the archived bundle). Without explicit task/trace identifiers the reader must re‑open the archive to verify the unusual execution accounting (repair invoked once).",
+    "The manuscript claims determinism of the shared initial generation but does not include the authoritative execution file SHA values for key artifacts (execution/raw_results.jsonl and execution/model_configuration.json) within the Disclosure Statement; including these would substantiate reproducibility claims inside the five‑page paper.",
+    "The preregistered power calculation assumed a larger baseline failure rate; the manuscript does not explicitly state how the observed baseline success rate (299/300) undermined the planned power assumptions with a clear, quantitative disclosure (the ceiling effect is discussed but should be reported precisely)."
+  ],
+  "required_revisions": [
+    "Include in the Disclosure (within the five pages) the task identifier and SHA‑256 of the single repair provider trace (the provider_calls file for the sole repair invocation) so readers can directly verify the repair episode from the archived bundle (artifact exists in execution/provider_calls/ and is indexed in execution/execution_manifest.json).",
+    "Include verbatim the task identifier and the validator diagnostic excerpt (validator decision, violation_codes if any, parsed_command_count, required_command_count) for the single baseline failure episode (the execution/scoring/*.json entry) so readers can examine the discordant case without re‑parsing the full archive.",
+    "Add a concise table or one short paragraph giving the counts of tasks by declared difficulty level (e.g., level counts: easy/medium/hard/very_hard) drawn directly from execution/task_manifest.jsonl and cite the artifact hash for that manifest. This supports the claims about ceiling effects and task mix.",
+    "Explicitly state (in Results or Limitations) that the observed baseline success rate was 0.9967 (299/300), note that this deviates from the preregistered power assumptions (target effect 0.10), and state that this deviation undermines the planned confirmatory power (ceiling effect). No new statistical computation is required—use the observed counts already archived.",
+    "Add the SHA‑256 values for execution/raw_results.jsonl and execution/model_configuration.json into the Disclosure Statement so the paper contains authoritative pointers to the execution artifacts cited in the narrative (these SHA values are present in the archived manifest)."
+  ],
+  "optional_revisions": [
+    "Shorten provenance‑heavy paragraphs in the main text and move detailed artifact‑manifest lists to a tightly worded single paragraph in the Disclosure to improve narrative flow (maintain all artifact pointers/hashes in the archive).",
+    "Discuss in more detail (brief paragraph) alternative experimental choices (non‑shared initial generation, larger repair budgets, multi‑generation baseline) and explicitly map which archived artifacts would be reused for each extension to help readers reproduce follow‑on experiments.",
+    "Add a brief sentence clarifying provider deterministic sampling mode and how seeding/deterministic adapter semantics were enforced across hosted provider calls (cite execution/provider_call_audit and the model_configuration artifact)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,127 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "ac-2026-001",
+      "title": "Evaluating adversarial robustness of prompt‑hardening and validator‑guided repair for LLM‑generated NetOps changes",
+      "research_question": "How effective are prompt‑hardening templates and a validator‑guided repair loop at preventing adversarial prompt‑injection and jailbreak attacks from producing unsafe or non‑compliant network configurations produced by a frozen LLM?",
+      "hypotheses": [
+        "Prompt‑hardening templates embedded in the user prompt reduce adversarial attack success rate relative to unguarded single‑pass generation.",
+        "Adding a deterministic validator check (requirement that outputs satisfy machine‑checkable correctness) further reduces attack success versus prompt‑hardening alone.",
+        "A short, bounded repair loop (up to 3 iterations) guided by validator failure traces reduces residual successful attacks and yields diminishing returns after 2–3 iterations."
+      ],
+      "proposed_design": "Construct an adversarial corpus of N=200 targeted attacks adapted from known jailbreak/prompt‑injection techniques (context poisoning, hidden instructions, conflicting intent). Use a frozen hosted LLM (single model) and run three paired conditions per attack: (A) unguarded single‑pass generation, (B) prompt‑hardening where the generation prompt includes explicit hardening templates and a mandatory validator‑check instruction, and (C) prompt‑hardening plus a validator‑guided repair loop up to 3 iterations. Use a deterministic network validator (machine‑checkable rules: syntax, vendor parsing, reachability/isolation properties via Header Space Analysis–style checks) to label outputs unsafe/non‑compliant. Include a set of benign control prompts. Log full traces including attack prompt, all LLM outputs, validator traces, repair prompts, iteration counts, and timestamps. Predefine seeds, retry policy (only for infrastructure failures), and α=0.05 for confirmatory tests.",
+      "expected_data": "Per attack and condition: attack prompt text; LLM output(s) per iteration; deterministic validator classification (unsafe/compliant) with failure traces; binary attack success flag (validator flagged unsafe) per iteration; number of repair iterations; runtime and model‑call counts; benign control results; full trace logs and hashes.",
+      "primary_outcome": "Adversarial attack success rate (proportion of attacks producing validator‑flagged unsafe outputs) for each condition (A, B, C) measured on the N=200 corpus.",
+      "analysis_outline": "Treat each attack as a paired binary outcome across conditions. Use McNemar's test to compare success rates between (A vs B) and (B vs C). Compute risk ratios and absolute reduction in attack success with 95% CIs. Adjust for multiple comparisons across attack categories using Benjamini–Hochberg where applicable. Report per‑vector residual successful attacks and perform qualitative categorization of bypass mechanisms. Report model‑call cost per condition and tradeoffs (utility vs safety). Predefine α=0.05.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6956641"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4391107732"
+      ],
+      "risks": [
+        "Adversarial corpus may not capture all real‑world attack creativity (coverage gap).",
+        "Deterministic validator may have false negatives, underestimating attack success.",
+        "Hardening templates may overconstrain generation, reducing operational utility and increasing edit cost.",
+        "Ethical risk from constructing adversarial examples; release must omit exploit enabling details and follow responsible disclosure."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "ac-2026-002",
+      "title": "Scaling generate–validate–repair: reliability of LLM‑assisted NetOps across multi‑vendor topologies",
+      "research_question": "Does a generate–validate–repair (GVR) pipeline maintain high correctness and bounded repair iterations as topology complexity and vendor heterogeneity increase (small→medium→large multi‑vendor networks)?",
+      "hypotheses": [
+        "A frozen LLM single‑pass generation will have decreasing validator‑pass rates as topology size and vendor heterogeneity increase.",
+        "A GVR pipeline that applies deterministic validation and localized repair will substantially improve final validator‑pass rates over single‑pass generation across all topology sizes, but absolute performance will degrade with scale.",
+        "The number of required repair iterations and the residual failure modes will increase with topology complexity and vendor heterogeneity, exposing systematic scalability limits of the pipeline."
+      ],
+      "proposed_design": "Synthesize a task set of intent→configuration problems across three topology scales: small (5 devices), medium (15 devices), large (50 devices). For each topology include mixed vendor syntaxes (Cisco IOS, Juniper Junos, Arista EOS) with realistic routing/policy intents (reachability, isolation, access control). Use a frozen hosted LLM to generate initial configurations from natural‑language intent. Apply a deterministic validator (syntax checking, vendor parsing, Header Space Analysis–style reachability and ACL checks) to detect violations. Implement a localized repair policy that issues targeted repair prompts to the LLM up to 3 iterations. For each task record initial pass/fail, repair iterations, final pass/fail, and runtime. Compare single‑pass baseline to GVR pipeline on identical tasks; predefine seeds and retry policy.",
+      "expected_data": "Per task: intent text, initial LLM output, validator result and failure traces, repair prompts and subsequent outputs, number of repair iterations, final validator result, runtime, model‑call counts, and task metadata (topology size, vendor mix, intent type). Aggregate pass rates, per‑intent failure types, and resource usage.",
+      "primary_outcome": "Proportion of tasks passing the deterministic validator after up to 3 repair iterations for each topology scale and vendor mix (GVR pipeline) compared to single‑pass generation.",
+      "analysis_outline": "Use paired comparisons (each task evaluated under both methods). Model validator‑pass probability with mixed‑effects logistic regression (fixed effects: method, topology size, vendor heterogeneity; random effect: task). Test interaction effects (method × topology size). Report absolute and relative improvements with 95% CIs. Analyze repair iteration counts with Poisson or negative binomial regression. Qualitatively categorize residual failure modes and report scalability thresholds where performance degrades materially. Predefine α=0.05 and correct for multiple subgroup analyses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4389713946",
+        "https://openalex.org/W4404652946"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4404652946",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "Synthesized vendor configurations may not capture all production edge cases (external validity).",
+        "Validator completeness limits (e.g., stateful behaviors) may produce false assurances.",
+        "Compute and model‑call costs may be high for large topologies.",
+        "Repair prompts could introduce divergent vendor‑specific idioms causing new errors."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "ac-2026-003",
+      "title": "A public benchmark dataset and machine‑checkable validator suite for reproducible evaluation of LLM‑driven NetOps",
+      "research_question": "Can a standardized, public dataset that couples realistic topologies, gold intent→configuration mappings, and deterministic correctness specifications increase reproducibility and discriminatory power of evaluations for LLM‑driven NetOps methods?",
+      "hypotheses": [
+        "A public, machine‑checkable benchmark will increase inter‑run reproducibility (measured by intraclass correlation or equivalent) compared to ad‑hoc task sets.",
+        "The benchmark will reveal method differences (single‑pass LLM vs GVR pipeline vs constrained templates) with greater statistical power than existing informal task collections.",
+        "Publishing validator artifacts and gold traces will enable reproducible failure analysis and reduce ambiguity in reported correctness metrics across research groups."
+      ],
+      "proposed_design": "Design and release a public benchmark: N=300 intent→configuration tasks spanning varied topologies, vendor mixes, and intent categories (reachability, isolation, ACLs, route policies). For each task provide: topology files (synthetic but realistic), canonical gold configurations, machine‑checkable correctness specifications (reachability matrices, isolation pairs, ACL expectations) implementable by deterministic validators, and execution scripts. Run baseline experiments with a frozen LLM single‑pass, a GVR pipeline, and a constrained‑template generator to produce baseline scores and inter‑run reproducibility checks (repeat runs with fixed seeds and across two independent compute instances). Publish artifacts, validator code, and hashes to enable reproducibility. Include a license and responsible‑disclosure plan for avoiding release of sensitive operator data.",
+      "expected_data": "Benchmark artifact files (topologies, intents, gold configs, validators), baseline model outputs, validator pass/fail matrices, inter‑run reproducibility statistics (ICC or kappa), method score distributions, and execution manifests with hashes.",
+      "primary_outcome": "Reproducibility score (intraclass correlation coefficient or Cohen’s kappa for binary validator pass) across independent runs and discriminatory power measured by ANOVA or equivalent variance explained between methods.",
+      "analysis_outline": "Compute ICC or Cohen’s kappa for validator outcomes across repeated runs to quantify reproducibility. Use ANOVA or Kruskal–Wallis to test for score differences between methods and compute effect sizes. Provide per‑task and per‑intent failure rate summaries and cluster methods by failure patterns. Release artifact hashes and metadata to verify reproducibility claims. Predefine α=0.05 for confirmatory tests.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404652946"
+      ],
+      "risks": [
+        "Dataset construction choices may bias evaluation toward certain methods (benchmark overfitting).",
+        "Public release must avoid real customer data; synthetic realism may still omit critical production artifacts.",
+        "Maintenance and community adoption challenges may limit long‑term utility.",
+        "Validators may oversimplify stateful or temporal behaviors, limiting coverage."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "ac-2026-004",
+      "title": "Quantifying operator acceptance and rollback decisions for LLM‑generated network changes",
+      "research_question": "Does augmenting LLM‑generated NetOps change proposals with deterministic‑validator evidence and calibrated confidence metrics increase operator acceptance and reduce rollback rates in a simulated operational workflow?",
+      "hypotheses": [
+        "Operators (or validated expert proxies) accept LLM proposals more often when proposals include deterministic validator traces and explicit calibrated confidence metadata than when proposals are presented without such augmentation.",
+        "Augmented proposals lead to lower simulated rollback rates after sandbox execution compared to unaugmented proposals.",
+        "There exists a threshold of validator evidence and confidence above which marginal acceptance gains diminish (diminishing returns)."
+      ],
+      "proposed_design": "Produce M=120 change proposals across low/medium/high difficulty intents using a frozen LLM. For each proposal generate two presentation formats: (1) bare proposal (configuration + natural‑language plan) and (2) augmented proposal (configuration + plan + deterministic validator trace + calibrated confidence score). Recruit network operators where available or use a validated expert‑proxy scoring protocol if live humans are not permitted; use a paired design where each reviewer evaluates both formats for the same proposals in randomized order with washout. Present reviewers with sandbox execution results (simulated) and record acceptance decisions, requested clarifications, time‑to‑decide, and simulated rollback decisions after execution. Predefine inclusion/exclusion rules, consent/ethics procedures if human participants are used, and stopping rules.",
+      "expected_data": "Per proposal and reviewer: acceptance decision (yes/no), time to decide, requested clarifications, simulated rollback decision after sandbox execution, confidence rating, reviewer expertise metadata, validator traces shown, and whether evidence changed the decision. Aggregate per‑proposal and per‑reviewer datasets and execution logs.",
+      "primary_outcome": "Operator acceptance proportion comparing augmented versus bare presentation (paired comparison); secondary outcome: simulated rollback proportion after execution.",
+      "analysis_outline": "Use McNemar's test for paired binary acceptance outcomes. Fit a mixed‑effects logistic regression for acceptance probability (fixed effect: augmentation; random effects: reviewer and proposal). Analyze time‑to‑decision with paired t‑test or Wilcoxon signed‑rank test. Report effect heterogeneity by proposal difficulty and reviewer expertise. Predefine α=0.05 and report effect sizes with 95% CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404652946"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4415071524"
+      ],
+      "risks": [
+        "Human participant recruitment constraints or IRB‑equivalent requirements may limit sample size.",
+        "Expert‑proxy scoring may not perfectly emulate operational decisions (construct validity threat).",
+        "Sandbox simulator fidelity may not capture rare rollback triggers (external validity).",
+        "Providing confidence scores risks operator overreliance if scores are miscalibrated."
+      ],
+      "estimated_model_calls": 600
+    }
+  ]
+}

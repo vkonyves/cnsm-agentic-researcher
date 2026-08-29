@@ -1,0 +1,31 @@
+{
+  "study_id": "ac-2026-003-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Run paired_binary_analysis_v1 on execution/raw_results.jsonl (schema paired_binary_episode_v1 v1.0) to compute the preregistered estimand paired_success_rate_difference_guarded_minus_baseline on the completed paired dataset (N=300 completed pairs; completed_episode_count=600). Use the preregistered primary failed_call_treatment 'complete_pair_primary'. Two‑sided test at α=0.05. Report observed paired difference, 95% confidence interval, two‑sided p‑value, and the preregistered effect‑size measure. All inputs (seeds, task_manifest, model_configuration, execution_log) from execution/*.jsonl are used verbatim.",
+  "secondary_analyses": [
+    "per_task_failure_rate_guarded — compute guarded condition validator failure proportion (overall and stratified by intent cluster: reachability,isolation,ACLs,route policies) from execution/raw_results.jsonl (exploratory).",
+    "per_task_failure_rate_baseline — compute baseline condition validator failure proportion (overall and stratified by intent cluster) from execution/raw_results.jsonl (exploratory).",
+    "effect_size_Cohen_h_equivalent_for_paired_proportions — compute the preregistered effect‑size equivalent for paired proportions (exploratory).",
+    "per‑cluster paired differences (exploratory) — compute paired estimand within each intent cluster (75 tasks per cluster); label exploratory.",
+    "failure‑pattern clustering (exploratory) — cluster validator/canonicalizer diagnostics and repair invocation patterns from execution/raw_results.jsonl for qualitative failure‑mode analysis."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity — recompute primary estimand treating any missing/failed model call as validator failure (0) as preregistered sensitivity.",
+    "(Exploratory) report effect on primary estimand when excluding tasks flagged as 'ambiguous_specification' or excluded per contamination rules (items and reasons taken from execution/execution_log.jsonl)."
+  ],
+  "uncertainty_quantification": "Report 95% confidence interval for the paired difference, two‑sided p‑value (α=0.05), and the preregistered effect‑size measure. Uncertainty summaries are produced by the registered analysis executor using the sealed analysis code and recorded seeds/manifests.",
+  "multiplicity_implementation": "Single pre‑specified primary confirmatory hypothesis (H1) — no multiplicity correction for the primary test per preregistration. All other comparisons are explicitly exploratory; when multi‑comparison adjustment is reported for exploratory contrasts, use Holm–Bonferroni and label results as exploratory.",
+  "contamination_analysis": "Deterministic redaction pipeline and static private‑data regex checks were applied as preregistered; exclusions and re‑generation events are recorded in execution/execution_log.jsonl and task_manifest. SHA‑256 artifact hashing is recorded (preregistration_sha256 present; artifact_hashes_total_count=2108). Items matching blacklisted patterns or returning 'ambiguous_specification' are excluded from the confirmatory set and recorded with hashes and reasons in the execution manifest (no manual adjudication).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Confirmatory paired results — N_pairs=300, baseline_pass_rate, guarded_pass_rate, paired_difference (guarded−baseline), 95% CI, two‑sided p‑value, effect_size. Source: execution/raw_results.jsonl and execution/result_schema.json.",
+    "Table 2: Per‑cluster summary — for each intent cluster (reachability,isolation,ACLs,route policies): N, baseline_pass_rate, guarded_pass_rate, paired_difference, per‑cluster diagnostics. Source: execution/raw_results.jsonl and execution/task_manifest.jsonl.",
+    "Table 3: Failure diagnostics and repair usage — counts by validator/canonicalizer failure code, guarded_repair_invocations (0|1), timestamps, and SHA‑256 artifact references. Source: execution/raw_results.jsonl and execution/execution_log.jsonl."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of pass rates (baseline vs guarded) overall and by intent cluster. Source: execution/raw_results.jsonl.",
+    "Figure 2: Heatmap of failure‑mode counts by intent category and failure code (stacked by method). Source: execution/raw_results.jsonl.",
+    "Figure 3 (exploratory): Distribution of synthetic topology metrics used in tasks (device count, link density) with comparison ticks to referenced public corpus metrics (coverage report). Source: execution/task_manifest.jsonl and public_resources listed in preregistration."
+  ]
+}

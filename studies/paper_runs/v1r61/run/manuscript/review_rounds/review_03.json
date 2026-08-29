@@ -1,0 +1,26 @@
+{
+  "summary": "Careful, well‑executed preregistered benchmark study that honestly reports a ceiling outcome and supplies comprehensive archival artifacts. The work fills a reproducibility gap by providing a sealed task generator, deterministic validator, and execution/analysis bundle; however, manuscript needs concise clarifications (task difficulty summary and the single failure case), explicit generation/determinism details, and clearer description of the shared‑initial design and repair trigger so readers can judge construct validity and reproducibility without inspecting external artifacts.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Insufficient in‑manuscript reporting of task difficulty distribution and the single baseline failure case; current text refers to archival artifacts but does not present minimal summary evidence needed to interpret the ceiling effect.",
+    "Unclear description of model generation determinism and sampling settings (temperature, sampling/deterministic mode, seeding) that are necessary to reproduce identical shared initial generations across baseline and guarded conditions.",
+    "Shared‑initial paired design and repair trigger policy materially constrained GVR engagement (repair stage executed once). The manuscript needs a clearer, explicit justification and discussion of how this design choice affects the confirmatory hypothesis and inference.",
+    "Repair invocation details are not described in the paper: the one repair call’s prompt/trace and the repair trigger logic should be summarized in‑paper (even if full traces remain in the archive) so readers can evaluate the repair policy’s practical behavior."
+  ],
+  "required_revisions": [
+    "Add a concise in‑manuscript summary (single paragraph or a small table/figure) showing task difficulty distribution (counts by difficulty level) across the N=300 tasks and include the identifier and validator diagnostic for the single baseline‑failed task (task id, score_reason_code, validator violation fields). These values must be taken from the archived execution/task_manifest.jsonl and execution/scoring/*.json and quoted exactly.",
+    "Explicitly state model generation settings in the Methods (temperature, max tokens, top_k/top_p or policy used, and whether generation was deterministic), and cite the execution/model_configuration.json entry. Explain how identical shared initial outputs were enforced/expected between baseline and guarded (e.g., caching, single shared call, seeds, or provider determinism).",
+    "Expand the Methods paragraph that motivates and justifies the shared‑initial paired design and the preregistered repair budget/trigger policy. Explain (briefly) how this design isolates repair effectiveness and how it also limits GVR engagement when baseline already passes the validator.",
+    "Summarize the repair trigger logic and the content/location of any repair prompt(s) used. For the single repair call that occurred, report (in the paper) the repair provider trace path/sha256 (already archived) and a brief description of the repair action and why it was triggered. If the repair prompt is sensitive, include a short non‑sensitive synopsis and point to the archived trace for full details."
+  ],
+  "optional_revisions": [
+    "Include the paired 2×2 contingency table and the exact McNemar test result as a small inline table (if not already present) to make the primary inference immediately visible without opening artifacts.",
+    "Add one representative example (short) of an intentionally harder synthetic task from the manifest as an appendix paragraph (within page limit) to illustrate the task encoding format and validator constraints.",
+    "Replace or supplement OpenAlex/identifier citations in the Related Work with conventional author–year venue citations where possible (for reader convenience), while retaining the verified reference list in the archive.",
+    "Briefly discuss in Conclusion concrete next steps (e.g., increasing repair budget or using stateful/emulated validators) and point readers to exact artifact paths needed to run such follow‑ups."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,102 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "ac-2026-001",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Deterministic validator completeness: false negatives could understate attack success.",
+        "Adversarial corpus coverage may miss realistic, creative attack variants.",
+        "Single frozen LLM (single-model) limits generality of conclusions across models/vendors.",
+        "Ethical risks from publishing exploit details; responsible‑disclosure plan must be explicit.",
+        "Definition of “unsafe/non‑compliant” requires rigorous, machine‑checkable specification to avoid ambiguity."
+      ],
+      "required_design_repairs": [
+        "Validate and document validator coverage (unit tests, known‑case detection rates) and quantify expected false‑negative rates.",
+        "Expand or justify adversarial corpus construction (attack taxonomy, sampling strategy) and include held‑out novel attacks for evaluation robustness.",
+        "Either include at least one additional model or explicitly bound claims to the tested model and discuss generalization limits.",
+        "Add a clear responsible‑disclosure policy and redact actionable exploit details in public artifacts.",
+        "Provide precise operational definitions for unsafe/non‑compliant outputs and examples; include inter‑annotator checks if human labeling used."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "ac-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Synthetic topologies may not capture production edge cases (external validity).",
+        "Deterministic validators may not model stateful or temporal behaviors, risking overconfident pass rates.",
+        "Compute and runtime for large (50‑device) topologies and Header‑Space‑style analyses may be high; bottlenecks need quantification.",
+        "Localized repair prompts can introduce vendor‑specific idioms causing new errors; cascading failure modes need monitoring."
+      ],
+      "required_design_repairs": [
+        "Describe and validate topology synthesis method; include metrics comparing synthetic topologies to real traces or public topology corpora.",
+        "Specify validator coverage and limitations (stateless vs stateful behaviors), include test suite for validator correctness.",
+        "Define compute budget, per‑task timeout, and failure modes; provide backstop strategy if HSA analyses exceed runtime limits.",
+        "Provide explicit mitigation for repair‑induced vendor divergence (e.g., vendor‑aware prompt templates and post‑repair vendor‑consistency checks).",
+        "Include power/sample‑size justification or simulation showing expected detectable effect sizes given planned N per scale."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "ac-2026-003",
+      "novelty": 0.9,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.9,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Benchmark design choices can bias toward certain methods (benchmark overfitting).",
+        "Synthetic realism vs real operator data: risk of missing production artifacts.",
+        "Public release requires rigorous redaction/licensing to avoid exposing sensitive operational data.",
+        "Validators may oversimplify stateful or temporal properties, limiting coverage."
+      ],
+      "required_design_repairs": [
+        "Provide a clear, reproducible topology and intent generation protocol and report coverage metrics (diversity, complexity).",
+        "Include validator test‑suite with coverage reports and known‑case detection rates; document limitations (statefulness, timing).",
+        "State licensing, redaction, and responsible‑release policy; include artifact hashes and reproducibility scripts.",
+        "Provide baseline results and exact runbooks for reproducibility (containerized environments, seeds, host‑API versions).",
+        "Add guidance for community adoption and maintenance (versioning, issue tracker, governance)."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "ac-2026-004",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Planned human‑operator recruitment conflicts with capability_manifest constraints disallowing human scientific labour; feasibility depends on validated expert‑proxy approach.",
+        "IRB/ethics and consent procedures are underspecified and may block execution.",
+        "Construct validity: expert‑proxy scoring may not faithfully reproduce operator decisions.",
+        "Sandbox simulator fidelity may miss rollback triggers, affecting external validity.",
+        "Calibration and interpretability of presented confidence metrics must be validated to avoid overreliance."
+      ],
+      "required_design_repairs": [
+        "If live operators are not permitted, specify and validate an expert‑proxy procedure (how proxies are selected, validated against real operators, and limitations).",
+        "Include a concrete IRB/ethics plan or, if human subjects are excluded, adapt protocol to a fully simulated/evaluation proxy workflow and justify construct validity.",
+        "Describe sandbox fidelity and include stress tests showing simulator captures rollback‑relevant failures.",
+        "Provide calibration procedure for confidence metrics (e.g., reliability diagrams, Brier score) and evaluate their trustworthiness before use.",
+        "Predefine reviewer sampling, washout/randomization, and pre‑registered analysis to improve reproducibility and reduce bias."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

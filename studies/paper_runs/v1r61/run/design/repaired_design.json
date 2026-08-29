@@ -1,0 +1,157 @@
+{
+  "selected_candidate_id": "ac-2026-003",
+  "title": "A public benchmark dataset and machine‑checkable validator suite for reproducible evaluation of LLM‑driven NetOps",
+  "research_question": "Can a standardized, public dataset that couples realistic synthetic topologies, canonical intent→configuration mappings, and deterministic correctness specifications enable a paired, machine‑checkable confirmatory comparison (GVR pipeline vs single‑pass LLM) that (a) detects method differences and (b) produces reproducible binary pass/fail outcomes under fixed seeds?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory, primary): The GVR (generate–validate–repair) pipeline produces a higher per‑task validator pass rate than a frozen single‑pass LLM when evaluated on the same N=300 intent→configuration tasks (estimand: paired_success_rate_difference_guarded_minus_baseline; two‑sided α=0.05)."
+  ],
+  "exploratory_questions": [
+    "E1: How does inter‑run variability (fixed seeds, independent compute instances) affect per‑task binary validator outcomes (exploratory reproducibility analysis; reported but not confirmatory because no registered ICC executor is available).",
+    "E2: How do failure patterns cluster across intent categories (reachability, isolation, ACLs, route policies) and across methods (GVR, single‑pass, template) — used for qualitative/failure‑mode analysis and benchmark guidance.",
+    "E3: How well do synthetic topology diversity metrics cover features observed in selected public topology corpora (coverage/diversity report automated as part of release; exploratory comparison only)."
+  ],
+  "benchmark_scope": [
+    "Intent categories: reachability, isolation, ACLs, route policies",
+    "Synthetic topologies: device counts 3–50, multi‑vendor device models (abstracted), link density and path diversity ranges",
+    "Validator semantics: deterministic, snapshot (stateless) checks expressible as reachability matrices and ACL acceptance/denial expectations",
+    "Public artifacts only (synthetic generation; no customer private data)"
+  ],
+  "model_scope": [
+    "hosted_llm_api_v1 (single confirmed hosted LLM via capability_manifest) — confirmatory claims are explicitly bounded to the tested hosted model and the GVR orchestration described below",
+    "constrained_template_generator (exploratory, CPU deterministic templating; optional, no confirmatory claims)"
+  ],
+  "transformation_scope": [
+    "topology_synthesis (seeded generator producing topology files and device abstracts)",
+    "intent_generation (seeded sampler mapping intents to topology targets)",
+    "canonicalization (normalise configuration formatting and vendor idioms deterministically)",
+    "validator_execution (deterministic, machine‑checkable validators producing binary pass/fail outcomes)",
+    "repair_iteration (GVR repair prompt calls limited to ≤2 automated repair attempts per task)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per_task_failure_rate_guarded",
+    "per_task_failure_rate_baseline",
+    "effect_size_Cohen_h_equivalent_for_paired_proportions (exploratory)"
+  ],
+  "sampling_plan": "Confirmatory paired design with N=300 unique intent→topology tasks. Tasks are divided into 4 equal intent clusters: reachability, isolation, ACLs, route policies. Tasks per cluster = 300/4 = 75. For each task the confirmatory execution runs two methods (baseline single‑pass LLM; guarded GVR pipeline) on the same task instance and seed to produce paired binary validator outcomes. Total confirmatory model outputs = 2 methods × 300 tasks = 600 paired outputs. The per‑task LLM call budget is estimated as: baseline single‑pass = 1 LLM call; GVR pipeline = up to 3 LLM calls (1 generate + up to 2 repair iterations). Total planned LLM calls (confirmatory) = baseline: 300×1 = 300; guarded: 300×3 = 900; confirmatory total = 1,200 LLM calls. Exploratory constrained‑template generator (if exercised) is optional and will be run on held‑out tasks only (not included in confirmatory paired set) to avoid multiplicity inflation.",
+  "analysis_plan": "Primary confirmatory analysis executed by the registered executor 'paired_binary_analysis_v1' computing the estimand 'paired_success_rate_difference_guarded_minus_baseline' on the 300 paired binary outcomes with α=0.05. The executor will be run under two failed_call_treatments pre‑registered: (1) complete_pair_primary (exclude technical failures only where both paired calls are missing), and (2) complete_pair_primary_with_failure_as_zero_sensitivity (treat missing/failed model outputs as validator failure) as a sensitivity analysis. Report observed paired difference, 95% confidence interval from the registered executor, p‑value, and effect size. Secondary/exploratory analyses: per‑cluster summaries, failure‑pattern clustering, and reproducibility/descriptive statistics for repeated runs (ICC and inter‑run agreement reported descriptively; exploratory because no registered ICC executor is available). All analysis code, seeds, and execution manifests will be published in container images with pinned dependency versions.",
+  "multiplicity_plan": "Single pre‑specified primary confirmatory hypothesis (H1). All other comparisons are explicitly exploratory. No multiplicity correction required for the primary test. Exploratory multi‑method comparisons will be reported with descriptive statistics and clearly labeled as exploratory; where formal multiple comparisons are reported, Holm–Bonferroni adjustment will be applied and indicated.",
+  "missingness_plan": "Timeouts or API failures that prevent obtaining a model output for a paired task will be treated according to the two pre‑registered treatments used by the analysis executor: primary (complete_pair_primary) excludes pairs with both outcomes missing and requires a minimum of 90% paired completion (i.e., ≥270 completed pairs) for confirmatory inference; sensitivity (complete_pair_primary_with_failure_as_zero_sensitivity) treats missing/failed model calls as validator failure (0). All technical failures, retries, and their timestamps will be recorded in the execution manifest; retry policy: one automated retry for transient provider errors within 60s, otherwise mark as failed and proceed per failed_call_treatment.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "CNSM26-NetOpsBench-v1 (this project)"
+    ],
+    "risk_factors": [
+      "Unredacted synthetic artifacts accidentally containing private operator identifiers or real configuration snippets",
+      "Leakage of exploit‑style testcases that could be reused for harm",
+      "Cross‑run state or provider caching affecting reproducibility"
+    ],
+    "detection_procedures": [
+      "Deterministic redaction pipeline applied to all generated files (regex‑based removal of IP addresses, hostnames, ASNs followed by strict allowlist patterns)",
+      "Artifact hashing (SHA‑256) and manifest generation recorded for every released file",
+      "Automated static analysis checks that compare generated topology/config tokens against regexes of private data (fail build if matched)"
+    ],
+    "item_flagging_rules": [
+      "If any artifact matches blacklisted regexes (e.g., real email domains, contiguous IPv4 ranges reserved to customers), the artifact is excluded automatically and the generation re‑run with a new seed",
+      "If validator discovers ambiguous specification (validator cannot decide pass/fail deterministically), the item is marked 'specification_ambiguous' and excluded from confirmatory set (keeps exploratory logs)"
+    ],
+    "analysis_treatment": "Items excluded by deterministic redaction or ambiguity rules are removed from confirmatory N and reported in the execution manifest with reasons. All exclusions and hashes are published. No manual adjudication procedures are used.",
+    "residual_uncertainty": [
+      "Deterministic redaction may have false negatives for novel private formats (mitigated by conservative allowlists and multiple regex passes).",
+      "Validator ambiguity exclusions may bias the confirmatory set toward simpler stateless checks (documented and reported)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_recommended",
+      "description": "Recommended (balanced) — confirmatory paired design N=300, GVR (≤2 repairs) vs single‑pass. Focuses on primary hypothesis while enabling reproducibility artifacts and containerized runbooks.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted_llm_api_v1"
+      ],
+      "transformations": [
+        "topology_synthesis",
+        "intent_generation",
+        "canonicalization",
+        "validator_execution",
+        "GVR_repair_iteration_up_to_2"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Planned LLM calls (1,200) are within the capability_manifest model call limit (≤10,000). CPU execution and container packaging for validators is supported; no human labour or private datasets required."
+    },
+    {
+      "scenario_id": "scenario_reduced",
+      "description": "Reduced (resource‑constrained) — N=150 confirmatory paired tasks for quicker runs and lower API cost; all other procedures identical.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted_llm_api_v1"
+      ],
+      "transformations": [
+        "topology_synthesis",
+        "intent_generation",
+        "canonicalization",
+        "validator_execution",
+        "GVR_repair_iteration_up_to_2"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 150,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Halves calls/cost. Suitable as backstop if API rate limits or budget constraints require downscaling; preserves paired design and analysis compatibility."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect a 10 percentage‑point absolute increase in per‑task pass rate (e.g., baseline p0=0.50 to guarded p1=0.60) with two‑sided α=0.05",
+    "clustering_unit": "task (intent→topology instance); paired within‑task comparison across methods",
+    "calculation_method": "Approximate paired proportions power calculation (two‑sided test on paired binary outcomes). Using conservative baseline p0=0.5 and discordant‑pair assumptions consistent with prior LLM NetOps literature, N=300 yields ≈80% power to detect a 0.10 absolute paired difference under typical discordance rates (documented in preregistration code).",
+    "assumptions": [
+      "Baseline single‑pass success rate ≈0.4–0.6 (literature guided); guarded pipeline increases success by ≈0.10 in expectation",
+      "Discordant pair fraction sufficient to observe change (no near‑perfect agreement)",
+      "Minimum paired completion required: 90% (≥270 pairs)"
+    ],
+    "recommended_scenario_id": "scenario_recommended",
+    "minimum_detectable_effect_notes": "With N=300 and conservative discordance assumptions, minimum detectable paired absolute difference ≈0.08–0.12 (details and exact calculation scripts published in preregistration).",
+    "sensitivity_analyses": [
+      "Recompute power under baseline p0 in {0.3,0.4,0.5,0.6}",
+      "Sensitivity to treating failed calls as zero (use pre‑registered failed_call_treatments from analysis executor)"
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "format_canonicalization (YANG/IOS/XR/JunOS abstractions)",
+      "semantic_normalization (canonical ACL/order normalization)",
+      "validator_execution (stateless deterministic checks)",
+      "repair_effect_assessment (semantic equivalence vs gold)"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic comparison: canonicalized generated config hashed and diffed against gold where full equivalence expected (certain intents)",
+      "Behavioral equivalence: run validator reachability matrices on both gold and generated configs and require exact match of binary expectations"
+    ],
+    "automatic_rejection_rules": [
+      "If canonicalizer fails to parse output into expected vendor/abstract device model, the item is flagged and excluded from confirmatory set automatically",
+      "If validator returns 'ambiguous_specification', task is moved to exploratory logs and excluded from confirmatory analysis"
+    ],
+    "audit_sample_policy": "Automated audit: randomly sample 5% of released artifacts for end‑to‑end canonicalization + validation re‑execution; publish audit logs and SHA‑256 hashes. No human audit is required or used.",
+    "mapping_validation": "Provide unit tests for canonicalizer and validator using a curated known‑case test suite (included in repository). Coverage reports (lines, branches) are generated and published as part of release.",
+    "residual_risks": [
+      "Validators are intentionally stateless snapshot checkers and will not cover temporal/stateful behaviors (documented limitation).",
+      "Canonicalization may not perfectly capture deep vendor semantics; known‑case unit tests and coverage reports will make limitations explicit."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Synthetic topology realism: despite a seeded synthesis protocol and automated coverage metrics versus selected public corpora, there remains noncritical uncertainty whether synthetic artifacts capture all production edge cases.",
+    "Validator coverage: deterministic, stateless validators intentionally exclude stateful/temporal behaviors (documented limitation; affects external validity but not ability to test the confirmatory paired hypothesis for stateless properties).",
+    "Benchmark overfitting risk: future community use could adapt to the benchmark; governance and versioning guidance is included but longer‑term adoption is uncertain.",
+    "Generalization across LLM vendors/models: confirmatory claims are explicitly bounded to the tested hosted model; cross‑model generality remains noncritical uncertainty."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4406137434",
+    "https://openalex.org/W4402742293",
+    "https://openalex.org/W4404652946"
+  ]
+}

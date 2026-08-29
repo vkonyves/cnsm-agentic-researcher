@@ -1,0 +1,97 @@
+{
+  "study_id": "ac-2026-003-prereg-v1",
+  "title": "A public benchmark dataset and machine‑checkable validator suite for reproducible evaluation of LLM‑driven NetOps",
+  "research_question": "Can a standardized, public dataset that couples realistic synthetic topologies, canonical intent→configuration mappings, and deterministic correctness specifications enable a paired, machine‑checkable confirmatory comparison (GVR pipeline vs single‑pass LLM) that (a) detects method differences and (b) produces reproducible binary pass/fail outcomes under fixed seeds?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory, primary): The GVR (generate–validate–repair) pipeline produces a higher per‑task validator pass rate than a frozen single‑pass LLM when evaluated on the same N=300 intent→configuration tasks (estimand: paired_success_rate_difference_guarded_minus_baseline; two‑sided α=0.05)."
+  ],
+  "exploratory_questions": [
+    "E1: How does inter‑run variability (fixed seeds, independent compute instances) affect per‑task binary validator outcomes (exploratory reproducibility analysis; reported but not confirmatory because no registered ICC executor is available).",
+    "E2: How do failure patterns cluster across intent categories (reachability, isolation, ACLs, route policies) and across methods (GVR, single‑pass, template) — used for qualitative/failure‑mode analysis and benchmark guidance.",
+    "E3: How well do synthetic topology diversity metrics cover features observed in selected public topology corpora (coverage/diversity report automated as part of release; exploratory comparison only)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4406137434",
+    "https://openalex.org/W4402742293",
+    "https://openalex.org/W4404652946"
+  ],
+  "benchmark_scope": [
+    "Intent categories: reachability, isolation, ACLs, route policies",
+    "Synthetic topologies: device counts 3–50, multi‑vendor device models (abstracted), link density and path diversity ranges",
+    "Validator semantics: deterministic, snapshot (stateless) checks expressible as reachability matrices and ACL acceptance/denial expectations",
+    "Public artifacts only (synthetic generation; no customer private data)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (per‑task difference in binary validator pass rates between guarded GVR outcome and baseline single‑pass outcome; paired within task)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per_task_failure_rate_guarded",
+    "per_task_failure_rate_baseline",
+    "effect_size_Cohen_h_equivalent_for_paired_proportions (exploratory)"
+  ],
+  "sampling_plan": "Confirmatory paired design with N=300 unique intent→topology tasks. Tasks are divided into 4 equal intent clusters: reachability, isolation, ACLs, route policies (75 tasks per cluster). For each task a single shared initial generation is produced (used as the baseline single‑pass candidate) and the guarded GVR condition may perform up to one automatic repair call; this yields between 300 and 600 total LLM calls (maximum_model_calls=600). Each task is paired (baseline vs guarded) under the same seed. Exploratory template generator runs are optional and kept off the confirmatory set.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect a 0.10 absolute increase in per‑task pass rate with two‑sided α=0.05. Calculation method: paired binary/outcome power approximation implemented in registered analysis code; with N=300 and conservative discordance assumptions the planned design yields ≈80% power to detect a 0.10 absolute paired difference. Sensitivity analyses recompute power for baseline p0∈{0.3,0.4,0.5,0.6}. Minimum paired completion required: 90% (≥270 completed pairs).",
+  "exclusion_rules": [
+    "Items matching private-data blacklisted regexes (IP addresses, real hostnames, ASNs, emails) are excluded automatically and re‑generated with a new seed; exclusions and reasons are recorded in the execution manifest.",
+    "Items where validator returns 'ambiguous_specification' or canonicalizer fails to parse are excluded from the confirmatory set and kept in exploratory logs (recorded with hashes and reasons)."
+  ],
+  "missingness_plan": "Timeouts or provider/API failures preventing a model output for a paired task are handled by two pre‑registered treatments: primary (complete_pair_primary) excludes pairs where both outcomes are missing and requires ≥270 completed pairs for confirmatory inference; sensitivity (complete_pair_primary_with_failure_as_zero_sensitivity) treats missing/failed model calls as validator failure (0). Retry policy: one automated retry for transient provider errors within 60s; otherwise mark as failed and proceed per failed_call_treatment. All technical failures, retries, and timestamps recorded in execution manifest.",
+  "analysis_plan": "Primary confirmatory analysis will be executed by the registered executor 'paired_binary_analysis_v1' computing the estimand 'paired_success_rate_difference_guarded_minus_baseline' on the N=300 paired binary outcomes. Pre‑registered failed_call_treatments: (1) complete_pair_primary (exclude pairs with both outcomes missing; require ≥270 pairs) and (2) complete_pair_primary_with_failure_as_zero_sensitivity (treat missing/failed calls as 0) for sensitivity. Report the observed paired difference, 95% confidence interval, two‑sided p‑value, and an effect‑size measure. Secondary/exploratory analyses: per‑cluster summaries, failure‑pattern clustering, and descriptive inter‑run reproducibility statistics (ICC reported descriptively). All analysis code, seeds, and manifests will be published in container images with pinned dependency versions.",
+  "multiplicity_plan": "Single pre‑specified primary confirmatory hypothesis (H1). No multiplicity correction for the primary test. All other comparisons are explicitly exploratory; formal multi‑comparison adjustments (when reported) will use Holm–Bonferroni and be clearly labeled as exploratory.",
+  "contamination_plan": "Governance: deterministic redaction pipeline (regex removal of IPs/hostnames/ASNs), artifact hashing (SHA‑256) and manifest generation, and automated static analysis comparing generated tokens against private‑data regexes (fail build if matched). Rules: artifacts matching blacklisted patterns are excluded and re‑generated; ambiguous validator items are excluded from confirmatory set. Analysis treatment: exclusions are removed from confirmatory N, recorded with hashes and reasons; no manual adjudication.",
+  "stopping_rule": "Confirmatory run requires ≥270 completed pairs (90% of N=300). If after one automated retry policy the paired completion falls below 90% due to persistent provider/infrastructure failures or if the model‑call budget (maximum_model_calls=600) is exhausted before meeting completion, stop the confirmatory run, record failure reason and timestamps, and report results as incomplete (sensitivity analyses still presented on available data).",
+  "planned_outputs": [
+    "final research-selection record",
+    "literature-search record",
+    "verified bibliography record",
+    "nearest-work comparison matrix",
+    "preregistration / frozen experiment plan (this document)",
+    "experiment code and configuration (containerized, pinned deps)",
+    "raw experiment artifacts (generated topologies, intents, configs)",
+    "execution manifest (hashes, timestamps, failures, retries)",
+    "statistical-results file",
+    "failure-analysis record",
+    "evidence-to-claim table",
+    "complete IEEE LaTeX manuscript (≤5 pages)",
+    "BibTeX bibliography",
+    "compiled PDF manuscript (≤5 pages) including Disclosure Statement",
+    "autonomy and human-involvement disclosure record",
+    "internal methodological review",
+    "statistical-consistency review",
+    "reference-integrity review",
+    "novelty and overclaiming review",
+    "page-count and IEEE-format validation report",
+    "autonomous revision log",
+    "final-output hash manifest",
+    "concise NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}
