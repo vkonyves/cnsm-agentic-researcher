@@ -1,0 +1,114 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-2026-netops-gvr-security-01",
+      "title": "Verifier-in-the-loop GVR to Prevent Security-Relevant Misconfigurations under Adversarial Intents",
+      "research_question": "Does embedding a formal network verifier inside a generate–verify–repair (GVR) loop reduce the incidence of security-increasing misconfigurations produced by LLM-driven intent-to-configuration pipelines when exposed to adversarially crafted intents?",
+      "hypotheses": [
+        "Embedding a formal reachability/policy verifier in the loop will reduce the proportion of generated configurations that produce forbidden reachability (increase attack surface) by at least 30% relative to single-pass LLM generation, on a matched set of adversarial intents."
+      ],
+      "proposed_design": "Randomized paired experiment using a public/emulated NetOps testbed. Construct a task set of N=300 intent prompts including 50% benign operator intents and 50% adversarially perturbed intents (linguistic obfuscation, maliciously ambiguous goals). For each intent, obtain: (A) single-pass LLM-generated configuration (baseline) and (B) LLM+GVR pipeline output where a formal verifier (reachability and ACL oracle) checks the candidate and returns diagnostic constraints for up to two repair iterations. Use the same base LLM and fixed prompt templates. Execute generated configurations in a controlled emulator (containerized router/switch images) instrumented to measure reachability, ACL effectiveness, and policy violations. Log model calls, verifier diagnostics, repair edits, and final configurations. Pre-register inclusion/exclusion rules, random seeds for generation sampling, number of repair iterations (max=2), and stopping criteria.",
+      "expected_data": "For each of N intents and each method (baseline vs GVR): the generated configuration text, verifier diagnostic outputs, execution traces from the emulator (reachability matrices, induced ACLs), binary label indicating whether forbidden reachability occurred, counts of repair iterations, total model calls, and wall-clock latency. Aggregate counts of security-violating configs per method and per intent subgroup (benign vs adversarial).",
+      "primary_outcome": "Absolute and relative difference in the proportion of generated configurations that produce forbidden reachability (security-violating) between baseline single-pass LLM and LLM+GVR pipelines on the full intent set.",
+      "analysis_outline": "Use paired-proportion analysis (McNemar's test) across matched intents to test reduction in security-violating outputs; compute risk difference with 95% bootstrap confidence intervals (1,000 bootstrap resamples). Report subgroup analyses (benign vs adversarial intents) with multiplicity-adjusted p-values (Holm correction). Secondary analyses: quantify median model-call overhead (Wilcoxon signed-rank test), time-to-valid configuration, and verifier false-negative rate estimated by manual spot-check (random 10% sample). Sensitivity analyses: vary verifier strictness thresholds and report effect-size trend. Predefine success as statistically significant reduction (alpha=0.05) and lower-bound effect size >=20% in adversarial subgroup.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4388891721",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "doi:10.21203/rs.3.rs-10523195/v1",
+        "https://openalex.org/W4406170828"
+      ],
+      "risks": [
+        "Verifier-soundness gaps causing false reassurance (false negatives).",
+        "Adversarial intent generation may not fully capture real-world malicious operator behavior (external validity).",
+        "Repair iterations could overconstrain configurations leading to availability regressions not captured by security metrics."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cnd-2026-netops-benchmark-02",
+      "title": "An Execution-Validated NetOps Benchmark: Intent-to-Configuration with Security and Process-Level Annotations",
+      "research_question": "Can a reproducible benchmark combining intent-to-configuration tasks with execution-based validators (reachability, ACL/policy compliance, security metrics) and process-level failure annotations be constructed and shown to reveal failure modes that static syntactic checks miss?",
+      "hypotheses": [
+        "An execution-validated NetOps benchmark will detect a substantially larger fraction of operationally meaningful failures (forbidden reachability or policy violation) in LLM-generated configurations than static syntactic or lint-style checks, with at least a 2x increase in detected failures on the same model outputs."
+      ],
+      "proposed_design": "Design and release a public benchmark corpus: collect 500 intent-to-configuration cases drawn from public config repositories plus synthetic intents covering routing, ACLs, NAT, and QoS. For each case define: canonical intended property (reachability matrix, denied flows), a machine-readable device profile, and ground-truth reference configuration. Implement execution validators using a contained emulator (containerized network device images) that produce reachability and policy-violation outputs. Run a fixed set of LLM prompting templates across 3 open/public LLM-accessible models (subject to available hosted APIs), capturing single-pass outputs. For each output, apply: (1) static syntactic checks (linting/parsing), (2) execution validators, and (3) human process-level annotations for failure cause (ambiguous intent, verifier-missed issue, malformed CLI). Publish dataset, validator code, and annotation guidelines. Pre-register dataset construction rules, anonymization, and evaluation metrics.",
+      "expected_data": "Benchmark artifact package: intent prompts, device profiles, reference configs, LLM-generated configs, static check outputs, execution validator logs (reachability matrices, failed flows), human failure annotations with cause labels, per-case metadata (task type, complexity), and evaluation scripts. Aggregated metrics: counts and proportions of failures detected by static checks vs execution validators, inter-annotator agreement (Cohen's kappa), and per-task-type breakdowns.",
+      "primary_outcome": "Ratio (execution-detected failures) / (static-check-detected failures) computed across the benchmark; primary claim falsifiable if ratio ≤1.5 (null expectation) or ≥2 (hypothesized).",
+      "analysis_outline": "Compute descriptive statistics for failure detection counts per method with 95% bootstrap confidence intervals. Compare detection rates using paired proportion tests across the same outputs (McNemar). Report inter-annotator agreement for human labels; use stratified analyses by task type and intent ambiguity. Provide a reproducibility checklist and release artifacts under permissive license. Predefine minimal dataset inclusion thresholds and compute sample-size justification for detecting a doubling in detected failures with 80% power.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W7204078652",
+        "doi:10.31234/osf.io/ybde5_v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W7124141852"
+      ],
+      "risks": [
+        "Legal/ethical concerns about sharing real configs require strict sanitization and may reduce realism.",
+        "Benchmark may not generalize to all production device models (external validity).",
+        "Annotation labor and inter-annotator disagreement could limit clarity of process-level labels."
+      ],
+      "estimated_model_calls": 5000
+    },
+    {
+      "candidate_id": "cnd-2026-netops-qos-gvr-03",
+      "title": "Iterative GVR for QoS Constraint Satisfaction under Noisy and Underspecified Intents",
+      "research_question": "Does a bounded iterative generate–verify–repair loop improve the rate at which LLM-generated configurations satisfy explicit QoS constraints (bandwidth and priority guarantees) for underspecified or noisy intents compared to single-pass generation?",
+      "hypotheses": [
+        "A bounded GVR loop (max 3 iterations) using an execution-style QoS validator will increase the proportion of final configurations that meet declared QoS constraints by at least 25% relative to single-pass LLM outputs on a mixed set of underspecified intents."
+      ],
+      "proposed_design": "Controlled paired experiment with M=240 QoS-related intents across varying ambiguity levels (explicit, partially specified, noisy). For each intent, generate baseline single-pass LLM config and GVR pipeline output with a QoS validator that simulates traffic and checks queuing/priority enforcement in an emulator. Allow up to 3 repair iterations; capture each intermediate candidate and validator feedback. Measure satisfaction of QoS constraints under a set traffic profile, number of repair iterations, total model calls, and configuration stability (noedits vs edits). Pre-register validator thresholds, traffic profiles, random seeds, and stopping rules (repair stops when validator passes or iterations exhausted).",
+      "expected_data": "Per-case: intent text, generated config drafts, validator pass/fail per iteration, simulated throughput/latency/per-flow measurements, final pass/fail label for QoS constraints, model-call counts, and repair edit diffs. Aggregated performance by ambiguity level and overall.",
+      "primary_outcome": "Difference in the proportion of configurations meeting declared QoS constraints between baseline and GVR pipeline across the full intent set.",
+      "analysis_outline": "Paired proportion testing (McNemar) across intents; report absolute and relative improvement with 95% bootstrap CIs. Analyze iteration-effect using logistic regression (pass ~ iterations + ambiguity_level) to estimate marginal benefit per iteration. Report latency and model-call overhead with medians and Wilcoxon tests. Pre-specified subgroup analyses for fully specified vs underspecified intents, and exploratory analysis of overconstrained repairs leading to degraded other metrics (e.g., increased latency).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7165956966",
+        "https://openalex.org/W4386436496"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406170828",
+        "doi:10.21203/rs.3.rs-10523195/v1"
+      ],
+      "risks": [
+        "QoS validators in emulators may not capture hardware-specific behaviors (external validity).",
+        "Iterative repairs may oscillate or diverge if diagnostic feedback is ambiguous.",
+        "Increased latency and model-call costs may make iterative approach impractical for time-sensitive operations."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-2026-netops-robustness-04",
+      "title": "Robustness of LLM-Generated Network-Change Plans to Adversarial Phrasing and Device-Profile Mismatch",
+      "research_question": "How robust are LLM-generated network-change plans and configurations to (a) adversarial or ambiguous phrasing of operator intents and (b) mismatches between assumed and actual device CLIs/profiles, and do these perturbations interact to amplify failure rates?",
+      "hypotheses": [
+        "Adversarial/ambiguous intent phrasing will increase the failure rate of generated plans by at least 20% relative to clean intents; device-profile mismatch will independently increase failure rate by at least 15%; the joint effect of both perturbations will be larger than either alone (positive interaction)."
+      ],
+      "proposed_design": "Factorial experimental design with 2x2 conditions: (Intent: clean vs adversarial/ambiguous) × (Device profile: matched vs mismatched). Create K=240 change-plan tasks (routing policy changes, ACL updates, NAT changes). For each task and condition, generate LLM plan/configuration and execute in emulator configured to reflect matched or intentionally mismatched CLI semantics (e.g., vendor command differences, feature naming). Measure whether execution achieves intended policy goals, introduces regressions, or errors. Use the same base prompts and model sampling settings. Pre-register adversarial construction methods (paraphrase templates, lexical obfuscation) and device-mismatch types.",
+      "expected_data": "For each task-condition: generated plan/config, execution result (success/failure), error logs, classification of failure mode (misinterpretation, syntax mismatch, semantic mismatch), model-call counts, and per-case metadata. Aggregated failure rates per condition and interaction contrasts.",
+      "primary_outcome": "Interaction effect size (odds ratio) of adversarial intent × device-profile mismatch on failure probability; falsifiable if interaction is null (odds ratio ≈1) within pre-specified equivalence bounds.",
+      "analysis_outline": "Fit logistic regression with terms for intent-perturbation, device-mismatch, and their interaction; test interaction using likelihood-ratio test (alpha=0.05). Estimate marginal effects and odds ratios with 95% CIs. Conduct secondary analyses: confusion-matrix style taxonomy of failure modes, time-to-recovery if allowed, and robustness curves over gradient levels of intent perturbation. Adjust for multiple comparisons across task types using false-discovery-rate control. Predefine equivalence bounds for null-interaction decision and perform power analysis to ensure detection of moderate interaction effects.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4406170828"
+      ],
+      "risks": [
+        "Constructed adversarial intents may not reflect real-world malicious phrasing and so over- or under-estimate true risk.",
+        "Simulated device-profile mismatches may not capture complex vendor-specific side effects.",
+        "Limited model and device diversity in the experiment reduces external validity and may limit generality of interaction estimates."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

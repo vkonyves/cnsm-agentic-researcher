@@ -1,0 +1,149 @@
+{
+  "selected_candidate_id": "cnd-2026-netops-gvr-security-01",
+  "title": "Verifier-in-the-loop GVR to Prevent Security-Relevant Misconfigurations under Adversarial Intents (repaired preregistration)",
+  "research_question": "Does embedding a formal network verifier inside a generate–verify–repair (GVR) loop reduce the incidence of security-increasing (forbidden-reachability) misconfigurations produced by an LLM-driven intent-to-configuration pipeline when exposed to adversarially crafted intents?",
+  "confirmatory_hypotheses": [
+    "Embedding a formal reachability/policy verifier in a GVR loop will reduce the proportion of generated configurations that produce forbidden reachability by at least 30 percentage points (absolute) relative to single-pass LLM generation on the matched intent set."
+  ],
+  "exploratory_questions": [
+    "How does the GVR loop affect availability/regression (reachability loss to previously allowed endpoints) as a secondary outcome?",
+    "How often do two independent verifiers disagree and what is the direction of disagreement?",
+    "What is the median model-call overhead introduced by GVR and its distribution across benign vs adversarial intents?"
+  ],
+  "benchmark_scope": [
+    "Public/emulated NetOps testbed using containerized FRRouting (FRR) router images and Mininet-style topologies packaged as Docker compositions",
+    "Execution-based validators: Batfish (containerized) and a lightweight graph-based static reachability analyzer implemented in Python (both run deterministically in Docker)",
+    "Intent set constructed synthetically (public paraphrase tools) and from public NetOps task corpora only (no private data)"
+  ],
+  "model_scope": [
+    "Single hosted LLM API (one vendor/model endpoint) used as the base generative model; fixed prompt templates and seed control for deterministic sampling where supported by the hosted API",
+    "No local GPU execution; all model calls via hosted_model_api (capability manifest available)"
+  ],
+  "transformation_scope": [
+    "Adversarial intent perturbations including linguistic obfuscation (paraphrase/ellipsis), maliciously ambiguous goals, and command-injection-style phrasing",
+    "Generate→verify→repair loops up to 2 repair iterations (each repair is a discrete LLM call with updated prompt including verifier diagnostics)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "median_model_call_overhead_per_intent (GVR_calls − baseline_calls)",
+    "availability_regression_rate_difference (proportion of configs causing loss of previously-allowed reachability)",
+    "verifier_disagreement_rate (proportion of intent-method cases where Batfish and static analyzer disagree)"
+  ],
+  "sampling_plan": "Fixed matched-pair intent sample: N = 300 total intents. Composition: 150 benign operator-intent prompts + 150 adversarially perturbed variants (one per benign intent). For each intent i, we produce two paired outcomes on the same emulator topology and device-profile: (A) baseline: single-pass LLM generation (one LLM call), (B) GVR: LLM+verifier pipeline (initial generation + up to 2 repair LLM calls; verifier calls are deterministic and do not consume model-call budget). Randomization: the order of execution for A vs B per intent is balanced across jobs to avoid time-of-day ordering effects. Seeds and deterministic sampling parameters are preregistered and stored in execution manifest.",
+  "analysis_plan": "Confirmatory analysis executed via registered analysis executor 'paired_binary_analysis_v1' implementing the estimand 'paired_success_rate_difference_guarded_minus_baseline' (McNemar-style paired test). Primary test: paired comparison on the full N=300 matched pairs (alpha=0.05). Compute 95% bootstrap confidence intervals for the paired risk-difference using 1,000 bootstrap resamples. Subgroup analyses (benign vs adversarial) are prespecified (see multiplicity_plan). Failed-call treatment: primary analysis uses 'complete_pair_primary' per available contract; sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' (treating technical/model failures as failures/violations to bound results). All raw per-intent outcomes, model-call logs, and emulator traces are recorded and hashed.",
+  "multiplicity_plan": "Primary hypothesis: single test on full paired set (alpha=0.05). Two prespecified subgroup tests (benign, adversarial) will be reported with Holm correction for familywise error across the two subgroup tests. Secondary estimand tests are exploratory and reported with effect sizes and CIs, marked exploratory.",
+  "missingness_plan": "If an LLM call returns no valid configuration (API error or empty response) or the emulator fails to execute a config due to non-recoverable infrastructure errors, record the pair as 'technical failure'. Primary analysis uses the registered 'complete_pair_primary' treatment (exclude pairs where both arms are missing); sensitivity analysis treats missing/failed outputs conservatively as security-violating (as above). All failures are logged and categorized (model_api_failure, emulator_failure, verifier_failure) in the execution manifest. Retries are allowed only according to the preregistered retry policy: 1 automated retry for transient API failures; further retries are logged as infrastructure failures and counted in sensitivity analyses.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public intent corpus (constructed from public NetOps task corpora)",
+      "Synthetic adversarial perturbation set (derived programmatically)"
+    ],
+    "risk_factors": [
+      "Intent duplication or near-duplication leading to contaminating training-set overlap with the hosted LLM",
+      "Adversarial-intent generation producing unnatural examples that do not reflect operator behavior"
+    ],
+    "detection_procedures": [
+      "Automated exact-duplicate and fuzzy-deduplication (token- and edit-distance) checks against the final intent set; duplicates are excluded before experiment",
+      "Similarity scan against a compiled public-corpus fingerprint (automated) to flag high-overlap intents"
+    ],
+    "item_flagging_rules": [
+      "Exact duplicates removed",
+      "Fuzzy duplicates with normalized edit distance < 0.15 are flagged and excluded",
+      "Any intent flagged as high-overlap with public-corpus fingerprint is retained but marked and reported in sensitivity analysis (no manual adjudication)"
+    ],
+    "analysis_treatment": "Primary analysis excludes exact duplicates. Sensitivity analyses re-run including flagged high-overlap items to estimate contamination influence. No human annotation or manual adjudication is performed; all flagging and exclusion are deterministic and automated.",
+    "residual_uncertainty": [
+      "Undetected training-data overlap with the hosted LLM may remain; sensitivity analyses quantify possible impact but cannot eliminate residual risk."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-A-recommended",
+      "description": "Recommended confirmatory run: N=300 intents (150 benign, 150 adversarial). Baseline: 1 LLM call per intent. GVR pipeline: initial generation + up to 2 repair calls per intent (worst-case 3 calls). Verifier runs are deterministic and executed in Docker (do not consume model-call budget). Single device-profile/emulator topology.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted_LLM_api_single_model_v1"
+      ],
+      "transformations": [
+        "GVR with up to 2 repair iterations",
+        "Adversarial linguistic perturbations (programmatic paraphrase/obfuscation)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Total planned model calls = baseline (300*1 = 300) + GVR worst-case (300*3 = 900) = 1,200 model calls, under the capability manifest limit (max planned model calls 10,000). Docker-based verifiers and emulator run on CPU execution; hosted_model_api is available per manifest. No human labor required."
+    },
+    {
+      "scenario_id": "scenario-B-extended-sensitivity",
+      "description": "Extended sensitivity runs: replicate scenario-A across three representative device-profiles (vendor/CLI mapping variations) to assess device-profile sensitivity and emulator mapping. Same per-intent call budget per profile as scenario-A.",
+      "planned_model_calls": 3600,
+      "models": [
+        "hosted_LLM_api_single_model_v1"
+      ],
+      "transformations": [
+        "Same GVR pipeline as scenario-A applied per device-profile (3 profiles)",
+        "Device-profile sensitivity transformations (emulator mapping variants)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 300,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Extends recommended scenario by repeating runs across 3 device-profiles. Planned model calls = scenario-A (1200) * 3 profiles = 3600, still below the 10,000 model-call cap. Requires only Dockerized emulator variations and same hosted model API."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "30 percentage-point absolute reduction (guarded < baseline) on full N=300",
+    "clustering_unit": "intent-pair (each intent yields one paired comparison between baseline and GVR)",
+    "calculation_method": "Design-stage planning uses a conservative two-proportion approximation to bound required N; confirmatory inference uses paired_binary_analysis_v1 (McNemar-style paired test).",
+    "assumptions": [
+      "Conservative baseline violation rate assumed 0.5 for planning (higher variance assumption); alpha=0.05",
+      "Planned N=300 yields >90% power to detect a 30 percentage-point absolute reduction under conservative approximations and substantially higher power under plausible lower baseline rates.",
+      "Bootstrap CIs computed with 1,000 resamples"
+    ],
+    "recommended_scenario_id": "scenario-A-recommended",
+    "minimum_detectable_effect_notes": "With N=300 matched pairs and conservative variance assumptions, the design comfortably detects a 30 percentage-point absolute reduction; sensitivity analyses will report actual detectable differences conditional on observed baseline rate.",
+    "sensitivity_analyses": [
+      "Recompute paired-effect estimates and CIs when treating technical/model failures as violations (failure-as-violation sensitivity)",
+      "Recompute results excluding/including intents flagged for high public-corpus overlap to quantify contamination effects",
+      "Repeat primary analysis per device-profile (scenario-B) to assess heterogeneity"
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Adversarial paraphrase/obfuscation generation (programmatic)",
+      "GVR repair edits produced by LLM conditioning on verifier diagnostics",
+      "Emulator mapping transformations across device profiles"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated intent normalization and semantic-similarity scoring between benign seeds and perturbed adversarial variants to ensure perturbations change phrasing without systematically changing intended target endpoints (thresholds preregistered)",
+      "Post-repair static checks that repaired configurations satisfy syntactic device-CLI constraints (parser-based) prior to emulator execution"
+    ],
+    "automatic_rejection_rules": [
+      "Reject intents that are exact duplicates or fuzzy-duplicates (normalized edit distance < 0.15) prior to experiment",
+      "Reject generated configurations that fail deterministic CLI parsing (parser error) and record as failure; do not perform manual adjudication"
+    ],
+    "audit_sample_policy": "Automated cross-verification: every run is evaluated by two independent deterministic verifiers (Batfish container and the Python static reachability analyzer). Any pair where verifiers disagree is automatically flagged; flagged pairs are treated conservatively in primary analysis (counted as violation if either verifier reports forbidden reachability) and reported in a disagreement-rate exploratory analysis. No human spot-checks are required or introduced.",
+    "mapping_validation": "Device-profile emulator mappings are defined in Docker compositions and a mapping matrix (device-profile → emulator configuration) is preregistered; a deterministic test-suite of 10 canonical configurations per profile validates mapping correctness before main runs.",
+    "residual_risks": [
+      "Verifiers may share correlated blind spots; cross-verifier disagreement rate quantifies, but cannot eliminate, residual false-negative risk",
+      "Emulator-to-production fidelity remains a noncritical external-validity limitation"
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Residual verifier soundness gaps: automated cross-verification reduces but may not eliminate false negatives; results are explicitly bounded to the emulated/testbed semantics.",
+    "Ecological validity of adversarial-intent generation: adversarial perturbations are programmatic and may not perfectly represent real malicious operator behavior; results are bounded to the constructed threat model.",
+    "Emulator/device-profile fidelity: containerized FRR and mapping may not fully capture vendor-specific production behaviors; scenario-B sensitivity mitigates but does not eliminate this external-validity limitation.",
+    "Potential availability/regression modes outside the measured reachability metrics (unmeasured operational impacts) remain possible and are discussed as limitations."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4388891721",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W7124141852",
+    "doi:10.21203/rs.3.rs-10523195/v1",
+    "https://openalex.org/W4406170828",
+    "https://openalex.org/W4386436496"
+  ]
+}

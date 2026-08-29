@@ -1,0 +1,26 @@
+{
+  "summary": "Well-executed, fully preregistered paired study with strong artifact archiving showing a degenerate null result: baseline and verifier-in-the-loop (GVR) arms both satisfied the forbidden-reachability predicate on all N=300 pairs, so the repair path was never invoked. The authors transparently report design choices (notably shared_initial_candidate) that explain the null and provide abundant execution artifacts and hashes. The work is reproducible as packaged, modestly novel in applying preregistered paired evaluation to a verifier-in-the-loop NetOps safety predicate, and candid about limitations. Several manuscript clarifications and small evidence-presenting edits are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The experimental contract (shared_initial_candidate) and the adversarial-intent generator together produced zero baseline violations, so the study provides no evidence about whether verifier-guided repairs can rescue genuine violations; this key limitation must be made explicit and prominent in the abstract and conclusions (not only in discussion).",
+    "The manuscript omits specific, easily retrievable identifiers needed for reproducibility of the validators (exact Batfish container-image tag/digest and the Python analyzer file SHA-256). The authors state these are archived but did not include them in the Disclosure or Methods. Without those identifiers, independent verification of the validator binaries/configs is impeded.",
+    "The adversarial-perturbation method is under-specified in the manuscript: the algorithm, parameters, and representative adversarial examples (or summary statistics such as edit distances and difficulty distributions) are not described, yet they are central to interpreting why baseline violations were absent.",
+    "The manuscript contains extensive provenance and hash listings embedded in narrative form, giving parts of the paper an artifact-inventory tone rather than concise scholarly exposition. This reduces readability and obscures methodological explanation."
+  ],
+  "required_revisions": [
+    "Prominently revise abstract and conclusion to state unambiguously that the experiment did not exercise the repair path and therefore cannot support claims about verifier-guided repair efficacy; explicitly state that the study evaluates whether inserting a verifier changes observed compliance when baseline generation already complies under the chosen contract.",
+    "Add exact validator identifiers into the Disclosure Statement or Methods: include the Batfish container-image tag/digest and the Python static-reachability-analyzer file SHA-256 (values are available in execution/execution_manifest.json). Provide the filenames/paths for Batfish policy files used (as recorded in the archived manifest).",
+    "Describe the adversarial-intent generation method in Methods: include the algorithm/transformations applied to benign seeds, generation parameters, seeds, and representative examples (e.g., 3–5 adversarial examples drawn from the archived task_manifest.jsonl). Also report summary statistics (counts per adversarial type, edit-distance distribution or other similarity metric) that are derivable from the provided task_manifest and contamination artifacts.",
+    "Condense provenance/hash material in the main narrative: move long lists of artifact hashes and file paths to a single concise pointer (e.g., \"see execution/execution_manifest.json\") while keeping only the minimal set of artifact identifiers necessary for verification inline (those requested above). Reword sections that read as provenance inventory into standard scholarly prose explaining methods, metrics, and interpretation. These edits must be done using the supplied archived manifest/artifacts and not by adding new external artifacts."
+  ],
+  "optional_revisions": [
+    "Include a short table (1 page or part of a page) summarizing task set composition and difficulty levels (fields already present in task_manifest.jsonl: 'difficulty.level', 'required_command_count', etc.) to help readers assess adversarial potency.",
+    "Report a post-hoc (descriptive) Clopper–Pearson upper 95% bound on the baseline violation rate given 0 observed violations in 300 trials to quantify the maximum undetected baseline violation rate; this is a descriptive bound and should be clearly labelled as post-hoc. (Compute from archived per-episode outcomes.)",
+    "Replace a small subset of inline artifact hashes with representative example snippets (one or two representative validator-trace extracts) to illustrate the no-violation traces, keeping the full hashes in the manifest pointer.",
+    "Soften any language that might be read as a general negative result about verifiers; emphasize recommendations for follow-up protocols (independent-condition generation, targeted adversaries, multi-model comparisons) with explicit, actionable experimental-contract changes that follow from the archived execution manifest."
+  ],
+  "accept_for_finalisation": false
+}

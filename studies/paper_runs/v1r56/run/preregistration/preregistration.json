@@ -1,0 +1,85 @@
+{
+  "study_id": "cnd-2026-netops-gvr-security-01-prereg-v1",
+  "title": "Verifier-in-the-loop GVR to Prevent Security-Relevant Misconfigurations under Adversarial Intents (repaired preregistration)",
+  "research_question": "Does embedding a formal network verifier inside a generate–verify–repair (GVR) loop reduce the incidence of security-increasing (forbidden-reachability) misconfigurations produced by an LLM-driven intent-to-configuration pipeline when exposed to adversarially crafted intents?",
+  "confirmatory_hypotheses": [
+    "Embedding a formal reachability/policy verifier in a GVR loop will reduce the proportion of generated configurations that produce forbidden reachability by at least 30 percentage points (absolute) relative to single-pass LLM generation on the matched intent set."
+  ],
+  "exploratory_questions": [
+    "How does the GVR loop affect availability/regression (reachability loss to previously allowed endpoints) as a secondary outcome?",
+    "How often do two independent verifiers disagree and what is the direction of disagreement?",
+    "What is the median model-call overhead introduced by GVR and its distribution across benign vs adversarial intents?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4388891721",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W7124141852",
+    "doi:10.21203/rs.3.rs-10523195/v1",
+    "https://openalex.org/W4406170828",
+    "https://openalex.org/W4386436496"
+  ],
+  "benchmark_scope": [
+    "Public/emulated NetOps testbed using containerized FRRouting (FRR) router images and Mininet-style topologies packaged as Docker compositions",
+    "Execution-based validators: Batfish (containerized) and a lightweight graph-based static reachability analyzer implemented in Python (both run deterministically in Docker)",
+    "Intent set constructed synthetically (public paraphrase tools) and from public NetOps task corpora only (no private data)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute difference in proportion of intents yielding forbidden reachability: guarded minus baseline, paired design)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "median_model_call_overhead_per_intent (GVR_calls − baseline_calls)",
+    "availability_regression_rate_difference (proportion of configs causing loss of previously-allowed reachability)",
+    "verifier_disagreement_rate (proportion of intent-method cases where Batfish and static analyzer disagree)"
+  ],
+  "sampling_plan": "Fixed matched-pair intent sample: N = 300 total intents (task_count=300). Composition: 150 benign operator-intent prompts and 150 adversarially perturbed variants (one adversarial variant generated programmatically per benign seed). For each intent i we record two paired outcomes on the same emulator topology and device-profile: (A) baseline: single-pass LLM generation (one LLM call), (B) guarded/GVR: LLM+verifier pipeline (initial generation + up to 1 repair LLM call). Order of execution for A vs B per intent is balanced across jobs to avoid ordering effects. Seeds and deterministic sampling parameters are preregistered and stored in the execution manifest.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: 30 percentage-point absolute reduction (guarded < baseline) on full N=300. Design-stage planning used conservative two-proportion approximations; with N=300 this design provides >90% power to detect a 30 percentage-point absolute reduction under conservative assumptions. Primary inference uses paired_binary_analysis_v1 (McNemar-style paired test) with alpha=0.05; 95% bootstrap CIs for the paired risk-difference computed with 1,000 resamples. Prespecified sensitivity analyses recompute estimates treating technical/model failures as violations and including/excluding intents flagged for potential training-data overlap.",
+  "exclusion_rules": [
+    "Exact duplicate intents removed prior to experiment",
+    "Fuzzy duplicates with normalized edit distance < 0.15 removed prior to experiment",
+    "Generated configurations that fail deterministic CLI parsing (parser error) are recorded as failures and not manually fixed"
+  ],
+  "missingness_plan": "If an LLM call returns no valid configuration (API error or empty response) or the emulator fails to execute a config due to non-recoverable infrastructure errors, record the pair as 'technical failure'. Primary analysis uses the preregistered 'complete_pair_primary' treatment: exclude pairs where both arms are missing. Sensitivity analysis treats missing/failed outputs conservatively as security-violating ('complete_pair_primary_with_failure_as_zero_sensitivity'). All failures are logged and categorized (model_api_failure, emulator_failure, verifier_failure) in the execution manifest. Retries: 1 automated retry for transient API failures; further retries logged as infrastructure failures and handled in sensitivity analyses.",
+  "analysis_plan": "Confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' implementing estimand 'paired_success_rate_difference_guarded_minus_baseline' (McNemar-style paired test). Primary test: paired comparison on full N=300 matched pairs (alpha=0.05). Compute 95% bootstrap CIs for the paired risk-difference using 1,000 bootstrap resamples. Prespecified subgroup analyses for benign vs adversarial subsets (Holm correction across the two subgroup tests). Secondary estimands reported as exploratory with effect sizes and CIs. All raw per-intent outcomes, model-call logs, and emulator traces recorded and hashed. Sensitivity analyses: treat technical/model failures as violations; include/exclude intents flagged for high public-corpus overlap.",
+  "multiplicity_plan": "Primary hypothesis: single test on full paired set (alpha=0.05). Two prespecified subgroup tests (benign, adversarial) reported with Holm correction for familywise error across the two subgroup tests. Secondary estimand tests are exploratory and reported with effect sizes and CIs; no confirmatory alpha allocation for exploratory tests.",
+  "contamination_plan": "Benchmark names: Public intent corpus (constructed from public NetOps task corpora) and synthetic adversarial perturbation set (derived programmatically). Risk factors: potential intent duplication/near-duplication creating training-set overlap with the hosted LLM; adversarial-intent generation producing unnatural examples. Detection: automated exact-duplicate and fuzzy-deduplication (token- and edit-distance) checks; similarity scan against a compiled public-corpus fingerprint to flag high-overlap intents. Item rules: exact duplicates removed; fuzzy duplicates with normalized edit distance < 0.15 excluded; items flagged as high-overlap retained but marked and included in sensitivity analyses. Analysis treatment: primary analysis excludes exact duplicates; sensitivity analyses include flagged high-overlap items to estimate contamination influence. All flagging is deterministic and automated; no manual adjudication.",
+  "stopping_rule": "Stop when all preregistered paired runs for N=300 intents complete under the adapter contract (each pair: baseline + guarded episodes), or if model-call budget enforced by the adapter (maximum_model_calls=600) is exhausted. If infrastructure failures prevent completion, record failures, run prespecified sensitivity analyses, and report incompleteness in execution manifest.",
+  "planned_outputs": [
+    "Confirmed preregistration document and execution manifest",
+    "Executable experiment code (Docker compositions for emulator and Batfish, Python orchestration scripts, prompt templates)",
+    "Raw model-call logs, verifier outputs, emulator traces, and hashed artifacts",
+    "Statistical-results file (paired analysis outputs, bootstrap CIs)",
+    "Failure-analysis record and evidence-to-claim table",
+    "IEEE-format short paper (<=5 pages) including mandatory Disclosure Statement",
+    "BibTeX bibliography and verified-reference record",
+    "NotebookLM presentation brief (concise machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

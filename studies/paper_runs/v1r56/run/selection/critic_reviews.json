@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-2026-netops-gvr-security-01",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Verifier soundness and coverage not fully specified (false negatives risk).",
+        "Adversarial-intent construction may not reflect real-world malicious operators (external validity).",
+        "Risk of repair overconstraint causing availability regressions not measured by security-only metrics.",
+        "Device/vendor diversity and emulator fidelity not enumerated; single-testbed bias possible."
+      ],
+      "required_design_repairs": [
+        "Specify formal verifier semantics, limits, and proof-of-correctness assumptions; include at least one independent verifier implementation or clear oracle definition.",
+        "Define adversarial-intent generation methodology and threat model with examples; justify ecological validity.",
+        "Add explicit availability/regression metrics (reachability loss, service impact) and incorporate them into primary outcomes.",
+        "Prespecify device/vendor coverage and justify emulator choices; include sensitivity analysis over device profiles.",
+        "Detail manual spot-check protocol for verifier false negatives and how repairs are audited."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-benchmark-02",
+      "novelty": 0.85,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.75,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Legal/ethical risks from real configuration sharing and sanitization may reduce realism.",
+        "Annotation workload and inter-annotator agreement plan are underspecified.",
+        "Benchmark generalizability across vendors and production networks is limited without explicit device diversity.",
+        "Risk of dataset bias if public repo selection criteria or synthetic generation not prespecified."
+      ],
+      "required_design_repairs": [
+        "Provide a concrete sanitization/anonymization protocol and legal review checklist prior to release.",
+        "Specify annotation guidelines, annotator training, target inter-annotator agreement thresholds, and adjudication process.",
+        "Prespecify device/vendor coverage and validation plan; include emulation compatibility matrix.",
+        "Publish hosting, licensing, and reproducibility artifacts (VM/container images, seeds, eval scripts) and a minimal compute plan for reproducing published numbers.",
+        "Justify sample size and power calculations for the primary ratio outcome."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-qos-gvr-03",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Emulator fidelity for QoS (hardware queues, shaping) is a major threat to construct validity.",
+        "Validator thresholds and traffic profiles are underspecified, risking non-reproducible pass/fail labels.",
+        "Iterative repairs can oscillate or degrade other metrics (latency, fairness) which are not fully planned for.",
+        "Time-sensitivity and model-call cost trade-offs need clearer stopping rules."
+      ],
+      "required_design_repairs": [
+        "Define traffic profiles, simulator/emulator fidelity assumptions, and justify chosen emulator against hardware behavior.",
+        "Prespecify QoS metrics (throughput/latency percentiles), validator thresholds, and pass/fail criteria.",
+        "Add oscillation detection and mitigation in repair loop (e.g., monotonicity constraints or rollback policy).",
+        "Pre-register latency/model-call budgets and measure practical feasibility for time-sensitive ops.",
+        "Include sensitivity analysis showing how emulator inaccuracies could affect conclusions."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-2026-netops-robustness-04",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Adversarial-intent synthesis may be artificial; realism and adversary model need specification.",
+        "Device-profile mismatch scenarios are unspecified in scope and may not capture real vendor heterogeneity.",
+        "Power to detect interaction effects may be insufficient without a clear power analysis.",
+        "Failure-mode taxonomy and labeling methodology are underspecified, risking ambiguous interpretations."
+      ],
+      "required_design_repairs": [
+        "Prespecify adversarial-perturbation generation methods, examples, and threat-model justification (human-labeled seed set or adversarial-paraphrase algorithm).",
+        "Enumerate device-profile mismatch types and include representative vendor CLIs; justify emulator mappings.",
+        "Provide power analysis for interaction detection and set K accordingly; prespecify equivalence bounds.",
+        "Define a clear failure-mode taxonomy, annotation protocol, and inter-annotator reliability targets.",
+        "Control for confounders (prompt templates, model temperature) and prespecify analysis covariates."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

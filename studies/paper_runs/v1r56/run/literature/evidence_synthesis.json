@@ -1,0 +1,133 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Generate–Verify–Repair or execution-guided iterative repair architectures significantly improve correctness of LLM-generated code/Infrastructure-as-Code/configuration outputs on reported benchmarks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "doi:10.21203/rs.3.rs-10523195/v1",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4386436496"
+      ],
+      "evidence_type": "empirical (benchmarks/experimental papers)",
+      "confidence": 0.85,
+      "limitations": [
+        "Improvements are demonstrated on benchmarks and controlled experiments rather than broad production deployments.",
+        "Reported gains vary by model, task, and verifier; transfer to diverse NetOps tasks is not fully validated in these records."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "LLMs are a promising approach for intent-driven network-configuration generation, but surveys and system papers consistently report risks (hallucination, domain-adaptation, overconfidence) and recommend integrating validators, constrained generation, or human oversight.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4416758252"
+      ],
+      "evidence_type": "survey and system papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Surveys synthesize heterogeneous literature; quantitative magnitude of risks for NetOps-specific deployments is task-dependent and not uniformly measured in these records.",
+        "Some system papers report improvements but remain evaluation-limited (datasets, emulators)."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Tool-assisted verifier feedback and multi-agent/self-correction loops provide diagnostic signals that enable iterative repair and rescue of otherwise failing generated artifacts (code, IaC, experimental protocols).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7165956966",
+        "doi:10.21203/rs.3.rs-10523195/v1",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "system papers and experimental case studies",
+      "confidence": 0.78,
+      "limitations": [
+        "Supporting examples span domains (code, IaC, chemistry); domain differences (device semantics, unsafe side effects) limit direct one-to-one transfer to all NetOps scenarios.",
+        "Level of automation and human-in-the-loop requirements vary across reported systems."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Emulation/testbed platforms and machine-readable interface profiles exist and are used to execute or evaluate generated network artifacts, enabling execution-based validation in research settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406170828",
+        "https://openalex.org/W4321483987",
+        "https://openalex.org/W4412635081"
+      ],
+      "evidence_type": "tool/testbed descriptions and applied work",
+      "confidence": 0.9,
+      "limitations": [
+        "Testbeds and interface profiles provide controlled evaluation but do not guarantee equivalence to production networks or capture all operational nuances.",
+        "Integration of LLM-generated artifacts with these testbeds is demonstrated in some studies but is not uniformly standardized across the literature set."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent do GVR/verification-loop approaches reliably prevent security-relevant misconfigurations (attack-surface increasing errors) when applied to real production network devices under adversarial inputs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4404602270"
+      ],
+      "evidence_type": "survey/system papers noting open challenges; absence-of-direct-evidence",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records note security concerns and recommend validators but do not present comprehensive production-security evaluations of LLM+GVR pipelines on live networks.",
+        "This is principally an evidence gap in the supplied record set rather than a negative result."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How well do benchmark and emulation-based evaluations predict real-world operator-in-the-loop effectiveness and operational risk (external validity of current NetOps benchmarks)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204078652",
+        "doi:10.31234/osf.io/ybde5_v1"
+      ],
+      "evidence_type": "methodological critique / survey; absence-of-direct-transport-studies",
+      "confidence": 0.65,
+      "limitations": [
+        "Records highlight process-level signals and benchmark-validity concerns but do not provide empirical transportability studies from emulators to production operator outcomes within the supplied set."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A reproducible NetOps-specific benchmark/dataset combining intent-to-configuration tasks with execution-based validators (reachability, ACL/policy compliance, security metrics) and process-level failure annotations is insufficiently represented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W7204078652",
+        "doi:10.31234/osf.io/ybde5_v1"
+      ],
+      "evidence_type": "synthesis of system papers and benchmark-validity critiques",
+      "confidence": 0.7,
+      "limitations": [
+        "Some projects (e.g., PreConfig) provide corpora or tasks, but a standardized, widely adopted execution-validated NetOps benchmark that measures security/operational risk and process metrics is not evident in the supplied records.",
+        "Gap assessment limited to the supplied record set; external resources may address parts of this need."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Published applications of formal network verifiers (e.g., reachability/policy oracles) embedded inside closed-loop GVR architectures for LLM-generated network configurations are scarce in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4388891721"
+      ],
+      "evidence_type": "literature synthesis / absence signal",
+      "confidence": 0.5,
+      "limitations": [
+        "Formal verification literature and surveys exist, but explicit demonstrations of verifier-in-the-loop applied to LLM-generated network configs (with security/regression metrics) are not apparent in these supplied records.",
+        "This may reflect a publication gap or that such work exists outside the provided record set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform NetOps changes without human oversight (unsupported by supplied records).",
+    "Agentic LLMs have been empirically demonstrated to eliminate misconfiguration security risk in live production networks (unsupported by supplied records).",
+    "This record set establishes first-ever demonstrations of autonomous agentic NetOps in production (unsupported by supplied records)."
+  ]
+}

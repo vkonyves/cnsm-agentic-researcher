@@ -1,0 +1,24 @@
+{
+  "summary": "Closure review: The submitted preregistered paired evaluation is scientifically sound and reproducible in its artifacts, but the manuscript still reads like an artifact inventory and omits a concise technical definition of the core scoring predicate and concise validator descriptions. The principal confirmatory result is degenerate (n11=300) and the paper must more clearly foreground that limitation and present primary statistics compactly. These problems are resolvable from the supplied evidence bundle and must be corrected before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript remains provenance-/metadata-heavy: extensive inline lists of artifact paths, hashes, and manifest contents appear throughout the main text, impairing readability and causing the paper to read as an artifact inventory rather than a concise conference short paper.",
+    "Missing concise technical definition of the core scoring predicate: no short, precise paragraph defines the 'forbidden-reachability' predicate (which source/destination pairs, whether ACL/route-policy/ECMP semantics are included, and the operational meaning of a violation) that is used for scoring.",
+    "Missing concise summary of validators and their detection assumptions: the paper lacks a compact statement of what each validator (execution validator and static analyzer) checks, their algorithmic/semantic assumptions, and potential false-negative risks; this prevents readers from assessing construct validity and verifier limitations."
+  ],
+  "required_revisions": [
+    "Compress provenance material in the main manuscript: remove long inline artifact/path/hash listings and replace them with a single short verification paragraph that states where the full artifact bundle and hash manifest are archived and lists at most 2–3 representative filenames/sha256 values for immediate spot-checking. (Resolvable from supplied artifacts.)",
+    "Add a concise technical paragraph (≤1 paragraph) in Methods that precisely defines the 'forbidden-reachability' predicate used for scoring: enumerate the tested source→destination pairs or policy class, state whether ACL/route-policy/ECMP semantics and transitive routing were considered, and state the operational interpretation of a detected violation. Cite the per-episode validator_trace artifacts for detail. (Resolvable from supplied artifacts.)",
+    "Add a concise summary (≤1 paragraph) of each validator's detection model and limitations in Methods: for each validator state whether it is execution-based or static, what semantic checks it performs (e.g., ACL evaluation, route-policy/LSR behavior, forwarding-table simulation), determinism guarantees, and known false-negative failure modes. Cite per-episode scoring artifacts for verification. (Resolvable from supplied artifacts.)",
+    "Condense Results to a compact presentation: show the paired contingency (n11,n10,n01,n00), McNemar p-value, bootstrap 95% CI, and the Clopper–Pearson bound in one small table or single-panel figure plus a short explanatory paragraph. Move extended numeric breakdowns, per-task examples, and artifact pointers into the verification paragraph referenced above. (Resolvable from supplied artifacts.)",
+    "Edit Abstract, end-of-Introduction contributions list, and Conclusion to explicitly and prominently state that the preregistered confirmatory hypothesis about repair efficacy was untestable in this run because (a) the shared_initial_candidate semantics replayed the same initial candidate to both arms and (b) no validator-detected baseline violations occurred; emphasize that the empirical contribution is deterministic execution accounting, artifacts, and design lessons for follow-up stress tests. (Resolvable from supplied artifacts.)"
+  ],
+  "optional_revisions": [
+    "Provide a brief (one-paragraph) evidence-to-claim mapping linking each principal claim to the exact archived artifact(s) (filenames/manifest path and sha256) that substantiate it (the full manifest is already archived). (Resolvable from supplied artifacts.)",
+    "Add a short paragraph quantifying the model-call vs inferential-power trade-off (example numbers: independent two-draw per pair would raise model_calls to ~600 under the same manifest) to help readers plan follow-up experiments; cite execution/model_configuration.json and execution/execution_manifest.json for accounting. (Resolvable from supplied artifacts.)"
+  ],
+  "accept_for_finalisation": false
+}
