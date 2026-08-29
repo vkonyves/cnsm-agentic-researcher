@@ -116,6 +116,146 @@ def _normalise_claimed_artifact_path(
     return value
 
 
+
+def sanitize_structured_manuscript_publication_metadata(
+    manuscript: Any,
+) -> Any:
+    """Deterministically remove machine-oriented publication metadata.
+
+    This is a non-scientific publication-hygiene transformation. It preserves
+    manuscript claims and prose while replacing run-relative artifact locators
+    with concise human-readable descriptions and removing inline DOI metadata.
+
+    The mandatory Disclosure Statement and bibliography/citation identifiers
+    are intentionally left unchanged.
+    """
+    import re
+
+    path_replacements = {
+        "analysis/condition_summary.csv":
+            "the archived condition summary",
+        "analysis/paired_contingency_table.csv":
+            "the archived paired contingency table",
+        "analysis/results.json":
+            "the archived analysis results",
+        "execution/model_configuration.json":
+            "the archived model configuration",
+        "execution/task_manifest.jsonl":
+            "the archived task manifest",
+        "execution/scoring/task-00000X-*.json":
+            "the archived per-episode scoring records",
+        "execution/*":
+            "the archived execution artifacts",
+        "analysis/*":
+            "the archived analysis artifacts",
+    }
+
+    artifact_path_pattern = re.compile(
+        r"(?i)\b(?:execution|analysis|provenance|manuscript)"
+        r"/[A-Za-z0-9_.*/-]+"
+    )
+
+    bracketed_doi_pattern = re.compile(
+        r"\s*\[\s*doi\s*:\s*[^\]]+\]",
+        flags=re.IGNORECASE,
+    )
+
+    inline_doi_label_pattern = re.compile(
+        r"(?i)\bDOI\s*:\s*"
+    )
+
+    def sanitize_text(value: str) -> str:
+        cleaned = bracketed_doi_pattern.sub("", value)
+
+        for raw_path, replacement in path_replacements.items():
+            cleaned = cleaned.replace(raw_path, replacement)
+
+        # Any unexpected run-relative locator is converted only to a generic
+        # archived-artifact description rather than deleted.
+        def generic_artifact_replacement(
+            match: re.Match[str],
+        ) -> str:
+            raw = match.group(0)
+            prefix = raw.split("/", 1)[0].lower()
+
+            labels = {
+                "analysis": "the archived analysis artifact",
+                "execution": "the archived execution artifact",
+                "provenance": "the archived provenance artifact",
+                "manuscript": "the archived manuscript artifact",
+            }
+            return labels[prefix]
+
+        cleaned = artifact_path_pattern.sub(
+            generic_artifact_replacement,
+            cleaned,
+        )
+
+        # Defensive fallback for a DOI label that was not bracketed.
+        cleaned = inline_doi_label_pattern.sub("", cleaned)
+
+        # Repair only whitespace introduced by local metadata removal.
+        cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+        cleaned = re.sub(r"\s+([,.;:])", r"\1", cleaned)
+
+        return cleaned
+
+    def sanitize_value(
+        value: Any,
+        *,
+        preserve: bool = False,
+    ) -> Any:
+        if preserve:
+            return value
+
+        if isinstance(value, str):
+            return sanitize_text(value)
+
+        if isinstance(value, list):
+            return [
+                sanitize_value(item)
+                for item in value
+            ]
+
+        if isinstance(value, dict):
+            result: dict[str, Any] = {}
+
+            for key, item in value.items():
+                # Citation identifiers are machine identifiers used to build
+                # the bibliography and must not be rewritten.
+                preserve_field = key in {
+                    "cited_record_ids",
+                    "disclosure_statement",
+                }
+
+                result[key] = sanitize_value(
+                    item,
+                    preserve=preserve_field,
+                )
+
+            return result
+
+        return value
+
+    if hasattr(manuscript, "model_dump"):
+        original_type = type(manuscript)
+        sanitized_data = sanitize_value(
+            manuscript.model_dump()
+        )
+        return original_type.model_validate(
+            sanitized_data
+        )
+
+    if isinstance(manuscript, dict):
+        return sanitize_value(manuscript)
+
+    raise TypeError(
+        "Structured manuscript sanitizer requires a Pydantic "
+        "manuscript model or dictionary."
+    )
+
+
+
 def audit_manuscript_artifact_references(
     *,
     manuscript: ManuscriptPackage | dict[str, Any],
@@ -6628,21 +6768,6 @@ class FinalAutonomousResearchPipeline:
                 best_recovery_validation = publication_validation
                 best_recovery_page_count = post_hygiene_page_count
 
-                # The latest protected exact-page manuscript provides a
-                # deterministic rendered-volume reference. It is NOT a
-                # scientific-content source for recovery; all scientific
-                # additions must still come from the frozen verified evidence.
-                # Its text length is used only to estimate how much substantive
-                # manuscript volume hygiene/remediation removed.
-                protected_volume_target_chars = None
-
-                if protected_submission_manuscript is not None:
-                    protected_volume_target_chars = len(
-                        _manuscript_text(
-                            protected_submission_manuscript
-                        )
-                    )
-
                 for underfill_attempt in range(
                     1,
                     maximum_post_hygiene_underfill_attempts + 1,
@@ -6652,42 +6777,6 @@ class FinalAutonomousResearchPipeline:
                         == post_hygiene_maximum_pages
                     ):
                         break
-
-                    current_recovery_chars = len(
-                        _manuscript_text(
-                            best_recovery_manuscript
-                        )
-                    )
-
-                    if (
-                        isinstance(protected_volume_target_chars, int)
-                        and protected_volume_target_chars
-                        > current_recovery_chars
-                    ):
-                        remaining_volume_chars = (
-                            protected_volume_target_chars
-                            - current_recovery_chars
-                        )
-                        recovery_volume_guidance = (
-                            "The preserved exact-page manuscript had "
-                            f"approximately {protected_volume_target_chars} "
-                            "characters of manuscript text before publication "
-                            "hygiene, while the current clean manuscript has "
-                            f"approximately {current_recovery_chars}. "
-                            f"The remaining rendered-volume gap is therefore "
-                            f"approximately {remaining_volume_chars} characters. "
-                            "Use this ONLY as a coarse volume target, not as "
-                            "permission to reproduce provenance/path material. "
-                            "Restore comparable volume using already-supported "
-                            "scientific explanation from the supplied frozen "
-                            "evidence. "
-                        )
-                    else:
-                        recovery_volume_guidance = (
-                            "No larger protected exact-page text-volume target "
-                            "is available. Continue cumulative supported "
-                            "scientific expansion based on compiler feedback. "
-                        )
 
                     scientific_underfill_instruction = (
                         "The manuscript is scientifically frozen but "
@@ -6709,8 +6798,6 @@ class FinalAutonomousResearchPipeline:
                         "a different four-page manuscript of similar or smaller "
                         "scientific volume. "
                         "\n\n"
-                        + recovery_volume_guidance
-                        + "\n\n"
                         "SCIENTIFIC CONTENT IS FROZEN. Use ONLY material "
                         "already supported by the supplied verified "
                         "literature synthesis, preregistration, completed "
@@ -7020,10 +7107,22 @@ class FinalAutonomousResearchPipeline:
                     else {}
                 )
 
+                sanitized_protected_submission_manuscript = (
+                    sanitize_structured_manuscript_publication_metadata(
+                        protected_submission_manuscript
+                    )
+                )
+
+                write_json(
+                    revision_rounds_dir
+                    / "protected_final_sanitized_package.json",
+                    sanitized_protected_submission_manuscript,
+                )
+
                 protected_rescue_validation = (
                     build_publication_artifacts(
                         manuscript=(
-                            protected_submission_manuscript.model_dump()
+                            sanitized_protected_submission_manuscript.model_dump()
                         ),
                         verified_records=records,
                         output_dir=publication_dir,
@@ -7042,7 +7141,7 @@ class FinalAutonomousResearchPipeline:
                 protected_rescue_artifact_audit = (
                     audit_manuscript_artifact_references(
                         manuscript=(
-                            protected_submission_manuscript
+                            sanitized_protected_submission_manuscript
                         ),
                         run_dir=run_dir,
                     )
@@ -7094,7 +7193,7 @@ class FinalAutonomousResearchPipeline:
 
                 if protected_rescue_is_valid:
                     revised_manuscript = (
-                        protected_submission_manuscript
+                        sanitized_protected_submission_manuscript
                     )
                     publication_validation = dict(
                         protected_rescue_validation
