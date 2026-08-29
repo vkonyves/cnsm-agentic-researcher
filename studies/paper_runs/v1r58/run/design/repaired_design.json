@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "cnd-001-5f3a",
+  "title": "Generate–Verify–Repair Pipeline Efficacy for LLM-Generated Network Configurations (Repaired Preregistration)",
+  "research_question": "Does an iterative generate–verify–repair pipeline that pairs hosted-LLM generation with deterministic verification and deterministic repair heuristics (bounded ≤3 iterations) yield a higher emulator-executable configuration success rate than ungated LLM generation?",
+  "confirmatory_hypotheses": [
+    "H1: The generate–verify–repair pipeline (guarded) has a higher emulator-executable success proportion than ungated LLM outputs (paired estimand: guarded minus baseline).",
+    "H2: Most remaining emulator execution failures after deterministic repair will be attributable to emulator-modeled runtime/state interactions (timing/BGP convergence) rather than purely syntactic or trivially fixable logical errors.",
+    "H3: ≤3 deterministic repair iterations capture the majority of verifier-detected, syntactic/structural faults; marginal yield is small after iteration 3."
+  ],
+  "exploratory_questions": [
+    "EQ1: What automated failure-taxonomy labels (syntactic, verifier-failure, runtime/convergence, ACL-mismatch, ambiguous) dominate uncorrected cases?",
+    "EQ2: How often deterministic repairs introduce config-line churn (lines changed) even when they enable emulator success?"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps intent corpus (n=200 confirmatory intents) covering single-device and small multi-device changes (ACLs, route addition/removal, interface config).",
+    "Dockerized emulator images (Mininet + FRR + standard Linux router toolchain) and deterministic verifier (NetKAT/MEV-style verifier) run locally in Docker."
+  ],
+  "model_scope": [
+    "Hosted LLM for generation (hosted_model_api_available). Exact provider/model identifier will be recorded and hashed at execution time in the artifact release.",
+    "No human-in-the-loop; deterministic repair heuristics (rule-based, grammar-driven) implement repairs in the recommended scenario. Optional high-budget scenario allows secondary hosted-LLM guided repairs (preregistered if used)."
+  ],
+  "transformation_scope": [
+    "Config normalization (whitespace/ordering canonicalization), CLI tokenization, verifier-translation mapping, deterministic repair heuristics (pattern-based fixes), automated failure-labeling pipeline."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-intent number_of_repair_iterations (median, IQR)",
+    "proportion of verifier-detected faults corrected by repairs",
+    "distribution of automated failure-taxonomy labels among uncorrected failures"
+  ],
+  "sampling_plan": "Confirmatory set: n=200 natural-language change intents curated to span single-device and small cross-device changes. Each intent is executed in paired fashion: (A) ungated LLM generation (baseline) and (B) guarded generate–verify–repair pipeline. For each intent both arms must attempt to produce a final configuration; if an arm fails to produce any syntactically-parseable configuration due to provider/API failure, that arm is treated as a failure (see missingness_plan). An optional discovery set of 50 additional intents will be used for exploratory analyses and tooling validation but not included in the confirmatory paired estimator.",
+  "analysis_plan": "Primary analysis executed by available_analysis_contract paired_binary_analysis_v1 computing the paired_success_rate_difference_guarded_minus_baseline (primary estimand). Primary hypothesis test: McNemar test for paired binary success/failure (two-sided α=0.05). Report absolute and relative risk differences with 95% CIs. Secondary analyses: logistic regression (emulator success ~ initial_verifier_fail + devices_touched + repair_iterations + config_lines) reported as ORs with 95% CIs. Report repair-iteration yield curve and automated failure-taxonomy counts. All analysis code and seeds recorded; deterministic analysis executor and result schema paired_binary_episode_v1 used.",
+  "multiplicity_plan": "Single predeclared primary estimand (paired success-rate difference). Secondary estimands reported descriptively and explicitly labeled exploratory. No multiplicity adjustment for exploratory outcomes; primary test alone controls pre-specified α. Any additional hypothesis tests introduced post-hoc will be clearly labeled exploratory.",
+  "missingness_plan": "If hosted-LLM/API provider errors or timeouts prevent producing an output for an arm of a pair, treat that arm as a failure (binary=0) in the primary analysis (complete-pair-with-failure-as-zero sensitivity). Report counts and perform sensitivity analysis excluding pairs with provider errors. All provider/API failures, timeouts, and retry attempts are logged; retry policy: single automatic retry for transient HTTP/timeout errors within a 60s backoff window, otherwise record as provider failure.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "CNSM-2026-synthetic-intent-corpus-v1"
+    ],
+    "risk_factors": [
+      "Re-use of pre-lock development artifacts (prompts, example configs) contaminating the confirmatory corpus.",
+      "Leakage of solution seeds (hashed prompts/config templates) into the intent corpus."
+    ],
+    "detection_procedures": [
+      "Artifact-hash comparison: compute SHA-256 hashes of all prompt templates, intent texts, and generated artifacts and compare against a pre-lock artifact hash list (pre-lock hashes are recorded in the execution manifest).",
+      "Timestamp and provenance checks for all artifacts stored in the artifact repository; automated detection of any artifact whose creation timestamp precedes the autonomy-lock marker.",
+      "Automated duplicate-text detector (exact and near-duplicate via Jaccard on token shingles) to flag intents or outputs matching pre-lock corpus."
+    ],
+    "item_flagging_rules": [
+      "Flag any intent / generated artifact whose SHA-256 matches a pre-lock hash OR whose near-duplicate score with any pre-lock artifact > 0.9.",
+      "Flag any artifact with creation timestamp earlier than autonomy-lock marker.",
+      "Automatically exclude flagged items from confirmatory analysis and report them in a contamination log."
+    ],
+    "analysis_treatment": "Flagged items are excluded from confirmatory paired analysis; primary analysis is run on the remaining confirmed-clean n. Sensitivity analysis reports results including flagged items (labelled). All flags and exclusions are recorded and published in the artifact release.",
+    "residual_uncertainty": [
+      "Undetected pre-lock similarities below the near-duplicate threshold remain possible.",
+      "External data leaked into hosted-model provider prompts or completions cannot be fully controlled; this is reported as residual uncertainty."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended_deterministic_repairs",
+      "description": "Deterministic-repair-first (recommended) — use hosted LLM only for generation; repairs implemented as deterministic rule-based heuristics (no additional hosted-LLM repair calls).",
+      "planned_model_calls": 400,
+      "models": [
+        "hosted_generation_llm_api_v1"
+      ],
+      "transformations": [
+        "config_normalization_v1",
+        "deterministic_repair_heuristics_v1"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Per-intent model calls = 1 (baseline ungated generation) + 1 (pipeline initial generation) = 2 calls/intent. 200 intents × 2 = 400 model calls. Verifier and repairs are deterministic CPU-run Docker components (NetKAT/MEV-style verifier and rule-based repair scripts). Docker and CPU resources available per capability manifest."
+    },
+    {
+      "scenario_id": "high_budget_llm_repairs",
+      "description": "LLM-assisted repairs enabled (high-budget) — allow up to 3 hosted-LLM repair iterations per pipeline intent using secondary hosted LLM for repair guidance; baseline still uses one hosted call.",
+      "planned_model_calls": 1000,
+      "models": [
+        "hosted_generation_llm_api_v1",
+        "hosted_repair_llm_api_v1"
+      ],
+      "transformations": [
+        "config_normalization_v1",
+        "llm_guided_repair_v1"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Worst-case per-intent calls: baseline=1 + pipeline initial=1 + up to 3 repair LLM calls = 5 calls/intent. 200 intents × 5 = 1000 model calls (worst-case budget). Expected average repair iterations ~1 yields ~600 expected calls but preregister worst-case cap. Hosted-model API availability is confirmed in capability manifest; total planned calls are within the manifest limit (≤10000)."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute increase of 0.15 (15 percentage points) in emulator-executable success rate for guarded vs baseline",
+    "clustering_unit": "intent (paired design: same intent across both arms)",
+    "calculation_method": "Approximate paired-power (McNemar/paired-proportion) calculation under simple assumptions: baseline success p0≈0.50, guarded success p1≈0.65 (absolute diff 0.15), two-sided α=0.05. Using standard approximations for paired binary tests, n=200 yields power >80% to detect a 15 pp paired improvement (conservative estimate).",
+    "assumptions": [
+      "Baseline ungated emulator success rate ≈ 50% (domain-informed prior).",
+      "Conservative within-intent independence assumption for power approximation.",
+      "Two-sided α=0.05 and desired power 80%."
+    ],
+    "recommended_scenario_id": "recommended_deterministic_repairs",
+    "minimum_detectable_effect_notes": "With n=200 paired intents, the minimum detectable absolute paired difference at 80% power is approximately 10–15 percentage points depending on discordant pair rates; sensitivity analyses will report exact detectable MDE curves.",
+    "sensitivity_analyses": [
+      "Recompute paired power and detectable effect assuming baseline p0 in {0.3, 0.5, 0.7}.",
+      "Perform sensitivity where provider/API failures are treated as missing (complete-case) vs treated as failure (primary)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "config_normalization_v1 (canonical ordering, whitespace trimming)",
+      "cli_tokenizer_v1 (deterministic CLI tokenization for verifier translation)",
+      "deterministic_repair_heuristics_v1 (pattern-based fixes)",
+      "llm_guided_repair_v1 (only in high-budget scenario; preregistered prompt templates and hash)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip verifier check: normalize → verifier-translate → verifier input; ensure the verifier input maps back to the normalized config (deterministic mapping).",
+      "Automated diff invariants: ensure that deterministic normalization does not remove semantic statements (e.g., ACL entries) by cross-checking presence/absence of policy statements pre/post transformation."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated config failing syntactic parse by the canonical CLI parser (deterministic parser returns parse errors).",
+      "Reject any config where canonicalization drops statements required by the intent (automated check comparing extracted intent predicates).",
+      "Reject outputs containing blacklisted constructs (per safety rules) detected via deterministic regex filters."
+    ],
+    "audit_sample_policy": "Automated deterministic replay audit on 10% random sample of confirmatory intents: reproduce generation + normalization + verification + repair deterministically and compute hash of final artifact; any mismatch triggers automated re-execution for that intent (up to 2 auto-retries). All audits logged and published.",
+    "mapping_validation": "Provide a deterministic mapping table from canonical CLI tokens to verifier predicates; validate mapping with unit tests (100% pass required) before experiment execution.",
+    "residual_risks": [
+      "Normalization heuristics may under-approximate vendor-specific CLI idiosyncrasies.",
+      "LLM-guided repairs (in high-budget) may still produce plausible but semantically incorrect edits; we mitigate by preferring deterministic repairs in recommended scenario."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity vs vendor production devices for some runtime behaviours (BGP timer interactions, proprietary vendor-side state) — experiments are explicitly bounded to the dockerized Mininet+FRR emulator and deterministic verifier; external generalization is a limitation.",
+    "Using hosted LLM generation implies nondeterminism across provider model versions; exact model identifier will be recorded at runtime and hashed, but provider-side nondeterminism (model updates) remains a residual uncertainty.",
+    "Confirmation bias risk when deterministic repairs cannot correct deeper semantic errors that would benefit from diverse repair strategies — mitigated by preferring deterministic repairs and optionally enabling LLM-guided repair only in secondary scenario with full artifact recording."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7164168895",
+    "https://openalex.org/W4400611559",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4415680272",
+    "doi:10.1002/nem.2313"
+  ]
+}

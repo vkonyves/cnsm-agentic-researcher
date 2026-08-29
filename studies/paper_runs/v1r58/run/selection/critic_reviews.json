@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnd-001-5f3a",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator fidelity risk: emulator may not capture vendor/runtime side-effects (BGP timing, stateful behaviours) that drive remaining failures.",
+        "Confirmation/feedback bias: using the same LLM for generation and repair risks converging on superficially plausible but semantically wrong fixes.",
+        "Preregistration and artifact-release details are underspecified (needed to ensure reproducibility and independent verification).",
+        "Failure taxonomy and manual root-cause coding plan insufficiently formalized (possible subjective labeling)."
+      ],
+      "required_design_repairs": [
+        "Document and adopt concrete emulator fidelity validation steps (example device behaviours, convergence timing tests) and report emulator limitations in analysis.",
+        "Use model-variance or heterogeneous-repair strategy (different model or deterministic repair heuristics) to reduce confirmation bias; preregister this choice.",
+        "Specify and commit to a detailed preregistration artifact-release plan (code, prompts, seeds, raw logs, hashes) and exact verifier versions.",
+        "Define formal labeling protocol and inter-rater reliability procedure for root-cause coding (e.g., codebook, dual coders, tie-break rules)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-002-7b9d",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Emulator snapshot/restore and stateful dynamics (BGP/IGP convergence, timers) may bias rollback-success estimates upward if not modeled.",
+        "Definitions of 'rollback success' and outage-duration measurement need precise operationalization to avoid ambiguous outcomes.",
+        "Induced-failure protocol (40%) must include safeguards to prevent destructive states and must be repeatable and ethically approved.",
+        "Potential confound: rollback failures due to emulator artifacts vs LLM script errors need clear causal attribution procedures."
+      ],
+      "required_design_repairs": [
+        "Specify precise rollback-success criteria (exact reachability/ACL matrices, tolerance thresholds) and measurement windows for outage duration.",
+        "Enhance emulator experiments to include timing/convergence modeling (configurable timers, controlled convergence events) or simulate/record side-effect timing in analysis.",
+        "Preregister induced-failure selection rules and safety-cutoffs; include automated safety aborts and logged justification for each induced failure.",
+        "Include automated causal attribution heuristics (e.g., syntactic validation, dry-run checks) and a decision tree to separate emulator-induced vs script-induced rollback failures; preregister adjudication process."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-003-2ef1",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Safety and ethics: adversarial/jailbreak prompt generation can produce harmful or policy-violating content—protocol for safe construction, storage, and execution is underspecified.",
+        "Labeling 'unsafe' is inherently subjective; dual-adjudicator process described but tie-breaker and adjudicator qualifications need formalization.",
+        "Adversarial prompt generation methodology must be made deterministic/repeatable (seeded procedures) to ensure reproducibility.",
+        "Risk of leaking actionable harmful prompts in released artifacts—need redaction or controlled access plan."
+      ],
+      "required_design_repairs": [
+        "Add an explicit safety/ethics plan: allowed content boundaries, red-team oversight, artifact handling (encryption/redaction), and run-labelling safety checks.",
+        "Formalize adversarial-construction procedures with seeds and documented heuristics; preregister them so experiments are repeatable.",
+        "Specify adjudicator qualifications, training, codebook, and exact tie-breaker rules; measure and report inter-rater reliability (Cohen's kappa) in preregistration.",
+        "Include automated pre-filtering and sanitization for any prompts/outputs before storage or publication; document retention/access controls for sensitive artifacts."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnd-004-90ab",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Practicality on hosted APIs: constrained decoding (token-level control) may not be available on target hosted LLMs; fallback strategy is needed.",
+        "Maintaining accurate device/vendor schemas is engineering-heavy and may bias results if schema coverage is partial.",
+        "Constrained decoding can trade correctness for coverage (increased refusals); the plan must preregister how refusals are handled and measured.",
+        "Implementation complexity (token grammars, live retrieval integration) may harm reproducibility unless detailed tooling and examples are released."
+      ],
+      "required_design_repairs": [
+        "Specify exact constrained-decoding mechanism and target model(s) (APIs or local models) and provide fallback plans if token-level control is unavailable.",
+        "Preregister schema corpus, coverage metrics, and update rules; report per-intent schema availability and its effect on outcomes.",
+        "Define and preregister refusal/partial-output handling rules (e.g., retries, fallback to human-in-loop or alternative mode) and include refusal-rate as a primary metric.",
+        "Provide reproducible tooling (grammar/spec files, retrieval index, constrained-decode wrapper) and ensure these artifacts are released with clear usage instructions and version hashes."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

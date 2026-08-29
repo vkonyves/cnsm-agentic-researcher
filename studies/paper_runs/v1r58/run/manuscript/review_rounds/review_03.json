@@ -1,0 +1,24 @@
+{
+  "summary": "Well-executed, autonomy-locked preregistered paired study evaluating a bounded generate–verify–repair (GVR) guard on gpt-5-mini for 200 synthetic NetOps intents. Results: baseline 199/200, guarded 200/200; paired difference 0.005 (95% bootstrap CI [0.0,0.015]); exact McNemar two-sided p = 1.0. Artifacts, hashes, and execution manifest are comprehensive and reproducible. The manuscript appropriately reports limitations and preregistration fidelity but needs several clarifications and minor analyses to make the paper interpretable and self-contained for the CNSM audience.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The primary estimand and its operational interpretation (repair-on-same-candidate due to the shared-initial-generation protocol) is insufficiently explicit in the abstract and title-area wording; readers may misread the study as comparing independently sampled guarded vs baseline generation pipelines.",
+    "The manuscript does not report the number of initial validator failures (validation_before failures) across the confirmatory set; the fact that the repair stage was invoked exactly once should be accompanied by per-episode counts of pre-repair validation failures and parsing/validator rejection rates.",
+    "There is no concise summary of task-difficulty distribution (easy/medium/hard/very_hard) across the 200 confirmatory intents in the main text; because the baseline is near ceiling, such a summary is essential to contextualize external generalizability and interpret the null/near-null effect."
+  ],
+  "required_revisions": [
+    "Explicitly state in the abstract (one sentence) that the preregistered shared-initial-generation protocol makes the primary estimand a repair-on-same-candidate effect rather than a comparison of independently resampled generation pipelines, and revise any title text that could lead to the latter interpretation (or add an explicit parenthetical qualifier). This change must be derivable from the supplied artifacts and preregistration.",
+    "Add a one-paragraph summary (and a small table) in Methods/Results reporting counts: number of initial validator failures (validation_before.valid == false), number of syntactic/parse failures, number of repair invocations (should match provider-call stage_counts), and the per-condition success/failure accounting already present in artifacts. Use the archived artifacts (execution/*, analysis/*) to populate these counts.",
+    "Add a short summary (one paragraph and a compact table or bar chart) of task-difficulty distribution drawn from the task_manifest entries (difficulty.level counts across the 200 confirmatory intents: easy/medium/hard/very_hard). This must be produced from the archived task_manifest.jsonl and included in the manuscript to contextualize the near-ceiling baseline.",
+    "Provide a concise (<=1 paragraph) description of deterministic_netops_validator_v5 summarizing its validation checks (categories of rule violations it detects, parse/grammar checks, and what constitutes validation_after.valid=true) and cite the validator artifact/version. If length constraints preclude full detail, include a compact appendix-style box or point to the specific artifact path and SHA-256 in the disclosure/footnote so reviewers can inspect the exact rules in the evidence bundle."
+  ],
+  "optional_revisions": [
+    "Briefly justify the choice of bootstrap-percentile CI for the paired difference (10,000 resamples, seed 1729) and note its robustness when discordant counts are extremely small; alternatively report the exact conditional binomial confidence bound for the paired difference as a sensitivity check (labelled exploratory).",
+    "Add a short discussion paragraph that contrasts the preregistered shared-initial protocol with an independent-generation design, emphasizing expected differences in estimands and operational trade-offs; use archived provider-call accounting to illustrate model-call cost implications.",
+    "Consider moving one representative task example (reference intent, generated config, validator trace excerpt) into the main paper (high information density) rather than only in the artifact bundle to help readers quickly grasp typical cases."
+  ],
+  "accept_for_finalisation": false
+}

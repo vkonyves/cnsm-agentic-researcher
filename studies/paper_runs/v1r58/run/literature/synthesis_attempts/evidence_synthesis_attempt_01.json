@@ -1,0 +1,176 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models are actively being applied to NetOps tasks including intent-to-configuration translation, configuration synthesis, and topology-aware assistance in academic and prototype systems.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4411109869"
+      ],
+      "evidence_type": "Empirical studies and surveys (prototype/academic evaluations)",
+      "confidence": 0.9,
+      "limitations": [
+        "Most evidence comes from academic prototypes, fine-tuned models, or simulated scenarios rather than broad production deployments",
+        "Dataset sizes, vendor diversity, and deployment realism vary across studies"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Hallucination and structurally or semantically invalid outputs are a common failure mode for LLM pipelines; mitigation techniques shown to reduce these failures include retrieval-augmented generation (RAG), live schema grounding, schema/structure validation, tool-augmented verification, and multi-stage or verifier-assisted architectures.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6909831",
+        "https://openalex.org/W4415680272",
+        "https://openalex.org/W7117986201",
+        "doi:10.21203/rs.3.rs-10507225/v1",
+        "doi:10.21203/rs.3.rs-10303665/v1",
+        "https://openalex.org/W4409849237"
+      ],
+      "evidence_type": "Empirical evaluation and architectural proposals",
+      "confidence": 0.95,
+      "limitations": [
+        "Mitigations typically reduce but do not eliminate hallucinations; trade-offs (e.g., increased false refusals) are reported",
+        "Much evidence is from domains adjacent to NetOps (e.g., NL2SQL, clinical RAG) and requires careful domain adaptation"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Deterministic/formal network verification formalisms and tools (e.g., NetKAT variants, ensemble verifiers like MEV, weighted NetKAT) exist and can check reachability, isolation, and quantitative properties; they are natural candidate validators for generated network configurations.",
+      "evidence_record_ids": [
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "Formal-methods and verification tool papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Scalability and the fidelity of control-plane/state synchronization remain practical challenges",
+        "Verification requires accurate, up-to-date network state and may not cover dynamic runtime behaviours"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Architectural literature on agentic NetOps emphasizes that operational reliability depends heavily on surrounding machinery (evidence traces, assurance contracts, bounded tool use, guarded execution and rollback), not only on the base LLM capability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W7172133748"
+      ],
+      "evidence_type": "Position papers and system proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "These are architecture-level analyses and proposals; empirical, long-running production evidence is limited"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Adversarial and human-readable jailbreak prompts remain an effective threat class against LLMs and therefore a relevant operational risk for NetOps pipelines that rely on unconstrained LLM outputs.",
+      "evidence_record_ids": [
+        "doi:10.1145/3815174",
+        "https://openalex.org/W4401042853",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "Adversarial prompt evaluations and surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Adversarial evaluations are often performed on general-purpose LLMs; specific impact on NetOps-config-generation pipelines requires targeted study"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-generated network configurations behave when executed in live or high-fidelity emulated networks across diverse topologies and traffic conditions (safety, reachability, performance, rollback feasibility)?",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W7172133748"
+      ],
+      "evidence_type": "Motivating evaluations and architectural prescriptions (no conclusive end-to-end production evidence)",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing studies demonstrate intent translation and topology-aware assistance but do not provide comprehensive, multi-topology, execution-grounded trials at production scale"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do constrained decoding and live schema-grounding approaches (proven in domains like NL2SQL) generalize to eliminate semantic/execution failures in network configuration generation?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6909831",
+        "https://openalex.org/W7161090530",
+        "https://openalex.org/W4415680272"
+      ],
+      "evidence_type": "Cross-domain mitigation demonstrations and constrained-decoding method papers",
+      "confidence": 0.6,
+      "limitations": [
+        "Evidence includes strong results in NL2SQL and generic constrained-decoding methods, but domain differences (device CLI dialects, vendor behaviours, runtime interactions) complicate direct transfer"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What standardized, reproducible evaluation metrics and benchmark designs should be adopted for workflow-centered assessment of agentic NetOps (trace quality, bounded tool use, verifier pass/fail rates, rollback success, auditability)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W7160146045"
+      ],
+      "evidence_type": "Survey and position papers calling for workflow-centered evaluation",
+      "confidence": 0.7,
+      "limitations": [
+        "These works recommend evaluation axes but do not converge on an accepted standardized benchmark or dataset"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a gap in publicly available, execution-grounded datasets and benchmarks that pair natural-language network intents with deployable configurations plus recorded execution outcomes (reachability, ACL correctness, performance, rollback results).",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7125775240",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W7164168895"
+      ],
+      "evidence_type": "Intent-translation prototypes and survey observations",
+      "confidence": 0.75,
+      "limitations": [
+        "Some intent-translation datasets exist in academic work, but comprehensive execution-grounded corpora with outcome labeling across vendors/topologies appear limited"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "End-to-end, reproducible generate–validate–repair pipelines that integrate LLM generation, deterministic network verifiers, and iterative repair loops are under-specified and under-evaluated in public literature for NetOps tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4415680272",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "Empirical tool-augmentation studies and architectural proposals",
+      "confidence": 0.8,
+      "limitations": [
+        "Related mitigation architectures are proposed and partially evaluated (often out-of-domain); fully instrumented NetOps pipelines with public reproducible artifacts remain scarce"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "There is limited publicly available empirical work measuring the effectiveness of human-in-the-loop oversight designs (verification independence, attention capacity, escalation thresholds) specifically in LLM-driven NetOps workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415721798",
+        "https://openalex.org/W4415680272",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "Governance/human-oversight surveys and architectural analyses",
+      "confidence": 0.7,
+      "limitations": [
+        "Human-oversight literature offers taxonomies and guidelines but lacks targeted controlled experiments in NetOps contexts"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform NetOps changes without human oversight or guarded verification (no supplied record provides broad production-level evidence).",
+    "Complete elimination of hallucinations in LLM-generated structured artifacts has been demonstrated for network configuration generation (mitigation work reduces but does not eliminate hallucinations).",
+    "Any single paper in the supplied records proves universal superiority of one mitigation approach across all NetOps settings."
+  ]
+}

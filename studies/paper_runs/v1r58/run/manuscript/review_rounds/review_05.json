@@ -1,0 +1,26 @@
+{
+  "summary": "This paper reports a tightly scoped, autonomy-locked, preregistered paired experiment (n=200 intent pairs) that compares ungated LLM-generated NetOps configurations to a bounded generate–verify–repair (GVR) pipeline using a shared-initial-generation protocol. The authors provide extensive execution and analysis artifacts. The empirical result is near-ceiling baseline performance (199/200) with a marginal guarded gain (200/200); paired difference = 0.005, exact McNemar two-sided p = 1.0, paired bootstrap 95% CI = [0.0, 0.015]. The manuscript is relevant to the literature on verifier-assisted LLM NetOps pipelines and publishes a well-documented artifact bundle, but it requires focused clarifications and condensation of provenance material before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript overuses artifact-path and provenance fragments in the main narrative, producing metadata-heavy prose that impedes readable, literature-grounded exposition (per developer guidance).",
+    "Deterministic repair algorithm and the exact repair-invocation mechanics are not described in normal scholarly detail; the manuscript references archived traces but does not concisely explain the repair heuristics, decision rules, or a representative repair prompt in the text. This omission reduces interpretability of the guarded arm's operation.",
+    "A per-task difficulty summary (counts for easy/medium/hard/very_hard) is referenced as recorded but omitted from the paper; that summary is important to interpret the near-ceiling baseline and is extractable from archived artifacts.",
+    "Statistical-method reporting is incomplete: the manuscript states 'exact_mcnemar_two_sided' and reports p=1.0 but does not document the exact implementation (e.g., binomial formulation, treatment of small discordant counts) nor provide the small-discordant-pair sensitivity interpretation. Readers need a concise statement of the exact test variant used and why it is appropriate given n10=1, n01=0."
+  ],
+  "required_revisions": [
+    "Condense provenance-heavy material in the main text: replace extended artifact-path lists with concise descriptive summaries (e.g., “per-episode prompts, provider-call traces, validator traces and analysis CSVs are archived under execution/* and analysis/* (manifest SHA-256: ...)”) and move detailed path lists or exemplars to a compact supplementary paragraph or footnote within the five-page limit. This edit only requires reorganization and summarization of already-archived artifacts.",
+    "Add a concise, literature-style description (one paragraph, ≤150 words) of the deterministic repair operator used in the guarded pipeline, including algorithmic steps, deterministic heuristics applied, and the decision rule that triggered the single repair invocation. Include in-text a short representative repair prompt (or canonicalized excerpt) and its artifact SHA (both available in the archived provider/repair traces).",
+    "Insert a small table or paragraph giving the per-task difficulty distribution (counts for easy / medium / hard / very_hard) extracted from execution/task_manifest.jsonl and cite the manifest SHA; use these counts to briefly contextualize the near-ceiling baseline in Results/Discussion.",
+    "Clarify statistical methods: explicitly state the exact McNemar implementation used (exact binomial formulation or other), the two-sided p-value computation, and justify its appropriateness for the observed discordant counts (n10=1, n01=0). Keep the reported bootstrap CI but add a one- or two-sentence sensitivity note explaining how the near-ceiling baseline limits power to detect the preregistered 15 pp effect. All required details can be taken from the archived analysis artifacts (analysis/*) and need only be summarized in the manuscript."
+  ],
+  "optional_revisions": [
+    "Briefly (one paragraph) summarize the deterministic validator's principal checks (parse/normalize, required-command presence, dependency/order rules, workflow-policy checks, final-state simulation) in a way that emphasizes how these map to operational failure modes; this can be condensed from the current methodology section and the execution/scoring artifacts.",
+    "If space permits, add a one-line representative example showing the single case where the guarded arm corrected the baseline (pair id and brief description) with a pointer to the archived episode JSON SHA, to improve the reader's intuition about what the repair achieved.",
+    "Report latency/compute accounting (median model-call time, repair-stage duration) if available in provider_call logs to help operational interpretation (artifact-backed).",
+    "Consider a short explicit paragraph differentiating the shared-initial-generation estimand from an independent-resampling estimand and recommending, based on artifacts, when each estimand is the appropriate operational choice."
+  ],
+  "accept_for_finalisation": false
+}

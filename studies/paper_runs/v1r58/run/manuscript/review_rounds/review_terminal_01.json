@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, narrowly scoped preregistered paired study that is reproducible and artifact-backed. The shared-candidate generate–verify–repair estimand is operationally motivated; the experiment and deterministic validator/repair design are documented and archived. Main weakness is limited inferential value caused by a near-ceiling baseline (199/200) and a paired design that by construction greatly reduces opportunities for repair; the manuscript should add a small set of clarifying, artifact-extractable details to improve interpretability and auditability.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The manuscript omits a concise, aggregated difficulty-level distribution (counts across the 200 confirmatory intents) that is needed to interpret the curated bank’s challenge level; this summary is available in the archived execution/task_manifest.jsonl and must be included in the paper.",
+    "The paper does not include a brief, auditable summary of the single repaired episode (task id, validator violation code(s), deterministic repair transformation applied, and why the mapping was unique); that information is present in the archived validator and repair traces and must be reported inline.",
+    "The presentation should explicitly state the practical consequence of the preregistered power assumption violation (baseline ≈0.5 assumed versus observed baseline ≈0.995) in one short paragraph in Results or Threats to Validity; although discussed, the paper must state this as a formal post-hoc limitation of the confirmatory inference rather than only as interpretation."
+  ],
+  "required_revisions": [
+    "Add a one-paragraph aggregate summary (table or short sentence) listing counts of difficulty labels (e.g., very_hard/hard/medium/easy) across the 200 confirmatory intents, extracted from execution/task_manifest.jsonl, and cite the artifact SHA-256.",
+    "Add a short, auditable exemplar paragraph for the single repaired episode: report the task identifier, validator.violation_codes, the deterministic repair rule(s) applied (in the operator’s canonical names: insertion/reordering/preservation), and show the before/after normalized_configuration snippets or provide their artifact paths and SHA-256 hashes.",
+    "Add a concise formal statement in Results or Threats to Validity that the preregistered power calculation assumed baseline≈0.5 and that the observed baseline≈0.995 reduces sensitivity to the preregistered 0.15 absolute-effect target; quantify (from archived analysis artifacts) that discordant-pair counts were n=1 and explain how that limits confirmatory inference (i.e., limited potential discordants and hence reduced power)."
+  ],
+  "optional_revisions": [
+    "Include in the manuscript (or a compact appendix within pages 1–5) the exact master prompt text or a short, clearly labeled excerpt plus the provided SHA-256 (the repository path is given but an inline excerpt improves reader inspection), provided this does not violate page constraints.",
+    "Briefly discuss (one paragraph) the expected yield and cost trade-off if the same study were run under an independent-resampling estimand (2+ initial generations per intent), with numeric accounting already available in the execution manifest (model_calls_used) to illustrate cost scaling.",
+    "Consider adding a one-line reminder to the Abstract that the confirmatory bank is synthetic/curated and that external generalization is limited (already in Limitations, but useful for readers who scan only the abstract)."
+  ],
+  "accept_for_finalisation": false
+}

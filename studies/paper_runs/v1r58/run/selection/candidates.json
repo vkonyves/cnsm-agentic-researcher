@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnd-001-5f3a",
+      "title": "Generate–Verify–Repair Pipeline Efficacy for LLM-Generated Network Configurations",
+      "research_question": "Does an iterative generate–verify–repair pipeline that combines LLM generation with deterministic network verification and bounded repair iterations reduce semantic/execution failures of generated device configurations compared with ungated LLM generation?",
+      "hypotheses": [
+        "An iterative generate–verify–repair pipeline will produce a higher proportion of emulator-executable configurations (fewer semantic/execution failures) than ungated LLM outputs.",
+        "Most remaining execution failures after repair will be attributable to emulator-modeling gaps (device-specific runtime side effects) rather than purely syntactic or simple logical errors.",
+        "A small number of repair iterations (≤3) will capture the majority of correctable verifier-detected faults, yielding diminishing returns thereafter."
+      ],
+      "proposed_design": "Curate n=200 natural-language change intents varying in scope (single-device to cross-device, ACLs, route changes). For each intent, generate an initial configuration using a fixed LLM prompt. Run a deterministic verifier (reachability/ACL checks) on the generated config. If the verifier fails, invoke an LLM-guided repair up to three iterations, re-verifying after each repair. Compare against a baseline arm of ungated LLM outputs (no verifier or repair). Emulate accepted configurations in a high-fidelity network emulator (open-source emulator configured with vendor-like CLIs). Record verifier outcomes, number of repairs, and emulator execution outcomes. Predefine inclusion/exclusion, random seeds, repair stopping rules, and safety cutoffs; preregister the plan and keep seeds/logs immutable.",
+      "expected_data": "Per-intent records: intent text, initial LLM output, verifier results per iteration, repaired outputs per iteration, number of repairs applied, final verifier status, emulator deployment logs, executed CLI lines, final reachability/ACL matrices, execution error traces, time-to-accept, and metadata (devices touched, lines changed). Aggregate counts of verifier-failures corrected, uncorrectable failures, and emulator-execution failures.",
+      "primary_outcome": "Emulator-executable configuration success rate (fraction of intents whose final configuration executes in the emulator without causing reachability/ACL violations) comparing generate–verify–repair pipeline vs ungated baseline.",
+      "analysis_outline": "Compare success proportions between pipeline and baseline using two-proportion z-test with 95% CIs; report absolute and relative risk reductions. Use paired analyses for intents where both arms produce outputs (McNemar test). Fit logistic regression predicting emulator success with predictors: initial verifier fail (yes/no), number of devices touched, repair iterations, and config size. Report repair iteration yield curve and analyze failure taxonomy for uncorrected cases (manual root-cause coding). Report exact counts, uncertainties, and null/negative results.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7164168895"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400611559",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4415680272"
+      ],
+      "risks": [
+        "Emulator fidelity may not capture certain vendor runtime behaviours, biasing success upward.",
+        "Repair iterations guided by the same LLM could converge on plausibly consistent but semantically incorrect fixes (confirmation bias).",
+        "Bounded repair may hide deeper systemic errors (e.g., interactions across devices) not correctable within iteration limit."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnd-002-7b9d",
+      "title": "Rollback Script Reliability under Verifier-Gated vs Ungated Deployment",
+      "research_question": "How does verifier-gated deployment influence the effectiveness of LLM-generated rollback scripts in restoring pre-change reachability and ACL semantics when deployed changes fail?",
+      "hypotheses": [
+        "Verifier-gated deployments will yield higher rollback success rates (fraction of invoked rollbacks that fully restore baseline reachability/ACL semantics) than ungated deployments because verifier gating prevents syntactically/semantically unsafe deployments.",
+        "Rollback script failures will correlate positively with change size (lines/devices touched) and with syntactic/semantic omissions not detectable by surface-level filters.",
+        "A nontrivial fraction of rollback failures will be due to emulator-modeling or side-effect timing issues (BGP convergence, transient state) rather than purely incorrect rollback commands."
+      ],
+      "proposed_design": "Create n=200 change-intent tasks varying in risk and size. For each, instruct the LLM to produce (a) a deployment script and (b) a rollback script. Randomly assign tasks to two arms: (1) verifier-gated deployment (deployment permitted only if pre-deployment verifier passes) and (2) ungated deployment. For a prespecified fraction (40%) of tasks, induce a controlled failure condition during deployment (e.g., malformed ACL entry, route leak scenario) to trigger rollback invocation. Execute deployments and rollbacks in the emulator; record whether rollback scripts execute syntactically, whether they restore the prerechange reachability/ACL matrix, outage duration, and root-cause notes. Preregister rollback success definition, safety limits, retry policy, and random seeds.",
+      "expected_data": "Per-change records: intent, generated deployment script, generated rollback script, pre-deploy verifier outcome, whether rollback was invoked, rollback execution logs, final reachability/ACL matrices, outage duration, change-size metrics (lines, devices touched), syntactic validity flags, and root-cause annotations for rollback failures.",
+      "primary_outcome": "Rollback success rate: fraction of invoked rollbacks that fully restore baseline reachability/ACL semantics, compared between verifier-gated and ungated arms.",
+      "analysis_outline": "Compare rollback-success proportions with two-proportion z-test or Fisher's exact test and report 95% CIs. Compare outage durations between arms with Mann–Whitney U test. Fit logistic regression for rollback failure with predictors: change size, devices touched, verifier pass/fail, syntactic validity of rollback script, and whether failure was induced. Conduct exploratory root-cause taxonomy for failed rollbacks and report representative failure transcripts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7164168895",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7117986201"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400611559",
+        "doi:10.1145/3808318",
+        "https://openalex.org/W4415680272"
+      ],
+      "risks": [
+        "Emulator snapshot/restore fidelity may not reflect production stateful behaviours, biasing rollback success upward.",
+        "LLM-generated rollback scripts might omit side-effects (e.g., BGP withdraw timing) not modeled in emulator.",
+        "Ungated deployments could create destructive emulator conditions; enforce strict emulator-only execution and safety cutoffs."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnd-003-2ef1",
+      "title": "Adversarial Prompt Robustness and Verifier+Policy Guarding in NetOps Pipelines",
+      "research_question": "How susceptible are LLM-driven NetOps pipelines to adversarial/jailbreak prompts that induce unsafe configurations, and how effective is a deterministic verifier+policy-based guarded-execution pipeline at blocking these unsafe outputs prior to deployment?",
+      "hypotheses": [
+        "Adversarially crafted prompts adapted to NetOps contexts will induce unsafe configuration outputs at a higher rate than benign operational prompts.",
+        "A verifier+policy gated pipeline will block a majority of adversarially-induced unsafe outputs prior to deployment, substantially reducing emulator-observed unsafe deployments relative to no mitigation.",
+        "Some adversarial outputs will bypass simple syntactic/policy filters but be caught by deeper semantics-aware deterministic verification (reachability/policy violations)."
+      ],
+      "proposed_design": "Curate two prompt corpora (n=150 benign operational intents; n=150 adversarial/jailbreak-style prompts constructed following documented jailbreak techniques adapted for NetOps). For each prompt, collect LLM outputs under three mitigation conditions: (1) no mitigation, (2) syntax/policy filter, (3) verifier+policy gated execution. For outputs accepted under each condition, emulate deployment to confirm unsafe consequences when safe-to-run. Use two independent adjudicators (predefined adjudication protocol) to label ambiguous cases; report inter-rater agreement. Predefine adversarial construction rules, policy definitions for 'unsafe', and adjudication/tie-breaker rules; preregister the plan.",
+      "expected_data": "Per-prompt records: prompt text, LLM output, mitigation condition, mitigation accept/reject, verifier detection flags, adjudicator labels (unsafe/safe/ambiguous), emulator deployment result for accepted outputs (if executed), time-to-detection, and bypass case transcripts.",
+      "primary_outcome": "Mitigation detection effectiveness: proportion of adversarial unsafe outputs blocked by verifier+policy gating versus no-mitigation baseline (precision, recall, and F1 relative to adjudicated ground truth).",
+      "analysis_outline": "Compute detection rates, false-positive and false-negative rates per mitigation arm; compare proportions with chi-squared or Fisher exact tests. Calculate precision, recall, and F1 for each mitigation strategy relative to adjudicated labels. Report inter-rater agreement (Cohen's kappa). Analyze adversarial examples that bypassed mitigation to characterize failure modes and recommend policy enhancements; include qualitative transcripts.",
+      "novelty_evidence_ids": [
+        "doi:10.1145/3815174",
+        "https://openalex.org/W4401042853",
+        "https://openalex.org/W4415680272"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4415721798",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4400611559"
+      ],
+      "risks": [
+        "Adversarial prompt construction may produce ethically sensitive or potentially harmful content; experiments limited to emulator-only and safe-adversarial protocols.",
+        "Adjudication of 'unsafe' can be subjective; require dual adjudicators and tie-breaker rules to reduce bias.",
+        "Tested mitigations are prototypical and may not reflect production-grade defense effectiveness, limiting generalizability."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "cnd-004-90ab",
+      "title": "Constrained Decoding and Live Schema-Grounding to Reduce Semantic/Execution Failures",
+      "research_question": "To what extent do constrained decoding and live schema-grounding (schema-aware token constraints and retrieval of device-specific schemas) reduce semantic and execution failures in LLM-generated network configurations compared with unconstrained generation and RAG-only approaches?",
+      "hypotheses": [
+        "Constrained decoding combined with live schema-grounding will yield lower verifier-failure and emulator-execution-failure rates than unconstrained LLM generation.",
+        "Schema-grounding tailored to device/vendor CLI dialects will reduce vendor-specific semantic errors more than generic constrained decoding alone.",
+        "Constrained decoding may increase refusal or partial-output rates, trading off coverage for correctness in some classes of intents."
+      ],
+      "proposed_design": "Assemble n=200 intent tasks spanning vendor-like CLI dialects and change types. Evaluate four generation conditions per intent: (A) unconstrained LLM, (B) LLM with constrained decoding (token-level schema constraints), (C) RAG retrieval of device schemas + LLM, (D) constrained decoding + live schema-grounding (both). For each output run deterministic verification and emulate accepted outputs. Predefine constrained-decode grammars and schema-retrieval rules, and preregister refusal handling and retry rules. Record verifier and emulator outcomes, refusal rates, and time/latency metrics.",
+      "expected_data": "Per-intent and per-condition records: intent, generated config, constrained-decoding flags, retrieved schema snippets (if any), verifier result, emulator execution logs, refusal/partial-output flags, execution errors, and vendor-dialect mismatch notes.",
+      "primary_outcome": "Reduction in combined verifier-failure + emulator-execution-failure rate for constrained-decoding + schema-grounding condition relative to unconstrained baseline (absolute and relative reductions).",
+      "analysis_outline": "Compute and compare failure proportions across the four conditions using repeated-measures tests (McNemar for paired binary outcomes or Cochran's Q for multi-condition comparison). Report per-intent paired differences with 95% CIs. Fit mixed-effects logistic regression with random intercepts for intent and fixed effects for condition, intent complexity, and vendor dialect. Report refusal rates and analyze correctness/coverage trade-offs qualitatively and quantitatively.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6909831",
+        "https://openalex.org/W4415680272",
+        "https://openalex.org/W7161090530"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W7161165783",
+        "doi:10.1145/3808318"
+      ],
+      "risks": [
+        "Constrained decoding may cause increased refusals or truncated outputs, reducing usable coverage for some intents.",
+        "Maintaining up-to-date device-specific schemas may be challenging; schema mismatch can create false negatives.",
+        "Schema-grounding and constrained decoding introduce latency and engineering complexity that may limit operational practicality."
+      ],
+      "estimated_model_calls": 1800
+    }
+  ]
+}

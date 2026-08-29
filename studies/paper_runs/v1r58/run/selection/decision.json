@@ -1,0 +1,29 @@
+{
+  "selected_candidate_id": "cnd-001-5f3a",
+  "selection_rationale": "cnd-001 (Generate–Verify–Repair) best balances direct relevance to the programme (operational reliability of LLM-generated configs), clear falsifiable hypotheses, tractable experimental design, and feasible compute/resource needs. It directly addresses identified gap G2 (end-to-end generate–verify–repair pipelines) and leverages existing verifier literature, while producing machine-checkable primary outcomes (emulator-executable success rate) that fit the five-page track. Its risks are manageable with concrete preregistration repairs (see below).",
+  "runner_up_candidate_id": "cnd-003-2ef1",
+  "unresolved_uncertainties": [
+    "Emulator fidelity vs production device runtime effects (BGP/IGP timing, stateful side-effects) and their impact on observed success rates.",
+    "Extent of confirmation/feedback bias when using the same LLM for generation and repair versus heterogeneous-repair strategies.",
+    "Coverage limits of deterministic verifiers for dynamic or vendor-specific semantics (what failures remain unverifiable).",
+    "Subjectivity and reproducibility of manual failure-root-cause coding even with a codebook and dual coders."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7164168895",
+    "https://openalex.org/W4400611559",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4415680272",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4415680272"
+  ],
+  "required_repairs_before_preregistration": [
+    "Document and publish concrete emulator-fidelity validation tests (example device behaviours, convergence-timing scenarios) and enumerate emulator limitations in the preregistration.",
+    "Preregister a heterogeneous-repair strategy to mitigate confirmation bias (e.g., use a secondary model or deterministic repair heuristics for repair iterations) and specify exact model identifiers and temperatures.",
+    "Specify and commit to an artifact-release plan in the preregistration: exact prompts, prompt-version hashes, model identifiers, verifier versions, seeds, full raw logs, and final hash manifest; include access/redaction rules for sensitive artifacts.",
+    "Define a formal failure-root-cause labeling protocol (codebook), require dual independent coders for each failure, specify tie-breaker adjudication rules, and preregister inter-rater agreement measurement (Cohen's kappa) and acceptable thresholds.",
+    "Preregister precise inclusion/exclusion rules, random seeds, repair stopping rules, retry policy, and safety cutoffs (e.g., abort conditions for potentially destructive outputs).",
+    "Specify verifier test-suite and exact properties checked (reachability, ACL semantics), and preregister metrics and statistical tests (two-proportion z-test, McNemar for paired cases, logistic regression covariates)."
+  ]
+}

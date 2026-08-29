@@ -1,0 +1,25 @@
+{
+  "summary": "Well-executed, autonomy-locked paired study testing a bounded generate–verify–repair (GVR) guard on gpt-5-mini for 200 synthetic NetOps intents. Execution and artifact capture are comprehensive; baseline success was near-ceiling (199/200) and guarded arm reached 200/200. The preregistered primary hypothesis (≥15 pp improvement) is not supported. Main weaknesses are manuscript presentation (metadata-heavy, provenance inventory style) and a need for clearer, compact statistical and methods exposition (notably the shared-initial-generation design and exact test interpretation).",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 2,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript presentation is metadata-heavy: large provenance and artifact inventory text appears embedded in the narrative rather than summarized in concise scholarly prose. This violates the conference guidance to use literature-grounded exposition rather than artifact bookkeeping.",
+    "Statistical reporting needs clarification: the exact McNemar two-sided p-value (reported as 1.0) and its interpretation given only a single discordant pair (n10=1, n01=0) must be explained transparently (test used, two-sided exact calculation, and implications of near-zero discordant counts).",
+    "Methods clarity around the shared-initial-generation protocol is insufficiently compact: the paper must explicitly and succinctly state (in Methods and Abstract) that baseline and guarded arms used the identical LLM-generated candidate (shared single-generation) and explain how this choice changes the estimand interpretation (measures repair efficacy on identical candidates, not performance of independent pipelines)."
+  ],
+  "required_revisions": [
+    "Rewrite and condense manuscript narrative to remove embedded artifact-inventory prose. Move detailed provenance, full hash manifests, and per-file listings to a single referenced reproducibility appendix or to the archived evidence bundle; replace inline listings with concise descriptions and pointers to the archived manifest (artifacts and their paths are already present).",
+    "Add an explicit, short Methods subsection (or boxed paragraph) that clearly and compactly explains the shared-initial-generation protocol: how many model calls per pair, which outputs were shared vs condition-specific, why that choice was preregistered (cost budget), and how it affects the causal estimand and external generalizability.",
+    "Clarify statistical reporting: describe the exact McNemar test implementation (two-sided exact/binomial formulation), justify its use given observed discordant counts, report the exact test input (n10, n01), state how the p-value was computed, and add an explicit sentence interpreting p=1.0 in the context of a single discordant pair and the near-ceiling baseline. Retain the bootstrap CI but add a brief note linking its utility under low-discordance scenarios.",
+    "Replace any remaining template- or provenance-style paragraphs in the main five pages with standard scholarly prose (concise background, methods, results, interpretation). Preserve all disclosure content but compress it to meet the five-page constraint while keeping the mandatory details (models, prompt reference, autonomy lock, preregistration, repair budget, seeds, and validator).",
+    "Include in the Method/Results a one-paragraph discussion of the practical consequence of the shared-initial design for operational realism and a pointer to any exploratory (independent-generation) analyses in the evidence bundle if present; if no such artifacts exist, explicitly state that independent-generation comparisons are future work."
+  ],
+  "optional_revisions": [
+    "Include a compact evidence-to-claim table (one small table) mapping principal claims to the archived artifact paths/hashes (this can be short and placed near the end or in a single-column box).",
+    "Provide one short representative example (<=1 short paragraph) in the main text showing an initial faulty candidate, the repair prompt/trace, and the post-repair validator result (use the archived exemplar traces), to help readers grasp the repair effect without browsing the bundle.",
+    "Add a sentence quantifying the practical cost/latency tradeoff of the shared-generation + single-repair budget (provider-call counts are recorded; a short numeric statement would aid operational readers)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,81 @@
+{
+  "study_id": "cnd-001-5f3a",
+  "title": "Generate–Verify–Repair Pipeline Efficacy for LLM-Generated Network Configurations (Repaired Preregistration)",
+  "research_question": "Does an iterative generate–verify–repair pipeline that pairs hosted-LLM generation with deterministic verification and deterministic repair heuristics (bounded ≤3 iterations) yield a higher emulator-executable configuration success rate than ungated LLM generation?",
+  "confirmatory_hypotheses": [
+    "H1: The generate–verify–repair pipeline (guarded) has a higher emulator-executable success proportion than ungated LLM outputs (paired estimand: guarded minus baseline).",
+    "H2: Most remaining emulator execution failures after deterministic repair will be attributable to emulator-modeled runtime/state interactions (timing/BGP convergence) rather than purely syntactic or trivially fixable logical errors.",
+    "H3: ≤3 deterministic repair iterations capture the majority of verifier-detected, syntactic/structural faults; marginal yield is small after iteration 3."
+  ],
+  "exploratory_questions": [
+    "EQ1: What automated failure-taxonomy labels (syntactic, verifier-failure, runtime/convergence, ACL-mismatch, ambiguous) dominate uncorrected cases?",
+    "EQ2: How often deterministic repairs introduce config-line churn (lines changed) even when they enable emulator success?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7164168895",
+    "https://openalex.org/W4400611559",
+    "doi:10.1145/3808318",
+    "https://openalex.org/W4415680272",
+    "doi:10.1002/nem.2313"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps intent corpus (n=200 confirmatory intents) covering single-device and small multi-device changes (ACLs, route addition/removal, interface config).",
+    "Dockerized emulator images (Mininet + FRR + standard Linux router toolchain) and deterministic verifier (NetKAT/MEV-style verifier) run locally in Docker."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired success-rate difference: proportion of intents that result in an emulator-executable configuration in the guarded generate–verify–repair pipeline minus the baseline ungated LLM generation (guarded − baseline).",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-intent number_of_repair_iterations (median, IQR)",
+    "proportion of verifier-detected faults corrected by repairs",
+    "distribution of automated failure-taxonomy labels among uncorrected failures"
+  ],
+  "sampling_plan": "Confirmatory set: n=200 natural-language change intents curated to span single-device and small cross-device changes. Each intent executed in paired fashion: (A) ungated LLM generation (baseline) and (B) guarded generate–verify–repair pipeline. If an arm fails to produce any syntactically-parseable configuration due to provider/API failure, that arm is treated as a failure (see missingness_plan). An optional discovery set of 50 intents reserved for exploratory analyses and tooling validation (not included in confirmatory paired estimator).",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target absolute effect = 0.15 (15 percentage points). Under conservative assumptions (baseline ≈0.50), n=200 paired intents yields >80% power to detect a 15 pp paired improvement at two-sided α=0.05. Sensitivity analyses recompute power for baseline p0 in {0.3,0.5,0.7} and with differing discordant-pair rates. Report 95% CIs for absolute and relative differences.",
+  "exclusion_rules": [
+    "Exclude any confirmatory intent or generated artifact flagged by contamination detection (SHA-256 pre-lock match or near-duplicate >0.9 or artifact timestamp predating autonomy-lock).",
+    "Automatically reject generated configs that fail syntactic parse by canonical CLI parser or whose canonicalization drops statements required by the intent (per transformation_validation automatic_rejection_rules)."
+  ],
+  "missingness_plan": "If hosted-LLM/API provider errors or timeouts prevent producing an output for an arm of a pair, treat that arm as a failure (binary=0) in the primary analysis (complete-pair-with-failure-as-zero sensitivity). Log all provider/API failures and retry attempts. Retry policy: single automatic retry for transient HTTP/timeout errors with a 60s backoff; otherwise record as provider failure. Report counts and do sensitivity analysis excluding pairs with provider errors.",
+  "analysis_plan": "Primary analysis: paired_binary_analysis_v1 computing paired_success_rate_difference_guarded_minus_baseline. Primary hypothesis test: McNemar test for paired binary success/failure (two-sided α=0.05). Report absolute and relative risk differences with 95% CIs. Secondary analyses: logistic regression (emulator_success ~ initial_verifier_fail + devices_touched + repair_iterations + config_lines) reported as ORs with 95% CIs. Report repair-iteration yield curve and automated failure-taxonomy counts. All analysis code, seeds, and deterministic executors recorded; use paired_binary_episode_v1 result schema.",
+  "multiplicity_plan": "Single predeclared primary estimand (paired success-rate difference). Secondary estimands reported descriptively and labeled exploratory. No multiplicity adjustment applied to exploratory outcomes; the primary test controls pre-specified α. Any post-hoc tests will be explicitly labeled exploratory.",
+  "contamination_plan": "Detect and exclude reuse of pre-lock artifacts via SHA-256 hash comparison, timestamp/provenance checks against autonomy-lock marker, and near-duplicate detection (Jaccard token-shingle). Flagged items excluded from confirmatory paired analysis; sensitivity analysis reports results including flagged items. Residual uncertainty: undetected pre-lock similarities below near-duplicate threshold and potential external data leakage into hosted-model provider prompts/completions.",
+  "stopping_rule": "No early stopping for confirmatory run: execute all n=200 confirmatory paired tasks. Technical retry policy: single automatic retry for transient provider errors (60s backoff). Audit replays may trigger up to 2 auto-retries per intent. If systemic infrastructure failure prevents completion within manifest wall-clock budget, record as execution failure and report.",
+  "planned_outputs": [
+    "Confirmatory paired result CSV (paired binary outcomes per intent/arm)",
+    "Full artifact bundle (prompts, generated configs, normalized configs, verifier inputs/outputs, repair traces, hashes, timestamps)",
+    "Analysis code and deterministic executor logs (paired_binary_analysis_v1)",
+    "IEEE-format short paper draft and disclosure",
+    "Execution manifest and final-output hash manifest"
+  ],
+  "unresolved_critical_issues": []
+}

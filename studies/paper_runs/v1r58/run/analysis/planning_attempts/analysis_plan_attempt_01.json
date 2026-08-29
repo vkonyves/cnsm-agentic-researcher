@@ -1,0 +1,33 @@
+{
+  "study_id": "cnd-001-5f3a",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Compute paired binary outcome per intent (emulator-executable: 1/0) for baseline and guarded arms from execution/raw_results.jsonl; form 2×2 contingency of discordant pairs; primary estimate = guarded minus baseline paired success-rate difference with two-sided 95% CI; hypothesis test = McNemar test (two-sided α=0.05). Report absolute and relative differences, McNemar p-value, exact counts (n11,n10,n01,n00), and the paired estimator per paired_binary_episode_v1 schema.",
+  "secondary_analyses": [
+    "Fit logistic regression (emulator_success ~ initial_verifier_fail + devices_touched + repair_iterations + config_lines) pooling episodes; report ORs and 95% CIs and model diagnostics (AIC, pseudo-R2).",
+    "Compute per-intent repair_iterations distribution (median, IQR) and report per-intent number_of_repair_iterations (secondary estimand).",
+    "Compute proportion of verifier-detected faults corrected by deterministic repairs (numerator: repairs that change verifier outcome from fail→pass; denominator: verifier-detected faults) with 95% CIs.",
+    "Tabulate distribution of automated failure-taxonomy labels among uncorrected failures (syntactic, verifier-failure, runtime/convergence, ACL-mismatch, ambiguous) and report counts and proportions (secondary estimand)."
+  ],
+  "sensitivity_analyses": [
+    "Repeat primary analysis excluding any confirmatory intents flagged by contamination detection (pre-lock SHA-256 exact matches or near-duplicates >0.9).",
+    "Repeat primary analysis excluding paired episodes with recorded provider/API errors (per execution/execution_log.jsonl).",
+    "Alternate missingness handling: per-preregistration sensitivity treating arms with provider/API no-output as excluded (complete-pair exclusion) and report differences versus primary.",
+    "Per-protocol: repeat primary analysis excluding episodes auto-rejected by canonical parser per transformation_manifest.json automatic_rejection_rules."
+  ],
+  "uncertainty_quantification": "Report two-sided 95% confidence intervals for proportions (Clopper–Pearson) and for the paired difference use standard paired-proportion CI (Newcombe/Agresti method) computed deterministically from paired counts; report exact McNemar p-value. For secondary continuous summaries (repair iterations), report median and 95% bootstrap percentile CI using 10,000 resamples with fixed RNG seed recorded in analysis code.",
+  "multiplicity_implementation": "Single predeclared primary estimand (paired_success_rate_difference_guarded_minus_baseline) controls α; secondary estimands and all sensitivity/post-hoc tests are labeled exploratory/descriptive with no multiplicity adjustment per preregistration.",
+  "contamination_analysis": "Use preregistered contamination detectors: (1) exact SHA-256 pre-lock match against preregistration task hashes (task_manifest.jsonl), (2) near-duplicate detection via token-shingle Jaccard (>0.9) between intents and any pre-lock artifacts, and (3) timestamp/provenance checks vs autonomy-lock marker (preregistration_sha256). Flagged items excluded from confirmatory primary analysis; sensitivity analyses will report results including flagged items. Evidence and excluded-item lists recorded in execution/artifact_hashes and execution/task_manifest.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired 2×2 contingency table (n11: both success, n10: baseline success only, n01: guarded success only, n00: both fail) with McNemar counts and primary estimate (guarded−baseline) and 95% CI.",
+    "Table 2: Secondary estimands summary — repair_iterations (median, IQR), proportion verifier-detected faults corrected (n/N, 95% CI), failure-taxonomy counts and proportions.",
+    "Table 3: Logistic regression results (coefficients, ORs, 95% CIs, p-values, model diagnostics).",
+    "Appendix table (machine-readable artifact): per-intent paired outcomes and artifact pointers (intent id, baseline_success, guarded_success, repair_iterations, verifier_initial_outcome, failure_taxonomy_label, artifact SHA-256, timestamps) exported as Confirmatory paired result CSV."
+  ],
+  "figure_specifications": [
+    "Figure 1: Repair-iteration yield curve — cumulative emulator success vs repair iteration (0..3) from guarded arm, with 95% bootstrap CI bands.",
+    "Figure 2: Failure-taxonomy bar chart showing counts/proportions of uncorrected failure categories (syntactic, verifier-failure, runtime/convergence, ACL-mismatch, ambiguous).",
+    "Figure 3: Scatter or box plot of config_lines (size) vs success by arm (baseline vs guarded) to visualize correlation; overlay logistic regression predicted probability curve."
+  ]
+}
