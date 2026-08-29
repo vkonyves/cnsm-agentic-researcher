@@ -5782,6 +5782,152 @@ class FinalAutonomousResearchPipeline:
             )
 
         previous_terminal_review: PeerReviewReport | None = None
+        # -------------------------------------------------
+        # Deterministic terminal-review factual accounting
+        # -------------------------------------------------
+        #
+        # Derive a compact set of authoritative episode-level facts
+        # directly from the frozen raw execution results. This supports
+        # terminal review/revision without asking an LLM to infer the
+        # raw-results schema or invent artifact locators.
+        #
+        # This is factual accounting only, not a new statistical
+        # analysis and not a modification of scientific results.
+        terminal_factual_accounting: dict[str, Any] = {
+            "source": "execution/raw_results.jsonl",
+            "discordant_pairs": [],
+        }
+
+        raw_results_path = (
+            run_dir / "execution" / "raw_results.jsonl"
+        )
+
+        if raw_results_path.exists():
+            episodes_by_pair: dict[
+                str,
+                list[dict[str, Any]],
+            ] = {}
+
+            with raw_results_path.open(
+                "r",
+                encoding="utf-8",
+            ) as raw_results_file:
+                for record_index, raw_line in enumerate(
+                    raw_results_file,
+                    start=1,
+                ):
+                    raw_line = raw_line.strip()
+                    if not raw_line:
+                        continue
+
+                    try:
+                        raw_record = json.loads(raw_line)
+                    except json.JSONDecodeError:
+                        continue
+
+                    if not isinstance(raw_record, dict):
+                        continue
+
+                    pair_id = raw_record.get("pair_id")
+                    condition = raw_record.get("condition")
+                    score = raw_record.get("score")
+
+                    if (
+                        not isinstance(pair_id, str)
+                        or condition
+                        not in {"baseline", "guarded"}
+                        or not isinstance(
+                            score,
+                            (int, float),
+                        )
+                    ):
+                        continue
+
+                    episode_fact = {
+                        "raw_results_record_index": (
+                            record_index
+                        ),
+                        "pair_id": pair_id,
+                        "task_id": raw_record.get(
+                            "task_id"
+                        ),
+                        "episode_id": raw_record.get(
+                            "episode_id"
+                        ),
+                        "condition": condition,
+                        "score": score,
+                        "score_reason_code": (
+                            raw_record.get(
+                                "score_reason_code"
+                            )
+                        ),
+                        "attempt_count": raw_record.get(
+                            "attempt_count"
+                        ),
+                        "model_calls_used": (
+                            raw_record.get(
+                                "model_calls_used"
+                            )
+                        ),
+                        "transformation_id": (
+                            raw_record.get(
+                                "transformation_id"
+                            )
+                        ),
+                    }
+
+                    episodes_by_pair.setdefault(
+                        pair_id,
+                        [],
+                    ).append(episode_fact)
+
+            for pair_id, episode_facts in sorted(
+                episodes_by_pair.items()
+            ):
+                baseline_facts = [
+                    item
+                    for item in episode_facts
+                    if item.get("condition")
+                    == "baseline"
+                ]
+                guarded_facts = [
+                    item
+                    for item in episode_facts
+                    if item.get("condition")
+                    == "guarded"
+                ]
+
+                if (
+                    len(baseline_facts) != 1
+                    or len(guarded_facts) != 1
+                ):
+                    continue
+
+                baseline_fact = baseline_facts[0]
+                guarded_fact = guarded_facts[0]
+
+                if (
+                    baseline_fact.get("score")
+                    == guarded_fact.get("score")
+                ):
+                    continue
+
+                terminal_factual_accounting[
+                    "discordant_pairs"
+                ].append(
+                    {
+                        "pair_id": pair_id,
+                        "baseline": baseline_fact,
+                        "guarded": guarded_fact,
+                    }
+                )
+
+        write_json(
+            revision_rounds_dir
+            / "terminal_factual_accounting.json",
+            terminal_factual_accounting,
+        )
+
         maximum_terminal_revision_rounds = 2
 
         for terminal_round in range(
@@ -5826,6 +5972,23 @@ class FinalAutonomousResearchPipeline:
                     ),
                     "review_mode": (
                         terminal_review_mode
+                    ),
+                    "terminal_factual_accounting": (
+                        terminal_factual_accounting
+                    ),
+                    "terminal_factual_accounting_instruction": (
+                        "Treat terminal_factual_accounting as "
+                        "authoritative for exact pair IDs, episode "
+                        "IDs, discordant scores, raw-results record "
+                        "indices, attempt counts, model-call counts, "
+                        "and transformation identifiers. Do not "
+                        "infer or invent raw-results fields such as "
+                        "stage='repair' when they are not present. "
+                        "Do not require machine paths, hashes, raw "
+                        "record indices, or provider-call filenames "
+                        "in the scientific paper merely for audit "
+                        "convenience; require the scientifically "
+                        "material verified fact instead."
                     ),
                     "previous_terminal_review": (
                         previous_terminal_review.model_dump()
@@ -5924,6 +6087,20 @@ class FinalAutonomousResearchPipeline:
                     ),
                     "peer_review": (
                         latest_peer_review.model_dump()
+                    ),
+                    "terminal_factual_accounting": (
+                        terminal_factual_accounting
+                    ),
+                    "terminal_factual_accounting_instruction": (
+                        "When a required revision concerns an "
+                        "episode identifier, pair identifier, "
+                        "repair event, call count, or discordant "
+                        "outcome, use the exact verified values "
+                        "from terminal_factual_accounting. Do not "
+                        "merely tell the reader how to search an "
+                        "artifact and do not invent raw-result "
+                        "fields or locators. State the scientifically "
+                        "relevant verified fact concisely."
                     ),
                     "publication_validation": (
                         terminal_review_revision_base_validation
