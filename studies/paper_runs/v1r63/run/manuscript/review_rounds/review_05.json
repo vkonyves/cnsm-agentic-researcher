@@ -1,0 +1,24 @@
+{
+  "summary": "Well‑designed, preregistered paired evaluation of a generate–verify–repair (GVR) pipeline for intent→configuration NetOps tasks. Execution artifacts are comprehensive and archived; primary confirmatory test (exact McNemar) does not meet the preregistered significance threshold (p=0.125). Authors correctly avoid overclaiming and discuss power/ceiling limitations and verifier scope. Manuscript and disclosure largely comply with track requirements but require a small number of evidence-resolvable clarifications to meet publication quality and reproducibility best practices.",
+  "novelty_score": 4,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "The human‑readable verifier codebook (violation‑code → description) is referenced but its explicit artifact path and SHA‑256 hash are not included inline in the manuscript text; reviewers requested a single inline identifier for that codebook.",
+    "The paired‑bootstrap 95% CI excludes zero ([0.002,0.016]) while the preregistered exact McNemar two‑sided test is non‑significant (p=0.125). Although the manuscript gives a correct high‑level reconciliation, it does not sufficiently (a) label the bootstrap CI as exploratory given the very small number of discordant pairs (n=4) and (b) explain limitations of bootstrap inference under near‑ceiling margins.",
+    "The manuscript should explicitly document the exact variant/implementation of the McNemar test used (i.e., conditional exact binomial test on discordant pairs), list the discordant counts used as input, and cite or show the exact p‑value calculation method to remove ambiguity."
+  ],
+  "required_revisions": [
+    "Insert the explicit artifact path and SHA‑256 hash of the human‑readable verifier codebook (violation‑code → description) into the manuscript (Disclosure or Methods). The full execution_manifest.json is archived, so extract and cite the codebook path+hash inline.",
+    "Amend the Results/Discussion to clearly categorize the paired‑bootstrap CI as exploratory (not the preregistered confirmatory inferential basis) and add a concise caveat explaining why bootstrap CIs can give a non‑zero lower bound when the exact conditional McNemar test is non‑significant (small number of discordant pairs / fixed‑margin conditioning). Reference the contingency table (n11,n10,n01,n00) already archived and state explicitly that n10=4 and n01=0.",
+    "In Methods or Results add one sentence specifying the exact McNemar implementation used (two‑sided exact McNemar/conditional binomial on discordant pairs), the contingency inputs (n10=4, n01=0), and a short citation or formula for the exact conditional p‑value computation so readers can reproduce the reported p=0.125 from the archived contingency table."
+  ],
+  "optional_revisions": [
+    "Consider replacing or compressing long inline artifact lists in the Abstract/main text with a compact representative set and a single pointer to the full execution_manifest.json (while keeping the required codebook hash inline as requested above) to improve readability and conference‑paper style.",
+    "Add one short, anonymized worked example (task id and before/after candidate + validator trace) in the main text or a compact figure caption to illustrate the nature of the four repaired/blocked cases; the artifacts are archived and can be cited.",
+    "Add a brief explicit note in Threats to Validity that bootstrap percentile CIs with very low discordant counts have poor frequentist coverage and so should be interpreted cautiously.",
+    "If space permits, include a one‑sentence procedural reason for the unexecuted templated‑automation comparator (e.g., resource/time budget) if that rationale exists in the execution logs or manifest; otherwise keep the current disclosure that the arm was not executed."
+  ],
+  "accept_for_finalisation": false
+}

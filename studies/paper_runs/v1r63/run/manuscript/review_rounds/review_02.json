@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed preregistered paired experiment comparing a generate–verify–repair (GVR) pipeline to LLM-only generation on a synthetic NetOps intent workload (N=500 pairs). Artifacts, hashes, and analysis are archived and largely consistent. The observed numerical improvement for GVR (0.8 percentage points; bootstrap 95% CI [0.002,0.016]; exact McNemar two-sided p=0.125) is transparently reported and correctly described as not meeting the preregistered significance threshold. The manuscript includes reasonable limitations and reproducibility pointers but currently overuses provenance metadata in narrative sections and omits a concise, human-readable verifier-specification summary.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The manuscript lacks a concise, explicit specification of the deterministic verifier’s rule set and a mapping of its violation codes to human-readable checks; readers cannot assess verifier coverage from the prose alone despite archived validator artifacts.",
+    "The preregistration specified two confirmatory tests (GVR vs LLM-only and GVR vs templated on complex intents) with a Bonferroni multiplicity plan, but the templated-automation comparator was not executed. The manuscript must explicitly state how this unexecuted confirmatory arm affects multiplicity interpretation and the handling of the predefined per‑test α in conclusions.",
+    "The paper’s prose currently substitutes artifact-inventory and provenance listings for normal literature-grounded exposition in multiple sections, making the manuscript read partially like an artifact report rather than a conference paper; this must be revised into concise scholarly narrative with provenance pointers consolidated in a reproducibility paragraph."
+  ],
+  "required_revisions": [
+    "Add a short (one-paragraph or one-table) verifier specification extracted from deterministic_netops_validator_v5 artifacts: list rule categories checked (syntactic parsing, required-sequence/workflow-policy checks, protected-interface rules, group constraints, dependency rules, final-state comparison), enumerate violation codes with plain-English descriptions, and state known verifier blind spots. Point to the specific archived validator artifact path and hash for full detail.",
+    "Explicitly and unambiguously report the preregistration deviation: state that the templated-automation comparator was preregistered but not executed, and describe the consequence for multiplicity correction (i.e., that the originally pre-specified Bonferroni familywise plan could not be fully applied and how readers should interpret the reported p-value and CI). Update Abstract, Results, and Conclusion to include one clear sentence about this.",
+    "Refactor the manuscript prose to prioritize conventional scholarly exposition (motivation, prior work, methods, results, interpretation, limitations) and move extensive provenance/manifest listings into a single concise reproducibility paragraph or a compact appendix-style block (still within pages 1–5). Reduce in-text artifact inventory and ensure claims are supported by narrative interpretation rather than by raw artifact paths alone."
+  ],
+  "optional_revisions": [
+    "Add a brief, explicit reconciliation paragraph or footnote explaining why the bootstrap CI excludes zero while the exact McNemar two-sided p-value is > preregistered α (authors already explain this; a one-sentence numerical intuition or small table would help readers).",
+    "Report the unadjusted significance decision (if any) alongside the preregistered adjusted-threshold decision to aid interpretation given the missing confirmatory arm.",
+    "Include a compact representative example (one task) with short natural-language walkthrough showing how verifier failure triggered a repair and how the repaired candidate passed, with pointers to the exact response and repair traces in the artifact bundle."
+  ],
+  "accept_for_finalisation": false
+}

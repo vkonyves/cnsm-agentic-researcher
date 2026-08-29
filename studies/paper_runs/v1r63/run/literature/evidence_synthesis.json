@@ -1,0 +1,212 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs are actively researched and applied to NetOps tasks including intent-driven configuration translation, fault diagnosis/AIOps, intent assurance, and multi-agent network management frameworks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4415071524",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4406137434"
+      ],
+      "evidence_type": "surveys and applied/system papers",
+      "confidence": 0.92,
+      "limitations": [
+        "Many sources are surveys, system descriptions, or single-organization reports rather than large-scale controlled deployments",
+        "Domain specialization (telecom, datacenter, IoT) limits generality across all NetOps settings"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Hallucination, factual errors, and unreliable outputs from LLMs are central reliability concerns for operational NetOps use-cases; active detection and mitigation research addresses these risks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404534210",
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4403443637",
+        "doi:10.33774/coe-2025-xkwl5"
+      ],
+      "evidence_type": "surveys and methodological studies",
+      "confidence": 0.95,
+      "limitations": [
+        "Detection/mitigation approaches are heterogeneous and evaluated under differing conditions",
+        "Few studies report end-to-end operational outcomes specifically for NetOps workflows"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Tool-augmented and agentic LLM architectures (LLMs invoking verifiers, simulators, or domain tools) are proposed and empirically evaluated as a strategy to improve reliability and functionality for operational tasks.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6647800",
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4413757586",
+        "doi:10.36227/techrxiv.176288195.52086234/v1",
+        "https://openalex.org/W4414133540"
+      ],
+      "evidence_type": "system and methodological papers",
+      "confidence": 0.88,
+      "limitations": [
+        "Evaluations vary in scale and task realism",
+        "Effectiveness depends on the quality and integration of external tools"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Deterministic/formal network configuration verification tools and scalable verifiers (e.g., distributed Batfish-based verifiers) exist and can validate network properties at large scale.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757123"
+      ],
+      "evidence_type": "verification system paper",
+      "confidence": 0.9,
+      "limitations": [
+        "Applicability depends on the modeled properties (reachability, control-plane simulation) and required abstractions",
+        "Distributed verification can incur substantial resource and time costs for very large networks"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Prompt injection and adversarial prompting are recognized threats to LLM pipelines; practical detection and mitigation frameworks have been proposed and evaluated.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406137434",
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.2139/ssrn.6645520",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "surveys and defensive-framework papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Evaluations use specific attack corpora; transferability to NetOps-formatted adversarial inputs is not uniformly validated",
+        "Operational integration and latency trade-offs are not consistently reported"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Methodological work emphasizes the need for standardized evaluation practices for RAG/tool-augmented LLM systems and NetOps-specific benchmarks; several papers propose blueprints or domain-specific benchmarks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4412722283",
+        "https://openalex.org/W4391136507"
+      ],
+      "evidence_type": "methodology and benchmark papers/surveys",
+      "confidence": 0.86,
+      "limitations": [
+        "Proposed benchmarks and blueprints are early-stage and domain-specific; no universally accepted NetOps benchmark is established in the supplied records",
+        "Different operational properties require distinct validators and metrics"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what degree can LLM-generated network configurations or NetOps actions be executed autonomously in production without unacceptable operational risk?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "production-report (single org) and surveys",
+      "confidence": 0.65,
+      "limitations": [
+        "Production reports (e.g., Confucius) describe onboarded applications but do not constitute broad multi-vendor validation",
+        "Surveys highlight risks but lack quantitative deployment-failure rates"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Can LLMs reliably self-correct NetOps-specific errors without external deterministic verification signals?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4404534210"
+      ],
+      "evidence_type": "methodological and survey studies",
+      "confidence": 0.68,
+      "limitations": [
+        "Evidence indicates self-correction rarely succeeds absent reliable external feedback/oracles; NetOps-specific experiments are limited",
+        "Success is task-dependent; tasks with reliable external oracles fare better"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What standardized datasets and metrics best represent operational correctness (safety, policy compliance, reachability) for evaluating LLM-driven NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W4412722283"
+      ],
+      "evidence_type": "methodology and benchmark surveys",
+      "confidence": 0.7,
+      "limitations": [
+        "Multiple proposals exist but consensus and large-scale public corpora for realistic configs are not established in the supplied records",
+        "Different operational properties require distinct validators and metrics"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Systematic empirical evaluations comparing end-to-end generate–validate–repair pipelines (LLM generation + formal verifier + repair loop) against human or traditional automation baselines for NetOps tasks are limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403443637",
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "system descriptions and methodological papers",
+      "confidence": 0.77,
+      "limitations": [
+        "Some frameworks integrate validation (e.g., Confucius) but comparative, reproducible trials at scale are not reported in the supplied records",
+        "Variation in task definitions and validators complicates direct comparison"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirically validated adversarial-robustness evaluations and defenses tailored to NetOps artifacts (configs, CLI sequences, topology descriptions) are sparse.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.2139/ssrn.6645520",
+        "https://openalex.org/W4406137434"
+      ],
+      "evidence_type": "defensive-framework papers and surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing defenses are evaluated on general prompt-injection corpora; direct tests against NetOps-formatted adversarial inputs are not prominent in the supplied records",
+        "Operational constraints (latency, tool-call budgets) affect practicability"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Large, public, realistic corpora of router/device configurations and annotated operational failures for training/evaluating LLMs in NetOps are insufficiently standardized and available.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4393864282",
+        "https://openalex.org/W4403443637"
+      ],
+      "evidence_type": "surveys and methodological work",
+      "confidence": 0.7,
+      "limitations": [
+        "Some datasets and topologies are used in verifier papers, but a widely adopted public NetOps-config benchmark is not documented in the supplied records",
+        "Data sensitivity and anonymization barriers limit public release"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Operational cost/latency and tool-orchestration trade-offs (e.g., invoking heavy verifiers or multiple tools per change) require quantification in agentic NetOps pipelines.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6647800",
+        "https://openalex.org/W4413757586",
+        "doi:10.36227/techrxiv.176288195.52086234/v1"
+      ],
+      "evidence_type": "tool-augmented agent/system papers and queueing/control study",
+      "confidence": 0.78,
+      "limitations": [
+        "Some analyses address tool-rich agents in other domains, but NetOps-specific latency/cost studies are limited in the supplied records",
+        "Benefits depend on verifier/tool performance and deployment constraints"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven ready for fully autonomous, unsupervised production NetOps changes without human oversight (no supplied record provides broad, multi-vendor production validation).",
+    "There exists a universally accepted, large-scale public benchmark of realistic router/device configurations and annotated operational failures for LLM evaluation (supplied records indicate benchmarking work but not a universally accepted public dataset).",
+    "LLMs reliably self-correct arbitrary NetOps mistakes without external deterministic verification signals (evidence suggests self-correction succeeds mainly when reliable external feedback/oracles exist).",
+    "Defenses against prompt injection are universally effective across all NetOps-formatted adversarial inputs (supplied defensive studies report strong reductions on their test corpora but not universal effectiveness on NetOps-specific adversarial inputs)."
+  ]
+}

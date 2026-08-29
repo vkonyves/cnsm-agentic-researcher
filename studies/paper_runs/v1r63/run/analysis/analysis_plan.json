@@ -1,0 +1,34 @@
+{
+  "study_id": "study-hosted-netops-gvr-v1-2026-08-29",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Load execution/raw_results.jsonl (result_schema paired_binary_episode_v1). Form per-task paired records (task_id present in both conditions). Define binary outcome per condition: success = verifier_primary_pass == true. Primary estimand = proportion_success_guarded - proportion_success_baseline across paired tasks. Apply preregistered failed-call treatment 'complete_pair_primary' (exclude any task_id without both-condition final outcomes). Compute paired difference, two-sided exact paired-proportion test (McNemar's exact where applicable), and 95% bootstrap percentile CI using 10,000 stratified bootstrap resamples over task_id. Use completed pairs N_pairs derived from execution_manifest (completed_episode_count/2 = 500 pairs). Report point estimate, bootstrap CI, nominal p-value, and conclude against per-test alpha=0.025 (Bonferroni-corrected family alpha=0.05).",
+  "secondary_analyses": [
+    "Pre-registered confirmatory H2 (paired_success_rate_difference_guarded_minus_templated on complex-intent subset) declared untestable: templated condition not present in execution_manifest and therefore not executed (report as unexecuted preregistered confirmatory test).",
+    "Executed exploratory subgroup: paired difference (guarded minus baseline) on complex-intent subset (task_ids labeled complex in task_manifest.jsonl); same computation pipeline as primary but labeled exploratory and reported without multiplicity correction.",
+    "Per-topology-profile descriptive paired success rates (10 profiles): report per-profile proportions, bootstrap CIs (exploratory).",
+    "Median repair iterations under guarded condition computed as median(model_calls_count - 1) for guarded records; report distribution (exploratory descriptive, corresponds to preregistered secondary_estimand median_repair_iterations_under_GVR).",
+    "Model-call cost: mean_model_calls_per_accepted_change for accepted changes by condition (exploratory)."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (exact preregistered identifier): include pairs where either-condition technical failure occurred and treat missing/failed as unsafe (failure=0) and recompute primary estimand and tests.",
+    "Verifier-consensus conservative sensitivity: treat a task as success only if primary_verifier_pass==true AND (where available) verifier_secondary_pass==true; otherwise count as failure (exploratory).",
+    "Flagged-item exclusion sensitivity: exclude tasks with parser_error or anonymization_placeholder flags and recompute primary estimand (exploratory)."
+  ],
+  "uncertainty_quantification": "95% bootstrap percentile confidence intervals (10,000 resamples stratified by task_id) for paired differences; two-sided exact paired-proportion test (McNemar's exact where sample supports it) reporting nominal p-values; report bootstrap distribution diagnostics (histogram, quantiles).",
+  "multiplicity_implementation": "Follow preregistered multiplicity: two preregistered confirmatory comparisons form the confirmatory family; Bonferroni correction applied (family alpha=0.05 => per-test alpha=0.025). Because the second preregistered confirmatory comparison (GVR vs templated) was not executed, the primary test is still evaluated against per-test alpha=0.025 and the absence of the second test is reported transparently as an unexecuted confirmatory comparison.",
+  "contamination_analysis": "Detect and report contamination per preregistration: deterministic input and output hashing to detect duplicated inputs or leaked items; report counts and lists of any identical intent hashes. Flagging rules applied from result flags (parser_error, verifier_error, anonymization_placeholder). Primary-verifier adjudication used for main outcomes; sensitivity uses conservative consensus (if either primary or secondary verifier fails => fail). Report verifier disagreement instances (verifier_primary_pass != verifier_secondary_pass) and include them in contamination summary. All flagged-item counts and artifacts referenced by artifact hashes in execution manifest.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary confirmatory results: columns = N_pairs, successes_guarded, successes_baseline, paired_difference (guarded-baseline), 95% bootstrap CI, nominal p-value (exact paired test), per-test alpha=0.025; source fields = task_id, condition, verifier_primary_pass, model_calls_count; computed from execution/raw_results.jsonl and execution/result_schema.json.",
+    "Table 2 — Subgroup success rates: rows = {templateable, complex, each topology profile (10 rows)}; columns = N_tasks_in_row, successes_guarded, successes_baseline, paired_difference, 95% bootstrap CI; source fields = task_manifest.jsonl join + raw_results.jsonl.",
+    "Table 3 — Model-call and repair summary: rows = condition (guarded, baseline); columns = mean_model_calls_per_accepted_change, median_repair_iterations_under_GVR (derived as median(model_calls_count - 1) for guarded), total_model_calls_used (from execution_manifest), distribution quantiles; source fields = model_calls_count, verifier_primary_pass, execution_manifest.",
+    "Table 4 — Flags and contamination audit: columns = flag_type, count, percent_of_tasks, sample_task_ids, primary_vs_secondary_verifier_disagreements_count; source fields = flags, verifier_primary_pass, verifier_secondary_pass, artifact_hashes."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of success rates by condition with 95% bootstrap CI error bars: x-axis = condition (baseline, guarded); y-axis = proportion success; source = aggregated verifier_primary_pass by condition across task_id pairs.",
+    "Figure 2 — Paired-difference violin/boxplot: distribution of per-task paired outcomes (0/1 pairs or paired outcome indicator) and bootstrap distribution of paired difference; source = per-task paired success indicators and bootstrap resamples.",
+    "Figure 3 — Repair-iterations distribution (guarded): histogram / ECDF of model_calls_count - 1 for guarded condition, annotated median and percentile bands; source = model_calls_count in guarded records.",
+    "Figure 4 — Heatmap of success rates by topology profile and condition (10x2 grid): rows = topology_profile, columns = condition, cell = proportion success (with annotation numbers); source = task_manifest.jsonl topology labels joined to raw_results.jsonl."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "summary": "Well-executed, preregistered paired experiment comparing a generate–verify–repair (GVR) pipeline to LLM-only generation on a synthetic intent-to-configuration workload (N=500 paired intents). Execution and artifacts appear complete and reproducible. The observed numerical improvement for GVR (500 vs 496 accepted safe changes; paired difference = 0.008) is small; exact McNemar p = 0.125 and paired bootstrap 95% CI = [0.002, 0.016]. The manuscript appropriately discloses an unexecuted preregistered templated comparator. Overall methodology and artifact archival are strong, but the paper needs two focused clarifications (statistical inference interpretation and explicit artifact/codebook references for the verifier) before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Inference-interpretation mismatch not sufficiently resolved: the manuscript reports a paired bootstrap CI that excludes zero while the preregistered exact McNemar test yields p=0.125; with only four discordant pairs this discrepancy has substantive bearing on claims of effect and must be explicitly reconciled in the paper.",
+    "Insufficient explicit pointer to the archived verifier codebook: the paper states that the detailed mapping from violation-code identifiers to human-readable descriptions exists in the archived validator artifacts but does not provide the exact artifact path(s) and hash(es) that allow a reader/reviewer to locate and inspect the verifier ruleset within the supplied evidence bundle."
+  ],
+  "required_revisions": [
+    "Add a concise, artifact-grounded explanation of why the paired bootstrap CI and the exact McNemar p disagree for this dataset (small discordant count), state which inference the manuscript emphasizes for confirmatory interpretation, and adjust language to avoid implying preregistered-significance where the preregistered exact test fails to meet the planned threshold. Use only archived analysis artifacts (paired_contingency_table.csv, analysis_log.jsonl, bootstrap outputs) to justify the explanation.",
+    "Add explicit archival references to the verifier codebook and implementation: give the precise path(s) and SHA-256 hash(es) inside the supplied evidence bundle for (a) the verifier source or binary, and (b) the human-readable violation-code-to-description mapping/codebook. If the codebook exists under a path already in the manifest, cite that path+hash in the manuscript so readers can inspect the verifier rules without searching the bundle."
+  ],
+  "optional_revisions": [
+    "Consider adding a brief sensitivity statement (using archived artifacts) that reports an exact confidence interval or exact-method interval for the paired difference (if available in the archive) or otherwise explain bootstrap limitations with small discordant counts.",
+    "Optionally present a short table (from archived condition_summary.csv or per-topology summaries) showing success rates by difficulty strata or topology profile to help readers assess external-validity heterogeneity (label as exploratory).",
+    "Clarify phrasing around the unexecuted templated-automation arm to avoid potential reader confusion: explicitly state that the preregistered familywise multiplicity plan could not be applied and therefore the executed comparison should be treated as descriptive/partial confirmatory."
+  ],
+  "accept_for_finalisation": false
+}

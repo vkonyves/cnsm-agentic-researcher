@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-01-generate-verify-repair",
+      "title": "Empirical comparison of generate–verify–repair pipelines vs LLM-only and templated automation for NetOps change correctness",
+      "research_question": "Does a generate–verify–repair pipeline (LLM generation + deterministic network verifier + automated repair loop) produce fewer unsafe network changes than (a) LLM-only generation and (b) traditional templated automation on a standardized NetOps change workload?",
+      "hypotheses": [
+        "A generate–verify–repair pipeline yields a lower unsafe-change rate (fraction of proposed changes that violate reachability/policy) than an LLM-only pipeline.",
+        "Generate–verify–repair will reduce high-severity failures (policy-violations causing reachability loss) relative to templated automation for intent-driven, non-templateable changes.",
+        "The number of verifier-assisted repair iterations required per change will be small (median ≤2) and will produce materially lower unsafe-change rates even when the verifier has nonzero false-negative rate."
+      ],
+      "proposed_design": "Construct a standardized workload of 500 NetOps intents sampled from public/synthesized topology/config templates (mix: 60% templateable changes, 40% complex intent-driven changes). Implement three pipelines: (A) LLM-only: prompt LLM to produce CLI/config change; (B) Generate–verify–repair: LLM generates change, deterministic verifier (Batfish-style) checks properties, on failure invoke LLM repair loop up to 3 iterations; (C) Templated automation: rule-based template generator for templateable subset and operator-specified fallback for complex intents. Use a deterministic network verifier as ground-truth oracle to label safety (reachability and policy constraints). Freeze prompts, seeds, and repair-loop stopping rules in a preregistration. Execute all pipelines for the same intent set; log all model calls, verifier outcomes, repair iterations, and wall-clock latencies.",
+      "expected_data": "Per-intent records: proposed-change text, verifier label (pass/fail), severity of failure (reachability/policy), number of repair iterations, total model calls, wall-clock latency (ms), and final accepted-change status. Expect LLM-only to have highest unsafe-change rate, generate–verify–repair to substantially reduce unsafe changes particularly on complex intents, and templated automation to perform best on templateable subset but worse on complex intents.",
+      "primary_outcome": "Unsafe-change rate (fraction of intents whose final accepted change fails verifier checks) difference between generate–verify–repair and each baseline.",
+      "analysis_outline": "Compute unsafe-change rates per pipeline with 95% bootstrap confidence intervals; perform pairwise proportion tests (chi-square or Fisher exact as appropriate) with Bonferroni correction. Subgroup analyses for templateable vs complex intents. Analyze repair-iteration counts distribution and correlate iterations with severity using logistic regression. Report latency and model-call overheads per saved unsafe change and present cost–benefit trade-offs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403443637",
+        "doi:10.1002/nem.2313"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W4403443637"
+      ],
+      "risks": [
+        "Synthesized workload may not capture production heterogeneity, limiting external validity.",
+        "Verifier limitations (modeling abstractions) could mislabel edge-case semantics, affecting measured unsafe-change rates.",
+        "Integration of verifier and repair loop may be sensitive to prompt formulation, making results prompt-dependent."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-02-adversarial-robustness-netops",
+      "title": "Adversarial robustness of LLM-driven NetOps pipelines and defense trade-offs",
+      "research_question": "How effective are input-sanitization, instruction-filtering, verifier-gating, and combined defenses at reducing adversarial-success rates against LLM-driven NetOps pipelines, and what are their latency and false-positive trade-offs?",
+      "hypotheses": [
+        "LLM-driven NetOps pipelines without defenses exhibit a substantial adversarial-success rate when presented with NetOps-formatted adversarial inputs.",
+        "A combined defense (sanitization + instruction-filtering + verifier-gating) reduces adversarial-success rate significantly more than any single defense but incurs higher latency and false-positive blocking on benign inputs.",
+        "Input-sanitization alone yields lower latency overhead but will have higher adversarial false-negatives (missed attacks) compared to verifier-gating approaches."
+      ],
+      "proposed_design": "Curate an adversarial corpus of 600 NetOps-formatted attacks (adversarial intents, maliciously crafted CLI snippets, prompt-injection patterns) derived from public prompt-injection studies and NetOps-tailored perturbations. Build a baseline LLM pipeline that executes generated changes only after LLM output. Implement defenses: (D1) input-sanitization (token-level removal/escaping), (D2) instruction-filtering (reject inputs containing suspicious patterns), (D3) verifier-gating (invoke deterministic verifier before execution; block on failures), and (D4) combined (D1+D2+D3). For a control set, include 600 benign NetOps intents to measure false-positive blocking. For each defense variant and baseline, measure adversarial-success (attack leads to unsafe verifier pass or malicious action), verifier pass/fail, latency (ms), and defense false-positive rate on benign inputs. Freeze defense rules and thresholds in preregistration.",
+      "expected_data": "Per-attempt labels: adversarial-success (yes/no), verifier pass/fail, latency (ms), defense decision (blocked/allowed), and number of tool/model calls. Expect high adversarial-success in baseline, substantial reduction with combined defense, and measurable latency increase; input-sanitization expected to show lowest latency but higher residual adversarial-success.",
+      "primary_outcome": "Reduction in adversarial-success rate (fractional decrease relative to baseline) for each defense variant.",
+      "analysis_outline": "Compare adversarial-success rates across arms using proportion tests (chi-square) with multiple comparisons correction. Model latency–security trade-offs via Pareto analysis and logistic regression (adversarial-success ~ latency + defense type). Report defense false-positive rates on benign inputs and compute ROC for detection components. Provide qualitative attack examples that bypass each defense and root-cause analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406137434",
+        "doi:10.2139/ssrn.6956641",
+        "https://openalex.org/W4413757586"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4403443637",
+        "doi:10.2139/ssrn.6645520"
+      ],
+      "risks": [
+        "Curated adversarial corpus may not capture future or unseen attack variants, limiting external validity.",
+        "Blocking/sanitization defenses may prevent legitimate operator intents, causing operational friction not fully captured in simulation.",
+        "Defense implementations could interact with specific LLM behaviors in a non-generalizable way across model versions."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cand-03-verifier-batching-orchestration",
+      "title": "Safety–latency trade-offs from verifier-invocation strategies: per-change, batched, and lazy verification in agentic NetOps",
+      "research_question": "How do verifier-invocation strategies (per-change synchronous verification, batched verification, and lazy/asynchronous verification) affect verified-correct fraction, throughput, and operator-observed latency, and which batching parameters yield Pareto-optimal safety–latency trade-offs for realistic NetOps workloads?",
+      "hypotheses": [
+        "Per-change (immediate) verification yields the highest verified-correct fraction but the lowest throughput and highest operator-observed latency.",
+        "Time-window or size-based batching recovers most of the safety of per-change verification while providing substantially higher throughput up to a workload-dependent batch threshold.",
+        "There exists a Pareto-optimal batching parameter (batch size or time window) that balances verified-correct fraction and mean latency for representative NetOps workloads."
+      ],
+      "proposed_design": "Simulate a workload of N=1000 change requests sampled from a synthesized NetOps workload distribution (mix of small template changes and complex intent-driven changes). Implement three orchestration policies: (A) Per-change synchronous verification (invoke verifier for every change), (B) Time-window/size batching (accumulate for T seconds or up to B changes then run verifier), and (C) Lazy verification (allow immediate simulated execution, verify asynchronously and revert/alert on failures with rollback cost model). Sweep batching parameters T ∈ {0.5,1,2,5} seconds and B ∈ {5,10,20,50}. Use deterministic verifier as ground truth; simulate verifier latency and rollback costs; record verified-correct fraction, throughput (changes/sec), mean and percentile latencies, verifier CPU-time, and rollback frequency/costs. Freeze workload generator and seeds.",
+      "expected_data": "Task-level records for 1000 changes per policy/parameterization: verified-correct fraction, throughput, mean and percentile latencies, verifier compute time, and rollback frequency/costs. Expect per-change verification to maximize safety but incur high latency and compute; batching to show diminishing safety loss up to a moderate batch threshold while gaining throughput; lazy verification to show highest throughput but nontrivial rollback costs.",
+      "primary_outcome": "Pareto frontier of verified-correct fraction versus mean operator-observed latency; identification of batching (T,B) points on the frontier.",
+      "analysis_outline": "For each policy/parameter, compute verified-correct fraction and latency; plot Pareto frontiers. Use regression to model verified-correct fraction as a function of batch size and workload mix; perform sensitivity analyses across workload mixes and verifier-latency distributions. Report compute cost per verified change and expected rollback cost for lazy verification with bootstrap confidence intervals.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4413757586",
+        "doi:10.2139/ssrn.6647800",
+        "https://openalex.org/W4413757123"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4413757123",
+        "https://openalex.org/W4403443637",
+        "doi:10.36227/techrxiv.176288195.52086234/v1"
+      ],
+      "risks": [
+        "Simulated workload may not mirror production burstiness, affecting optimal batching estimates.",
+        "Verifier runtime variability in real deployments could change observed trade-offs.",
+        "Rollback simulations may under- or over-estimate real operational recovery costs and human intervention delays."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand-04-llm-self-correction-without-verifier",
+      "title": "Limits of LLM self-correction for NetOps: efficacy comparison with verifier-assisted repair",
+      "research_question": "Can LLMs reliably self-correct NetOps-specific errors (configuration mistakes or policy violations) without external deterministic verifier signals, and how does self-correction performance compare to verifier-assisted repair?",
+      "hypotheses": [
+        "LLM-only self-correction (internal reasoning or chained retries without verifier signals) will achieve substantially lower final safety (verifier-pass rate) than verifier-assisted repair for NetOps errors.",
+        "Providing LLMs with structured failure examples or few-shot repair demonstrations improves self-correction success but does not attain verifier-assisted performance for complex intent-driven errors.",
+        "LLM confidence estimates or calibration scores are poorly predictive of actual verifier-pass outcomes when self-correcting without an external oracle."
+      ],
+      "proposed_design": "Prepare a dataset of 400 synthetic NetOps failure cases (LLM-generated changes that intentionally fail deterministic verifier checks), spanning simple syntax errors, semantic misconfigurations, and policy violations. Define two interventions: (S1) LLM self-correction only—present the LLM the failing change and ask it to revise up to 3 times without access to the verifier verdict (but provide natural-language description of failure type in some arms); (S2) verifier-assisted repair—provide the verifier verdict and counterexamples and allow up to 3 repair iterations. Freeze prompts, few-shot exemplars, and seeds. After each iteration collect proposed change and evaluate with deterministic verifier to label pass/fail. Record model confidence estimates where available.",
+      "expected_data": "Per-case records: initial failing change type, each revision text, verifier pass/fail after each revision, number of iterations to pass (if any), model-assigned confidence, total model calls, and latency. Expect verifier-assisted repair to achieve higher pass rates and fewer iterations; self-correction to succeed primarily on simple syntax/formatting failures.",
+      "primary_outcome": "Final verifier-pass rate after up to 3 self-correction iterations (LLM-only) compared to verifier-assisted repair.",
+      "analysis_outline": "Compare final pass rates using proportion tests with confidence intervals. Stratify by failure type (syntax vs semantic vs policy). Assess iteration counts via survival analysis (time-to-pass in iterations). Evaluate predictive power of model confidence using ROC/AUC and calibration plots. Perform qualitative failure-mode analysis of cases where self-correction failed but verifier-assisted repair succeeded.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4404534210"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403443637",
+        "https://openalex.org/W4413757586"
+      ],
+      "risks": [
+        "LLM self-correction outcomes are highly prompt-sensitive, limiting reproducibility across prompt designs and model versions.",
+        "Dataset of failure cases may omit rare but operationally critical error modes.",
+        "Relying on model confidence requires support from the chosen LLM API and may not generalize across providers."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

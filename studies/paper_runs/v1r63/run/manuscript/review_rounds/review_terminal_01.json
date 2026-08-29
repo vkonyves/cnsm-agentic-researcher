@@ -1,0 +1,26 @@
+{
+  "summary": "Well‑executed, artifact‑grounded preregistered paired trial comparing a generate–verify–repair (GVR) pipeline to LLM‑only generation on a 500‑intent synthetic NetOps benchmark. The experiment, analysis, and artifacts are complete and reproducible; the preregistered exact conditional McNemar test is appropriate and reported (n11=496, n10=4, n01=0, p=0.125). Authors correctly avoid a confirmatory claim. Key strengths: preregistration, complete artifact hashes and traces, deterministic verifier semantics, transparent accounting of model calls and repairs. Main weaknesses are clarificatory and reporting gaps (resolvable from archived artifacts): an ambiguous provider_call_audit field, missing concise summary of the four repaired/discordant episodes in the paper body, explicit statement of which preregistered confirmatory comparisons were unexecuted and the consequence for multiplicity, and explicit model-generation hyperparameters. After those manuscript clarifications are made the paper will be suitable for finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Ambiguous provider_call_audit/condition_counts entry in deterministic_reconciliation.json (appears to list 'shared':500, 'guarded':4) — must be clarified to avoid confusion about per‑condition model‑call accounting.",
+    "No concise in‑manuscript table or short appendix summarizing the four repaired/discordant episodes (pair IDs, verifier violation codes, short description of repair prompt or repair outcome); readers should not need to parse raw JSONL to see what was repaired.",
+    "Preregistered secondary comparator (templated automation) and associated confirmatory test were not executed. The manuscript must explicitly identify which preregistered hypotheses/confirmatory tests remain untested and clearly state the implications for the preregistered multiplicity (Bonferroni) plan and for interpretation of p‑values/CIs.",
+    "Model generation hyperparameters (temperature, max tokens, any sampling or deterministic flags) are not stated in the paper text; the execution artifact contains them but the manuscript must cite these fields and their hashes explicitly."
+  ],
+  "required_revisions": [
+    "Clarify provider_call_audit semantics and correct/define the meaning of 'condition_counts' and any apparent mismatch (e.g., why 'guarded' appears as 4). Quote the relevant execution_manifest path and SHA for the clarified field so readers can verify (artifact evidence is available).",
+    "Add a concise in‑manuscript table (<=1 small table) listing the four discordant/repaired pair IDs (e.g., pair-000090, pair-000341, pair-000381, pair-000413), the verifier violation codes and short human‑readable descriptions, whether a repair was invoked, model calls used for that pair, and a short anonymized summary of the repair prompt outcome. Use the archived scoring JSON objects (execution/scoring/*.json) and provider traces; cite their artifact paths and SHA(s).",
+    "Explicitly state which preregistered confirmatory comparisons were not executed (the templated‑automation arm and H2) and document the practical consequence: the preregistered familywise Bonferroni adjustment cannot be applied as planned. Update the Methods/Abstract wording to reflect that only the primary GVR vs LLM‑only confirmatory comparison was executed and that familywise error control across the originally planned two tests is not applicable.",
+    "Insert a one‑sentence explicit listing of model generation settings taken from execution/model_configuration.json (declared_model_version, temperature, max_output_tokens, maximum_attempts_per_call, provider) with artifact SHA (a40e96e2...). If any field is null (e.g., temperature), state that explicitly and explain the effective generator behavior (deterministic/default sampling) as recorded in the artifact."
+  ],
+  "optional_revisions": [
+    "Move a brief (1–2 paragraph) summary of the four repaired failure modes from Discussion into Results (or add a small boxed example) so non‑artifact readers can see representative repairs without opening raw artifacts.",
+    "Provide the exact artifact path and SHA for the verifier human‑readable codebook (violation‑code → description) inline in the Methods (the execution_manifest already contains this; cite it explicitly).",
+    "Add a short per‑difficulty‑level summary (already present in terminal_factual_accounting) as a small table or sentence to help readers assess external validity across task hardness buckets.",
+    "Discuss (briefly) whether a one‑sided test would be of operational interest and why the preregistered two‑sided exact conditional McNemar was chosen (short justification)."
+  ],
+  "accept_for_finalisation": false
+}

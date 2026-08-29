@@ -1,0 +1,23 @@
+{
+  "summary": "Careful, artifact-grounded preregistered paired trial comparing a generate–verify–repair (GVR) pipeline to LLM-only generation (N=500 paired intents). Execution and analysis artifacts appear complete and internally consistent. The preregistered primary exact McNemar test (two‑sided) yields p=0.125 (not significant); a paired bootstrap CI is positive [0.002,0.016] and the authors provide an adequate reconciliation of the two inferential procedures. Major strengths: preregistration, deterministic verifier, comprehensive artifact hashing/manifest, paired design, transparent disclosure of the unexecuted templated comparator. Primary limitations: very high baseline success rate (ceiling effect) produced only four discordant pairs (low realized power vs preregistered target effect), and the verifier’s coverage is limited to verifier‑encoded rule sets (documented blind spots). Overall scientifically sound and reproducible given the archived artifacts, but manuscript requires a small evidence-resolvable clarification requested by reviewers.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The manuscript does not include an explicit artifact path and SHA‑256 for the human‑readable verifier codebook file (violation-code → description) even though that file exists in the archived full execution manifest; reviewers requested an explicit path+hash to permit direct inspection.",
+    "Preregistered secondary comparator (templated‑automation) was not executed; while disclosed, this omission reduces the preregistered multiplicity interpretation and must be clearly and unambiguously stated in the Disclosure/Methods (resolvable from supplied artifacts).",
+    "The observed outcome exhibits a strong ceiling effect (baseline 496/500 successes), producing only 4 discordant pairs; the paper should explicitly quantify how this deviation from the preregistered assumed baseline rate undermines the original power assumptions (this is reportable from existing artifacts)."
+  ],
+  "required_revisions": [
+    "Insert in the manuscript (Disclosure or Methods) the explicit path and SHA‑256 for the human‑readable verifier codebook file as present in the archived execution_manifest.json so reviewers can directly locate and verify the codebook (the full manifest is archived; this is a documentation insertion, not new experiments).",
+    "Explicitly state in Methods/Disclosure that the preregistered templated‑automation comparator was not executed and therefore the originally preregistered two‑test Bonferroni familywise plan could not be applied; explain how this affects interpretation of confirmatory claims (use the existing execution manifest and analysis artifacts).",
+    "Add one concise sentence (Methods or Limitations) quantifying the preregistered target effect (≈8 percentage points) versus the observed paired difference (0.8 percentage points) and state that the unexpectedly high baseline success rate produced few discordant pairs and reduced realized power—cite the contingency table artifact (analysis/paired_contingency_table.csv) and the preregistration power plan."
+  ],
+  "optional_revisions": [
+    "Add a brief, explicit numeric worked example or appendix paragraph (one short paragraph) showing the exact McNemar conditional calculation that yields p=0.125 for the observed 4/4 discordants to aid reader understanding (can cite the archived contingency table).",
+    "Compress or consolidate long artifact-pointer lists in the main text and move exhaustive manifest pointers into a compact table or footnote to improve narrative flow while preserving reproducibility.",
+    "Expand discussion of verifier blind spots with a small prioritized list of concrete missing device effects (control‑plane convergence, vendor idiosyncrasies) and point to the specific verifier-source files in the manifest that encode current limitations."
+  ],
+  "accept_for_finalisation": false
+}

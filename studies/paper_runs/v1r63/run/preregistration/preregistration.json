@@ -1,0 +1,76 @@
+{
+  "study_id": "study-hosted-netops-gvr-v1-2026-08-29",
+  "title": "Preregistered study: generate–verify–repair vs LLM-only and templated automation for NetOps change correctness",
+  "research_question": "Does a generate–verify–repair pipeline (LLM generation + deterministic network verifier + automated repair loop) produce fewer unsafe network changes than (a) LLM-only generation and (b) templated automation on a standardized NetOps change workload?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The generate–verify–repair (GVR) pipeline yields a lower unsafe-change rate (fraction of intents whose final accepted change fails verifier checks) than the LLM-only pipeline, assessed as a paired difference in success rate (GVR minus LLM-only).",
+    "H2: The GVR pipeline yields a lower unsafe-change rate than the templated-automation pipeline for the non-templateable (complex-intent) subset.",
+    "H3: Median repair iterations per intent under GVR ≤ 2 (exploratory confirmatory summary) and repair iterations correlate negatively with final success probability."
+  ],
+  "exploratory_questions": [
+    "E1: How prompt-template and seed variation affect unsafe-change rates (prompt-sensitivity ablation).",
+    "E2: Latency and model-call overhead trade-offs per avoided unsafe change.",
+    "E3: Distribution of failure severities (reachability vs policy) across pipelines."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4413757586",
+    "https://openalex.org/W4403443637",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4413757123"
+  ],
+  "benchmark_scope": [
+    "synthetic_topologies_v1 (10 topology profiles: datacenter, small-enterprise, campus, small-isp variants)",
+    "synthetic_device_configs_v1 (vendor-agnostic CLI templates)",
+    "intent_spec_v1 (intent grammar used to synthesize tasks)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 500,
+    "planned_episode_count": 1000,
+    "maximum_model_calls": 1000,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (difference in per-intent safe-change success probability: GVR - baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_success_rate_difference_guarded_minus_templated (GVR - templated) on complex-intent subset",
+    "median_repair_iterations_under_GVR",
+    "mean_model_calls_per_accepted_change"
+  ],
+  "sampling_plan": "Confirmatory sample: N_confirmatory = 500 distinct intents (same set run under all three pipelines in paired fashion). Intent mix: 60% templateable (300 intents), 40% complex (200 intents). Topology clustering: 10 topology profiles; intents stratified evenly across profiles (50 intents per profile). Exploratory ablation: 100-intent held-out subsample (20% of N) for prompt-seed sensitivity. Randomization: fixed deterministic sampling seed frozen in preregistration for reproducibility.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute paired increase of 0.08 (8 percentage points). Two-sided family alpha = 0.05 with Bonferroni correction for two confirmatory tests => per-test alpha = 0.025. With N=500 paired intents and plausible within-pair discordance (~40%), approximate power > 0.8 to detect ~7–9 percentage-point absolute paired differences. Sensitivity analyses pre-registered for baseline success rates (0.6–0.8) and discordance (20–60%).",
+  "exclusion_rules": [],
+  "missingness_plan": "Technical failures (API/network/infra) are logged and classified. Primary analysis uses 'complete_pair_primary': exclude intent pairs without complete final-accepted-change outcomes for both GVR and comparator. Pre-registered sensitivity: treat technical-failure pairs as unsafe ('complete_pair_primary_with_failure_as_zero_sensitivity'). Missingness reasons enumerated in execution manifest and included in final report.",
+  "analysis_plan": "Primary confirmatory analysis executed by registered analysis executor paired_binary_analysis_v1 using estimand 'paired_success_rate_difference_guarded_minus_baseline' (GVR minus LLM-only). Per-intent outcome binary = success (final accepted change passes deterministic verifier) vs unsafe (fails). Pairing is by intent across pipelines. Primary treatment of technical failure = 'complete_pair_primary' (exclude incomplete pairs). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat failed-generation pairs as unsafe). Report 95% bootstrap CIs for paired difference and two-sided exact paired-proportion tests (McNemar or exact as appropriate). Subgroup analyses: templateable vs complex intents, per-topology-profile. Exploratory analyses (prompt/seed ablation, latency) labeled exploratory.",
+  "multiplicity_plan": "Two confirmatory comparisons pre-specified: (1) GVR vs LLM-only (primary), (2) GVR vs templated on complex intents (secondary). Bonferroni correction applied across the two confirmatory tests (family alpha = 0.05 => per-test alpha = 0.025). Other comparisons reported as exploratory.",
+  "contamination_plan": "Benchmark names: synthetic_topologies_v1, synthetic_device_configs_v1. Risk factors: model API nondeterminism, prompt leakage/overlap between training data and synthetic tasks, prompt-injection style adversarial inputs, verifier modeling abstraction errors. Detection: deterministic input-output hashing to detect duplicates/leaks; ensemble verifier consistency checks to flag disagreements; synthetic adversarial-augmentation held-out tests. Item-flagging rules: flag parser failures, primary/secondary verifier disagreements, generated changes containing anonymization placeholders. Analysis treatment: primary verifier is adjudicator for main result; pre-registered sensitivity uses conservative consensus (if either verifier fails => fail). All flagged-item counts and outcomes reported.",
+  "stopping_rule": "Complete execution for all required_confirmatory_task_count = 500 paired intents. Early termination only for documented unrecoverable infrastructure failure; such stoppages logged and treated per missingness_plan, with sensitivity analyses reported.",
+  "planned_outputs": [
+    "IEEE CNSM short paper (five-page) reporting preregistration, methods, results, and disclosure",
+    "raw experiment artifacts (inputs, model outputs, verifier logs, anonymized configs)",
+    "analysis result files (paired outcomes, bootstrap CIs, test statistics)",
+    "execution manifest and hashes"
+  ],
+  "unresolved_critical_issues": []
+}

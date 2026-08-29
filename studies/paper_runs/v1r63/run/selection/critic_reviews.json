@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-01-generate-verify-repair",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier-as-ground-truth may mislabel edge semantics (false positives/negatives).",
+        "Synthesized workload may insufficiently reflect production heterogeneity (topologies, vendor configs).",
+        "Prompt- and model-version sensitivity could drive observed differences rather than pipeline architecture.",
+        "Templated-automation baseline needs clear operational specification to be a fair comparator.",
+        "Data-privacy/legal constraints for using real configs not addressed."
+      ],
+      "required_design_repairs": [
+        "Preregister and validate verifier labeling on a held-out human-reviewed sample; where feasible use a second verifier or manual adjudication for contested cases.",
+        "Enrich workload with multiple topology profiles and at least some real/anonymized config samples or realistic corpora; document generation procedure.",
+        "Add prompt-sensitivity ablation (±prompts, seeds, model versions) and report results.",
+        "Precisely define templated-automation baseline behavior, fallbacks, and operator rules in the preregistration.",
+        "Document dataset provenance and anonymization; state legal/ethics constraints."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-02-adversarial-robustness-netops",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial corpus design may be biased or nonrepresentative of real-world NetOps attacks.",
+        "Publishing attack corpora risks dual-use; ethical safeguards unspecified.",
+        "Definition of adversarial-success (e.g., verifier pass vs harmful side-effect) must be precise.",
+        "Defense parameter tuning risks overfitting to curated attacks; generalization tests missing."
+      ],
+      "required_design_repairs": [
+        "Include an explicit ethical review and dual-use mitigation plan; sanitize/publication policy for attack examples.",
+        "Preregister a clear attack taxonomy and corpus-creation rules; include held-out 'unseen' attack set for generalization testing.",
+        "Define and justify precise adversarial-success criteria; include multiple success metrics (verifier pass, unsafe side-effects).",
+        "Add transfer experiments to other models/versions and ablation on defense thresholds to detect overfitting."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-03-verifier-batching-orchestration",
+      "novelty": 0.75,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulation fidelity: workload burstiness and real verifier latency distributions may differ from simulated assumptions.",
+        "Rollback cost model may not reflect real operator workflows and human-in-the-loop delays.",
+        "Choice of batching parameters and workload mix could strongly affect conclusions; sensitivity needs thorough treatment."
+      ],
+      "required_design_repairs": [
+        "Validate simulated workload and verifier-latency distributions against public traces or diverse synthetic regimes; report sensitivity to burstiness.",
+        "Make rollback cost model explicit and include alternate realistic cost parameterizations (human reaction times, partial rollbacks).",
+        "Preregister a comprehensive sweep plan and include sensitivity analyses across workload mixes and verifier latency distributions; consider a small-scale run against a real verifier if feasible."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-04-llm-self-correction-without-verifier",
+      "novelty": 0.75,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Dataset of failing cases may be biased toward synthetic or LLM-originated errors and omit rare but critical failure modes.",
+        "Reliance on model-provided confidence scores may be impractical (not all APIs expose reliable scores).",
+        "Prompt design and few-shot exemplars likely drive outcomes; prompt-sensitivity must be controlled.",
+        "Single-model evaluation would limit external validity."
+      ],
+      "required_design_repairs": [
+        "Ensure failure-case dataset covers diverse error modes (syntactic, semantic, policy) and document generation rules; include some human-sourced failures if possible.",
+        "Specify how model confidence is obtained; provide fallback analyses when confidence is unavailable (e.g., ensemble or token-prob proxy).",
+        "Add a prompt-sensitivity ablation and freeze prompt templates in preregistration.",
+        "If allowed by resources, include at least one secondary model/version to assess generality or explicitly state single-model limitation."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

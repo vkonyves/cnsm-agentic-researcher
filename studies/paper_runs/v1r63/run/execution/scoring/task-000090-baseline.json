@@ -1,0 +1,153 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000090-baseline",
+  "normalized_reference_answer": "interface uplink24 admin up\ninterface uplink23 admin down",
+  "normalized_response": "interface uplink24 vlan 200\ninterface uplink24 admin up\ninterface uplink23 admin down",
+  "pair_id": "pair-000090",
+  "raw_response_sha256": "942bdb5dd394bbe8ea66b95f51d1e9ced5d2f8034119f77b63165002e7a0b2a0",
+  "reference_answer_sha256": "f9eb0975c3ace4ea98a5ea5ce1030976d7d086d7037427132eb4d023a8c9f91a",
+  "repair_provider_trace_path": null,
+  "repair_provider_trace_sha256": null,
+  "schema_version": "1.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000090-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "3d054a5d02475323796e540a9434a24d9eefba69db63ebd2434e3cb219841923",
+  "study_id": "study-hosted-netops-gvr-v1-2026-08-29",
+  "task_id": "task-000090",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "interface uplink24 vlan 200\ninterface uplink24 admin up\ninterface uplink23 admin down",
+    "repair_applied": false,
+    "repair_prompt_sha256": null,
+    "shared_initial_candidate": "interface uplink24 vlan 200\ninterface uplink24 admin up\ninterface uplink23 admin down",
+    "shared_initial_candidate_sha256": "942bdb5dd394bbe8ea66b95f51d1e9ced5d2f8034119f77b63165002e7a0b2a0",
+    "shared_initial_response_path": "execution/responses/task-000090-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "make_before_break_uplink_switchover",
+        "required_command_count": 2,
+        "transient_rule_count": 1
+      },
+      "final_state": {
+        "edge45": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge46": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt12": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink23": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink24": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink24 vlan 200\ninterface uplink24 admin up\ninterface uplink23 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 2,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: uplink24 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink24 vlan ended as 200; expected 201."
+        }
+      ]
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "make_before_break_uplink_switchover",
+        "required_command_count": 2,
+        "transient_rule_count": 1
+      },
+      "final_state": {
+        "edge45": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge46": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt12": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink23": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink24": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink24 vlan 200\ninterface uplink24 admin up\ninterface uplink23 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 2,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: uplink24 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink24 vlan ended as 200; expected 201."
+        }
+      ]
+    }
+  }
+}
