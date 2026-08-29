@@ -6622,7 +6622,7 @@ class FinalAutonomousResearchPipeline:
                 and isinstance(post_hygiene_maximum_pages, int)
                 and post_hygiene_page_count < post_hygiene_maximum_pages
             ):
-                maximum_post_hygiene_underfill_attempts = 5
+                maximum_post_hygiene_underfill_attempts = 8
 
                 best_recovery_manuscript = revised_manuscript
                 best_recovery_validation = publication_validation
@@ -6648,6 +6648,15 @@ class FinalAutonomousResearchPipeline:
                         f"The best manuscript currently occupies "
                         f"{best_recovery_page_count} page(s) of "
                         f"{post_hygiene_maximum_pages}. "
+                        "\n\n"
+                        "Page count is a coarse rendered measure. A useful "
+                        "scientific expansion may still compile to the same "
+                        "integer page count. Build CUMULATIVELY on the supplied "
+                        "manuscript: preserve every supported scientific "
+                        "expansion already present and add further supported "
+                        "substance. Do not rewrite a four-page manuscript into "
+                        "a different four-page manuscript of similar or smaller "
+                        "scientific volume. "
                         "\n\n"
                         "SCIENTIFIC CONTENT IS FROZEN. Use ONLY material "
                         "already supported by the supplied verified "
@@ -6817,7 +6826,19 @@ class FinalAutonomousResearchPipeline:
                         candidate_validation.get("page_count")
                     )
 
-                    candidate_is_improvement = (
+                    current_recovery_text_length = len(
+                        _manuscript_text(
+                            best_recovery_manuscript
+                        )
+                    )
+
+                    candidate_recovery_text_length = len(
+                        _manuscript_text(
+                            candidate_recovery_manuscript
+                        )
+                    )
+
+                    candidate_is_clean_and_non_regressing = (
                         candidate_validation.get("compile_status")
                         == "passed"
                         and candidate_publication_sanity.get(
@@ -6830,12 +6851,14 @@ class FinalAutonomousResearchPipeline:
                         is True
                         and isinstance(candidate_page_count, int)
                         and candidate_page_count
-                        > best_recovery_page_count
-                        and candidate_page_count
                         <= post_hygiene_maximum_pages
+                        and candidate_page_count
+                        >= best_recovery_page_count
+                        and candidate_recovery_text_length
+                        > current_recovery_text_length
                     )
 
-                    if candidate_is_improvement:
+                    if candidate_is_clean_and_non_regressing:
                         best_recovery_manuscript = (
                             candidate_recovery_manuscript
                         )

@@ -100,7 +100,7 @@ def test_underfill_recovery_rerenders_before_final_audits():
 
 def test_underfill_recovery_is_bounded_to_five_attempts():
     assert (
-        "maximum_post_hygiene_underfill_attempts = 5"
+        "maximum_post_hygiene_underfill_attempts = 8"
         in SOURCE
     )
     assert (
@@ -152,7 +152,7 @@ def test_underfill_recovery_renders_each_attempt():
 
 def test_underfill_recovery_rejects_non_improving_or_overshooting_candidates():
     assert (
-        "candidate_is_improvement"
+        "candidate_is_clean_and_non_regressing"
         in SOURCE
     )
     assert (
@@ -160,7 +160,7 @@ def test_underfill_recovery_rejects_non_improving_or_overshooting_candidates():
         in SOURCE
     )
     assert (
-        "> best_recovery_page_count"
+        ">= best_recovery_page_count"
         in SOURCE
     )
     assert (
@@ -176,9 +176,9 @@ def test_underfill_recovery_tracks_best_successful_candidate():
 
 
 def test_underfill_recovery_accepts_only_page_improvement():
-    assert "candidate_is_improvement" in SOURCE
+    assert "candidate_is_clean_and_non_regressing" in SOURCE
     assert "candidate_page_count" in SOURCE
-    assert "> best_recovery_page_count" in SOURCE
+    assert ">= best_recovery_page_count" in SOURCE
 
 
 def test_underfill_recovery_rejects_overshoot():
@@ -322,5 +322,31 @@ def test_protected_final_rescue_archives_decision_artifacts():
     )
     assert (
         "selected_protected_final_"
+        in SOURCE
+    )
+
+
+def test_same_page_clean_scientific_expansion_is_retained():
+    assert "current_recovery_text_length" in SOURCE
+    assert "candidate_recovery_text_length" in SOURCE
+    assert (
+        "candidate_recovery_text_length"
+        in SOURCE
+        and "> current_recovery_text_length"
+        in SOURCE
+    )
+    assert (
+        "candidate_page_count"
+        in SOURCE
+        and ">= best_recovery_page_count"
+        in SOURCE
+    )
+
+
+def test_underfill_recovery_expands_cumulatively():
+    assert "Page count is a coarse rendered measure" in SOURCE
+    assert "Build CUMULATIVELY" in SOURCE
+    assert (
+        "preserve every supported scientific "
         in SOURCE
     )
