@@ -1,0 +1,206 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Prompt-injection and adversarial prompt attacks are a documented, effective vulnerability against LLMs and agentic LLM systems, expanding attack surface when agents can call tools or ingest external content.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4387839052",
+        "https://openalex.org/W4392678053",
+        "https://openalex.org/W7118532765"
+      ],
+      "evidence_type": "empirical & survey studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Most studies evaluate specific models/environments; effectiveness varies across models, toolchains, and defense settings.",
+        "Evidence emphasizes prevalence and attack constructs but does not quantify universal success rates across all NetOps deployments."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Tool-selection and tool-registry manipulation can subvert agentic workflows (e.g., forcing selection of malicious tools), and existing detection/defense techniques are often insufficient.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161032443",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W4405183113"
+      ],
+      "evidence_type": "targeted attack studies",
+      "confidence": 0.88,
+      "limitations": [
+        "Evaluations are typically in controlled/no-box scenarios; real-world pipeline heterogeneity may alter attack success.",
+        "Defenses evaluated are partial and evolving; some mitigations may reduce but not eliminate risk."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Agentic and tool-augmented LLM architectures and orchestration frameworks (multi-agent orchestration, planner/worker splits, RAG integration) are an active, mature research theme and are being proposed for NetOps/AIOps use-cases.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4417088765",
+        "https://openalex.org/W7148954109",
+        "doi:10.36227/techrxiv.175695645.52670060/v1",
+        "https://openalex.org/W7202192400"
+      ],
+      "evidence_type": "surveys and framework proposals",
+      "confidence": 0.86,
+      "limitations": [
+        "Much work is architectural or prototype-level; production-grade, large-scale deployments remain less documented.",
+        "Specific applicability to NetOps varies by study and often requires domain-specific tool integration."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Formal and automated network-configuration verification tools and techniques (e.g., Header Space Analysis, Vera, Name Space Analysis/NSA, FastCUV, Mahjong) exist and are applied to check reachability, policy compliance, and configuration updates.",
+      "evidence_record_ids": [
+        "https://openalex.org/W3128087665",
+        "https://openalex.org/W2979512650",
+        "https://openalex.org/W4296990896",
+        "https://openalex.org/W4205641020",
+        "https://openalex.org/W3215206150"
+      ],
+      "evidence_type": "systems and formal-methods research",
+      "confidence": 0.92,
+      "limitations": [
+        "Tools differ in modeling assumptions, supported abstractions, and scalability trade-offs.",
+        "Integration of these verifiers with LLM-agent pipelines is still emergent in the literature."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Iterative generate–validate–repair (self-correction) patterns, and constrained/viability-constrained decoding approaches have been proposed and shown (in domain studies) to reduce constraint violations or improve artifact correctness.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W4416713956",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4416789414"
+      ],
+      "evidence_type": "methodological proposals and empirical evaluations",
+      "confidence": 0.8,
+      "limitations": [
+        "Demonstrations often in non-NetOps domains (e.g., health, code/unit tests); transfer effectiveness to complex NetOps configs is not comprehensively evaluated.",
+        "Constrained decoding methods may incur computational and engineering complexity."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Human-in-the-loop oversight, gating, and governance are recurrently recommended as necessary controls for safe agentic/autonomous operational systems.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4411705099",
+        "https://openalex.org/W4416225347",
+        "doi:10.2139/ssrn.7200862"
+      ],
+      "evidence_type": "architectural proposals and governance reviews",
+      "confidence": 0.89,
+      "limitations": [
+        "Recommendations are normative; empirical studies quantifying operator workflows, latency, and human-factors trade-offs in NetOps contexts are limited.",
+        "Designs for meaningful human oversight vary and may not be standardized."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent do current LLM-agent + verifier pipelines achieve production-grade safety and reliability for heterogeneous NetOps tasks under real-world operational conditions?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405229682",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W7148954109",
+        "doi:10.2139/ssrn.7200862"
+      ],
+      "evidence_type": "surveys, prototypes, governance reviews",
+      "confidence": 0.55,
+      "limitations": [
+        "Existing evidence includes prototypes and surveys but lacks broad, reproducible production-scale evaluations across varied NetOps workloads.",
+        "Heterogeneity of network environments and toolchains complicates generalization."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How effective are current prompt-injection and tool-selection defenses (e.g., perplexity detection, known-answer detection, registry normalization) against adaptive adversaries in agentic NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161032443",
+        "https://openalex.org/W4405183113",
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4387839052"
+      ],
+      "evidence_type": "attack/defense empirical studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Studies show many defenses are insufficient in evaluated settings, but systematic, domain-specific evaluations for NetOps pipelines remain sparse.",
+        "Adversary models and deployment constraints materially affect defense performance."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What is the practical scalability and usability cost of constrained/viability-constrained decoding and verifier-in-the-loop strategies when applied to complex, multi-device network configuration generation and rollout?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "doi:10.2139/ssrn.6339518",
+        "https://openalex.org/W4416789414"
+      ],
+      "evidence_type": "method proposals and conceptual frameworks",
+      "confidence": 0.5,
+      "limitations": [
+        "Papers propose feasible mechanisms but provide limited large-scale NetOps performance measurements.",
+        "Engineering integration costs (latency, tool orchestration, idempotency controls) are under-documented."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a lack of standardized, execution-and-verification–centric public benchmarks for LLM-driven NetOps that combine natural-language intent tasks with deterministic configuration verification and emulated rollout evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W4416713956",
+        "https://openalex.org/W4416225347"
+      ],
+      "evidence_type": "survey observations and benchmark calls",
+      "confidence": 0.78,
+      "limitations": [
+        "Some domain-specific or prototype datasets exist (cited prototypes and demo repos), but a widely adopted, execution-validated NetOps benchmark is not evident in the supplied records.",
+        "New benchmarks require careful design to cover heterogenous devices, protocols, and verification oracles."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Empirical evaluations of LLM-agent pipelines that integrate formal network verifiers (e.g., Batfish, HSA/NetPlumber, Vera/NSA) at scale and measure failure-propagation, operator latency, and safety trade-offs are limited and underexplored.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W3128087665",
+        "https://openalex.org/W2979512650",
+        "https://openalex.org/W4296990896",
+        "https://openalex.org/W7136098216"
+      ],
+      "evidence_type": "prototype reports and verifier tool papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Prototype demonstrations indicate feasibility but do not constitute broad, reproducible evaluations across diverse network topologies and adversarial scenarios.",
+        "Operational metrics (MTTR, rollback rates, human review burdens) are sparsely reported."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "There are few published, domain-specific studies quantifying inter-agent failure propagation and attribution in multi-agent NetOps pipelines (how one agent's drift or compromise cascades into network state changes).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7136098216",
+        "https://openalex.org/W4417088765",
+        "doi:10.2139/ssrn.7234438"
+      ],
+      "evidence_type": "pipeline/failure-propagation analyses and surveys",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing propagation analyses are general across agentic pipelines; direct NetOps-targeted empirical cascade studies are not prominent in supplied records.",
+        "Attribution in multi-agent pipelines depends heavily on logging, schema-versioning, and tooling patterns that vary by implementation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM agents can be expected to produce production-ready network configurations autonomously without human oversight (no supplied record provides evidence for broad, production-ready autonomy without human gating).",
+    "Constrained decoding techniques universally eliminate hallucinations or constraint violations in complex network configuration generation (supplied constrained-decoding work reports reductions but not universal elimination, and NetOps-scale evidence is lacking).",
+    "Existing defenses (e.g., simple perplexity detection or system-prompt warnings) reliably prevent prompt-injection in agentic, tool-enabled NetOps pipelines (several supplied studies report such defenses are insufficient).",
+    "There is an established, widely adopted, execution-validated public benchmark that comprehensively evaluates LLM-driven NetOps configuration generation with verifier-in-the-loop rollouts (no supplied record documents such a benchmark).",
+    "Multi-agent LLM pipelines have no significant failure-propagation risks if each agent is individually validated (supplied studies characterize propagation as a material risk and need explicit patterns to constrain it)."
+  ]
+}

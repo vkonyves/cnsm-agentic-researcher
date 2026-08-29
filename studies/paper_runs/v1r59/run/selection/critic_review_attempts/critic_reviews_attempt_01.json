@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-A1f9x",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator/verifier fidelity to production networks is underspecified and may bias safety estimates.",
+        "Adversarial prompt-injection generation lacks a formal adversary model (adaptive vs nonadaptive) and may under/overestimate real attack success.",
+        "Single-LLM / single-verifier setup limits generality; results may not transfer across model/verifier choices.",
+        "One automated repair pass policy may be insufficient and needs justification relative to operational practice.",
+        "Statistical power/sample-size justification for paired McNemar analyses is not provided."
+      ],
+      "required_design_repairs": [
+        "Specify exact hosted LLM model(s) and version(s) and justify choice; include plan for multi-model sensitivity or explicitly bound claims to tested model(s).",
+        "Define adversary threat model formally (capabilities, adaptivity, generation procedure) and provide representative attack-generation algorithm and examples.",
+        "Fully document verifier selection and configuration (Batfish/HSA settings, topology abstractions) and validate emulator fidelity against a small set of ground-truth device configs.",
+        "Add formal sample-size/power calculation for primary outcome and adjust dataset size or analysis plan accordingly.",
+        "Clarify retry/seed policy and justify single-repair-pass limit; if operationally motivated, document rationale in preregistration."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-B7q2m",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulation of registry signing and key-management is simplified and may overstate field effectiveness.",
+        "Adaptive adversary modeling is underspecified; 'adaptive-with-feedback' needs precise protocol and limits.",
+        "Definition of 'malicious tool' and realistic tool semantics are not fully described (could bias success labels).",
+        "Planner LLM behavior (prompting, temperature, chain-of-thought) not specified, affecting reproducibility."
+      ],
+      "required_design_repairs": [
+        "Specify realistic key-management model for signing/attestation (including certificate/rotation assumptions) or explicitly bound simulation assumptions.",
+        "Formalize attacker adaptivity protocol with iteration budget, feedback channel, and scoring function; include example attacks.",
+        "Define tool semantics and malicious-tool behaviors concretely; provide canonical tool API/schema used in registry and rationale.",
+        "Document planner prompt templates, LLM settings (temperature, top_p), and seeding; preregister defense evaluation scripts and random seeds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-C3r4v",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "'Constrained/viability-constrained decoding' is underspecified (which algorithm/decoder/constraint representation?).",
+        "Three-run repetition may be insufficient to characterize API latency variance and nondeterminism.",
+        "Superlinearity claims require clear regression specifications and model-selection criteria.",
+        "Device models in the emulator may not reflect vendor-specific complexity; external validity risk."
+      ],
+      "required_design_repairs": [
+        "Specify exact constrained-decoding implementation (e.g., lexical constraints, decoding algorithm, library/API) and how constraints are derived from intents.",
+        "Increase repetition count or use bootstrap/resampling to better estimate latency variance from hosted LLM API; preregister latency measurement protocol.",
+        "Predefine regression models, model-selection tests, and criteria for declaring superlinearity; preregister fit diagnostics.",
+        "Describe device-model fidelity and provide at least one validation case showing emulator produces expected verification traces versus a ground-truth config."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-D9k0p",
+      "novelty": 0.9,
+      "falsifiability": 0.7,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Scope is ambitious for a single short-paper run and risks becoming an under-specified dataset release rather than a focused experimental contribution.",
+        "Ground-truth for propagation/attribution is nontrivial to generate; labeling methodology is not defined.",
+        "Claims such as >75% attribution precision appear arbitrary without pilot data or conservative bounds.",
+        "Benchmark scenarios may be gamed unless diversity and adversary constraints are carefully designed.",
+        "Public release plan (licensing, hosting) and ethical considerations for adversarial scenarios are unspecified."
+      ],
+      "required_design_repairs": [
+        "Narrow benchmark scope (fewer scenario types or smaller provenance graph depth) to match resource/time constraints and support a focused five-page paper.",
+        "Specify and operationalize ground-truth generation for propagation/attribution (deterministic scripts, injected faults with known root cause) and labelling process.",
+        "Replace fixed performance thresholds (e.g., >75%) with pilot-based target ranges or remove target guarantees; preregister evaluation criteria and success thresholds.",
+        "Define scenario diversity taxonomy and adversary-generation constraints to reduce gaming risk; include randomized scenario seeds and holdout set.",
+        "Document public-release plan (repository, license), anonymization/safety review for adversarial content, and reproducibility artifacts (seeded harness, hashes)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

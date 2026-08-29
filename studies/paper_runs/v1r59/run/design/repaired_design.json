@@ -1,0 +1,165 @@
+{
+  "selected_candidate_id": "cand-A1f9x",
+  "title": "Verifier-in-the-loop vs LLM-only for intent-to-configuration safety under prompt-injection",
+  "research_question": "Does integrating a formal network verifier in a generate–validate–repair pipeline reduce unsafe-rollout rates compared to LLM-only configuration generation for natural-language intent-to-configuration tasks, including under targeted prompt-injection?",
+  "confirmatory_hypotheses": [
+    "H1: The verifier-in-the-loop pipeline yields a lower proportion of unsafe rollouts than LLM-only generation (primary confirmatory hypothesis).",
+    "H2: Under targeted prompt-injection intents, the verifier-in-the-loop pipeline yields a lower unsafe-rollout rate than LLM-only generation."
+  ],
+  "exploratory_questions": [
+    "E1: How do time-to-resolution and LLM-call counts compare between pipelines?",
+    "E2: How sensitive are results to model choice (secondary sensitivity using a second hosted LLM)?",
+    "E3: What is the effect of permitting multi-pass automated repairs (exploratory only) versus a single automated repair pass (confirmatory)?"
+  ],
+  "benchmark_scope": [
+    "Custom intent-to-configuration dataset v1 (240 paired natural-language intents; synthetic/public topologies and device templates only).",
+    "Emulated deterministic verification/oracle (Batfish-compatible topology abstractions and HSA-style reachability checks executed in isolated Docker CPU environment)."
+  ],
+  "model_scope": [
+    "Primary hosted LLM: OpenAI GPT-4o (production hosted API identifier: gpt-4o) — confirmatory experiments.",
+    "Sensitivity hosted LLM: OpenAI GPT-3.5-turbo (production hosted API identifier: gpt-3.5-turbo) — preregistered sensitivity on a prespecified subsample."
+  ],
+  "transformation_scope": [
+    "Intent normalization and slot extraction (deterministic parser + seeded LLM canonicalizer).",
+    "Template-based device-specific configuration synthesis from normalized intent.",
+    "Generate→verify→repair loop with verifier feedback encoded as structured JSON (automated repair prompt template)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute difference in median time-to-resolution (verifier vs baseline)",
+    "difference in mean LLM calls per intent (verifier pipeline minus LLM-only)",
+    "unsafe-rollout rate by strata (benign vs adversarial; single-device vs multi-device)"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N=240 distinct natural-language intents. Composition: 120 benign intents and 120 adversarial-intent variants (created deterministically from benign seeds). Each of the benign and adversarial classes is split evenly across device-count strata: 60 single-device intents and 60 multi-device intents per class (sums: 60+60=120 benign; 60+60=120 adversarial; total 240). Each intent forms one paired comparison (LLM-only vs verifier-in-loop) — therefore 240 paired comparisons. Randomization and seeds: deterministic generation with fixed RNG seed (seed value recorded in execution manifest) for intent selection, adversarial-transformation templates, and LLM calls where API allows seeding. Inclusion/exclusion: include all generated pairs; exclude only pairs lost to technical provider failure per preregistered failed-call policy (see Analysis Plan).",
+  "analysis_plan": "Primary confirmatory analysis executed by registered executor 'paired_binary_analysis_v1' (McNemar-style paired-proportion test implementing the estimand 'paired_success_rate_difference_guarded_minus_baseline'). Primary outcome: unsafe-rollout indicator per intent (1 if rollout would be unsafe when applied, 0 otherwise), difference computed as (LLM-only unsafe rate) − (verifier-in-loop unsafe rate). Exact paired McNemar p-value and 95% CI for absolute risk reduction will be reported. Pre-specified failed-call treatment: primary analysis uses 'complete_pair_primary' (exclude technical/infrastructure failures where one or both pipeline runs fail due to non-scientific infrastructure/API issues); sensitivity analyses include 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed pipeline output as unsafe to produce conservative bound). Secondary analyses: stratified paired tests (benign vs adversarial), paired Wilcoxon test for latency, logistic regression (exploratory) modeling unsafe rollout using predictors pipeline, adversarial flag, device-count. Multiple-comparisons: primary test unadjusted (single primary), secondary tests adjusted via Holm-Bonferroni. All analysis code and seeds will be archived in the execution manifest.",
+  "multiplicity_plan": "Single primary confirmatory hypothesis (H1) using prespecified McNemar test. Secondary and exploratory tests (stratified McNemar, Wilcoxon latency comparisons, logistic regressions) are explicitly labeled secondary/exploratory and will be adjusted using Holm-Bonferroni for families of secondary tests; exploratory regressions reported without confirmatory multiplicity claims.",
+  "missingness_plan": "Technical/infrastructure/API failures: record and classify each failed call. Primary analysis uses 'complete_pair_primary' (drop pairs where a non-scientific provider/infrastructure error prevented either pipeline output). Sensitivity analyses: treat missing outputs conservatively as unsafe for the affected pipeline (failure-as-unsafe) and report both results. All retries limited to the preregistered retry policy (one automatic retry for transient API errors within 10s; otherwise classified as technical failure).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "intent-to-config-v1 (custom, synthetic/public templates)"
+    ],
+    "risk_factors": [
+      "Adversarial prompt-injection embedded in intents (deliberate contamination).",
+      "Training-data contamination risks for hosted LLMs (unknown; model nondeterminism).",
+      "Dataset leakage between benign and adversarial production examples during transformation."
+    ],
+    "detection_procedures": [
+      "Deterministic parser checks for suspicious token sequences (e.g., out-of-intent tool-invocation patterns) within intents.",
+      "Per-item verifier-detected contradictions or impossible invariants flagged as potential contamination attack indicators.",
+      "Per-intent lexical-entropy and perplexity scoring (hosted LLM API) to detect unusually tokenized injections."
+    ],
+    "item_flagging_rules": [
+      "If parser finds any embedded tool-invocation pattern or out-of-schema directive, mark as 'adversarial' (these are the 120 adversarial items by design).",
+      "If verifier signals unreachable required invariants or contradictory constraints, mark as 'verifier-contradiction' and log for analysis (not used for manual adjudication)."
+    ],
+    "analysis_treatment": "Adversarial and benign items are prestratified; flagged items (unexpected contamination) will be retained but analyzed separately. Primary confirmatory comparison uses prestratified benign vs adversarial splits. No human annotation is required; all treatments and flags are deterministic and automated.",
+    "residual_uncertainty": [
+      "Unknown extent of training-data overlap between public LLMs and synthetic intents (cannot be fully ruled out).",
+      "Uncertainty in whether flagged verifier contradictions always correspond to adversarial manipulation versus legitimate intent ambiguity."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-lowcost",
+      "description": "Confirmatory single-model run (primary model gpt-4o), single automated repair pass per verifier-case, deterministic adversarial generation via seeded LLM calls. No multi-model sensitivity. Conservative, lowest-call confirmatory execution.",
+      "planned_model_calls": 840,
+      "models": [
+        "gpt-4o"
+      ],
+      "transformations": [
+        "intent-normalizer (deterministic parser + one seeded LLM canonicalization call per adversarial intent)",
+        "LLM-only generation (1 LLM call per intent)",
+        "Verifier-in-loop generation (initial LLM call + single automated repair LLM call per intent)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 240,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Total calls computed deterministically: adversarial-generation calls = 120; LLM-only calls = 240; verifier-in-loop calls = 240 intents * 2 calls = 480. Sum = 120+240+480 = 840. Within capability manifest maximum model calls and wall-clock/resource limits; uses hosted API and CPU-only verifier in Docker."
+    },
+    {
+      "scenario_id": "scenario-recommended",
+      "description": "Recommended: confirmatory single-model run (gpt-4o) plus a preregistered sensitivity subsample (25% of intents) on a second hosted LLM (gpt-3.5-turbo). Single automated repair pass for confirmatory; exploratory multi-pass allowed in separate exploratory runs.",
+      "planned_model_calls": 1020,
+      "models": [
+        "gpt-4o",
+        "gpt-3.5-turbo (sensitivity subsample on 60 intents)"
+      ],
+      "transformations": [
+        "same as lowcost plus sensitivity re-run of both pipelines on 60 intents with gpt-3.5-turbo"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 240,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Base calls (840) plus sensitivity calls for 60-intent subsample: LLM-only 60 + verifier-in-loop 60*2 = 180 additional calls. Total 840+180 = 1020. Keeps confirmatory run identical to lowcost; sensitivity provides bounded claims about single-model generality without exceeding manifest limits."
+    },
+    {
+      "scenario_id": "scenario-highquality",
+      "description": "Exploratory high-coverage run: full multi-model replication (both models on all intents) and exploratory multi-pass repair experiments (up to 3 repair passes for selected diagnostics). Exploratory only; not part of confirmatory hypothesis testing.",
+      "planned_model_calls": 1920,
+      "models": [
+        "gpt-4o",
+        "gpt-3.5-turbo"
+      ],
+      "transformations": [
+        "full replication across both models; verifier-in-loop exploratory multi-pass where average verifier LLM calls per intent rises from 2 to 3"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 240,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Base 840 + full second-model replication 840 + exploratory extra 240 (increase in verifier calls from 480→720) = 1920 total calls. Feasible within model-call budget (<=10000) and allowed wall-clock limits."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute unsafe-rollout rate reduction of 0.15 (15 percentage points) between LLM-only and verifier-in-loop pipelines is the prespecified target for primary sensitivity and interpretation.",
+    "clustering_unit": "intent (paired comparison across the two pipelines)",
+    "calculation_method": "Conservative independent two-sample normal-approximation used as a conservative upper bound for required sample size: for p1=0.25 (LLM-only unsafe rate) vs p2=0.10 (verifier unsafe rate), alpha=0.05 (two-sided), power=0.80, resulting per-group sample size ≈100 (total 200 independent samples). Because the study uses paired McNemar design (higher efficiency), the planned paired N=240 provides ≥80% power to detect an absolute reduction of 12–15 percentage points under a range of plausible discordant-pair scenarios. Exact paired-power calculations will be computed and reported in the execution manifest using the same RNG seeds and assumed discordant probabilities; sensitivity power curves for reductions in the 8–20% range will be included.",
+    "assumptions": [
+      "Baseline unsafe-rollout rate for LLM-only ~25% (plausible domain assumption informed by pilot literature; conservative estimate for power calcs).",
+      "Target absolute reduction of 10–15 percentage points is operationally meaningful.",
+      "Paired design provides at least equivalent power to independent-sample approximations used conservatively for sample-size justification.",
+      "Alpha=0.05 two-sided for primary test; power target 0.80."
+    ],
+    "recommended_scenario_id": "scenario-recommended",
+    "minimum_detectable_effect_notes": "With N=240 pairs, conservative independent-sample approximation indicates the study can detect ~0.12–0.15 absolute reductions with 80% power; paired analyses will typically have greater power, and exact paired-power results for assumed discordant rates will be reported in the execution manifest.",
+    "sensitivity_analyses": [
+      "Report power curves across assumed baseline unsafe rates (0.15–0.35) and treatment reductions (0.05–0.20).",
+      "Primary analysis accompanied by sensitivity treating failed calls as unsafe (conservative bound).",
+      "Secondary sensitivity: subsample replication on second model (gpt-3.5-turbo) to assess model-sensitivity of observed effect sizes."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent normalization (deterministic parser, slot mapping).",
+      "Device-configuration templating (parameterized templates per device type).",
+      "LLM-based configuration synthesis and LLM-guided repair (seeded prompt templates)."
+    ],
+    "semantic_equivalence_checks": [
+      "For each generated configuration, run deterministic syntax checks (device-specific), then run verifier reachability/policy checks; verify that intended high-level invariants (expressed as boolean checks) hold.",
+      "Idempotency check: re-applying the same generated config to the emulated state should not change verifier results (deterministic re-run)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (flag as blocked) any generated configuration that fails device-syntax parsing or causes verifier-detected violations of critical safety properties (reachability violation of protected subnets, ACL that denies management-plane access, loop-creating route statements).",
+      "If verifier feedback after the single automated repair pass still indicates critical-safety violation, automatically mark the output as 'unsafe-rollout' (no human adjudication)."
+    ],
+    "audit_sample_policy": "Automated audit: deterministic 10% random sample of pairs (seeded) selected to run an expanded validator suite (additional consistency checks, alternate verifier heuristics) to estimate residual transformation error rates. All audits automated; no human review.",
+    "mapping_validation": "All intent-slot→configuration-parameter mappings must be validated against a device-parameter schema (JSON Schema). Mismatches are auto-flagged and either corrected via a deterministic fallback template or cause rejection.",
+    "residual_risks": [
+      "Template abstractions may omit vendor-specific nuances; emulator/verifier abstractions may not capture all device-specific behaviors.",
+      "LLM nucleated repairs could introduce semantically correct but operationally unwanted side-effects not caught by the prespecified invariant checks."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator/verifier fidelity vs heterogeneous production devices and topologies (magnitude of modeling gap).",
+    "Representativeness of adversarial prompt-injection templates relative to adaptive real-world attackers (we include a subsample adaptive-paraphrase generator but cannot enumerate all attacker strategies).",
+    "Single-primary-hosted-model confirmatory focus limits generalizability; we mitigate via prespecified sensitivity subsample on a second model but full generality remains uncertain."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4416789414",
+    "https://openalex.org/W4405181600",
+    "https://openalex.org/W3128087665",
+    "https://openalex.org/W4416713956"
+  ]
+}

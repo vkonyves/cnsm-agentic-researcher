@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-A1f9x",
+      "title": "Verifier-in-the-loop vs LLM-only for intent-to-configuration safety under prompt-injection",
+      "research_question": "Does integrating a formal network verifier in a generate–validate–repair pipeline reduce safety-violation and unsafe-rollout rates compared to LLM-only configuration generation for multi-device intent-to-configuration tasks, including under adversarial prompt-injection?",
+      "hypotheses": [
+        "A verifier-in-the-loop generate–validate–repair pipeline will produce a lower proportion of configurations that violate specified safety properties than LLM-only generation.",
+        "Under targeted prompt-injection attacks on natural-language intents, the verifier-in-the-loop pipeline will exhibit a significantly lower unsafe-rollout rate than LLM-only generation."
+      ],
+      "proposed_design": "Create a paired evaluation set of 240 natural-language network intents (120 benign, 120 with embedded adversarial prompt-injection payloads). For each intent produce device-specific configuration outputs with: (A) LLM-only generation; (B) LLM + verifier-in-loop (generate→formal verifier e.g., Batfish/HSA→repair by LLM guided by verifier feedback). Use an accessible hosted LLM API consistent with available compute. Execute deterministic verifier checks for reachability, ACL/policy compliance, loop-freedom, and intended-change idempotency. Emulate rollouts in an isolated emulator (verifier oracle) and classify outcomes as safe rollout, blocked-by-verifier (repaired), or unsafe rollout. Log all prompts, LLM outputs, verifier traces, and repair iterations; fix random seeds where applicable. Predefine failure rules and a retry policy limited to one automated repair pass per case.",
+      "expected_data": "Per-case labels (safe/blocked/unsafe), counts of verifier-detected violations, number and type of repairs, time/latency per pipeline, total LLM calls per case, and per-case raw artifacts (prompts, configs, verifier traces). Aggregate safety-violation rates stratified by benign vs adversarial intents and by device-count (single vs multi-device).",
+      "primary_outcome": "Difference in unsafe-rollout rate (proportion) between LLM-only and verifier-in-loop pipelines with 95% confidence intervals, reported overall and by adversarial/benign strata.",
+      "analysis_outline": "Paired-proportion comparisons (McNemar's test) across the paired outputs for each intent. Compute absolute risk reduction and 95% CI. Secondary analyses: stratified McNemar tests for benign vs adversarial groups, time/latency comparisons via paired Wilcoxon signed-rank tests, and logistic regression to model predictors of unsafe rollout (pipeline, adversarial flag, device-count). Report effect sizes and exact p-values; control false discovery where multiple secondary tests used.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W3128087665"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W3128087665",
+        "https://openalex.org/W4416713956",
+        "https://openalex.org/W4416789414"
+      ],
+      "risks": [
+        "Emulator/verifier modeling mismatch to real devices may under/overestimate safety gains.",
+        "LLM API nondeterminism could inflate variance despite seeded protocols.",
+        "Adversarial prompt constructions may not capture all real-world adaptive attacker behavior, limiting external validity."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "cand-B7q2m",
+      "title": "Robustness of tool-registry defenses against adaptive tool-selection attacks in multi-agent NetOps",
+      "research_question": "How effective are registry normalization, tool-whitelisting, and signature-based tool-validation defenses at preventing malicious tool-selection and subsequent unsafe actions in a simulated multi-agent NetOps orchestration pipeline under adaptive adversaries?",
+      "hypotheses": [
+        "Normalizing and cryptographically signing tool-registry entries (registry normalization + signatures) will reduce the rate of successful malicious tool-selection compared to an unsigned/unnormalized registry.",
+        "Adaptive adversaries that inject semantically confusing tool descriptions will have higher success rates against naive defenses (description filtering) than against registry-signing defenses."
+      ],
+      "proposed_design": "Implement a simulated multi-agent orchestrator that replicates planner/worker tool-selection behavior using a hosted LLM (planner) and a tool-registry abstraction. Populate registry with legitimate network tools (e.g., 'deploy', 'validate', 'rollback') and implement three defense modes: (1) baseline (no defense), (2) normalization+whitelist, (3) normalization+cryptographic signing and registry-attestation. Construct 150 attack scenarios where an adversary attempts to cause selection of a malicious tool via injected registry entries or ambiguous descriptions; vary attacker adaptivity (static vs adaptive-with-feedback). Measure successful compromise (malicious tool selected and invoked) and resulting simulated unsafe state. Preserve logs of selection decisions and prompts. Run each scenario across the three defenses with matched seeds.",
+      "expected_data": "Per-scenario binary compromise labels, time-to-compromise, selection decision traces, number of planner-tool calls, and resulting simulated network-state deltas. Aggregated compromise rates by defense and attacker adaptivity level.",
+      "primary_outcome": "Reduction in compromise rate (proportion) of normalization+signing defense vs baseline, with 95% CI and assessment under adaptive adversary models.",
+      "analysis_outline": "Compare proportions across defense conditions using chi-square tests and pairwise Fisher exact tests for small counts. Model success probability via logistic regression including covariates for adaptivity level and scenario complexity. Compute attacker effort (number of iterations) differences via Mann–Whitney U tests. Report confidence intervals and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161032443",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W4405183113"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4417088765",
+        "https://openalex.org/W4405181600",
+        "https://openalex.org/W4416713956"
+      ],
+      "risks": [
+        "Simulation abstraction of multi-agent orchestration may miss deployment-specific registry behaviors.",
+        "Cryptographic signing requires a key-management model; simplified signing in simulation may overstate field effectiveness.",
+        "Adaptive adversary modeling is necessarily bounded and may not capture all real-world strategies."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cand-C3r4v",
+      "title": "Scalability and latency trade-offs of constrained decoding plus verifier-in-loop for multi-device configuration generation",
+      "research_question": "What are the latency, model-call, and constraint-violation trade-offs when applying constrained/viability-constrained decoding together with formal verifiers for intent-to-configuration translation as the number of target devices increases?",
+      "hypotheses": [
+        "Combining constrained decoding with verifier-in-loop reduces configuration constraint-violation rates relative to unconstrained decoding, at the cost of increased model calls and end-to-end latency.",
+        "Latency and model-call overhead will increase superlinearly with the number of target devices for the constrained+verifier pipeline compared to LLM-only generation."
+      ],
+      "proposed_design": "Construct a synthetic benchmark of 200 natural-language intents mapped to configurations across device-count levels: 1, 3, 5, and 10 devices (50 intents per level). For each intent run three pipelines: (A) unconstrained LLM decoding; (B) constrained/viability-constrained decoding; (C) constrained decoding + verifier-in-loop (single repair iteration). Measure per-case wall-clock latency, total LLM tokens and calls, verifier-detected violations, and final violation rate after repair. Use the same verifier toolset (e.g., Batfish/HSA) and identical hardware/network emulator. Fix seeds for decoding where possible and repeat each case for 3 runs to estimate variance.",
+      "expected_data": "Per-case latency, LLM call/token counts, raw and post-repair violation counts, and summary scaling curves (violation rate vs device-count, latency vs device-count).",
+      "primary_outcome": "Scaling function estimates: latency growth rate and violation-rate reduction for constrained+verifier vs baseline, reported with 95% CIs and model-fit parameters.",
+      "analysis_outline": "Fit regression models (linear and quadratic) of latency and model-calls against device-count per pipeline; compare goodness-of-fit and test for superlinearity (significant quadratic term). Compare violation rates across pipelines with chi-square tests and compute estimated marginal effects. Present trade-off curves (violation rate vs latency) and compute Pareto frontiers.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W4416713956"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W3128087665",
+        "https://openalex.org/W4296990896"
+      ],
+      "risks": [
+        "Constrained decoding implementations vary; selected implementation may not generalize to alternative decoders.",
+        "Measured latency depends on hosted-API variability and may differ in production settings.",
+        "Synthetic device models might underrepresent vendor-specific complexity, affecting external validity."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-D9k0p",
+      "title": "An execution-and-verification-centric benchmark to quantify failure-propagation and attribution in multi-agent NetOps pipelines",
+      "research_question": "Can a public, execution-and-verification-centric benchmark (intent2net-exec) that couples natural-language intents, multi-agent orchestrations, verifiers, emulated rollouts, and adversarial scenarios better detect and quantify failure-propagation and attribution than isolated configuration-correctness tests?",
+      "hypotheses": [
+        "An execution-and-verification benchmark that includes multi-agent orchestration and adversarial scenarios will detect failure-propagation chains (cascades) that isolated configuration correctness metrics miss.",
+        "Metrics derived from the benchmark (propagation depth, attribution latency) will correlate with operational impact proxies (simulated MTTR and rollback rate) more strongly than per-configuration correctness alone.",
+        "Benchmark-derived detection of cascades will enable more precise attribution of root causes in >75% of simulated cascades compared to isolated checks."
+      ],
+      "proposed_design": "Design and publish a benchmark dataset and evaluation harness: (1) 120 intent scenarios including benign, ambiguous, and adversarial cases; (2) standardized multi-agent orchestration templates (planner, worker, verifier, auditor) with configurable registry and tool sets; (3) an emulator/verifier oracle for rollout evaluation; (4) adversary scripts to induce agent drift or malicious tool-selection. Define canonical metrics: configuration correctness, propagation depth (num agents/stages affected), attribution latency (time to identify root cause), MTTR proxy, and rollback rate. Run baseline LLM-agent pipelines and defended variants; collect per-scenario graphs of state transitions and attribution traces. Release dataset, harness, and evaluation code publicly.",
+      "expected_data": "Benchmark artifacts: per-scenario rollout graphs, propagation-depth distributions, attribution-latency measurements, MTTR proxies, rollback counts, and baseline vs defended pipeline comparative tables. Publicly available dataset and evaluation scripts for reproducibility.",
+      "primary_outcome": "Benchmark sensitivity: increased detection rate of multi-agent failure cascades and higher correlation (Pearson/Spearman) between benchmark propagation metrics and operational-impact proxies compared to isolated correctness metrics.",
+      "analysis_outline": "Compute detection rates of cascades by benchmark vs isolated checks and compare with McNemar/paired tests. Compute correlations (Pearson/Spearman) between propagation metrics and MTTR proxies and assess significance. Evaluate attribution precision/recall against ground-truth root causes and report F1. Provide example case studies illustrating attribution improvement.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W7136098216",
+        "https://openalex.org/W4416789414"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416789414",
+        "https://openalex.org/W3128087665",
+        "https://openalex.org/W4416713956"
+      ],
+      "risks": [
+        "Benchmark design choices may bias toward certain failure modes and miss others.",
+        "Public dataset may be gamed by adversaries unless scenario diversity is sufficient.",
+        "Emulator/verification fidelity limits external generalization to production networks."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}
