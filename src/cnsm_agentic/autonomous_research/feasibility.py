@@ -990,24 +990,53 @@ def validate_design_feasibility(
         "autonomous_scoring_required",
         False,
     ):
-        scoring_patterns = (
-            r"\bhuman scor",
-            r"\bmanual scor",
-            r"\bhuman evaluat",
-            r"\bmanual evaluat",
-            r"\bhuman adjudicat",
+        # Autonomous-scoring feasibility must distinguish an asserted
+        # human-scoring dependency from an explicit denial of one.
+        #
+        # Examples that must PASS:
+        #   "human adjudication is prohibited"
+        #   "no human scoring is used"
+        #   "without manual evaluation"
+        #
+        # Examples that must FAIL:
+        #   "human adjudication resolves ambiguous cases"
+        #   "manual scoring is required"
+        #
+        # Reuse the same clause-aware occurrence classifier used for
+        # the other human-scientific dependency gates rather than
+        # treating every lexical mention as a positive dependency.
+        scoring_patterns = {
+            "human scoring": (
+                r"\bhuman scor(?:e|ed|er|ers|ing)\b"
+            ),
+            "manual scoring": (
+                r"\bmanual scor(?:e|ed|er|ers|ing)\b"
+            ),
+            "human evaluation": (
+                r"\bhuman evaluat"
+                r"(?:e|ed|es|ing|ion|or|ors)\b"
+            ),
+            "manual evaluation": (
+                r"\bmanual evaluat"
+                r"(?:e|ed|es|ing|ion|or|ors)\b"
+            ),
+            "human adjudication": (
+                r"\bhuman adjudicat"
+                r"(?:ion|or|ors|e|ed|ing)\b"
+            ),
+        }
+
+        positive_scoring_dependencies = (
+            _find_positive_human_dependencies(
+                text,
+                scoring_patterns,
+            )
         )
 
-        if any(
-            re.search(
-                pattern,
-                human_scan_text,
-                flags=re.IGNORECASE,
-            )
-            for pattern in scoring_patterns
-        ):
+        if positive_scoring_dependencies:
             issues.append(
-                "Design violates autonomous-scoring requirement."
+                "Design violates autonomous-scoring requirement: "
+                + ", ".join(positive_scoring_dependencies)
             )
 
     maximum_calls = capability_manifest.get(

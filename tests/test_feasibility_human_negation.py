@@ -280,3 +280,116 @@ def test_r59_contamination_wording_is_feasible():
 
     assert "manual adjudication" not in found
     assert "human annotation" not in found
+
+
+def test_autonomous_scoring_allows_explicitly_prohibited_human_adjudication():
+    from cnsm_agentic.autonomous_research.feasibility import (
+        feasibility_report,
+    )
+
+    design = {
+        "missingness_plan": (
+            "Unparseable outputs are automatically flagged. "
+            "Multiple imputation is not used because human "
+            "adjudication is prohibited; instead deterministic "
+            "best-case and worst-case bounds are reported."
+        ),
+        "transformation_validation": {
+            "audit_sample_policy": (
+                "No human annotation is used; validation is "
+                "fully automated."
+            )
+        },
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "autonomous_scoring_required": True,
+            "human_scientific_labour_allowed": False,
+            "human_annotation_allowed": False,
+        },
+    )
+
+    assert not any(
+        "autonomous-scoring requirement" in issue
+        for issue in report.get("issues", [])
+    )
+
+
+def test_autonomous_scoring_rejects_positive_human_adjudication():
+    from cnsm_agentic.autonomous_research.feasibility import (
+        feasibility_report,
+    )
+
+    design = {
+        "analysis_plan": (
+            "Ambiguous harmful outcomes are resolved by human "
+            "adjudication before the primary analysis."
+        )
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "autonomous_scoring_required": True,
+        },
+    )
+
+    assert any(
+        "autonomous-scoring requirement" in issue
+        for issue in report.get("issues", [])
+    )
+
+
+def test_autonomous_scoring_rejects_manual_scoring():
+    from cnsm_agentic.autonomous_research.feasibility import (
+        feasibility_report,
+    )
+
+    design = {
+        "analysis_plan": (
+            "Each generated configuration receives manual scoring "
+            "for operational correctness."
+        )
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "autonomous_scoring_required": True,
+        },
+    )
+
+    assert any(
+        "autonomous-scoring requirement" in issue
+        for issue in report.get("issues", [])
+    )
+
+
+def test_autonomous_scoring_negation_does_not_hide_later_positive_dependency():
+    from cnsm_agentic.autonomous_research.feasibility import (
+        feasibility_report,
+    )
+
+    design = {
+        "analysis_plan": (
+            "Human adjudication is prohibited for parser failures; "
+            "however, final operational correctness uses manual scoring."
+        )
+    }
+
+    report = feasibility_report(
+        design=design,
+        capability_manifest={
+            "autonomous_scoring_required": True,
+        },
+    )
+
+    issues = report.get("issues", [])
+
+    assert any(
+        "autonomous-scoring requirement" in issue
+        and "manual scoring" in issue
+        for issue in issues
+    )
