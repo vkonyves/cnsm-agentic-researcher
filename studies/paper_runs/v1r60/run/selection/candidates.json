@@ -1,0 +1,130 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-GVE-01",
+      "title": "Generate–Verify–Emulate (GVE) Benchmark for LLM-generated Network Configurations",
+      "research_question": "Does inserting a deterministic network verifier between LLM-generated network configurations and emulated execution materially reduce the incidence of harmful operational outcomes compared with direct execution or unconstrained generation?",
+      "hypotheses": [
+        "LLM-generated configurations executed directly in an emulator will produce a higher rate of harmful outcomes (connectivity loss, policy violations, route blackholes) than configurations that pass a deterministic verifier.",
+        "A generate→verify→emulate pipeline where the verifier blocks or repairs violating configurations will reduce harmful-emulation events relative to direct execution by a measurable margin (>10 percentage points) on the selected task set.",
+        "Verifier false negatives (violating configs classified as safe) will explain the majority of residual harmful-emulation events in the verified pipeline."
+      ],
+      "proposed_design": "Assemble a public-intent dataset of 200 NetOps tasks (intent descriptions + baseline ground-truth configs) covering reachability, ACL/policy, and routing changes. Use a hosted LLM API to translate each intent into a candidate configuration under three conditions: (A) direct execution (no verifier), (B) generate→verify (deterministic verifier returns accept/reject/repair; accept executes, reject triggers human-simulated abstention), (C) constrained generation (prompt-enforced templates). Use an open-source deterministic verifier (e.g., Batfish-like formal checks) instrumented to produce accept/reject and repair suggestions. Execute accepted configs in a containerized network emulator (e.g., Mininet with scripted topology scenarios) and measure operational outcomes: connectivity, policy compliance, latency spikes, and outage durations. Randomize task order and use fixed RNG seeds for emulator and non-deterministic components; preregister inclusion/exclusion, seeds, and retry policy; run N=200 tasks × 3 conditions × 5 generation replicates = 3000 model calls for generation and verifier interactions. Record raw model outputs, verifier verdicts, repaired configs, emulator logs, and hashes.",
+      "expected_data": "For each task and replicate: raw LLM-generated config, verifier verdict (accept/reject/repair), repaired config (if produced), emulator traces (reachability matrices pre/post-change, flow logs, packet loss, measured latency), binary harm label (service-impacting failure yes/no), and detailed failure taxonomy (policy violation type, route loss, misconfiguration syntax error). Aggregate per-condition rates: harm rate, false-accept rate (verifier accepted harmful config), false-reject rate, repair-success rate, and abstention frequency.",
+      "primary_outcome": "Difference in harmful-emulation event rate between direct execution (A) and generate→verify (B); primary metric = harm_rate_A − harm_rate_B (proportion difference) with 95% bootstrap CI.",
+      "analysis_outline": "Compute per-condition harm rates with 95% bootstrap CIs. Test primary hypothesis with a two-sided paired proportion test (McNemar for paired tasks when applicable) and bootstrap difference-in-proportions. Estimate verifier diagnostic performance: sensitivity, specificity, positive/negative predictive values for harmful configs vs safe configs with CIs. Perform failure-mode analysis stratified by task category (routing vs ACL vs reachability) and generate qualitative examples of false negatives. Report number-needed-to-abstain (NNTA) to prevent one harmful event. All analysis scripts, seeds, and raw logs will be published.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4377371656",
+        "https://openalex.org/W4388886073"
+      ],
+      "risks": [
+        "Emulator scenarios may not capture some production failure modes, reducing external validity.",
+        "Deterministic verifier may be incomplete, producing false negatives that understate residual risk.",
+        "LLM generation variability could confound paired comparisons if not controlled by replicates and seeds.",
+        "Relying on public LLM API quotas or outages could interrupt execution; retry policy may bias results if not transparent."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "CAND-2026-ABST-02",
+      "title": "Calibrated Abstention and Authority-Contraction for Safe NetOps Automation",
+      "research_question": "Can calibrated validator-abstention thresholds and an authority-contraction policy reduce operational harm while keeping automated throughput at an operationally useful level?",
+      "hypotheses": [
+        "Raising the validator's abstention threshold (more conservative) will monotonically reduce harmful-emulation events and increase abstention (human review) rate.",
+        "There exists an operationally useful threshold region where harmful-emulation events are reduced by ≥50% while the abstention rate remains ≤30% for the tested task bank.",
+        "Authority-contraction rules that convert low-confidence acceptances into restricted, non-destructive staged changes (e.g., dry-run or canary-only) will further reduce harmful events without increasing abstention relative to full-block policies."
+      ],
+      "proposed_design": "Use the same public-intent dataset (N=200) stratified by task criticality. Instrument a validator producing a continuous risk score for each generated configuration. Define five pre-registered abstention thresholds (e.g., 0.1, 0.3, 0.5, 0.7, 0.9 corresponding to probability-of-safety). For each threshold, simulate three enforcement policies: (1) block-and-abstain (human review), (2) staged execution (canary/dry-run) for borderline accepts, (3) full automatic apply. For each task, generate 5 LLM replicates and record risk scores, action taken, emulator outcomes, and throughput proxies (tasks fully automated per hour simulated). Preregister utility tradeoff curve and primary decision criterion: the threshold that minimizes harm_rate while keeping automated_throughput≥target (target=70% of tasks automated). Use N runs to total ~1500 model calls.",
+      "expected_data": "Per-task per-replicate: LLM config, validator risk score, enforcement action, emulator harm label, throughput proxy (simulated time), abstention counts. Aggregated: abstention rate vs harm rate curves, ROC-like curves of risk score predicting harm, and tradeoff frontiers mapping throughput to harm reduction.",
+      "primary_outcome": "Tradeoff frontier summarized by the threshold that achieves ≥50% harm reduction while having automated_throughput≥70%; primary metric = harm_rate_at_threshold and abstention_rate_at_threshold.",
+      "analysis_outline": "Estimate harm_rate and abstention_rate with 95% bootstrap CIs at each threshold. Construct precision–recall and ROC curves for risk score predicting harmful configs; compute AUC and optimal threshold by Youden's index and by operational constraint (throughput≥70%). Use logistic regression to model harm as a function of risk score, task criticality, and enforcement policy; test for significance of authority-contraction policy via likelihood-ratio test. Report calibration plots and Brier scores for risk predictions.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7124428436",
+        "https://openalex.org/W7117292294",
+        "https://openalex.org/W4416927413"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4393065402"
+      ],
+      "risks": [
+        "Setting operational throughput targets is context-specific; selected target may not generalize to other operators.",
+        "Simulated human-review cost models may misestimate real-world bottlenecks.",
+        "Validator risk scores may be poorly calibrated, undermining threshold selection.",
+        "Canary/dry-run mechanisms in emulator may not reflect real staged-deployment effects exactly."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "CAND-2026-RAG-03",
+      "title": "Retrieval-Augmented Generation Poisoning in NetOps Pipelines: Attack and Defense Evaluation",
+      "research_question": "How vulnerable are RAG-augmented NetOps pipelines to targeted retrieval-poisoning attacks, and which defensive retrieval/validation strategies most effectively mitigate poisoning-induced harmful configurations?",
+      "hypotheses": [
+        "Targeted poisoning documents injected into the retrieval corpus will increase the rate of harmful LLM-generated configurations compared with a clean corpus.",
+        "Simple defensive measures—retrieval source whitelisting and cross-verification with a deterministic verifier—will significantly reduce poisoning-induced harm compared with an unprotected RAG pipeline.",
+        "There exist poisoning payloads that maintain plausibility to retrieval ranking yet reliably induce specific misconfigurations despite verifier checks, demonstrating an attack–defense arms race."
+      ],
+      "proposed_design": "Construct a retrieval corpus composed of public NetOps documentation and operator runbooks. For a subset of tasks (N=100), craft and inject adversarial poisoned documents designed to bias retrieval toward unsafe configuration snippets (several attack variants: covertly malformed commands, plausible but policy-violating guidance). Compare pipeline variants: (A) clean RAG (no defenses), (B) RAG + whitelist filtering, (C) RAG + cross-verifier (verifier rejects harmful outputs), (D) RAG + both defenses. For each task and variant, run 10 LLM replicates, collect generated configs, verifier verdicts, and emulator execution results. Measure difference in harm rates across variants. Record retrieval logs to analyze which poisoned documents influenced outputs. Total estimated model calls ≈2000.",
+      "expected_data": "Per-run: retrieval hits and ranks, prompt context, LLM-generated config, verifier verdict, emulator harm label, mapping of generated config fragments to retrieved documents. Aggregates: harm_rate_by_variant, attack-success_rate (poisoned doc causing harmful config), defense_efficacy (relative reduction in harm), and qualitative examples of successful poisoning.",
+      "primary_outcome": "Increase in harm rate under poisoned-corpus clean RAG vs clean-corpus baseline; primary metric = harm_rate_poisoned_cleanRAG − harm_rate_cleanBaseline with 95% CI and test for reduction under defenses.",
+      "analysis_outline": "Compare harm rates across variants using paired proportion tests and bootstrap CIs. Estimate attack success probability and compute defense efficacy as relative risk reduction. Use retrieval-log attribution to compute which documents contributed most to harmful outputs; apply SHAP-like attribution on prompt context to quantify document influence. Test whether verifier reduces harms significantly via McNemar's or paired logistic regression controlling for task. Report attack variants that bypass defenses and analyze why (semantic plausibility, ranking strength).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W4388886073",
+        "doi:10.20944/preprints202512.0913.v1",
+        "doi:10.2139/ssrn.6183548"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4388886073"
+      ],
+      "risks": [
+        "Constructed poisoning payloads may be ethically sensitive; experiment will avoid real-world deployment and use synthetic/emulated corpora only and follow ethical review protocols.",
+        "Defenses evaluated in emulation may not generalize to all real retrieval infrastructures.",
+        "Detector/whitelist heuristics might be overfit to synthetic poison examples, overstating practical efficacy.",
+        "Hosted-model API rate limits or content filters could interfere with controlled poisoning prompts."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CAND-2026-REPRO-04",
+      "title": "Quantifying Non-determinism and Reproducibility of LLM-driven NetOps Actions",
+      "research_question": "How does LLM non-determinism (sampling, temperature, model internal variability) affect reproducibility of generated network configurations and downstream operational outcomes in emulation?",
+      "hypotheses": [
+        "Higher LLM sampling temperature and non-deterministic decoding will increase configuration syntactic and semantic variability across replicates for the same intent.",
+        "Increased generation variability will produce a measurable increase in variance of emulator outcomes (some replicates safe, others harmful) for a non-trivial fraction (>15%) of intents.",
+        "Controlling for prompt template and deterministic decoding (e.g., greedy or low temperature) will significantly reduce operational outcome variance, improving reproducibility of automated execution pipelines."
+      ],
+      "proposed_design": "Select a balanced set of 150 NetOps intents. For each intent, perform 10 generation replicates under three sampling regimes: deterministic (greedy/temperature≈0), moderate sampling (temp=0.7), and high sampling (temp=1.0). For each generated config, run deterministic verifier and execute accepted configs in emulator, recording outcome labels and quantitative metrics. Measure intra-intent variance of generated-config edit-distance, semantic-change metrics (policy-relevant changes), and variance in emulator outcomes (binary harm rate variance, time-to-repair). Preregister seeds and ensure repeated runs totaling ~1200 model calls. Analyze reproducibility as proportion of intents with mixed outcomes across replicates.",
+      "expected_data": "Per intent per regime per replicate: generated-config text, edit-distance vs canonical or first replicate, verifier verdict, emulator outcome (harm/no harm), and numerical outcome measures (latency changes, reachability matrices). Aggregated: distribution of within-intent variability of configs and outcomes, proportion of intents with inconsistent outcomes across replicates, and relationship between sampling temperature and outcome variance.",
+      "primary_outcome": "Proportion of intents exhibiting inconsistent emulator outcomes across replicates under moderate sampling minus proportion under deterministic decoding; primary metric = inconsistent_proportion_moderate − inconsistent_proportion_deterministic with 95% CI.",
+      "analysis_outline": "Compute within-intent config variability statistics (mean edit-distance, token-level entropy) and correlate with outcome inconsistency using Spearman correlation. Test hypotheses with paired tests comparing inconsistency proportions across regimes (McNemar or paired proportion tests) and estimate effect sizes with bootstrap CIs. Fit mixed-effects logistic regression predicting harmful outcome with fixed effects for sampling regime and random intercepts per intent. Provide illustrative failure cases and quantify reproducibility improvements from deterministic decoding.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4402860127",
+        "doi:10.2139/ssrn.7041478",
+        "https://openalex.org/W4413756536"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402860127",
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4388886073"
+      ],
+      "risks": [
+        "Using deterministic decoding may reduce variety but also surface brittle templates that miss valid alternative fixes.",
+        "Findings on reproducibility depend on chosen LLM and decoding settings; generalization to other models requires caution.",
+        "Emulator nondeterminism (e.g., timing-sensitive behavior) could inflate measured outcome variance; emulator must be configured deterministically where possible.",
+        "API-level nondeterminism outside sampling (e.g., model version drift) may add noise; use versioned endpoints when possible."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

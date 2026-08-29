@@ -1,0 +1,193 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLM-based NetOps tools can automate interpretation, generation, and explanation for network tasks but are prone to hallucinations and domain-specific errors that can produce incorrect or unsafe configuration suggestions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4388886073"
+      ],
+      "evidence_type": "surveys + system prototypes + security analysis",
+      "confidence": 0.85,
+      "limitations": [
+        "Many results derive from controlled evaluations, prototypes, or simulations rather than broad production deployments.",
+        "Observed error rates and hallucination modes vary substantially by model, prompt, task, and integration design."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Augmenting LLMs with external tools, retrieval (RAG), validators, or constraint-based adaptations improves task reliability in NetOps prototypes but introduces new orchestration and adversarial failure surfaces.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4377371656",
+        "https://openalex.org/W4388886073"
+      ],
+      "evidence_type": "surveys + method papers + empirical",
+      "confidence": 0.8,
+      "limitations": [
+        "Improvement magnitudes are task- and design-dependent and hinge on validator quality and retrieval corpus curation.",
+        "Tool-augmentation shifts dominant failure modes toward orchestration, retrieval poisoning, and tool-selection errors."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Constraint-based adaptation and explicit abstention/validation mechanisms materially increase correctness and allow safe abstention in published NetOps prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4412635081"
+      ],
+      "evidence_type": "empirical system studies",
+      "confidence": 0.8,
+      "limitations": [
+        "High reported accuracies come from specific task sets and curated constraints; generalization to diverse topologies and broader NetOps tasks is not established.",
+        "Abstention thresholds and validator designs differ across studies, complicating cross-system comparisons."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Adversarial vectors—including prompt injection, retrieval/RAG poisoning, and memory/persistence poisoning—are documented risks for LLM- and agentic systems and can induce targeted hallucinations or corrupted operational outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W4388886073",
+        "doi:10.20944/preprints202512.0913.v1",
+        "doi:10.2139/ssrn.6183548"
+      ],
+      "evidence_type": "comprehensive reviews + attack studies/preprints",
+      "confidence": 0.9,
+      "limitations": [
+        "Attack impact depends on system architecture (RAG parameters, retrieval corpora, access controls) and varies across deployments.",
+        "Some empirical attack evaluations use synthetic or simulated setups; transferability to every production environment is not fully quantified."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "LLM outputs exhibit non-determinism that undermines reproducibility and complicates deterministic execution of generated configurations or scripts in operational contexts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402860127",
+        "doi:10.2139/ssrn.7041478"
+      ],
+      "evidence_type": "empirical study + production multi-agent failure analysis",
+      "confidence": 0.8,
+      "limitations": [
+        "Non-determinism magnitude depends on model inference settings and orchestration; mitigation strategies reduce but often do not eliminate variability.",
+        "Reproducibility consequences differ between single-shot generation and pipelines that include validators, sampling ensembles, or self-verification."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Systematic reviews report heterogeneous evidence on the effectiveness of retrieval-augmented generation (RAG) and grounding techniques for reducing hallucinations; effectiveness is task- and design-dependent.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "systematic review + empirical system study",
+      "confidence": 0.75,
+      "limitations": [
+        "Heterogeneity across datasets, metrics, and model families prevents a single quantitative summary of RAG effectiveness.",
+        "Positive outcomes often require careful engineering of retrieval corpora and verifier integration."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM- or agent-generated network configurations, when directly executed in production-scale networks, cause measurable outages or safety incidents?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413756536",
+        "https://openalex.org/W7117292294"
+      ],
+      "evidence_type": "operational system reports and prototype evaluations",
+      "confidence": 0.4,
+      "limitations": [
+        "Supplied records show assistive and remediation deployments but do not document peer-reviewed incident reports attributing production outages directly to executed LLM-generated configurations.",
+        "Absence of documented incidents in the provided corpus is not evidence that such incidents have not occurred elsewhere."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What standardized, end-to-end evaluation protocols (combining deterministic verifiers, emulation/testbeds, and attack/robustness suites) best predict field safety for LLM-driven NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "methodological reviews + system studies",
+      "confidence": 0.45,
+      "limitations": [
+        "Multiple surveys call for improved evaluation practices, but no single standardized NetOps evaluation protocol is established in the supplied records.",
+        "Designing such protocols requires operational consensus on invariants and defensible simulators/emulators, not resolved in the provided corpus."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "How can authority-contraction and explicit refusal mechanisms (governance invariants) be reliably integrated into agentic NetOps systems without creating excessive human bottlenecks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124428436",
+        "https://openalex.org/W7117292294"
+      ],
+      "evidence_type": "governance/architectural proposals + prototype evaluations",
+      "confidence": 0.5,
+      "limitations": [
+        "Architectural proposals exist, but empirical evidence showing scalable, practical deployments of authority-contraction in NetOps is limited in the supplied records.",
+        "Trade-offs between safety (contraction/refusal) and operational agility are not yet empirically characterized in the provided corpus."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A reproducible benchmark that links LLM/agent output to deterministic network verifiers and to emulation-driven execution outcomes (generate→verify→emulate→measure) is underdeveloped in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "reviews highlighting evaluation heterogeneity + system proposals",
+      "confidence": 0.6,
+      "limitations": [
+        "Some systems integrate validators or constrained generation but do not present a broadly reusable, community benchmark tying validator verdicts to emulated execution impact.",
+        "Developing such a benchmark requires public datasets of realistic configurations and standardized emulation scenarios not yet consolidated in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Longitudinal, ecological studies of hallucination propagation and epistemic decay from LLM outputs into downstream training/retrieval corpora (and consequent operational risk) are scarce in the provided corpus.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6794439",
+        "https://openalex.org/W7114889968"
+      ],
+      "evidence_type": "theoretical/preprint + systematic review",
+      "confidence": 0.55,
+      "limitations": [
+        "The supplied literature models and warns about epistemic decay, but empirical longitudinal evidence showing propagation in NetOps corpora or operator knowledge bases is not present.",
+        "Empirical longitudinal studies would require controlled access to production training/retrieval pipelines and time-indexed corpora."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Operational guidance and empirically validated best-practice patterns for combining verifier outputs, operator approval, and automatic remediation in agentic NetOps workflows remain fragmentary.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117292294",
+        "https://openalex.org/W4416927413",
+        "doi:10.2139/ssrn.7041478"
+      ],
+      "evidence_type": "system prototypes + production multi-agent failure analysis",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing papers describe particular remediation/validation loops but stop short of broad comparative studies across alternative governance and approval patterns.",
+        "Human-in-the-loop evaluations show workflow challenges; scalable patterns balancing safety and throughput are not yet validated in the supplied corpus."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based NetOps systems are proven production-ready for fully autonomous, unsupervised deployment without human oversight (unsupported by supplied records).",
+    "There is robust, peer-reviewed evidence in the supplied corpus that LLM-generated configurations have directly and reproducibly caused documented large-scale production outages (no such incident reports are present among provided records).",
+    "RAG or validator-assisted pipelines completely eliminate hallucinations in NetOps contexts (contradicted by systematic review heterogeneity and empirical caveats).",
+    "Any single mitigation (e.g., RAG, constraints, or abstention) is sufficient alone to ensure safety across all NetOps tasks and environments (unsupported; evidence shows task- and design-dependent effects).",
+    "Claims of being the 'first' to enable fully autonomous LLM-driven network change execution are unsupported by the provided literature (no supplied record substantiates such a first-of-its-kind production claim)."
+  ]
+}

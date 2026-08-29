@@ -1,0 +1,162 @@
+{
+  "selected_candidate_id": "CAND-2026-GVE-01",
+  "title": "Generate–Verify–Emulate (GVE) Benchmark for LLM-generated Network Configurations — Repaired Preregistration",
+  "research_question": "Does inserting a deterministic network verifier between LLM-generated network configurations and emulated execution materially reduce the incidence of harmful operational outcomes compared with direct execution?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The paired proportion of tasks producing harmful-emulation events is lower for generate→verify (guarded) than for direct execution (baseline). Primary estimand: paired_success_rate_difference_guarded_minus_baseline.",
+    "H2: A generate→verify pipeline where the verifier blocks or deterministically repairs violating configurations will reduce harmful-emulation events by at least 10 percentage points relative to direct execution under the preregistered assumptions.",
+    "H3: Verifier false negatives (harmful configs accepted as safe) will account for the majority of residual harmful-emulation events in the guarded pipeline."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do harm-rate reductions vary across task categories (routing, ACL/policy, reachability)?",
+    "EQ2: How does constrained generation (prompt templates) compare to guarded verification for residual harm reduction?",
+    "EQ3: What failure modes (syntax, semantic mismatch, verifier coverage gaps) dominate residual harms?"
+  ],
+  "benchmark_scope": [
+    "Public intent-to-configuration tasks covering reachability, ACL/policy changes, and routing modifications; each task is an intent description paired with a baseline ground-truth config or reference change.",
+    "Containerized emulation topologies (Mininet-like) scripted for determinism: small enterprise and data-center toy topologies (3–8 routers/switches, preseeded host pairs) used only to measure emulated operational outcomes."
+  ],
+  "model_scope": [
+    "Single hosted LLM API endpoint locked for the run (primary model endpoint; see budget scenarios for identifier binding and fallback policy).",
+    "All LLM generation calls are identical across conditions except for condition-specific prompts (baseline unconstrained prompt, verified pipeline prompt, constrained-template prompt)."
+  ],
+  "transformation_scope": [
+    "Deterministic config normalization (syntactic canonicalization and ordering), parser-based semantic extraction (ACL/routing intent), and verifier-driven repairs (textual replacement guided by verifier)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "harm_rate_guarded (proportion of tasks with harmful outcome under generate→verify)",
+    "harm_rate_baseline (proportion under direct execution)",
+    "verifier_false_accept_rate (proportion of verifier-accepted configs that produce harm)",
+    "verifier_false_reject_rate (proportion of safe configs rejected by verifier)",
+    "repair_success_rate (proportion of verifier repairs that avoid harm)"
+  ],
+  "sampling_plan": "Confirmatory sample: N=250 distinct tasks (intent+reference) drawn from publicly redistributable NetOps configuration examples and intent descriptions. Tasks will be stratified into three categories (routing, ACL/policy, reachability) with target approximate allocation 1:1:1 (≈83 tasks per category). For each task and condition we will perform R=5 independent generation replicates (different RNG / model seed sampling where supported) producing one candidate configuration per replicate. Conditions: (A) baseline direct execution, (B) generate→verify→emulate (guarded), (C) constrained-template generation. Total planned LLM generation calls (recommended scenario): 250 tasks × 3 conditions × 5 replicates = 3,750 model calls. Tasks that produce syntactically unparseable configs will be flagged automatically and treated as harmful for the primary analysis (conservative choice); sensitivity analyses will treat these as exclusions or as harms depending on the sensitivity branch (see analysis_plan). Inclusion/exclusion rules and seed lists will be frozen in the preregistration manifest prior to execution.",
+  "analysis_plan": "Primary analysis uses the registered executor 'paired_binary_analysis_v1' and its estimand 'paired_success_rate_difference_guarded_minus_baseline'. Per-task binary outcomes are derived from the R=5 replicates by majority rule: a task is labeled 'harmful' under a condition if ≥3/5 replicates produced a harmful emulation outcome. The paired estimator compares per-task harmful labels for condition B (guarded) vs condition A (baseline) producing the paired difference (guarded minus baseline). Primary statistical test: two-sided paired-proportion test (McNemar where paired-exchangeable assumptions hold) and bootstrap (clustered by task) for 95% CI. Failed model calls or provider timeouts are handled according to the available analysis contract options: primary treatment = 'complete_pair_primary' (drop incomplete pairs only when both sides fail), primary sensitivity = 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed generation as non-harmful or harmful per sensitivity branch). Pre-registered sensitivity analyses: (1) any-replicate rule (task harmful if any replicate harmful), (2) conservative rule (count unparseable outputs as harmful), (3) exclusion rule (exclude tasks with >50% unparseable outputs in any condition), (4) examine constrained-generation vs guarded pipeline as exploratory comparisons. All analysis code, seeds, and raw outputs will be published.",
+  "multiplicity_plan": "Only the confirmatory primary comparison (A vs B) is tested at α=0.05 (two-sided) and preregistered as confirmatory. Secondary estimands and category-stratified comparisons are treated as exploratory and reported with effect sizes and CIs but without formal multiplicity correction; where multiple exploratory hypothesis tests are presented, we will flag them as exploratory and, where useful, report Bonferroni-adjusted p-values for interpretation.",
+  "missingness_plan": "Automated detection: syntactic parser validates generated configs. Unparseable outputs are automatically flagged. Primary analysis treats unparseable outputs as harmful (conservative). Sensitivity analyses will (a) exclude flagged tasks, and (b) treat flagged outputs as missing with multiple imputation not used because human adjudication is prohibited; instead we present bounds (worst-case/best-case) and report both conservative and exclusion-based results. Provider timeouts and failed API calls are logged; if missingness exceeds 5% per condition, we will report and run additional pre-registered model-call retries up to two attempts per failed call (deterministic retry policy), after which the run is classified as 'failed call' and handled under analysis_contract failed_call_treatment rules.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "GVE-250-2026 (this preregistered benchmark)"
+    ],
+    "risk_factors": [
+      "R1: Verifier incompleteness producing false negatives",
+      "R2: Emulator scenarios not representative of some production topologies",
+      "R3: LLM provider-side nondeterminism, drift, or content filtering",
+      "R4: Dataset selection bias in public intent+config corpus"
+    ],
+    "detection_procedures": [
+      "Deterministic syntactic parser run on every generated config to detect malformed outputs.",
+      "Verifier verdict logging (accept/reject/repair) with structured failure codes.",
+      "Automated divergence checks between intended intent (parsed semantic change) and generated config semantics (via parser); large semantic mismatches flagged.",
+      "Baseline drift checks: repeated baseline control runs at start and end of the experiment to detect provider-side output drift."
+    ],
+    "item_flagging_rules": [
+      "If generated config fails syntactic parse -> flag_unparseable.",
+      "If verifier returns 'accept' but emulation shows harm -> automated false-accept counter increment and item-level flag false_accept.",
+      "If generated config attempts commands outside declared topology model (e.g., unknown interface names) -> flag_topology_mismatch.",
+      "If generation contains patterns matching exfiltration or remote-shell commands -> flag_safety_violation and exclude from public corpus export (retained in private logs only as hashed evidence)."
+    ],
+    "analysis_treatment": "Primary analysis counts flagged unparseable outputs as harmful (conservative). False-accept items are analyzed to estimate verifier sensitivity and to drive failure-mode stratification. Any item flagged for safety_violation is excluded from public release artifacts (only hashed identifiers are published) and analyzed internally; counts of such items are reported.",
+    "residual_uncertainty": [
+      "Verifier coverage gaps (semantic checks that the verifier cannot statically assess) remain and are measured empirically via false-accept counts but cannot be fully eliminated.",
+      "Emulator-to-production generalization remains uncertain; conclusions are explicitly bounded to the emulated benchmark scope."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "SCEN-REC-3750",
+      "description": "Recommended scenario (primary preregistration). N=250 tasks stratified by category; R=5 replicates; 3 conditions (A baseline, B guarded, C constrained) using one primary hosted LLM endpoint with one fallback endpoint for outages. Deterministic verifier runs locally in containers (Docker) and emulator runs use containerized Mininet-like topologies.",
+      "planned_model_calls": 3750,
+      "models": [
+        "primary_hosted_model: openai:gpt-4o-mini (locked endpoint for execution; API endpoint and exact version will be recorded in run manifest prior to execution)",
+        "fallback_hosted_model: openai:gpt-4o-mini-fallback (used only if primary endpoint unavailable after deterministic retry policy)"
+      ],
+      "transformations": [
+        "config_normalization_v1",
+        "semantic_parser_v1",
+        "verifier_checks_v1 (Batfish-like rule set; see transformations validation)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 250,
+      "task_cluster_count": 250,
+      "feasibility_rationale": "Total model calls (3,750) fit within the capability manifest limit (≤10,000). Docker-enabled deterministic verifier and emulator are available per manifest. CPU-only execution suffices for verifier and emulator. The planned model-call budget allows R=5 replicates for stable majority-rule aggregation and provides power≈0.80 for the preregistered detectable difference (see power_plan)."
+    },
+    {
+      "scenario_id": "SCEN-CONS-2250",
+      "description": "Conservative, lower-cost scenario. N=250 tasks, R=3 replicates, 3 conditions. Same verifier/emulator but with fewer replicates to reduce hosted-model cost or to tolerate stricter API quotas.",
+      "planned_model_calls": 2250,
+      "models": [
+        "primary_hosted_model: openai:gpt-4o-mini (locked endpoint; same as above)",
+        "fallback_hosted_model: openai:gpt-4o-mini-fallback"
+      ],
+      "transformations": [
+        "config_normalization_v1",
+        "semantic_parser_v1",
+        "verifier_checks_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 250,
+      "task_cluster_count": 250,
+      "feasibility_rationale": "Reduces model-call budget (2,250) for environments with tighter quotas. R=3 replicates reduces majority threshold and moderates power; results from this scenario will be labeled as lower-powered and treated cautiously in claims."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "10 percentage points (0.10 absolute reduction in harm rate, guarded vs baseline)",
+    "clustering_unit": "task (intent/config pair)",
+    "calculation_method": "Normal approximation for paired-difference with conservative independence assumption plus bootstrap clustered-by-task for empirical CI; sample-size solved by approximate variance bound.",
+    "assumptions": [
+      "Baseline harm rate p_baseline ≈ 0.25 (plausible midpoint given literature variability).",
+      "Guarded harm rate p_guarded = p_baseline − 0.10 = 0.15.",
+      "Conservative paired-variance upper bound approximated by p_baseline(1−p_baseline)+p_guarded(1−p_guarded) = 0.1875+0.1275 = 0.315 (assumes low positive covariance).",
+      "Two-sided α=0.05, target power ≈ 0.80.",
+      "Majority-rule aggregation across R=5 replicates yields stable per-task binary labels; within-task replicate correlation expected but implicitly accounted for by clustered bootstrap."
+    ],
+    "recommended_scenario_id": "SCEN-REC-3750",
+    "minimum_detectable_effect_notes": "Using the conservative variance bound above, required n ≈ (Z_{1−α/2}+Z_{power})^2 * var / delta^2. For α=0.05 and power=0.80, (1.96+0.84)^2 * 0.315 / 0.01 ≈ 247. We set N=250 to meet the conservative sample-size target.",
+    "sensitivity_analyses": [
+      "Recompute observed power and CIs under best-case/worst-case baseline rates p_baseline in [0.10,0.40].",
+      "Bootstrap clustered-by-task CI for paired difference (primary effect) and report observed effect size and CI.",
+      "Repeat primary estimator using alternative per-task aggregation rules (any-replicate, unanimous-replicate) to assess sensitivity to replication rule."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "syntactic_normalization (whitespace, ordering, canonical interface naming)",
+      "semantic_parser (extract ACL entries, route modifications, interface changes)",
+      "verifier_checks (reachability invariants, ACL policy checks, route-blackhole detection)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: parse generated config -> AST -> render normalized config -> re-parse and compare AST equality; failures cause 'unparseable' flag.",
+      "Intent-to-config semantic check: parse intent into a small set of expected semantic changes and compare to generated-config-parsed change set; if mismatch magnitude > threshold the item is flagged.",
+      "Verifier self-consistency: for any repair produced by verifier, confirm that repaired config parses and that the verifier returns 'accept' on repaired config before emulation."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (flag as unparseable) if config fails parser or contains undefined topology references.",
+      "Reject verifier repair suggestions that do not resolve the verifier-detected invariant (verifier must return accept after repair) — such repairs are logged and the item is counted as 'repair-failure'."
+    ],
+    "audit_sample_policy": "All verification and repair actions are logged deterministically; a random (seeded) sample of 10% of tasks will be re-run under identical seeds to validate transformation determinism. No human annotation is used; validation is fully automated.",
+    "mapping_validation": "Publish parser, normalization, and verifier rule-set (open-source) with deterministic seeds and container images (Docker). Validation manifests will include hashes for parser/verifier binaries and rule files.",
+    "residual_risks": [
+      "Parser or normalization bugs could systematically mis-classify valid configs as unparseable; this is mitigated by deterministic re-run policy but remains a residual risk.",
+      "Verifier formal checks are necessarily an under-approximation of all possible semantic invariants; some classes of harmful changes may be outside verifier coverage."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator external validity: containerized Mininet-like scenarios are toy topologies and may not capture some production failure modes; conclusions are explicitly scoped to the emulated benchmark.",
+    "Verifier completeness: deterministic verifier may not capture all semantic invariants; false negatives are expected and will be measured but cannot be fully eliminated.",
+    "LLM provider nondeterminism and content-filtering: despite locking an endpoint and using drift checks, provider-side nondeterminism and moderation may influence outputs; declared as an operational uncertainty.",
+    "Dataset representativeness: public intent+config corpus may not fully represent operator practice; result generalization beyond the benchmark is limited."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7114889968",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4393065402",
+    "https://openalex.org/W4377371656",
+    "https://openalex.org/W4388886073"
+  ]
+}

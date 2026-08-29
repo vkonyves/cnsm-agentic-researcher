@@ -1,0 +1,101 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-GVE-01",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "External validity: emulator scenarios may not reflect production topologies and failure modes.",
+        "Deterministic verifier completeness: false negatives could bias conclusions about residual risk.",
+        "LLM API variability/versioning and provider outages may threaten reproducibility.",
+        "Dataset creation: representativeness and licensing of public intent+config pairs need specification.",
+        "Statistical power/sample-size justification is not supplied."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier (version, capabilities, formal checks) and limits; provide acceptance criteria for verifier repairs.",
+        "Provide a formal power analysis and justify N=200 and replicate counts relative to detectable effect (>10 percentage points).",
+        "Detail emulator topologies, deterministic configuration, and seed controls to maximize reproducibility; publish emulator recipes and hashes.",
+        "Lock and report exact LLM model identifier(s), API endpoints, and versioning; include fallback/contingency for provider outages and quota limits.",
+        "Pre-register randomization/pairing scheme and exclusion rules; include plan for handling unverifiable/partial outputs."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-ABST-02",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Operational throughput target (70%) appears arbitrary and needs operator-justified rationale.",
+        "Validator risk-score calibration and its provenance are underspecified; miscalibration undermines threshold selection.",
+        "Simulated human-review cost/latency modeling may not map to real operational workflows.",
+        "Authority-contraction policy implementations (canary/dry-run) are vaguely defined in emulator context."
+      ],
+      "required_design_repairs": [
+        "Justify throughput target with operator-sourced rationale or show sensitivity analysis over a range of targets.",
+        "Specify validator design, training/calibration dataset, calibration procedure (Platt/isotonic) and expected Brier score target; preregister calibration tests.",
+        "Define human-review cost/time model and alternative realistic scenarios; provide sensitivity analysis of results to these assumptions.",
+        "Precisely define canary/dry-run enactment in the emulator and how staged changes are measured; ensure canary realism and deterministic configuration.",
+        "Provide sample-size/power calculation for detecting ≥50% harm reduction at pre-specified abstention bounds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-RAG-03",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk: crafting and testing poisoning payloads could be dual-use; safeguards and non-release policies must be explicit.",
+        "Retrieval stack details (ranker, embedding model, indexing) are underspecified and strongly affect results and reproducibility.",
+        "Hosted-model content filters or provider moderation may interfere with controlled poison behavior.",
+        "Attribution of generation to specific poisoned documents can be fragile and methodologically challenging."
+      ],
+      "required_design_repairs": [
+        "Include an ethics/IRB statement and explicit safeguards: synthetic-only poisons, no real-world deployment, non-distribution of attack payloads; log accessible only to study team.",
+        "Fully specify retrieval pipeline (embedding model, index, ranker, retrieval hyperparameters) and publish retrieval logs and deterministic seeds; consider open-source retriever to maximize reproducibility.",
+        "Define whitelist and cross-verifier defense implementations concretely (algorithms/thresholds) and preregister defense parameters.",
+        "Describe attribution methodology in detail (how document influence will be measured) and validate it on controlled ground-truth cases before experiment.",
+        "Plan for provider filter interference: test prompts on sandbox endpoints and include contingency if providers block controlled behavior."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-REPRO-04",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Model-versioning and API-side nondeterminism (drift) may confound attributions to decoding settings.",
+        "Definition of 'inconsistent outcome' needs formalization (binary labeling rules, tolerant thresholds).",
+        "Emulator nondeterminism could inflate measured outcome variance unless tightly controlled.",
+        "Study limited to a single model family reduces external validity; claims must be scoped accordingly."
+      ],
+      "required_design_repairs": [
+        "Lock exact model endpoint(s) and version identifiers; preregister checks to detect provider-side drift and plan repeated baseline runs.",
+        "Formally define inconsistency criteria (e.g., mixed safe/harmful across replicates) and include decision thresholds; preregister statistical tests and required effect size.",
+        "Document emulator determinism measures (fixed seeds, disabled background noise, deterministic routing convergence) and validate emulator repeatability.",
+        "Either add at least one additional model (if budget permits) or explicitly bound generalization claims to the tested model(s); include sensitivity analysis to generation settings.",
+        "Include power/sample-size calculation supporting 10 replicates × 150 intents or adjust replicates accordingly."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
