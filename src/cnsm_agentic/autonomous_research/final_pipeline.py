@@ -5922,10 +5922,139 @@ class FinalAutonomousResearchPipeline:
                     }
                 )
 
+        # -------------------------------------------------
+        # Deterministic task-difficulty accounting
+        # -------------------------------------------------
+        task_manifest_path = (
+            run_dir / "execution" / "task_manifest.jsonl"
+        )
+
+        difficulty_counts: dict[str, int] = {}
+
+        if task_manifest_path.exists():
+            with task_manifest_path.open(
+                "r",
+                encoding="utf-8",
+            ) as task_manifest_file:
+                for raw_line in task_manifest_file:
+                    raw_line = raw_line.strip()
+                    if not raw_line:
+                        continue
+
+                    try:
+                        task_record = json.loads(raw_line)
+                    except json.JSONDecodeError:
+                        continue
+
+                    if not isinstance(task_record, dict):
+                        continue
+
+                    task_payload = task_record.get(
+                        "task_payload",
+                        {},
+                    )
+                    if not isinstance(task_payload, dict):
+                        continue
+
+                    difficulty = task_payload.get(
+                        "difficulty",
+                        {},
+                    )
+                    if not isinstance(difficulty, dict):
+                        continue
+
+                    level = difficulty.get("level")
+                    if not isinstance(level, str) or not level:
+                        continue
+
+                    difficulty_counts[level] = (
+                        difficulty_counts.get(level, 0) + 1
+                    )
+
+        difficulty_total = sum(difficulty_counts.values())
+
+        terminal_factual_accounting[
+            "difficulty_summary"
+        ] = {
+            "total_tasks_with_difficulty": difficulty_total,
+            "levels": [
+                {
+                    "level": level,
+                    "count": count,
+                    "percentage": (
+                        100.0 * count / difficulty_total
+                        if difficulty_total
+                        else 0.0
+                    ),
+                }
+                for level, count in sorted(
+                    difficulty_counts.items()
+                )
+            ],
+        }
+
+        # -------------------------------------------------
+        # Full bibliographic metadata for cited records only
+        # -------------------------------------------------
+        terminal_bibliographic_records: list[
+            dict[str, Any]
+        ] = []
+
+        cited_record_ids = {
+            str(value)
+            for value in (
+                getattr(
+                    revised_manuscript,
+                    "cited_record_ids",
+                    [],
+                )
+                or []
+            )
+            if value is not None
+        }
+
+        for verified_record in records:
+            if hasattr(verified_record, "model_dump"):
+                verified_record_dict = (
+                    verified_record.model_dump()
+                )
+            elif isinstance(verified_record, dict):
+                verified_record_dict = dict(
+                    verified_record
+                )
+            else:
+                continue
+
+            serialized_record = json.dumps(
+                verified_record_dict,
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            )
+
+            if (
+                cited_record_ids
+                and not any(
+                    cited_id in serialized_record
+                    for cited_id in cited_record_ids
+                )
+            ):
+                continue
+
+            terminal_bibliographic_records.append(
+                verified_record_dict
+            )
+
         write_json(
             revision_rounds_dir
             / "terminal_factual_accounting.json",
             terminal_factual_accounting,
+        )
+
+        write_json(
+            revision_rounds_dir
+            / "terminal_bibliographic_records.json",
+            terminal_bibliographic_records,
         )
 
         maximum_terminal_revision_rounds = 2
@@ -5976,6 +6105,9 @@ class FinalAutonomousResearchPipeline:
                     "terminal_factual_accounting": (
                         terminal_factual_accounting
                     ),
+                    "terminal_bibliographic_records": (
+                        terminal_bibliographic_records
+                    ),
                     "terminal_factual_accounting_instruction": (
                         "Treat terminal_factual_accounting as "
                         "authoritative for exact pair IDs, episode "
@@ -5988,7 +6120,16 @@ class FinalAutonomousResearchPipeline:
                         "record indices, or provider-call filenames "
                         "in the scientific paper merely for audit "
                         "convenience; require the scientifically "
-                        "material verified fact instead."
+                        "material verified fact instead. "
+                        "The difficulty_summary contains deterministic "
+                        "counts and percentages for every difficulty "
+                        "level actually observed in the task manifest; "
+                        "do not assume or require a fixed difficulty "
+                        "taxonomy. terminal_bibliographic_records "
+                        "contains full verified metadata for records "
+                        "already cited by the manuscript. Require "
+                        "normal scholarly references rather than an "
+                        "archive-bibliography placeholder."
                     ),
                     "previous_terminal_review": (
                         previous_terminal_review.model_dump()
@@ -6091,6 +6232,9 @@ class FinalAutonomousResearchPipeline:
                     "terminal_factual_accounting": (
                         terminal_factual_accounting
                     ),
+                    "terminal_bibliographic_records": (
+                        terminal_bibliographic_records
+                    ),
                     "terminal_factual_accounting_instruction": (
                         "When a required revision concerns an "
                         "episode identifier, pair identifier, "
@@ -6100,7 +6244,17 @@ class FinalAutonomousResearchPipeline:
                         "merely tell the reader how to search an "
                         "artifact and do not invent raw-result "
                         "fields or locators. State the scientifically "
-                        "relevant verified fact concisely."
+                        "relevant verified fact concisely. "
+                        "When difficulty composition is requested, "
+                        "use difficulty_summary and report every "
+                        "observed level with exact count and "
+                        "percentage; do not omit levels merely because "
+                        "a reviewer did not name them. When the "
+                        "References section contains an archive or "
+                        "verified-bibliography placeholder, replace it "
+                        "with normal in-manuscript scholarly references "
+                        "using terminal_bibliographic_records. Do not "
+                        "invent missing bibliographic fields."
                     ),
                     "publication_validation": (
                         terminal_review_revision_base_validation
