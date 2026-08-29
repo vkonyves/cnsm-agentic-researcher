@@ -1,0 +1,101 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnsmauto-1a4f",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier abstraction mismatch: paper does not yet specify the verifier model, its threat/assumption envelope, or likely false-negative modes.",
+        "Calibration generalization risk: calibration tuned on held-out synthetic splits may not generalize to real operator intents.",
+        "Simulator fidelity and external validity: simulated ‘apply’ semantics may omit critical runtime state and control-plane interactions.",
+        "Human-review workload framing: the <20% threshold is arbitrary and not operationally justified or measured against realistic reviewer capacity.",
+        "Insufficient specification of exact public datasets, model identifiers, and prompt templates (hinders reproducibility)."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier implementation (repo/commit), its network model, and known coverage/limitations; include tests showing verifier false-negative/positive rates on representative faults.",
+        "Prespecify calibration procedure: exact held-out splits, feature set for confidence, model(s) used, calibration metrics (ECE, ROC), and cross-validation seeds.",
+        "Provide concrete public dataset sources and inclusion/exclusion criteria; publish prompt templates and all seeds/prompts/outputs in a reproducible artifact bundle.",
+        "Define human-review policy operationally (what constitutes a review request, expected reviewer time per request) and measure reviewer workload impact under realistic assumptions or simulated reviewer models.",
+        "Add sensitivity analyses for verifier thresholds, calibration thresholds, and simulator realism; disclose how post-preregistration deviations will be logged. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmauto-2b7q",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Risk of iteration oscillation/looping between semantically equivalent failed repairs is not addressed.",
+        "Verifier incompleteness: acceptance criteria and verifier false-negative behavior are not quantified and could bias success rates.",
+        "Dataset realism: synthetic/crafted repair tasks may not represent production misconfigurations; corpus provenance unclear.",
+        "Stopping criterion and retry policy need precise specification to avoid researcher degrees of freedom. "
+      ],
+      "required_design_repairs": [
+        "Define loop-detection and mitigation (e.g., semantic-diff checks, canonicalization, or provenance-based halting) to prevent oscillation.",
+        "Quantify verifier completeness: include oracle-style checks or held-out ‘ground-truth’ repairs to estimate verifier false-negative/positive rates.",
+        "Publish exact task-generation procedures or use publicly available benchmark subsets; enumerate fault classes and selection rules.",
+        "Prespecify stopping and retry policy (max iterations fixed = 5 stated but include formal justification), seed schedule, temperature, and any prompt-engineering used.",
+        "Include per-fault-class power/sample-size justification or acknowledge limits and adopt exact binomial/paired testing corrections for multiple comparisons."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmauto-3d2k",
+      "novelty": 0.75,
+      "falsifiability": 0.8,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.55,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Staged-rollout semantics are underspecified (canary sizing, rollout windows, rollback triggers vary by use case).",
+        "Benchmark size (200 tasks) may be too small to support generalizable statistical claims; task selection could bias results.",
+        "Simulator fidelity and topology diversity not described; auditability metric is underspecified.",
+        "Potential for benchmark to encode specific agent heuristics (overfitting) without cross-validation or external validation. "
+      ],
+      "required_design_repairs": [
+        "Precisely define staged-rollout primitives (canary percentage, monitoring windows, rollback thresholds) and justify chosen defaults; make them tunable parameters in ablations.",
+        "Increase task diversity or provide statistical justification for 200-task corpus; publish task-selection script and seed-controlled splits.",
+        "Provide simulator implementation (open-source repo/commit), representative topologies, and validation demonstrating simulator behaviour matches expected control-plane outcomes for canonical cases.",
+        "Define auditability metric formally (what constitutes complete provenance) and how it is measured; ensure audit logs are part of the reproducibility artifact.",
+        "Include permutation/robustness tests to show benchmark conclusions are not driven by a small subset of tasks; predeclare primary/secondary metrics in preregistration. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsmauto-4e9z",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Adversarial perturbation realism: threat model and attacker capabilities are not yet specified; perturbations may be unrealistic or trivial.",
+        "Ethical and dual-use risk: detailed adversarial prompts could be harmful if published without redaction/safety measures.",
+        "Verifier/calibration may generate high false-positive rates under adversarial distributions, harming operational utility—this trade-off is not fully specified.",
+        "Reproducibility depends on publishing adversarial generation code but doing so raises safety concerns. "
+      ],
+      "required_design_repairs": [
+        "Explicitly define attacker threat model (capabilities, knowledge, realistic attack surface) and justify perturbation strategies against that model.",
+        "Include an ethical risk mitigation plan: redaction policy for harmful prompts, minimal-disclosure examples, and rationale for public artifact release; consult applicable track/IRB guidance.",
+        "Prespecify defender thresholds and study how calibration/verifier thresholds affect false-positive rates in adversarial settings; report ROC/AUC and operationally meaningful operating points.",
+        "Release adversarial-generation code with safety filters or provide a vetted, redacted dataset for reproducibility; if full release is unsafe, provide synthetic surrogate generation procedures and seed-controlled configs.",
+        "Prespecify logistic-regression model variables, interaction terms, and multiple-comparison corrections in the preregistration. "
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

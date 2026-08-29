@@ -1,0 +1,218 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models can be used to translate natural-language operator intent into network configuration artifacts in prototype and benchmark settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "peer-reviewed papers / preprints (intent-to-configuration, NFV, PreConfig, GraphSynth)",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations are primarily on curated datasets or testbeds rather than production deployments",
+        "Task scopes and output formats vary across studies, limiting direct comparability",
+        "Performance depends on prompt/in-context examples and model tuning"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Verifier-guided or generate–validate–repair workflows improve configuration correctness relative to naïve LLM generation in IaC and related settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4393757176",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "peer-reviewed / conference papers and preprints (TerraFormer, IaC surveys, PreConfig)",
+      "confidence": 0.8,
+      "limitations": [
+        "Most reported gains are on IaC or synthetic corpora; direct NetOps network-wide safety gains in live networks are not demonstrated",
+        "Verifier quality and coverage determine improvement magnitude"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Deterministic network verification and reachability tools exist and are effective at finding configuration errors and reachability violations in offline and deployed settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7204015205",
+        "https://openalex.org/W7126912005"
+      ],
+      "evidence_type": "tool / systems papers (MEV, Kubernetes reachability verifier, network-spec thesis)",
+      "confidence": 0.9,
+      "limitations": [
+        "Scalability and applicability differ by tool and network model (overlay/underlay, Kubernetes vs. IP networks)",
+        "Some verifiers require accurate control-plane/state abstractions to be effective"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Agentic and tool-augmented LLM architectures (ReAct, RAG, multi-agent orchestrations) are actively applied to AIOps/RCA and NetOps tasks; they improve functionality but introduce new failure modes (hallucination, irrelevant tool use) that require procedural or tool constraints.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4410636386",
+        "https://openalex.org/W4402733290",
+        "https://openalex.org/W4413427262",
+        "https://openalex.org/W7128864920"
+      ],
+      "evidence_type": "conference papers, vision/implementation papers, and surveys (Flow-of-Action, AIOpsLab, agentic surveys, ARC)",
+      "confidence": 0.9,
+      "limitations": [
+        "Most systems are demonstrated in controlled experiments or prototypes",
+        "Effectiveness depends strongly on tool design, prompt/workflow constraints, and domain-specific SOPs"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "LLM hallucination and miscalibrated confidence are recognized risks; claim-level calibration and self-verification techniques reduce some classes of errors in evaluation benchmarks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204191336",
+        "https://openalex.org/W4416073589",
+        "https://openalex.org/W4404780828",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "research papers and surveys (claim-level calibration, self-verification, self-detection, V&V survey)",
+      "confidence": 0.9,
+      "limitations": [
+        "Calibration/self-verification studies are mostly on QA/reasoning benchmarks; operational NetOps claim verification has domain-specific challenges",
+        "Post-hoc calibration does not eliminate all hallucination modes, especially under adversarial or out-of-distribution prompts"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Human-in-the-loop oversight and staged deployment (e.g., canary/progressive delivery) are widely proposed mitigations, but the literature warns about practical limitations and oversight failure modes.",
+      "evidence_record_ids": [
+        "https://doi.org/10.2139/ssrn.6685078",
+        "https://openalex.org/W4413655057",
+        "https://openalex.org/W4402733290"
+      ],
+      "evidence_type": "scholar articles and system papers (HITL critique, agentic microservices with progressive delivery, AIOpsLab)",
+      "confidence": 0.8,
+      "limitations": [
+        "Empirical evidence of human-review efficacy in NetOps-scale deployments is limited",
+        "Human oversight can degrade into a ceremonial approval process under time pressure"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "Do LLM-generated network configurations and agentic NetOps actions maintain safety and availability in production networks at scale?",
+      "evidence_record_ids": [
+        "https://doi.org/10.2139/ssrn.7023538",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "review and prototype studies highlighting gaps between prototypes and production",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing studies demonstrate prototypes and testbed results but do not provide production-scale longitudinal failure/effect metrics"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Are there standardized, action-aware benchmarks that adequately evaluate agentic LLMs performing real NetOps change actions with fidelity to deployment risk?",
+      "evidence_record_ids": [
+        "https://doi.org/10.2139/ssrn.7023538",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "evaluation-gap reviews and surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Multiple surveys flag benchmark gaps, but concrete community-wide standard benchmarks for action-taking NetOps agents are not established in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Can runtime formal verifiers be integrated into agentic LLM pipelines to provide tractable, low-latency blocking or correction of unsafe configuration changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "tool papers showing verifier capability (TerraFormer uses verifiers for IaC; MEV for network verification)",
+      "confidence": 0.65,
+      "limitations": [
+        "TerraFormer reports verifier-guided training in IaC contexts; explicit closed-loop runtime integration for live NetOps agents is not demonstrated in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How robust are LLM-based NetOps agents to adversarial or distribution-shifted inputs that mimic operator intent but embed malicious or ambiguous constraints?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392240262",
+        "https://doi.org/10.36227/techrxiv.170975411.12532297/v1",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "surveys and adversarial-prompt evaluations",
+      "confidence": 0.75,
+      "limitations": [
+        "Adversarial evaluations exist for LLMs broadly; NetOps-specific adversarial threat models and empirical studies are limited in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Need for action-aware, provenance-sensitive benchmarks that evaluate end-to-end agentic NetOps behaviors (generation, verification, staged rollout, rollback, auditability).",
+      "evidence_record_ids": [
+        "https://doi.org/10.2139/ssrn.7023538",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "evaluation-gap reviews and surveys",
+      "confidence": 0.75,
+      "limitations": [
+        "Calls for such benchmarks are present, but concrete benchmark designs and community adoption remain to be developed"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Integration patterns and APIs for combining claim-level LLM confidence estimates with deterministic network verifiers to prioritize human review and automated blocking are underdeveloped.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204191336",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7124141852"
+      ],
+      "evidence_type": "techniques for claim calibration and verifier tool papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Conceptual components exist (calibration, verifiers, verifier-guided training) but integrated architectures and evaluation remain limited in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Scarcity of large-scale, realistic labeled corpora of network configurations and operator intents suitable for pretraining/fine-tuning LLMs for NetOps tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4415071524"
+      ],
+      "evidence_type": "PreConfig paper and comprehensive survey noting data limitations",
+      "confidence": 0.7,
+      "limitations": [
+        "Some datasets and corpora exist in narrower domains, but community-standard large corpora for diverse NetOps scenarios are not evidenced in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Empirical studies measuring the real-world efficacy and failure modes of human-in-the-loop oversight for LLM-driven NetOps changes are limited.",
+      "evidence_record_ids": [
+        "https://doi.org/10.2139/ssrn.6685078",
+        "https://openalex.org/W4402733290",
+        "https://openalex.org/W4413655057"
+      ],
+      "evidence_type": "theoretical/critical analyses and system prototypes",
+      "confidence": 0.65,
+      "limitations": [
+        "Critical perspectives and prototypes exist, but controlled longitudinal empirical evaluations in operational NetOps settings are not present in the supplied records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM agents are production-ready to autonomously apply network configuration changes in live networks without human oversight.",
+    "Deterministic elimination of all LLM hallucinations in NetOps is already solved.",
+    "Community-standard, action-aware NetOps benchmarks and large-scale production datasets are already established and validated (beyond prototypes and partial corpora).",
+    "Runtime closed-loop integration of formal verifiers that fully guarantees safety of agentic LLM changes in production networks has been demonstrated."
+  ]
+}

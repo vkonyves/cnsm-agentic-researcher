@@ -1,0 +1,31 @@
+{
+  "study_id": "cnsmauto-3d2k-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory primary test per preregistration: permutation-based paired-difference test on the per-pair safe_deploy boolean (guarded − baseline), two-sided α=0.05. Compute paired difference in proportions (point estimate), exact permutation p-value (exhaustive or Monte‑Carlo exact permutation as implemented by paired_binary_analysis_v1 using archived paired_binary_episode_v1 records), and effect-size (Cohen's h). Apply preregistered exclusion rule by reading exclusion_flag from paired_binary_episode_v1 and excluding flagged pairs (failed_call_treatment = complete_pair_primary). All inputs taken from execution/raw_results.jsonl and result_schema.",
+  "secondary_analyses": [
+    "Absolute safe-deploy rate for guarded (point estimate and 95% bootstrap CI computed from unexcluded pairs using archived time-series per-pair records)",
+    "Absolute safe-deploy rate for baseline (point estimate and 95% bootstrap CI)",
+    "Bootstrap 95% CI for median time-to-rollback difference (guarded vs baseline) using per-episode time_to_rollback_seconds_if_any from paired_binary_episode_v1",
+    "Distribution summary of affected services per failure (histogram and descriptive quantiles computed from distribution_of_affected_services_per_failure field/traces in failure logs)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: treat any excluded/flagged pair as safe_deploy=0 for both conditions (worst-case conservative sensitivity)",
+    "Include-flagged restricted-robust-permutation: include flagged pairs but perform restricted permutation limited to unflagged subset and report influence of flagged items via leave-one-out paired-permutation influence scores (permutation-influence analysis)"
+  ],
+  "uncertainty_quantification": "Primary: exact permutation p-value on paired safe_deploy booleans and Cohen's h for effect size. Secondary: bootstrap 95% CIs for medians and proportions using the archived per-pair time_to_rollback_seconds_if_any and safe_deploy booleans (resampling from observed pairs per executor defaults). Report Monte‑Carlo standard errors and exact permutation p-values where applicable.",
+  "multiplicity_implementation": "Single pre-specified primary confirmatory hypothesis (H1) tested at α=0.05. Secondary outcomes reported descriptively; where multiple secondary hypothesis tests are formally performed, apply Holm–Bonferroni correction per preregistered multiplicity_plan. Exploratory analyses labeled and not used for confirmatory inference.",
+  "contamination_analysis": "Follow preregistered contamination_plan using archived provenance and deterministic-consistency flags in paired_binary_episode_v1: (1) apply deterministic three-replay consistency exclusion by reading exclusion_flag and exclusion_reason from result records; (2) flagging reasons (non-determinism, simulator error, timeout, provenance collision) reported verbatim from execution/execution_log.jsonl and result records; (3) perform permutation-influence analysis on unexcluded pairs to identify tasks with disproportionate effect; (4) all flags, hashes, and provenance paths reported from execution/raw_results.jsonl and included in artifact archive.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Per-condition counts and proportions of safe_deploy (guarded vs baseline) computed on unexcluded pairs; paired difference, Cohen's h, exact permutation p-value (fields: task_index, safe_deploy_boolean per condition)",
+    "Table 2: Exclusion summary (counts and reasons) extracted from paired_binary_episode_v1: number excluded, per-reason breakdown, hashes/provenance pointers for flagged tasks",
+    "Table 3: Secondary summaries — absolute safe-deploy rates with bootstrap 95% CIs for each condition and median time-to-rollback with bootstrap CIs",
+    "Table 4: Failure-mode cluster summary: cluster label, count, representative trace hashes, distribution_of_affected_services_per_failure quantiles (derived from simulator/verifier logs)"
+  ],
+  "figure_specifications": [
+    "Figure 1: Paired difference waterfall/influence plot (per-task guarded−baseline safe_deploy indicator) with flagged tasks annotated (data from paired_binary_episode_v1)",
+    "Figure 2: Bootstrap distribution for median time-to-rollback difference with 95% CI band (resampling from time_to_rollback_seconds_if_any fields)",
+    "Figure 3: Failure-mode cluster heatmap (rows: fault clusters, columns: feature counts; data from failure traces and cluster assignments in archived failure-mode artifacts)"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "This is a carefully executed, artifact-backed preregistered paired evaluation comparing a verifier‑augmented NetOps pipeline to an LLM‑only pipeline on a compact action‑aware staging benchmark. Execution and analysis artifacts are comprehensive and reproducible. The study produced a documented null/ceiling outcome (both conditions 400/400 safe‑deploy), and the manuscript honestly discloses the principal construct‑validity risks (shared_initial_generation semantics and use of the same validator as guard and scorer). Several clarifications and reporting fixes are required before the manuscript can be finalized.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Primary confirmatory hypothesis became effectively untestable due to a preregistered shared_initial_generation design combined with the chosen generator+validator producing universally valid shared candidates (ceiling effect). This limitation is material to interpretation and must be made unambiguously explicit in the abstract, contributions, and conclusions (not only in Discussion/Limitations).",
+    "Construct‑validity conflation: the same deterministic_netops_validator_v5 implementation served as both the runtime guard (in the guarded adapter) and as the post‑hoc scorer across conditions. This biases concordance and limits inference to validator acceptance on identical candidates rather than to independent closed‑loop generator+guard dynamics; the manuscript must state this consequence more strongly and clearly.",
+    "Preregistration→analysis mapping incomplete in-text: the preregistration listed a permutation‑based paired test as the primary confirmatory procedure, but the manuscript highlights an exact McNemar test and bootstrap CIs; the paper must explicitly report the preregistered permutation test result (artifact shows permutation p=1.0) and state how McNemar relates to the preregistered analysis (e.g., secondary/exact check).",
+    "Omitted per‑task summary reporting: the archived task_manifest contains per‑task difficulty labels, but the manuscript did not include aggregated counts by difficulty level (histogram/table). This omission reduces interpretability of the ceiling effect and must be corrected in the manuscript."
+  ],
+  "required_revisions": [
+    "In the Abstract and Conclusion, explicitly state that the primary confirmatory estimand was untestable under the realized data distribution (ceiling effect) caused by shared_initial_generation semantics and the chosen generator+validator; reframe the main contribution as an artifact‑backed demonstration and failure‑analysis rather than evidence that runtime verification is unnecessary. (Can be resolved by adding precise wording referencing archived artifacts: execution/paired_contingency_table.csv and execution/responses/*.)",
+    "Add an explicit, prominent statement (Results and Threats to Validity) that deterministic_netops_validator_v5 was used both as runtime guard and as the post‑hoc scorer, describe the exact inferential consequence (bias toward concordance), and cite the supporting artifacts (execution/scoring/* and execution/validator_trace fields).",
+    "Report the preregistered primary test result explicitly in the main text: state the permutation‑based paired test was the preregistered primary analysis and give its exact p‑value (permutation p = 1.0 per artifacts), while noting the exact McNemar two‑sided result was also computed as an exact check. Ensure the manuscript text matches the archived analysis labels (analysis/results.json and analysis/analysis_log.jsonl).",
+    "Include an aggregated difficulty summary (counts by difficulty level: medium/hard/very_hard/etc.) derived from execution/task_manifest.jsonl (or execution/task_manifest.jsonl artifact path given in the bundle) and discuss how difficulty distribution relates to the ceiling effect and external validity. Add as a small table or sentence in Results and cite the artifact path.",
+    "Ensure Table 1 (paired contingency) and/or Figure 1 are present and clearly labeled with file/artifact provenance (reference analysis/paired_contingency_table.csv and analysis/paired_difference_figure.svg). If a contingency table is already present, verify the in-text table caption and artifact path are present (resolvable from analysis/* artifacts)."
+  ],
+  "optional_revisions": [
+    "Add a brief paragraph in Discussion suggesting concrete hardening designs that could be executed using the supplied artifacts (e.g., independent per‑condition generation, targeted adversarial/insertion faults, or seeding generator failures) and point to the relevant artifact paths as starting inputs for follow‑ons.",
+    "Clarify in Methods the rationale for choosing shared_initial_generation semantics (explicit tradeoffs) and summarize model_call accounting (400 model calls vs 800 episodes) in one sentence for reader clarity.",
+    "Add a short reproducibility checklist listing the key artifact paths and hashes (a compact subset of the provided manifest) to ease reviewer/reader verification (e.g., execution/raw_results.jsonl, execution/task_manifest.jsonl, execution/model_configuration.json, analysis/results.json)."
+  ],
+  "accept_for_finalisation": false
+}

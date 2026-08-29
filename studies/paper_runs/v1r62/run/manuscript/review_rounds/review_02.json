@@ -1,0 +1,27 @@
+{
+  "summary": "Well-executed, fully preregistered paired study that compares a verifier‑augmented NetOps pipeline to an LLM‑only pipeline on a compact synthetic staging benchmark. Execution and archived artifacts are comprehensive; results show a ceiling effect (both conditions 100% safe‑deploy). Manuscript is generally sound and reproducible but requires targeted clarifications and minor artifact-derived analyses before being finalised.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Ambiguity in outcome measurement and pipeline definition: the manuscript must explicitly distinguish the runtime guard (validator used to block/repair in the guarded condition) from the post‑hoc scoring/assessment used to compute the primary outcome for both conditions. Current text and artifacts suggest deterministic_netops_validator_v5 functioned as both guard and scorer; the operational difference must be stated clearly.",
+    "Missing aggregate task‑difficulty reporting: the paper notes representative difficulties for six tasks but omits a full per‑task difficulty histogram or summary that is present in the supplied task_manifest artifacts. Without this summary the reader cannot assess whether the 100% success rate reflects task easiness or a true ceiling across difficulty strata.",
+    "Deviation-from‑preregistration reporting detail: the preregistration specified a permutation‑based paired test for the primary estimand. The archived confirmatory analysis reports an exact McNemar test. Although provenance files note this, the manuscript must explicitly report the preregistered permutation result (or a reproducible statement that permutation yields identical inference) and state the rationale for reporting exact McNemar instead of the preregistered permutation test.",
+    "Missing preregistered effect‑size report: the preregistration committed to reporting effect‑size measures (e.g., Cohen's h). The manuscript omits a numeric effect‑size statement; with both proportions =1.0 the computed Cohen's h = 0.0 and must be reported and interpreted.",
+    "Insufficient explanation for absent repairs and guard activity: artifacts indicate repair_applied=false for all episodes (the guard never blocked or repaired). The manuscript must add a concise artifact‑grounded explanation (e.g., frequency counts, examples) that justifies this observation and clarifies whether the guard was capable of blocking under the adapter policy as configured."
+  ],
+  "required_revisions": [
+    "Explicitly clarify scoring vs guarding: add a brief pipeline description (and/or diagram) that states which components ran in baseline vs guarded conditions, whether deterministic_netops_validator_v5 was used as a runtime blocker in the guarded adapter or only as a post‑hoc scorer for both conditions, and how 'safe‑deploy' was derived from artifacts. Use the archived provider/validator traces to support the wording (no new experiments required).",
+    "Add an aggregate difficulty summary across all 400 tasks using execution/task_manifest.jsonl (e.g., counts or histogram of difficulty levels and dependency patterns). Include a short paragraph interpreting how difficulty distribution relates to the observed ceiling effect. (This can be computed from supplied artifacts.)",
+    "Report the preregistered permutation test result on the paired binary outcomes (using the archived per‑pair outcomes) or, if permutation yields identical inference, state that explicitly and include the permutation p‑value. Archive the local permutation output reference in the analysis artifacts. (No new model runs needed; compute from existing episode outcomes.)",
+    "Compute and report the preregistered effect‑size(s) (Cohen's h for paired proportions or other preregistered effect measures) and include a brief interpretation consistent with the null/ceiling finding. Use the completed contingency counts from analysis/paired_contingency_table.csv.",
+    "Add an explicit, artifact‑backed statement explaining why repair_applied=false for all episodes: report counts of attempted repairs (if any), the configuration of maximum_repair_calls_per_task, and whether the guard's blocking/repair paths were reachable under the shared_initial_candidate semantics. If no repair attempts occurred by design, state that and explain implication for interpretation. (All required information appears in execution and validator trace artifacts.)"
+  ],
+  "optional_revisions": [
+    "Add a very short table or appendix row (within five pages) listing a handful of near‑miss or boundary examples (if any) from execution/raw_results.jsonl to illustrate the kinds of task patterns that would exercise the guard; if none exist, state that explicitly.",
+    "Briefly report the preregistered secondary descriptive outcomes (median time‑to‑rollback) as NA with artifact citation, and add a one‑sentence suggestion of specific benchmark hardening steps (e.g., independent per‑condition generation, adversarial prompt injection) referencing the archived task examples.",
+    "Report the implemented permutation procedure (number of permutations or exact‑permutation approach) in the analysis section for completeness, even if the paper keeps McNemar as the presented confirmatory test."
+  ],
+  "accept_for_finalisation": false
+}

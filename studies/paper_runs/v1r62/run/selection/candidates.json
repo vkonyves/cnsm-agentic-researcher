@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnsmauto-1a4f",
+      "title": "Verifier-Calibrated Blocking for LLM-Generated NetOps Changes",
+      "research_question": "Can combining claim-level calibration of LLM outputs with a deterministic network verifier reduce the rate of unsafe automated network changes compared to naïve LLM auto-application?",
+      "hypotheses": [
+        "Integrating claim-level confidence calibration with deterministic verification will reduce the proportion of unsafe automated changes produced by an LLM by >50% relative to naïve auto-apply.",
+        "Using verifier-based blocking with a calibrated confidence threshold will limit the additional human-review workload (false-positive review requests) to a practically manageable level (<20% increase over baseline review volume)."
+      ],
+      "proposed_design": "Controlled, paired simulation experiment. Input set: 500 operator-intent tasks constructed from public configuration corpora (PreConfig-style public examples) and synthetically generated operational intents. Two agent conditions per task (paired): (A) Naïve LLM auto-apply: LLM translates intent to configuration and the change is applied (simulated) without verifier gating; (B) Calibrated+Verifier agent: LLM output is calibrated for claim-level confidence; deterministic network verifier (MEV-style verifier) checks the candidate change and either blocks, requests human review, or allows auto-apply according to preset thresholds. Calibration model and threshold chosen via 5-fold cross-validation on a held-out calibration split. Verifier returns pass/fail and explicit reachable-policy violations. Record per-task final state, verifier findings, and human-review flags. Randomize task order; fix random seeds; limit LLM output retries to one. Produce all raw artifacts (prompts, outputs, verifier traces).",
+      "expected_data": "Per task: LLM-generated configuration, calibrated confidence score, verifier pass/fail flags, whether change would be applied/blocked/requested for human review, simulated post-change reachability/policy violations, time-to-decision. Aggregate: unsafe-apply count, safe-apply count, human-review request count, confusion matrices, latency distributions, and per-task logs for manual failure analysis.",
+      "primary_outcome": "Relative reduction (%) in unsafe automated changes (unsafe-apply events) of Calibrated+Verifier vs Naïve LLM.",
+      "analysis_outline": "Compute paired proportions of unsafe-apply events per task; test difference with McNemar's test (paired binary outcomes) and report exact two-sided p-value and 95% bootstrap confidence interval for the relative reduction. Report precision/recall of human-review flags for catching unsafe changes, and false-positive rate (benign changes flagged). Secondary analyses: stratified safety reduction by intent complexity, calibration threshold sensitivity analysis, and latency trade-off plots. Report all raw counts and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204191336",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W4415071524"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7204191336"
+      ],
+      "risks": [
+        "Verifier model mismatch (verifier abstraction may not capture all operational invariants) leading to false negatives",
+        "Calibration thresholds tuned on synthetic/held-out sets may not generalize to unseen intents",
+        "Simulator fidelity differences from production may mis-estimate real-world gains",
+        "Latency from verifier checks may be operationally unacceptable in low-latency workflows"
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnsmauto-2b7q",
+      "title": "Iterative Generate–Verify–Repair Loop for Automated Configuration Repair",
+      "research_question": "Does an iterative generate–verify–repair loop improve the success rate of repairing network misconfigurations compared to single-shot LLM generation?",
+      "hypotheses": [
+        "An iterative generate–verify–repair loop will achieve a higher absolute repair success rate than single-shot LLM generation on a corpus of misconfiguration tasks.",
+        "The median number of LLM repair iterations required for successful repair under the loop will be ≤3 for the majority (>75%) of solvable cases."
+      ],
+      "proposed_design": "Dataset: 600 misconfiguration repair tasks synthesized from public configuration examples (PreConfig-like) and curated real-world-inspired failure cases (routing loops, ACL misorders, BGP export mistakes). Two methods evaluated per task (paired): (A) Single-shot: LLM given intent+fault produces one repair candidate; (B) Iterative GVR loop: LLM proposes repair → deterministic verifier checks → if verifier reports remaining violations the LLM receives verifier feedback and attempts repair again, up to max 5 iterations. Verifier used to accept final repair. Measure success if final configuration passes verifier checks and simulated functional tests. Fix random seeds and limit generation temperature; log all iterations, prompts, and verifier outputs.",
+      "expected_data": "Per task: success/failure label, number of iterations (for GVR), sequence of generated repairs and verifier diagnostics, time per iteration. Aggregates: success rate per method, distribution of iterations to success, failure-mode taxonomy from verifier traces, repair correctness confusion matrices.",
+      "primary_outcome": "Absolute difference in repair success rate (percentage points) between Iterative GVR and Single-shot methods.",
+      "analysis_outline": "Paired proportion test (McNemar) for success/failure difference; Kaplan–Meier-like survival curve for cumulative probability of success by iteration count; bootstrap 95% CIs for median iterations; per-failure categorical analysis of verifier-produced failure types; sensitivity analysis by fault class. Report exact counts and effect sizes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4416655698"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4416655698"
+      ],
+      "risks": [
+        "Iteration may oscillate between syntactically different but semantically equivalent failed repairs (looping)",
+        "Verifier incompleteness may mark repaired configs as failing (false negatives), biasing results",
+        "Synthetic fault corpus may not capture production diversity limiting external validity",
+        "Compute budget could be exceeded if many tasks require maximal iterations"
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cnsmauto-3d2k",
+      "title": "Compact Action-Aware Staging Benchmark to Evaluate End-to-End Safety of Agentic NetOps",
+      "research_question": "Can a compact, action-aware benchmark that simulates staged rollouts, canaries, and rollback/audit processes reveal meaningful differences in end-to-end safety between verifier-augmented and LLM-only NetOps agents?",
+      "hypotheses": [
+        "A compact action-aware benchmark that includes staged rollout and rollback simulation will detect statistically significant differences in end-to-end safety between verifier-augmented and LLM-only agents across realistic task sets.",
+        "Verifier-augmented agents will achieve higher end-to-end safe-deploy rates than LLM-only agents by a practically meaningful margin (>20% relative improvement) on the benchmark tasks."
+      ],
+      "proposed_design": "Design a benchmark suite of 200 tasks representing common operational changes (ACL updates, route policy changes, QoS updates) with encoded deployment scenarios (full rollout, canary rollout windows, rollback triggers). Implement a sandboxed rollout simulator that applies changes to a simulated topology and enforces staged rollout semantics. Compare two agent implementations across the benchmark: (A) LLM-only agent that translates intent to change and executes staged rollout logic naively; (B) Verifier-augmented agent that uses a deterministic verifier at each rollout stage and blocks/rolls back on detected violations. Measure end-to-end safety metrics (safe-deploy rate, mean time to rollback, number of unintended disruptions) and auditability (completeness of change provenance). Use SSRN guidance and evaluation-gap literature to inform task selection and metrics.",
+      "expected_data": "Per-task outcomes for each agent: safe-deploy boolean, time-to-rollback if triggered, number of affected flows/services, audit log completeness, and simulated user-impact metrics. Aggregates: safe-deploy rate, average rollback latency, distribution of affected services, and qualitative failure-mode annotations.",
+      "primary_outcome": "Difference in safe-deploy rate (absolute and relative) between Verifier-augmented and LLM-only agents on the benchmark.",
+      "analysis_outline": "Compare safe-deploy rates with two-sample proportion tests and compute effect sizes (Cohen's h). Use permutation tests for robust p-values given finite benchmark size. Report bootstrap 95% confidence intervals for mean time-to-rollback. Perform qualitative nearest-failure-mode clustering and provide representative artifact traces. Conduct ablation of canary sizes and rollback thresholds.",
+      "novelty_evidence_ids": [
+        "https://doi.org/10.2139/ssrn.7023538",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4399750638"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4416655698"
+      ],
+      "risks": [
+        "Benchmark simulation may not capture full production interactions (external validity)",
+        "Small benchmark size risks overfitting agent heuristics",
+        "Defining canonical staged-rollout semantics across use cases is challenging and may bias results",
+        "Potentially high computational cost for multi-stage simulated rollouts"
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cnsmauto-4e9z",
+      "title": "Robustness of LLM NetOps Agents to Adversarially Perturbed Operator Intents",
+      "research_question": "How robust are LLM-based NetOps agents to adversarially perturbed operator intents that embed malicious or ambiguous constraints, and can verifier+calibration mitigate such adversarial success?",
+      "hypotheses": [
+        "Adversarially perturbed operator intents will increase the rate of unsafe configuration proposals and successful unsafe-applies by LLM-only agents compared to benign intents.",
+        "Combining deterministic verification with claim-level calibration will significantly reduce adversarial attack success rate compared to an LLM-only pipeline."
+      ],
+      "proposed_design": "Adversarial evaluation using 400 intent tasks derived from public corpora and a set of adversarial perturbation strategies drawn from recent adversarial-prompt literature. For each benign intent generate multiple adversarial variants (ambiguity injection, malicious constraint embedding, instruction-ordering attacks). Evaluate three agents per task: (A) LLM-only auto-apply, (B) LLM with claim-level calibration only, (C) LLM with calibration + deterministic verifier blocking. Measure attack success (unsafe change accepted), detection rate, false-positive human-review requests, and types of failure. Use logistic regression to model attack success as a function of agent type and perturbation strength.",
+      "expected_data": "Per-case: benign/adversarial label, perturbation type and strength, agent outputs, calibrated scores, verifier diagnostics, accepted/blocked/applied outcome. Aggregates: attack success rates per agent and perturbation type, ROC/AUC for detection by calibration score, confusion matrices, and qualitative failure exemplars.",
+      "primary_outcome": "Absolute reduction in adversarial attack success rate achieved by Calibration+Verifier vs LLM-only.",
+      "analysis_outline": "Estimate attack success probabilities per agent and perturbation level; compare rates with two-sample proportion tests and compute odds ratios with 95% CIs. Fit logistic regression including interaction terms for agent×perturbation-strength and report p-values and model fit diagnostics. Present ROC curves for calibrated-score detection and report AUC. Conduct qualitative root-cause analysis on top failure clusters.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4392240262",
+        "https://doi.org/10.36227/techrxiv.170975411.12532297/v1",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W7204191336"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416655698",
+        "https://openalex.org/W7204191336",
+        "https://openalex.org/W7124141852"
+      ],
+      "risks": [
+        "Adversarial perturbation generation may not reflect realistic attacker capabilities (external validity)",
+        "Ethical considerations around publishing adversarial prompts; mitigated by simulated sandbox and harm-minimizing disclosure",
+        "Verifier or calibration may produce high false-positive rates under adversarial distribution, reducing operational utility",
+        "Adversarial examples may exploit verifier-model mismatches leading to unanticipated failures"
+      ],
+      "estimated_model_calls": 1500
+    }
+  ]
+}

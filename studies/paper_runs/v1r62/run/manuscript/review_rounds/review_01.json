@@ -1,0 +1,26 @@
+{
+  "summary": "Well‑executed, fully preregistered paired study comparing a verifier‑augmented NetOps pipeline against an LLM‑only pipeline on a synthetic action‑aware staging benchmark (N=400 pairs). Execution and archival provenance are complete and consistent. The confirmatory result is a null effect (400/400 successes in both conditions), which the authors interpret as a ceiling effect. Artifacts and analysis are provided. Several manuscript clarifications are required to make the study's scope and interpretability explicit.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Design-semantic limitation: The preregistered shared_initial_generation semantics (single shared candidate per task) mean baseline and guarded conditions received identical generated outputs; as implemented, the guarded pipeline could not influence the generator's candidate. This substantially limits the interpretation: the study tests validator acceptance of shared candidates, not whether a verifier‑augmented agent would change generation/repair behavior in practice. The manuscript must state this limitation explicitly and discuss its implications for the stated H1.",
+    "Insufficient description of verifier operational role: The paper does not clearly state whether the verifier in the guarded condition was configured to block deployments, to trigger repairs (and under what policy), or was used only for scoring/acceptance post‑hoc. Artifacts show repair_applied=false and no rollbacks, but the manuscript must describe the verifier’s acceptance thresholds, blocking/repair logic, and integration behavior so readers can assess what 'verifier‑augmented' concretely entailed.",
+    "Analysis-test discrepancy needs disclosure: The preregistration specified a permutation‑based paired test; the archived confirmatory analysis used an exact McNemar test. Although results are degenerate here, the manuscript must report the exact implemented test, justify the choice, and explicitly reconcile with the preregistered analysis plan.",
+    "Missing explicit prompt disclosure: The Disclosure Statement provides an archived immutable master prompt reference (path + SHA‑256) but the manuscript lacks a concise, human‑readable prompt template or excerpt that would let readers judge prompt framing and shared_initial_generation semantics without retrieving artifacts. The paper should include either a short prompt excerpt (or clear, immediate description) within the five‑page limit."
+  ],
+  "required_revisions": [
+    "Add an explicit, prominent methodological clarification that shared_initial_generation (single shared candidate per task / independent_condition_generation=false) was used, explain how this choice reduces variance across conditions, and state that the comparison therefore measured validator acceptance of identical candidates rather than agentic generator + verifier closed‑loop behavior.",
+    "Describe in detail the verifier integration: whether it acted as a pre‑deployment blocker, a prompt/repair trigger, or a scoring-only component; report the acceptance/blocking thresholds, the repair invocation policy, and why no repairs or rollbacks were observed (reference the validator trace fields such as repair_applied=false).",
+    "Report exact statistical implementation: state that exact McNemar (or the implemented permutation test) was used, provide rationale for the chosen test, and explicitly reconcile this with the preregistered permutation‑based plan (record this as an explicit, archived analytic decision with pointer to the analysis artifact).",
+    "Include a brief (1–3 line) human‑readable prompt template or representative prompt excerpt in the manuscript (or a condensed prompt summary) so readers can evaluate prompt framing and the shared‑candidate design without fetching external artifacts; cite the archived full prompt (path + SHA) as already done.",
+    "Add a concise quantitative summary (one paragraph or compressed table) of task difficulty distribution (levels: medium/hard/very_hard as present in artifacts) and at least one representative example task + generator response in the main text (compressed to fit the five‑page limit) so that readers can judge benchmark hardness and reason about the ceiling effect."
+  ],
+  "optional_revisions": [
+    "Add a short paragraph proposing concrete next confirmatory designs that would exercise the verifier's repair/block paths (e.g., independent per‑condition generation, adversarial prompt variants, multi‑model ensembles), referencing the exploratory questions in the preregistration.",
+    "Include a compact table or bullet summarizing validator rule classes (e.g., sequence constraints, protected interfaces, group constraints) and how these map to the scoring decision codes in the artifacts.",
+    "Point explicitly (within the manuscript) to the most useful artifact paths/hashes (examples already present) for readers who wish to reproduce concrete examples, and state approximate disk size of the evidence bundle to set expectations for reviewers replicating the analysis."
+  ],
+  "accept_for_finalisation": false
+}

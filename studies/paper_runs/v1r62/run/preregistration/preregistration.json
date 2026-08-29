@@ -1,0 +1,84 @@
+{
+  "study_id": "cnsmauto-3d2k-prereg-v1",
+  "title": "Compact Action-Aware Staging Benchmark to Evaluate End-to-End Safety of Agentic NetOps (Provisional Preregistration)",
+  "research_question": "Can a compact, action-aware benchmark that simulates staged rollouts, canaries, and deterministic rollback/audit processes detect statistically significant differences in end-to-end safety between a verifier-augmented NetOps agent and an LLM-only NetOps agent?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): The verifier-augmented agent achieves a higher safe-deploy rate than the LLM-only agent on paired benchmark tasks; estimand = paired_success_rate_difference_guarded_minus_baseline (see primary_estimand_id).",
+    "H2 (secondary, confirmatory): The verifier-augmented agent reduces the median time-to-rollback (when rollbacks occur) relative to LLM-only agent (reported with bootstrap CIs; treated as secondary, descriptive confirmatory outcome)."
+  ],
+  "exploratory_questions": [
+    "E1: How do canary sizes and rollback thresholds affect relative safety gains?",
+    "E2: What failure-mode clusters (by fault class) drive the measured differences?",
+    "E3: How sensitive are results to treating incomplete pairs as failures (sensitivity analysis)?"
+  ],
+  "evidence_record_ids": [
+    "https://doi.org/10.2139/ssrn.7023538",
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4399750638",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W7124141852",
+    "https://openalex.org/W4416655698"
+  ],
+  "benchmark_scope": [
+    "ActionAwareStagingBench-v1 (synthetic, public-artifact benchmark of intent→configuration tasks with staged-rollout semantics)",
+    "Task classes: ACL updates, route-policy changes, QoS/classifier updates, single-device and multi-device atomic changes",
+    "Scope explicitly limited to the supplied simulated topologies and staged-rollout semantics (not production networks)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 400,
+    "planned_episode_count": 800,
+    "maximum_model_calls": 800,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired difference in safe-deploy rate: guarded − baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_safe_deploy_rate_guarded",
+    "absolute_safe_deploy_rate_baseline",
+    "median_time_to_rollback_difference (bootstrap CIs)",
+    "distribution_of_affected_services_per_failure"
+  ],
+  "sampling_plan": "Confirmatory paired design with exactly N=400 paired tasks (required_confirmatory_task_count). Tasks generated deterministically with the public seed-controlled generator. Each task is executed twice (baseline LLM-only and guarded verifier-augmented) under the registered adapter. Total planned agent episodes = 800. Deterministic three-replay consistency checks applied per agent-run; flagged nondeterministic pairs excluded from primary analysis as specified in missingness_plan and contamination_plan.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect ≈10 percentage-point absolute increase (e.g., 0.50→0.60) with ~80% power under conservative assumptions. Power rationale: independent-proportion approximation suggests n≈387 per arm; paired design is more efficient; N=400 paired tasks recommended. Confirmatory inference will use permutation-based paired difference test and report effect size (Cohen's h) and exact permutation p-value. Sensitivity analyses: permutation-based power sweep across baseline p0 ∈ {0.4,0.5,0.6,0.7} and absolute differences {0.08,0.10,0.12}; paired-simulation varying within-pair correlation ρ ∈ {0,0.25,0.5}; worst-case treating excluded pairs as failures.",
+  "exclusion_rules": [
+    "Exclude tasks where deterministic three-replay check for an agent+simulator pair yields non-identical safe-deploy outcomes across replays.",
+    "Exclude tasks where simulator throws internal error or exceeds pre-specified CPU/time limits (timeouts).",
+    "Exclude tasks whose provenance metadata show seed collisions or duplicated-provenance semantic duplicates."
+  ],
+  "missingness_plan": "Automated handling only. If a pair has simulator or infrastructure failure reproducible on deterministic replay (three replays), the task is flagged and excluded from primary confirmatory analysis. Exclusions and counts are reported with reasons. Sensitivity analysis treats excluded/failed agent runs as safe-deploy=0 ('complete_pair_primary_with_failure_as_zero_sensitivity'). No human adjudication; all exclusions are determined by deterministic, reproducible checks and logged.",
+  "analysis_plan": "Primary analysis executed by the registered executor 'paired_binary_analysis_v1' (primary_estimand_id = paired_success_rate_difference_guarded_minus_baseline). Primary test: permutation-based paired difference test on safe-deploy boolean per pair (two-sided, α=0.05). Report exact permutation p-value and Cohen's h for proportions. Failed-call treatment: primary = 'complete_pair_primary' (exclude flagged pairs). Sensitivity analyses: (a) treat excluded/failed agent calls as safe-deploy=0; (b) include flagged items but perform robust permutation restricted to unflagged subset. Secondary analyses: bootstrap 95% CIs for median time-to-rollback; deterministic cluster analysis of failure-mode traces. All analysis code and seeds recorded in artifacts.",
+  "multiplicity_plan": "Single primary confirmatory hypothesis (H1). Secondary outcomes are descriptive/confirmatory-descriptive; where multiple secondary hypothesis tests are performed, Holm-Bonferroni correction will be applied. Exploratory analyses explicitly labeled as exploratory.",
+  "contamination_plan": "Controlled detection and automated handling: (1) Seed-controlled generation with per-task provenance hash recorded. (2) Deterministic three-replay consistency check: re-run each agent+simulator pair three times; if outcomes differ, flag task as nondeterministic and exclude from primary analysis. (3) Flag tasks with simulator internal errors or timeouts. (4) Permutation-influence analysis to identify tasks disproportionately driving effects. Primary analysis excludes flagged items; sensitivity analyses include them as failures or apply robust restricted-permutation methods. All flags, reasons, and provenance are logged in artifacts.",
+  "stopping_rule": "Complete execution after the registered adapter processes all 400 paired tasks, unless reproducible infrastructure/simulator failure causes >20% of tasks to be flagged/excluded--in which case pause and run the automated audit/replay diagnostics; if failures remain and the manifest-determined diagnostics indicate systemic infrastructure instability, stop and report inability to complete confirmatory run.",
+  "planned_outputs": [
+    "Registered analysis results (per-pair outcomes, permutation p-value, effect-size estimates)",
+    "Bootstrap CI for median time-to-rollback",
+    "Failure-mode clusters and trace artifacts",
+    "Full execution manifest and provenance archive (task seeds, hashes, logs)",
+    "IEEE-format short paper (≤5 pages) including Disclosure Statement",
+    "Machine-readable preregistration and execution artifacts (code + config + hashes)"
+  ],
+  "unresolved_critical_issues": []
+}

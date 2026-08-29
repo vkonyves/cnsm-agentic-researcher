@@ -1,0 +1,26 @@
+{
+  "summary": "This artifact‑backed, preregistered paired evaluation is well executed and reproducible, but the preregistered shared_initial_generation design and the reuse of the deterministic validator as both runtime guard and post‑hoc scorer produced a ceiling effect that made the primary estimand uninformative in this run. The analysis followed the preregistration and artifacts support the reported null outcome; the manuscript should tighten a few construct‑validity and presentation issues before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Preregistered design choice (shared_initial_generation) made the guarded and baseline conditions receive identical generator outputs and, together with a deterministic validator that universally accepted those outputs, rendered the primary estimand effectively untestable (ceiling effect). This is a substantive construct‑validity issue that must be emphasized in the main claims and abstract (not only in Limitations).",
+    "The same deterministic_netops_validator_v5 implementation was used as the runtime guard and as the post‑hoc scorer. This conflation creates a biased concordance measurement (validator cannot disagree with itself) and must be described explicitly as a limitation of inference about closed‑loop verifier utility.",
+    "Manuscript contains heavy provenance/artifact path listing within the main narrative (many execution/* and analysis/* file paths and hashes). This metadata‑heavy style degrades scholarly prose and readability; it should be condensed so the paper reads as a conference short paper with concise artifact citations, moving detailed manifests to the artifact bundle.",
+    "Reported statistical analysis is correct relative to artifacts, but the original power rationale is invalidated by the observed ceiling; the manuscript must explicitly state that the power justification no longer applies and explain consequences for interpretation."
+  ],
+  "required_revisions": [
+    "Explicitly and prominently state in the Abstract and Introduction that the preregistered shared_initial_generation semantics and reuse of the deterministic validator as scorer produced a ceiling effect that made the primary estimand untestable in this run (not only in Limitations). This must include a short statement that the null result therefore does not generalize to generator‑guard closed‑loop dynamics.",
+    "Replace in‑text exhaustive file/path/hash listings with concise artifact citations (e.g., “artifacts archived: execution/* and analysis/*; see artifact bundle”), and move the long provenance list and full manifest references out of the main body (or relegate to a short sentence plus pointer). All detailed file manifests/hashes may remain in the artifact bundle; update manuscript to reference those artifacts succinctly.",
+    "Report an aggregated per‑task difficulty summary (counts by difficulty level across the full N=400 tasks) in the Results or Limitations section (one line or a small table), derived from execution/task_manifest.jsonl. The artifact already contains these labels; include the aggregated counts in the manuscript so readers can assess task hardness rather than rely only on representative examples.",
+    "Add a brief explicit paragraph in Methods clarifying why model_calls_used=400 (shared single generation per task) and how shared_initial_generation maps to the planned episode/model‑call accounting and to the paired design; this resolves potential reader confusion about why only 400 generator calls were used for 800 episodes.",
+    "In the Discussion or Limitations, expand the post‑hoc interpretive statement to explicitly note that the preregistered power calculation assumed a non‑ceiling baseline and is therefore not applicable here; state how future preregistered designs could preserve validity (e.g., independent per‑condition generation, adversarial perturbations, or heterogeneous validators)."
+  ],
+  "optional_revisions": [
+    "Condense artifact references to 1–2 inline citations and provide a single sentence in Methods listing key artifact hashes (e.g., analysis/results.json and execution/execution_manifest.json) for quick verification while keeping the full manifest in the bundle.",
+    "Add a one‑paragraph “Practical guidance for benchmark hardening” with concrete recipe steps (independent generation, adversarial seeding, heterogeneous validators) illustrated using the archived artifacts as seeds for follow‑on runs.",
+    "If space permits, include a single compact figure/table that summarizes task difficulty distribution and representative failure‑mode taxonomy (even if empty for this run), pointing to detailed failure traces in the bundle."
+  ],
+  "accept_for_finalisation": false
+}

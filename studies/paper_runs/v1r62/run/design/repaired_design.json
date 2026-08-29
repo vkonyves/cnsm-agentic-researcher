@@ -1,0 +1,176 @@
+{
+  "selected_candidate_id": "cnsmauto-3d2k",
+  "title": "Compact Action-Aware Staging Benchmark to Evaluate End-to-End Safety of Agentic NetOps (Repaired Preregistration)",
+  "research_question": "Can a compact, action-aware benchmark that simulates staged rollouts, canaries, and deterministic rollback/audit processes detect statistically significant differences in end-to-end safety between a verifier-augmented NetOps agent and an LLM-only NetOps agent?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): The verifier-augmented agent achieves a higher safe-deploy rate than the LLM-only agent on paired benchmark tasks; estimand = paired_success_rate_difference_guarded_minus_baseline (see available analysis contract).",
+    "H2 (secondary, confirmatory): The verifier-augmented agent reduces the median time-to-rollback (when rollbacks occur) relative to LLM-only agent (reported with bootstrap CIs; treated as secondary, descriptive confirmatory outcome)."
+  ],
+  "exploratory_questions": [
+    "E1: How do canary sizes and rollback thresholds affect relative safety gains?",
+    "E2: What failure-mode clusters (by fault class) drive the measured differences?",
+    "E3: How sensitive are results to treating incomplete pairs as failures (sensitivity analysis)?"
+  ],
+  "benchmark_scope": [
+    "ActionAwareStagingBench-v1 (synthetic, public-artifact benchmark of intent→configuration tasks with staged-rollout semantics)",
+    "Task classes: ACL updates, route-policy changes, QoS/classifier updates, single-device and multi-device atomic changes",
+    "Scope explicitly limited to the supplied simulated topologies and staged-rollout semantics (not production networks)"
+  ],
+  "model_scope": [
+    "Hosted LLM API (single hosted LLM endpoint will be used; agent orchestration runs on CPU host). Exact model identifier and API endpoint will be recorded in experiment artifacts and Disclosure Statement.",
+    "No local GPU models; no private closed-source verifiers outside the experiment artifact bundle"
+  ],
+  "transformation_scope": [
+    "Intent-to-configuration parsing (deterministic canonicalizer + structured output)",
+    "Staged-rollout simulation (deterministic sandboxed simulator executing canary→progressive→full stages and rollback triggers)",
+    "Deterministic symbolic/datalog-based verifier invoked at each rollout stage"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_safe_deploy_rate_guarded",
+    "absolute_safe_deploy_rate_baseline",
+    "median_time_to_rollback_difference (bootstrap CIs)",
+    "distribution of affected services per failure"
+  ],
+  "sampling_plan": "Confirmatory paired design. Primary confirmatory sample = N paired tasks (same task run once with verifier-augmented agent and once with LLM-only agent). Three budget scenarios (see budget_scenarios) prescribe N=200 (minimal), N=400 (recommended), N=600 (stretch). Tasks are generated deterministically with public, seed-controlled task-generation script; splits: all tasks used for confirmatory paired comparisons (no train/test split). Each task is a single independent trial (one canonical intent). Each pair therefore yields two agent trials; total agent trials = N pairs * 2 agents. Replays for nondeterminism checks: each agent run is deterministically replayable; flagged nondeterministic items will be excluded from primary analysis (see contamination_plan) and reported in sensitivity analyses.",
+  "analysis_plan": "Primary analysis executed by the registered executor paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary test: permutation-based paired difference test on safe-deploy boolean per pair (two-sided, α=0.05). Report effect size (Cohen's h for proportions) and exact permutation p-value. Failed_call_treatment: primary analysis uses 'complete_pair_primary' (exclude technical failures that break both runs of a pair); sensitivity analysis will use 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat any failed agent call as safe-deploy=0). Secondary analyses: bootstrap 95% CIs for median time-to-rollback; cluster failure-mode analysis via deterministic clustering of logged traces. Multiple comparisons: only the primary estimand is confirmatory; secondary tests are exploratory/confirmatory-descriptive and will be reported with Holm-Bonferroni adjustment where multiple secondary hypothesis tests are explicitly performed.",
+  "multiplicity_plan": "One primary confirmatory hypothesis (H1). Secondary outcomes reported with corrections (Holm) if used for formal claims. Exploratory analyses explicitly labeled.",
+  "missingness_plan": "Automated handling only. If a pair has simulator or infrastructure failure reproducible on deterministic replay (three replays), the task is flagged and excluded from primary confirmatory analysis; exclusions reported with counts and reasons. The registered analysis contract supports 'complete_pair_primary' exclusion and a sensitivity variant treating excluded/failed agent runs as failures; both will be reported. No human adjudication; all exclusions determined by deterministic, reproducible checks logged in artifacts.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "ActionAwareStagingBench-v1"
+    ],
+    "risk_factors": [
+      "Simulator-design bias (simulated semantics may omit production side-effects)",
+      "Task-generation leakage (non-independence if generation seeds reused)",
+      "Non-deterministic simulator/agent API failures causing spurious exclusions",
+      "Overfitting of agents to benchmark idiosyncrasies"
+    ],
+    "detection_procedures": [
+      "Seed-controlled generation with per-task provenance hash recorded (task seed → task hash).",
+      "Deterministic three-replay consistency check: re-run each agent+simulator pair three times; if outcomes differ, flag task as nondeterministic.",
+      "Outlier detection: permutation-influence analysis to identify tasks driving the overall effect (report top-k influential tasks)."
+    ],
+    "item_flagging_rules": [
+      "Flag and exclude tasks where three-replay check shows non-identical safe-deploy outcomes across replays.",
+      "Flag tasks where simulator raises internal error or times out (automated exclusion), with timeout thresholds pre-specified.",
+      "Flag tasks whose provenance hash collides or whose generation metadata indicates reused seed across semantic duplicates."
+    ],
+    "analysis_treatment": "Primary analysis excludes flagged items (complete-pair exclusion). Sensitivity analyses: (a) include flagged items treating failed agent calls as safe-deploy=0; (b) include flagged items but downweight via robust permutation restricted to unflagged subset. All flags and treatments are recorded and reported.",
+    "residual_uncertainty": [
+      "Simulator realism vs. production remains (addressed as noncritical uncertainty and described in limitations).",
+      "Residual risk that excluded items cluster by fault class and bias results; reported and examined in sensitivity analyses."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_minimal",
+      "description": "Minimal confirmatory run: 200 paired tasks (fast sanity-check, limited power).",
+      "planned_model_calls": 2200,
+      "models": [
+        "hosted-llm-api (single model endpoint; exact identifier recorded in artifacts)"
+      ],
+      "transformations": [
+        "intent_to_config_parsing",
+        "staged_rollout_simulator",
+        "deterministic_verifier_integration"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "200 paired tasks → 200 pairs. Each pair executes two agent runs (LLM-only and verifier-augmented) = 400 agent trials. Planned average LLM calls per agent-run: LLM-only=5, guarded=6 → per pair LLM calls=11. Totals: 200 pairs * 11 = 2,200 model calls, within maximum_planned_model_calls=10,000. Minimal scenario is feasible within the manifest and allows basic effect estimation but is expected to be underpowered for detecting ~10 percentage-point absolute differences (see power_plan)."
+    },
+    {
+      "scenario_id": "scenario_recommended",
+      "description": "Recommended confirmatory run: 400 paired tasks (primary recommendation balancing power and model-call budget).",
+      "planned_model_calls": 4400,
+      "models": [
+        "hosted-llm-api (single model endpoint; exact identifier recorded in artifacts)"
+      ],
+      "transformations": [
+        "intent_to_config_parsing",
+        "staged_rollout_simulator",
+        "deterministic_verifier_integration"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 400,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "400 paired tasks → 400 pairs. Each pair = 2 agent trials = 800 agent trials. LLM call accounting: LLM-only per-run 5 calls; verifier-augmented per-run 6 calls; per pair = 11 calls. Total = 400 * 11 = 4,400 model calls, well below 10,000 budget and within the CPU+hosted-API capabilities. This scenario provides the planned statistical power for detecting an absolute ≈10 percentage-point difference (≈20% relative improvement from baseline 50%) under conservative assumptions (see power_plan). Recommended scenario: scenario_recommended."
+    },
+    {
+      "scenario_id": "scenario_stretch",
+      "description": "Stretch confirmatory run: 600 paired tasks (higher power and robustness checks).",
+      "planned_model_calls": 6600,
+      "models": [
+        "hosted-llm-api (single model endpoint; exact identifier recorded in artifacts)"
+      ],
+      "transformations": [
+        "intent_to_config_parsing",
+        "staged_rollout_simulator",
+        "deterministic_verifier_integration"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 600,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "600 paired tasks → 600 pairs; per pair LLM calls = 11; total model calls = 6,600, within manifest limit 10,000. Provides increased power and greater robustness to task heterogeneity but requires longer wall-clock runtime. Feasible within CPU execution and hosted-model APIs."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect a >20% relative improvement; operationalized as ≈10 percentage-point absolute increase (e.g., 0.50 → 0.60 baseline→guarded).",
+    "clustering_unit": "task (paired within-task comparison between two agents)",
+    "calculation_method": "Design target derived from approximate independent-proportion sample-size calculation as conservative upper bound, and confirmed with permutation-based simulation under paired assumptions. Independent-proportion approximation: for p1=0.50, p2=0.60, α=0.05 two-sided, power=0.8 → independent sample n≈387 per arm; paired design reduces required N but to be conservative we recommend N=400 paired tasks. Confirmatory analysis will use permutation test implemented in the registered executor.",
+    "assumptions": [
+      "Baseline LLM-only safe-deploy rate assumed ≈0.50 for power calculation (conservative).",
+      "Within-pair correlation expected positive (reduces required N); conservative planning used independent approximation.",
+      "Per-pair trials are independent across tasks given seed-controlled deterministic generation and simulator isolation.",
+      "Average LLM calls per agent-run estimated at 5 (LLM-only) and 6 (guarded); model-call budget respected."
+    ],
+    "recommended_scenario_id": "scenario_recommended",
+    "minimum_detectable_effect_notes": "With N=400 pairs, the design can detect an absolute difference of ≈0.10 (10 percentage points; ~20% relative at baseline 0.5) with ~80% power under conservative assumptions. If baseline success is higher (>0.6) the required N for the same relative effect increases; sensitivity analyses will report achieved power across a range of plausible baselines (0.4–0.7).",
+    "sensitivity_analyses": [
+      "Permutation-based power sweep across baseline p0 ∈ {0.4,0.5,0.6,0.7} and absolute differences {0.08,0.10,0.12}.",
+      "Paired-simulation with varying within-pair correlation (ρ ∈ {0,0.25,0.5}).",
+      "Treating excluded pairs as failures (worst-case) to assess robustness of conclusions."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Intent-to-configuration canonicalizer",
+      "Configuration canonicalization and semantic-diff normalization",
+      "Staged-rollout simulator (deterministic sandbox executing canary→progressive→full→rollback semantics)",
+      "Deterministic verifier (symbolic/reachability checks invoked at rollout stages)"
+    ],
+    "semantic_equivalence_checks": [
+      "Canonicalization idempotence: applying parser+canonicalizer twice equals once (checked per task).",
+      "Verifier-driven semantic equivalence: for changes that are semantically equivalent (per canonicalizer), verifier reachability and access-control invariants must match across syntactic variants.",
+      "Simulator deterministic replay: three-replay equality check for each agent-run (same seed and artifact) to establish deterministic behavior."
+    ],
+    "automatic_rejection_rules": [
+      "Reject (flag) any transformation run where canonicalizer fails JSON-schema validation.",
+      "Reject tasks that fail deterministic three-replay equality (simulator or agent-run nondeterminism).",
+      "Reject any pair where simulator throws internal error or exceeds pre-specified CPU/time limits (timeouts); record as flagged and excluded from primary analysis."
+    ],
+    "audit_sample_policy": "All confirmatory pairs and their full provenance (task seed, canonicalized intent/config, rollout-stage logs, verifier outputs) are archived. A random sample of 10% of confirmatory pairs will be included in an automated audit reproducibility script that reruns the end-to-end pipeline and verifies byte-level artifact hashes and outcome equality.",
+    "mapping_validation": "All mapping rules from parsed intent fields to configuration templates are unit-tested in the artifact repo; unit-tests and deterministic examples are included and run as part of experiment pre-run validation.",
+    "residual_risks": [
+      "Canonicalizer coverage gaps for exotic or ambiguous natural-language intents may produce uneven task difficulty.",
+      "Deterministic verifier may not capture some dynamic runtime invariants (residual gap between simulator model and production control-plane behaviors)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator fidelity vs production control-plane dynamics: validated on canonical cases within artifact tests but remains a noncritical external-validity limitation.",
+    "200→400 task choice: while power-justified, broader generalization to all NetOps domains remains limited by synthetic task taxonomy.",
+    "Auditability metric mapping from provenance logs to operator-action interpretability is operationally defined for the benchmark but may not reflect diverse production audit systems."
+  ],
+  "evidence_record_ids": [
+    "https://doi.org/10.2139/ssrn.7023538",
+    "https://openalex.org/W4415071524",
+    "https://openalex.org/W4399750638",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W7124141852",
+    "https://openalex.org/W4416655698"
+  ]
+}
