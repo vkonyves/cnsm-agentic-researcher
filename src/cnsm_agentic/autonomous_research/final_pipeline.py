@@ -194,6 +194,21 @@ def sanitize_structured_manuscript_publication_metadata(
         # Defensive fallback for a DOI label that was not bracketed.
         cleaned = inline_doi_label_pattern.sub("", cleaned)
 
+        # Full cryptographic digests are machine provenance, not ordinary
+        # scientific prose. Remove them deterministically together with an
+        # immediately associated sha256/SHA-256 label. The mandatory
+        # master-prompt digest in Disclosure is protected by a temporary
+        # non-hex token before this function is called.
+        cleaned = re.sub(
+            r"(?i)"
+            r"(?:\\?b?sha(?:[_\\ -]?256)?\\?s*[:=]\\?s*)?"
+            r"(?<![0-9A-Fa-f])"
+            r"[0-9A-Fa-f]{64}"
+            r"(?![0-9A-Fa-f])",
+            "",
+            cleaned,
+        )
+
         # pdfLaTeX cannot render arbitrary astral-plane Unicode such as
         # emoji embedded in titles or bibliographic metadata. Remove these
         # presentation symbols deterministically while preserving ordinary
@@ -207,6 +222,88 @@ def sanitize_structured_manuscript_publication_metadata(
         # Repair only whitespace introduced by local metadata removal.
         cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
         cleaned = re.sub(r"\s+([,.;:])", r"\1", cleaned)
+
+        return cleaned
+
+    def sanitize_disclosure_text(value: str) -> str:
+        """Sanitize Disclosure while preserving its mandatory prompt proof.
+
+        The Disclosure Statement must retain the immutable
+        provenance/master_prompt.txt locator and its associated SHA-256.
+        Other machine-oriented artifact paths and full digests are
+        publication metadata and are removed deterministically.
+        """
+        master_prompt_path = "provenance/master_prompt.txt"
+
+        # Locate the mandatory master-prompt digest before replacing either
+        # component with temporary tokens. Structured manuscript text has not
+        # yet received renderer-level \\allowbreak{} insertion here.
+        master_prompt_sha: str | None = None
+
+        master_prompt_match = re.search(
+            r"provenance/master_prompt\.txt"
+            r".{0,300}?"
+            r"(?<![0-9A-Fa-f])"
+            r"([0-9A-Fa-f]{64})"
+            r"(?![0-9A-Fa-f])",
+            value,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        if master_prompt_match is not None:
+            master_prompt_sha = master_prompt_match.group(1)
+
+        path_token = "MASTERPROMPTPATHTOKEN"
+        sha_token = "MASTERPROMPTSHA256TOKEN"
+
+        protected = value.replace(
+            master_prompt_path,
+            path_token,
+        )
+
+        if master_prompt_sha is not None:
+            protected = protected.replace(
+                master_prompt_sha,
+                sha_token,
+                1,
+            )
+
+        # Apply the ordinary publication-metadata sanitizer while the
+        # mandatory master-prompt provenance is protected.
+        cleaned = sanitize_text(protected)
+
+        # Remove every remaining full SHA-256 plus an immediately associated
+        # textual sha256/SHA-256 label. These are secondary machine-provenance
+        # digests and belong in the archived run rather than the paper.
+        cleaned = re.sub(
+            r"(?i)"
+            r"(?:\bsha\s*-?\s*256\s*[:=]\s*)?"
+            r"(?<![0-9A-Fa-f])"
+            r"[0-9A-Fa-f]{64}"
+            r"(?![0-9A-Fa-f])",
+            "",
+            cleaned,
+        )
+
+        cleaned = cleaned.replace(
+            path_token,
+            master_prompt_path,
+        )
+
+        if master_prompt_sha is not None:
+            cleaned = cleaned.replace(
+                sha_token,
+                master_prompt_sha,
+            )
+
+        # Repair punctuation/whitespace left by removal of secondary hashes.
+        cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+        cleaned = re.sub(r"\s+([,.;:])", r"\1", cleaned)
+        cleaned = re.sub(
+            r"\(\s*\)",
+            "",
+            cleaned,
+        )
 
         return cleaned
 
@@ -232,10 +329,20 @@ def sanitize_structured_manuscript_publication_metadata(
 
             for key, item in value.items():
                 # Citation identifiers are machine identifiers used to build
-                # the bibliography and must not be rewritten.
+                # the bibliography and must not be rewritten. Disclosure is
+                # sanitized separately so that exactly the mandatory
+                # master-prompt locator/digest survives.
+                if (
+                    key == "disclosure_statement"
+                    and isinstance(item, str)
+                ):
+                    result[key] = sanitize_disclosure_text(
+                        item
+                    )
+                    continue
+
                 preserve_field = key in {
                     "cited_record_ids",
-                    "disclosure_statement",
                 }
 
                 result[key] = sanitize_value(

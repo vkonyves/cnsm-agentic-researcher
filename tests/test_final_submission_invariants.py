@@ -140,3 +140,45 @@ def test_peer_reviewer_checks_citation_semantics():
         "Verify citation semantics, not merely reference existence."
         in source
     )
+
+
+
+def test_disclosure_has_dedicated_master_prompt_preserving_sanitizer():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "def sanitize_disclosure_text" in source
+    assert 'master_prompt_path = "provenance/master_prompt.txt"' in source
+    assert "master_prompt_sha" in source
+    assert 'key == "disclosure_statement"' in source
+
+    # Disclosure must no longer be exempted wholesale from publication
+    # metadata sanitation.
+    assert '                preserve_field = key in {\n                    "cited_record_ids",\n                    "disclosure_statement",\n                }\n' not in source
+
+
+def test_disclosure_sanitizer_removes_secondary_full_sha256_values():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "secondary machine-provenance" in source
+    assert "MASTERPROMPTSHA256TOKEN" in source
+    assert "MASTERPROMPTPATHTOKEN" in source
+
+
+
+def test_ordinary_manuscript_prose_removes_full_sha256_digests():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        "Full cryptographic digests are machine provenance"
+        in source
+    )
+    assert (
+        "master-prompt digest in Disclosure is protected"
+        in source
+    )
