@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed preregistered paired experiment showing that runtime verifier feedback with bounded repair (guarded) produced a small but statistically significant increase in safe completions versus a static post‑hoc verifier on a deterministic synthetic/emulated NetOps corpus. Artifacts and analysis largely present and consistent. Main defects are presentation and missing manuscript clarifications (metadata‑heavy narrative, insufficiently explicit workflow pseudocode, and incomplete documentation of the recomputed sensitivity CI and missing latency diagnostics).",
+  "novelty_score": 3,
+  "technical_depth_score": 3,
+  "soundness_score": 4,
+  "clarity_score": 2,
+  "critical_issues": [
+    "Main-text contains excessive provenance/metadata bookkeeping that reads like an artifact manifest rather than focused scientific exposition; this obscures hypotheses, methods, and interpretation and must be condensed so the manuscript reads as a conference paper rather than an artifact report.",
+    "The Methods lack a concise, explicit stepwise description (pseudocode or flow) that unambiguously specifies the baseline (static post‑hoc verification) and guarded (runtime verifier feedback + up to one repair) workflows, including exactly when repairs are permitted and how the shared_initial_candidate semantics were implemented. This is necessary for readers to interpret the confirmatory estimand correctly.",
+    "The manuscript does not explicitly document the exact computation steps and the analysis artifact paths used to produce the recomputed paired‑bootstrap 95% CI for the preregistered sensitivity scenario (incomplete‑pairs treated as failures). The registered analysis executor omission is disclosed, but the recomputation method (empirical/binomial bootstrap procedure and the exact artifact inputs) must be described and linked to archived artifact files so the claim is reproducible and verifiable."
+  ],
+  "required_revisions": [
+    "Revise main text to remove or substantially reduce metadata/provenance lists from Results and Methods; relocate detailed artifact manifests and lengthy hash/path lists to the Disclosure Statement or a short appendix, and keep the main narrative focused on scientific rationale, experimental workflows, results, and interpretation. (Resolvable from supplied manuscript and disclosure artifacts.)",
+    "Add a concise stepwise workflow description (1–2 paragraphs or short pseudocode box) in Methods that unambiguously defines: (a) initial candidate generation semantics (shared_initial_candidate), (b) baseline scoring pipeline (no runtime verifier feedback, no repair), (c) guarded pipeline (runtime verifier feedback, conditions for invoking up to one repair), and (d) the deterministic rule used to decide success (validator.final_state.valid and workflow constraints). Reference the exact adapter/validator artifacts (execution/model_configuration.json, deterministic_netops_validator_v5 traces). (Resolvable from execution/model_configuration.json, execution/task_manifest.jsonl, and validator traces in execution/scoring/.)",
+    "Explicitly document in Methods/Results the exact recomputation procedure used to obtain the sensitivity paired‑bootstrap CI (e.g., resampling scheme, sample size, how missing pairs were encoded, bootstrap seed, number of resamples), and point to the concrete archived inputs used (analysis/paired_contingency_table.csv and analysis/missingness_summary.csv or execution/raw_results.jsonl). If a small script/command was used to recompute the CI, add or point to it in the analysis artifacts. State clearly that the registered analysis executor did not produce the preregistered outputs and that the recomputation was performed deterministically from archived artifacts. (Resolvable from analysis/*.csv and analysis/analysis_log.jsonl.)"
+  ],
+  "optional_revisions": [
+    "Shorten excessive numeric precision in prose (round reported percentages and CI endpoints for readability; retain full precision in tables/analysis artifacts).",
+    "Move one or two representative example validator traces (short excerpt) into a compact figure or table to illustrate the repair→success mechanism (use existing execution/scoring examples).",
+    "Add a short explicit statement in Limitations emphasising that the shared_initial_candidate design measures guarded repair/adaptation of the same candidate and does not address benefits from independent alternative initial generations—recommend as a concrete future replication design (independent_condition_generation=true)."
+  ],
+  "accept_for_finalisation": false
+}

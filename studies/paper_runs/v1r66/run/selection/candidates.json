@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "candidate-A1",
+      "title": "Verifier–Agent Co-Design to Reduce Verifier Tax in Agentic NetOps Planning",
+      "research_question": "Does tight co-design of a formal verifier with the LLM planner (runtime verifier feedback during plan generation) reduce unsafe-blocking (verifier tax) while preserving or improving safe task completion compared to a post-hoc static verifier check?",
+      "hypotheses": [
+        "Runtime verifier feedback integrated into planning will reduce verifier-induced blocking of safe plans relative to a static post-hoc verifier.",
+        "Co-designed verifier feedback will increase end-to-end safe completion rate without significantly increasing planning latency compared to static verification.",
+        "Benefits of verifier–agent co-design generalize across diverse NetOps task classes (routing, ACL updates, VLAN changes) in an emulated testbed."
+      ],
+      "proposed_design": "Controlled emulation study using a synthetic NetOps task suite (intent→configuration tasks across routing/ACL/VLAN). Implement two agent conditions using the same base LLM and retrieval: (A) Static verifier: agent generates candidate config; verifier runs post-hoc and blocks/requests regeneration; (B) Co-design verifier-feedback: verifier provides incremental constraints/soft-guidance during candidate generation (e.g., pruning beam candidates or returning counterexamples to the planner) enabling the planner to adapt. Use a deterministic emulator (containerized network simulator) to execute configs and measure safety/correctness, with pre-registered retry policy and fixed random seeds. Collect per-task traces, verifier decisions, planning latency, and final execution outcomes. Preregister metrics, sample size, seeds, and stopping rules before execution.",
+      "expected_data": "Per-task records including: whether initial plan passed verifier, whether executed safely in emulator, time-to-plan, number of verifier interventions, number of regeneration attempts, and final success/failure labels. Aggregate rates: safe-completion rate, verifier-block rate, mean planning latency, and distribution of failure modes (syntax, semantic mismatch, unsafe execution).",
+      "primary_outcome": "Difference in safe end-to-end completion rate (executed safely in emulator) between Co-design and Static-verifier conditions (Co-design minus Static) with 95% CI.",
+      "analysis_outline": "Compute per-task paired differences (each task run under both conditions) and report mean difference with 95% CI. Use Wilcoxon signed-rank test (if non-normal) or paired t-test (if normal) to test H0: mean difference = 0. Report verifier-block rate and latency differences with effect sizes (Cohen's d). Perform failure-mode stratified analysis (by task class). Report sensitivity to verifier feedback intensity (ablation). All analyses pre-registered; correct for multiple comparisons using Holm-Bonferroni for secondary outcomes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W7140954426"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411700982",
+        "https://openalex.org/W4415066917",
+        "https://openalex.org/W7114889968"
+      ],
+      "risks": [
+        "Results may overfit to the chosen emulator and not generalize to production networks.",
+        "Co-design implementation choices (feedback format) may bias outcomes in favor of the proposed method.",
+        "LLM- and verifier-specific interactions may limit generality across model families."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "candidate-B2",
+      "title": "RAG Robustness Under Noisy or Adversarial Retrieval for NetOps Configuration Correctness",
+      "research_question": "How does retrieval noise or adversarial contamination in a retrieval-augmented generation (RAG) pipeline affect NL→DSL configuration correctness and operational safety for NetOps tasks, compared to non-RAG baselines?",
+      "hypotheses": [
+        "Increasing levels of retrieval noise/adversarial contamination will reduce semantic correctness and increase unsafe execution rates for RAG-enabled LLM generation.",
+        "RAG provides net gains over non-RAG baselines under low-noise retrieval, but under moderate-to-high noise RAG can perform worse than non-RAG generation absent robust retrieval validation.",
+        "Simple retrieval-quality mitigation strategies (source weighting, top-k filtering) will partially recover correctness but not fully eliminate adversarial impact.",
+        "Adversarial corruption targeted at topology/state facts will have a larger negative impact than random noise."
+      ],
+      "proposed_design": "Create a retrieval corpus derived from public NetOps documentation and synthetic network-state snapshots. Define retrieval-noise conditions: clean, random-noise injection (replace a fraction of retrieved passages), and adversarial-noise (inject plausible but false topology/state facts). Run three generation modes on a fixed task set: (1) Non-RAG LLM, (2) RAG LLM with standard retrieval, (3) RAG LLM with retrieval-mitigation (source-weighting + top-k filtering). For each task and noise condition, collect NL→DSL outputs, run a deterministic verifier/emulator to test syntactic validity, semantic correctness, and safety on execution. Pre-register noise levels, task sample, and evaluation rubric.",
+      "expected_data": "Matrix of task × mode × noise-level with recorded: syntactic validity rate, semantic-correctness rate (verifier-checked), unsafe-execution rate in emulator, and qualitative failure labels (hallucination, wrong-state assumption, syntactic DSL error). Also retrieval logs (retrieved passages) for forensic analysis.",
+      "primary_outcome": "Interaction effect between retrieval-noise level and generation mode on semantic-correctness rate (ANOVA interaction term) with effect size and 95% CI.",
+      "analysis_outline": "Fit mixed-effects logistic regression predicting semantic-correctness with fixed effects: mode, noise_level, and their interaction; random intercepts for task. Report main effects and interaction p-values, odds ratios, and 95% CIs. Conduct pairwise contrasts (with Tukey correction) between modes within each noise level. Report secondary analyses on unsafe-execution rates and mitigation effectiveness. Present qualitative taxonomy of adversarial failure modes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "doi:10.20944/preprints202507.0320.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4415233873",
+        "https://openalex.org/W4414799483"
+      ],
+      "risks": [
+        "Adversarial/noise injection design may not capture real-world retrieval corruption modes.",
+        "Findings may depend strongly on the retrieval engine and LLM pairing used.",
+        "Mitigation strategies evaluated may be too simple compared with production-grade retrieval defenses."
+      ],
+      "estimated_model_calls": 1000
+    },
+    {
+      "candidate_id": "candidate-C3",
+      "title": "Human-in-the-Loop Approval versus Automated Validator Pipelines: Trade-offs in NetOps Safety and Throughput",
+      "research_question": "Compared to an automated validator-driven pipeline, how does a human-in-the-loop approval gate affect operational safety (unsafe-change rate), throughput (tasks per hour), and operator latency for NetOps change tasks in an emulated environment?",
+      "hypotheses": [
+        "Human-in-the-loop approval will reduce unsafe-change execution rate relative to fully automated validator pipelines.",
+        "Automated validators will yield higher throughput and lower median latency but at the cost of a higher residual unsafe-change rate.",
+        "Combined workflows (automated validator + human review only on flagged cases) will achieve a favorable trade-off (near-human safety with improved throughput) relative to either extreme.",
+        "Operator fatigue (simulated via increased review load) will degrade human-gating safety benefits."
+      ],
+      "proposed_design": "Emulated study with three workflow arms applied to the same task corpus: (A) Fully automated validator pipeline (post-generation verification and automatic deployment if passed); (B) Human-in-the-loop gate (human approves or rejects LLM-suggested change after seeing generated config and verifier hints); (C) Hybrid: automated validator plus human review only for flagged/high-risk changes. Use a worker simulator for human reviewers calibrated from public human-in-the-loop NetOps studies; include scenarios varying review load to simulate fatigue. Collect safety outcomes via emulator, throughput metrics, and human-time cost. Pre-register sample sizes, reviewer decision model, and fatigue model.",
+      "expected_data": "Per-task outcomes including final execution safety label, time-to-deploy, human-review time per task (or simulated equivalent), number of rejected proposals, and false-positive/false-negative rates of automated validator flags. Aggregate metrics: unsafe-change rate, tasks/hour, median latency, and human-hours consumed.",
+      "primary_outcome": "Difference in unsafe-change rate between Human-in-the-loop and Fully-automated Validator conditions (Human minus Automated) with 95% CI.",
+      "analysis_outline": "Compare unsafe-change rates using two-proportion z-tests and compute absolute and relative risk reductions. Compare throughput and latency using nonparametric tests (Mann-Whitney) if distributions are skewed. Compute cost-effectiveness metrics (unsafe changes avoided per human-hour). Perform sensitivity analyses across reviewer fatigue levels and task difficulty strata. All analyses pre-registered.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7203776655",
+        "doi:10.20944/preprints202602.1949.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W4412158322"
+      ],
+      "risks": [
+        "Human-review simulation may not capture real operator expertise variability or organizational context.",
+        "Ethical considerations if extrapolating cost-benefit to real deployments without human-subject trials.",
+        "Findings sensitive to the human decision model and fatigue parameters chosen."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "candidate-D4",
+      "title": "Decoding Constraints versus Chain-of-Thought for NetOps DSL Generation: Trade-offs in Syntactic Validity and Semantic Correctness",
+      "research_question": "What are the empirical trade-offs between grammar-constrained/structured decoding and unconstrained chain-of-thought (CoT) prompting for NL→DSL NetOps configuration generation in terms of syntactic validity, semantic correctness, and verifier blocking?",
+      "hypotheses": [
+        "Grammar-constrained decoding (CFG-based or DSL template enforcement) will significantly reduce syntactic/DSL violations relative to unconstrained CoT generation.",
+        "Unconstrained CoT prompting will produce higher semantic-correctness rates on complex intent translations due to richer internal reasoning, at the cost of increased syntactic/structural errors and hallucinations.",
+        "A two-stage approach (CoT generation followed by constrained repair) will retain CoT semantic gains while matching constrained-decoding syntactic validity, outperforming either single strategy alone."
+      ],
+      "proposed_design": "Three-generation strategies on matched intent tasks: (1) Constrained decoding using formal grammar/decoder constraints producing DSL only; (2) Unconstrained CoT prompting where the model verbalizes reasoning then outputs DSL; (3) Two-stage: CoT followed by an automated constraint-based repair module. Use a deterministic verifier and emulator for syntactic checks and semantic validation. Pre-register task corpus, decoder grammars, CoT prompt templates, repair heuristics, and evaluation metrics. Collect per-output syntactic-valid flag, semantic correctness, verifier-block events, and failure types.",
+      "expected_data": "Per-output records with syntactic validity (boolean), semantic correctness (verifier/executor pass), verifier blocking events, time-to-generate/repair, and qualitative failure labels. Aggregate rates for each strategy across task difficulty strata.",
+      "primary_outcome": "Trade-off curve quantifying syntactic-validity rate versus semantic-correctness rate for each decoding strategy; report area-under-curve-like summary and pairwise differences with 95% CIs.",
+      "analysis_outline": "Compare strategies using McNemar's test for paired syntactic-validity and semantic-correctness binary outcomes. Compute joint-statistics (proportion of outputs both syntactically valid and semantically correct) and compare via paired tests. Report latency and verifier-block differences. Perform subgroup analyses by task complexity. All analysis methods and thresholds pre-registered.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202606.1011.v1",
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4415233873",
+        "https://openalex.org/W4414799483",
+        "https://openalex.org/W4412158322"
+      ],
+      "risks": [
+        "Constrained decoding implementation quality may bias results toward constrained methods if grammars are hand-tuned for the corpus.",
+        "CoT benefits may be prompt- and model-specific, limiting generalization.",
+        "Repair module effectiveness depends on heuristic design and may introduce its own failure modes."
+      ],
+      "estimated_model_calls": 1500
+    }
+  ]
+}

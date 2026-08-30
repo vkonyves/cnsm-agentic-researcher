@@ -1,0 +1,213 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000149-baseline",
+  "normalized_reference_answer": "interface uplink38 admin up\ninterface uplink37 admin down\ninterface uplink37 vlan 210",
+  "normalized_response": "interface uplink38 vlan 200\ninterface uplink38 admin up",
+  "pair_id": "pair-000149",
+  "raw_response_sha256": "c942b215a8318a19b2cc4b72ccb05054ae01f18c7042c8e59c288ccd7917257e",
+  "reference_answer_sha256": "9f5a4eb34b14d72be194f0bd974b6d4565bbe2ac7c6b90d78925aa1157f58a88",
+  "repair_provider_trace_path": null,
+  "repair_provider_trace_sha256": null,
+  "schema_version": "1.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000149-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "f09e303d55e4d7ec3e890e50a748d138fb92798b262f61c85fff9031ad93aa29",
+  "study_id": "CNSM2026-AgenticNetOps-GuardedGVR-v1",
+  "task_id": "task-000149",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "interface uplink38 vlan 200\ninterface uplink38 admin up",
+    "repair_applied": false,
+    "repair_prompt_sha256": null,
+    "shared_initial_candidate": "interface uplink38 vlan 200\ninterface uplink38 admin up",
+    "shared_initial_candidate_sha256": "c942b215a8318a19b2cc4b72ccb05054ae01f18c7042c8e59c288ccd7917257e",
+    "shared_initial_response_path": "execution/responses/task-000149-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge73": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge74": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt19": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink37": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink38": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink38 vlan 200\ninterface uplink38 admin up",
+      "observed_touched_field_count": 2,
+      "parsed_command_count": 2,
+      "required_command_count": 3,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_ACTIVE_COUNT_VIOLATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 7,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: uplink38 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink37 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink37 vlan ended as 200; expected 210."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink38 vlan ended as 200; expected 201."
+        },
+        {
+          "code": "FINAL_ACTIVE_COUNT_VIOLATION",
+          "line_number": null,
+          "message": "Expected exactly 1 active interfaces in ['uplink37', 'uplink38']; observed 2."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink37 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink37 vlan."
+        }
+      ]
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge73": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge74": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt19": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink37": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink38": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink38 vlan 200\ninterface uplink38 admin up",
+      "observed_touched_field_count": 2,
+      "parsed_command_count": 2,
+      "required_command_count": 3,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_ACTIVE_COUNT_VIOLATION",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 7,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: uplink38 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink37 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink37 vlan ended as 200; expected 210."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink38 vlan ended as 200; expected 201."
+        },
+        {
+          "code": "FINAL_ACTIVE_COUNT_VIOLATION",
+          "line_number": null,
+          "message": "Expected exactly 1 active interfaces in ['uplink37', 'uplink38']; observed 2."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink37 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on uplink37 vlan."
+        }
+      ]
+    }
+  }
+}

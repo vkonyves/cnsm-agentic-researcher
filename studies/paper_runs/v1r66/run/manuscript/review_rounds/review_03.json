@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑designed preregistered paired experiment testing verifier–agent co‑design vs static post‑hoc verification on synthetic NetOps tasks. Confirmatory primary result (complete pairs N=187) shows guarded > baseline (absolute +0.04278, exact McNemar p=0.0078125) and authors correctly disclose unexecuted preregistered latency diagnostics (H2) and bootstrap gaps. Artifacts and hashes are provided. Manuscript is reproducible in principle but contains metadata‑heavy presentation and two substantive clarifications/analysis items that must be addressed before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Missing preregistered bootstrap CI for the sensitivity scenario (incomplete pairs treated as failures) despite archived artifacts being sufficient to compute it; absence weakens the reported sensitivity claim.",
+    "Methods/Results do not explicitly emphasize the implications of the preregistered shared_initial_candidate design (independent_condition_generation=false): this design choice changes the interpretation of effect (benefit driven by repair of a shared candidate rather than by alternative independent generations) and must be clearly stated in Methods and reiterated in Results/Discussion as a construct‑validity limitation.",
+    "Manuscript contains excessive metadata/hash prose in the main body that substitutes for concise scholarly narrative; this reduces readability and risks reading as an artifact inventory rather than a conference paper."
+  ],
+  "required_revisions": [
+    "Compute and report the preregistered paired bootstrap 95% confidence interval for the sensitivity scenario (incomplete pairs treated as failures, N=200) using only archived analysis/data artifacts (no new model calls). Provide the computation method and seed used, and add the resulting CI to the Results and Table 3. The archived artifacts cited in the manuscript (contingency/missingness files and raw_results.jsonl) appear sufficient for this recomputation.",
+    "In Methods (and reiterated in Results/Discussion) explicitly state that the preregistered generation semantics used a single shared initial candidate for each pair (independent_condition_generation=false). Add a short paragraph explaining how this choice affects interpretation: specifically, that the observed gain reflects guarded repair/adaptation of a shared candidate rather than advantage from generating distinct initial candidates per condition, and discuss how this limits external generalization.",
+    "Replace or substantially compress the metadata‑heavy in‑text lists of SHA prefixes and long artifact inventories. Consolidate artifact pointers into a single compact subsection or a small table (still within the five‑page limit) and rework main‑text prose into standard scholarly exposition. Retain sufficient artifact pointers for reproducibility but avoid replacing narrative discussion with extended provenance bookkeeping."
+  ],
+  "optional_revisions": [
+    "If per‑episode timing information exists in archived execution logs, compute and report the preregistered latency non‑inferiority diagnostics or, if not possible, add a brief confirmation in Methods that the required latency timestamps are absent from archived logs and explain why they could not be produced from existing artifacts.",
+    "Include a brief additional discussion of how results might change under independent initial generations (i.e., independent_condition_generation=true) and recommend which follow‑up analysis or replication (using archived artifacts only) would most efficiently assess that alternative.",
+    "Tighten the Introduction to reduce overlap with Related Work and move some related literature citations to a succinct nearest‑work comparison paragraph to increase space for methodological clarity."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,249 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models and agentic LLM architectures are being actively applied to NetOps/AIOps tasks (incident triage, diagnosis, configuration synthesis, limited self-healing), and the literature argues evaluation should be workflow-centred rather than static QA.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "Survey / literature synthesis",
+      "confidence": 0.9,
+      "limitations": [
+        "Based on surveys and reviews rather than large, standardized multi-vendor production trials",
+        "Heterogeneous definitions of tasks across sources"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Tool-augmented and agentic orchestration frameworks (tool-calling agents, protocol layers) materially change reliability/error profiles; orchestration and tool design are important determinants of operational outcomes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411700982",
+        "https://openalex.org/W4415066917",
+        "https://openalex.org/W7114889968"
+      ],
+      "evidence_type": "Survey / systematic review",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence synthesizes many small-scale studies and frameworks; quantitative effect sizes vary by implementation"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–validate–repair pipelines and retrieval-augmented generation (RAG) are widely proposed as mitigations: RAG and validator loops improve grounding but do not eliminate hallucination or structural output failures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W4415233873",
+        "https://openalex.org/W4414799483"
+      ],
+      "evidence_type": "Systematic reviews and method surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Improvements documented across heterogeneous tasks; residual failure modes remain",
+        "Relative effectiveness depends on retrieval quality and verifier design"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Runtime monitoring and verifier-based blocking reduce unsafe agent actions in controlled settings but do not provide complete task-level safety guarantees; reviews document a specification/translation bottleneck and a documented ‘verifier tax’ risk.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "Systematic review / narrative review",
+      "confidence": 0.9,
+      "limitations": [
+        "Quantified reductions are from controlled studies; real-world operational contexts may differ",
+        "‘Verifier tax’ characterization is conceptual and supported by selected empirical observations"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Hallucination and structured-output failures (factual errors, omitted/incorrect assumptions about topology/state, syntactic/DSL violations) are recurring, well-documented failure modes for LLMs in high-stakes domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W4413933064"
+      ],
+      "evidence_type": "Survey / taxonomy papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys summarize multiple domains; specific prevalence in NetOps tasks varies and is less uniformly measured"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Human-in-the-loop governance, approval gating, and oversight mechanisms are recommended and show production-strength evidence for detection/triage tasks, while evidence is weak for general-purpose autonomous action.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "doi:10.20944/preprints202602.1949.v1"
+      ],
+      "evidence_type": "Narrative review / governance survey",
+      "confidence": 0.85,
+      "limitations": [
+        "‘Production-strength’ qualification applies to narrower detection/triage systems; broader autonomy claims remain unsupported"
+      ]
+    },
+    {
+      "claim_id": "F7",
+      "statement": "Existing benchmarks and evaluation practices often lack ecological/operational validity for agentic NetOps; calls exist for trace-quality, rollback/canary-aware, and verifier-grounded evaluation metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Systematic review / position survey",
+      "confidence": 0.85,
+      "limitations": [
+        "Recommendations are high-level; concrete standardized benchmarks are still nascent"
+      ]
+    },
+    {
+      "claim_id": "F8",
+      "statement": "No prior work simultaneously achieves soundness, scalability, semantic-correctness (NL→formal), and task-level safety preservation according to recent surveys.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "Systematic review conclusion",
+      "confidence": 0.8,
+      "limitations": [
+        "Conclusion is drawn from surveyed literature up to 2026; targeted research may close subsets of these gaps"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How can natural-language-to-formal-specification translation be made reliably semantically correct at scale (current surveys report semantic-correctness rates in the ~24–35% range)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "Open empirical problem reported in review",
+      "confidence": 0.7,
+      "limitations": [
+        "Reported percentages are survey summaries and depend on task framing and evaluation protocol"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How can verifier/monitor design avoid the verifier tax (blocking unsafe paths yet preserving safe task completion) in complex agentic workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "Conceptual / empirical tension identified in review",
+      "confidence": 0.7,
+      "limitations": [
+        "Verifier tax is an observed phenomenon across examples; mitigation strategies remain underexplored empirically"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What empirical evidence and testbeds reliably demonstrate safe autonomous NetOps change execution (beyond detection/triage) in production-like settings?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Gap identified by narrative reviews",
+      "confidence": 0.75,
+      "limitations": [
+        "Reviews note weak production evidence; does not preclude existence of proprietary/undocumented deployments"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "Which standardized, workflow-centred evaluation protocols (metrics, datasets, emulators) best predict real-world operational risk and reliability for NetOps agents?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7140954426"
+      ],
+      "evidence_type": "Methodological gap cited in surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Multiple candidate metrics exist; comparative validation across testbeds is limited"
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "What are the empirical trade-offs when applying constrained/grammar-constrained decoding versus unconstrained chain-of-thought-style reasoning in DSL/structured-config generation?",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202606.1011.v1"
+      ],
+      "evidence_type": "Empirical-method question from neurosymbolic code-generation work",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing cascaded approaches report promising directions but broader NetOps-specific validation is missing"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Research opportunity: verifier–agent co-design methods that integrate formal validators into agent planning to reduce unsafe alternative paths without imposing prohibitive verifier tax.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W7140954426"
+      ],
+      "evidence_type": "Research agenda derived from reviews",
+      "confidence": 0.65,
+      "limitations": [
+        "Proposal synthesizes review recommendations; concrete designs and empirical validation remain to be developed"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Research opportunity: workflow-centred NetOps benchmarks that measure trace quality, rollback/canary-aware safety, verifier-grounded correctness, and end-to-end operational impact.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7114889968"
+      ],
+      "evidence_type": "Benchmarking gap identified in surveys",
+      "confidence": 0.7,
+      "limitations": [
+        "Building such benchmarks requires realistic emulation/testbeds and community agreement on metrics"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Research opportunity: controlled empirical comparisons of human-in-the-loop gating versus automated validator pipelines on operational outcomes in NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "doi:10.20944/preprints202602.1949.v1"
+      ],
+      "evidence_type": "Operational-governance gap from reviews",
+      "confidence": 0.65,
+      "limitations": [
+        "Human factors and organizational context will influence transferability of results"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Research opportunity: RAG robustness studies under noisy or adversarial retrieval and their effect on configuration correctness and safety.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7114889968",
+        "doi:10.20944/preprints202507.0320.v1"
+      ],
+      "evidence_type": "Methodological gap supported by RAG robustness literature",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing robustness work focuses on general tasks; NetOps-specific retrieval corpora and failure modes need tailored study"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Research opportunity: design patterns for progressive tool exposure and adaptive tool catalogs to reduce tool-induced failures in agentic NetOps.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7317098"
+      ],
+      "evidence_type": "System/runtime design study (WeClaw) suggesting practical mitigations",
+      "confidence": 0.65,
+      "limitations": [
+        "Proposals shown in desktop/experimental contexts; scale-up to critical NetOps tools requires further validation"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Batfish, NetKAT, or other specific formal network-verification tools are broadly reported in the supplied records as commonly used validators for LLM-generated NetOps outputs (no supplied record explicitly documents broad empirical use of Batfish/NetKAT in LLM-NetOps studies).",
+    "LLM-based NetOps agents currently provide sound formal guarantees for configuration correctness in production (no supplied record supports full formal guarantees in production).",
+    "There is strong, multi-vendor production evidence that general-purpose autonomous NetOps agents safely execute network changes without human oversight (supplied reviews report weak production evidence for autonomous action).",
+    "Any single existing method simultaneously provides soundness, scalability, high NL→formal semantic correctness, and task-level safety preservation (a supplied review explicitly states no approach achieves all four)."
+  ]
+}

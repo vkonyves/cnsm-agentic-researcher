@@ -1,0 +1,26 @@
+{
+  "summary": "Well-executed, preregistered paired experiment evaluating runtime verifier feedback (co-design) vs static post-hoc verification for LLM-driven NetOps planning. Results show a small but statistically significant absolute increase in safe end-to-end completion (Δ≈+0.0428, exact McNemar p=0.0078125) on 187 complete paired tasks in a deterministic synthetic/emulated corpus. Strong reproducibility artifacts and disclosure are provided. Key limitations concern (a) preregistered secondary/sensitivity analyses and latency diagnostics not reported or inconclusive, (b) use of a shared-initial-generation semantics that affects interpretation and must be discussed explicitly, and (c) single-model and synthetic-emulator scope limiting external validity.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered sensitivity analysis (treating incomplete pairs as failures) and some preregistered secondary analyses (latency non-inferiority) are not reported as executed; the manuscript must explicitly disclose any unexecuted preregistered analyses and the consequences for confirmatory claims.",
+    "The manuscript does not adequately discuss the consequences of the preregistered/shared generation semantics (generation_semantics = \"shared_initial_candidate\", independent_condition_generation = false) for interpretation of the paired comparison; this design choice can influence observed discordances and must be explained in Methods and Threats to Validity.",
+    "Latency non-inferiority hypothesis (H2) was preregistered but is unconfirmed due to missing diagnostics; the manuscript must not imply H2 support and must prominently state that H2 was not executed/confirmed and why.",
+    "The paper should include an explicit, concise reproducibility linkage: cite the exact artifact filenames/paths and representative hashes that support each principal numeric claim (complete_pair_count, n_11/n_10/n_01/n_00, bootstrap CI, p-value), to allow deterministic verification from the supplied evidence bundle."
+  ],
+  "required_revisions": [
+    "In Methods and Results explicitly state which preregistered analyses were not executed or produced (e.g., the sensitivity analysis treating incomplete pairs as failures and the latency non-inferiority test), explain why they were not produced, and describe the impact on interpretation and confirmatory inference (do not present results for unexecuted analyses).",
+    "Add a clear paragraph in Methods describing the generation semantics (\"shared_initial_candidate\"), justify the choice, and discuss its effect on internal validity and interpretation (including whether guarded runs could re-generate/adapt and how that differs from baseline).",
+    "Correctly and prominently label H2 as unconfirmed/inconclusive in the Abstract, Introduction (contributions), Methods, Results, and Conclusion so no reader can infer support for the latency non-inferiority hypothesis.",
+    "Add a brief reproducibility mapping (one paragraph or a short table) that links each principal reported number (complete pairs, contingency counts, estimate, CI, p-value) to the specific artifact path(s) and hash(es) in the execution/analysis manifests (e.g., analysis/paired_contingency_table.csv sha256: d6a5..., analysis/condition_summary.csv sha256: ef33..., analysis/analysis_log.jsonl sha256: 130f6..., execution/raw_results.jsonl sha256: 6a95...)."
+  ],
+  "optional_revisions": [
+    "If available in the archived artifacts, present the pre-registered sensitivity analysis treating incomplete pairs as failures; otherwise state it as a planned future confirmatory check.",
+    "Expand the Threats to Validity to discuss how shared-initial-generation might bias toward conservative or optimistic estimates and include a short rationale for why the observed discordant pattern (n_10=8, n_01=0) is plausible given the design.",
+    "Include a concise evidence-to-claim table and the nearest-work comparison matrix within the five-page limit (condensed) to strengthen literature positioning and claim support.",
+    "If latency diagnostics now exist in artifacts, include the exploratory latency plot (Figure 2) with numeric summary statistics and note them as exploratory."
+  ],
+  "accept_for_finalisation": false
+}

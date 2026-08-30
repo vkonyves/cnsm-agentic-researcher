@@ -1,0 +1,33 @@
+{
+  "study_id": "CNSM2026-AgenticNetOps-GuardedGVR-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Run paired_binary_analysis_v1 on execution/raw_results.jsonl using the adapter-determined set of complete pairs (exclude incomplete pairs per preregistration/missingness_plan). Compute the confirmatory estimand paired_success_rate_difference_guarded_minus_baseline using the executor's exact paired method (two-sided), report N_complete_pairs (as derived from the raw results), raw counts per condition, mean paired difference, 95% CI, and exact p-value. All numbers and diagnostics produced from execution/raw_results.jsonl and execution/result_schema.json only.",
+  "secondary_analyses": [
+    "paired_median_planning_latency_ratio_guarded_vs_baseline (nonparametric paired latency comparison; report median ratio, 95% CI, and Holm-adjusted p-value)",
+    "mean_verifier_block_rate_difference (paired difference in verifier-induced block counts; report means, 95% CIs, and Holm-adjusted p-value)",
+    "distributional differences in failure-mode proportions by task class (stratified paired summaries by task_class: routing, ACL, VLAN; report proportions, paired differences, 95% CIs; exploratory contrasts labelled)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat incomplete pairs as failures in both conditions; recompute primary estimand and report)",
+    "contamination_inclusion_sensitivity (include items flagged as contaminated and report primary estimand and comparison to primary exclusion result)",
+    "verifier_feedback_intensity_levels (three deterministic levels — stratified descriptive comparison; exploratory)"
+  ],
+  "uncertainty_quantification": "Primary uncertainty: 95% confidence interval for paired success-rate difference computed by the analysis executor's exact/appropriate paired-proportion method. Secondary uncertainty: nonparametric CIs for median latency ratio (executor-implemented), exact binomial or proportion CIs for verifier/block rates and failure-mode proportions. All CIs and p-values produced by paired_binary_analysis_v1 from execution/raw_results.jsonl; bootstrap only if provided by executor implementation.",
+  "multiplicity_implementation": "Confirmatory family: single pre-registered primary estimand (no correction). Apply Holm-Bonferroni correction across the listed secondary estimands. Exploratory analyses reported with no confirmatory p-value thresholds and labelled exploratory.",
+  "contamination_analysis": "Apply preregistered deterministic contamination checks using the execution task_manifest and stored SHA256 hashes: exclude any task instances whose task hash matches pre-lock development-artifact hash list or duplicate-detection rules from the primary confirmatory set. Report counts and deterministic reasons for each excluded item (artifact hash, detection rule), produce a sensitivity analysis including contaminated items, and log all provenance entries from execution/task_manifest.jsonl. Treatment follows preregistration: contaminated items excluded from primary analysis and reported in full.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Execution summary: planned_episode_count, completed_episode_count, failed_episode_count, model_calls_used, completed_batches, artifact_hashes_total_count (from execution manifest)",
+    "Table 2 — Primary outcome summary: N_complete_pairs (derived), successes_by_condition (guarded, baseline), paired_success_count, paired_failure_count, paired_difference, 95% CI, two-sided p-value (executor output)",
+    "Table 3 — Latency summary: per-condition median/iqr/mean latencies, paired median ratio, nonparametric CI, Holm-adjusted p-value",
+    "Table 4 — Verifier interventions: mean verifier-block-count per condition, paired mean difference, 95% CI, Holm-adjusted p-value",
+    "Table 5 — Failure-mode contingency: counts and proportions by failure mode (syntax, semantic-mismatch, unsafe execution) × condition × task_class with paired/proportion difference columns"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart with 95% CIs: success rate by condition (guarded vs baseline) using executor-produced counts and CIs (primary visual)",
+    "Figure 2 — Boxplot or violin: planning latency distribution by condition with paired-connection overlays (data from raw_results.jsonl)",
+    "Figure 3 — Stacked bar: failure-mode proportions by condition and task_class (routing, ACL, VLAN)",
+    "Figure 4 — Time-series or batch plot: cumulative model_calls_used and completed episodes across execution_batches (batch_001_25tasks …) as recorded in execution_log.jsonl"
+  ]
+}

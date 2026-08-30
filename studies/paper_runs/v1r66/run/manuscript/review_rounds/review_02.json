@@ -1,0 +1,22 @@
+{
+  "summary": "Well‑executed, preregistered paired experiment comparing static post‑hoc verification vs runtime verifier feedback (co‑design) for LLM‑generated NetOps config plans. Primary confirmatory outcome (H1) is supported by preregistered analysis outputs (complete pairs N=187; guarded 187/187 vs baseline 179/187; paired difference ≈0.04278; exact McNemar two‑sided p = 0.0078125; bootstrap 95% CI reported). Preregistration, execution manifests, raw artifacts, validator traces, and analysis outputs are present and internally consistent. Two planned preregistered confirmatory checks were not produced by the registered analysis executor (sensitivity treating incomplete pairs as failures; latency non‑inferiority diagnostics); these omissions are disclosed in the manuscript but require additional deterministic reporting computed from supplied artifacts (sensitivity) or explicit limitation (latency).",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Preregistered confirmatory sensitivity analysis (treating incomplete pairs as failures) was not executed by the registered analysis executor and numerical sensitivity results are absent from the manuscript. The preregistration treated this as a planned confirmatory check; its omission weakens completeness of confirmatory reporting. This is resolvable from the supplied artifacts (raw results and missingness summary).",
+    "The preregistered latency non‑inferiority hypothesis (H2) remains unconfirmed because the registered analysis executor did not produce the paired latency diagnostics. The manuscript discloses this, but it must clearly state which preregistered confirmatory inference was unexecuted and that H2 is inconclusive; if latency diagnostics cannot be produced from archived artifacts, state that explicitly and explain why."
+  ],
+  "required_revisions": [
+    "Compute and include the preregistered sensitivity analysis that treats incomplete pairs as failures (complete_pair_primary_with_failure_as_zero_sensitivity) using the supplied execution/raw_results.jsonl and analysis artifacts. Report the contingency counts, success rates, paired difference, and state whether the confirmatory inference (McNemar exact p and CI) is materially changed by this sensitivity treatment. Use only existing archived artifacts and deterministic procedures (no new model calls).",
+    "In Methods and Results (prominently), explicitly enumerate which preregistered analyses were unexecuted or unconfirmed by the registered analysis executor, and for each: (a) state whether it was executed from archived artifacts or remains unexecuted, and (b) when unexecuted, provide a concise explanation and the consequence for interpretation. For H2 (latency non‑inferiority), if paired latency diagnostics are unavailable in archived artifacts, state that explicitly and describe precisely which diagnostics are missing and why the non‑inferiority test cannot be performed from the run artifacts.",
+    "In the Disclosure Statement or Methods, add a brief deterministic pointer (artifact path and sha256) to the exact files used to compute the sensitivity numbers required above (so a reader can directly verify the sensitivity computation from the archive)."
+  ],
+  "optional_revisions": [
+    "Condense some of the provenance/hash‑heavy mapping in the main Results to improve narrative flow (move extended provenance table to a single compact paragraph or an artifact‑referencing figure caption), while keeping required disclosure within the five pages.",
+    "If latency timestamps or provider timing logs exist in the archived execution traces, compute and report an exploratory paired latency summary (median latency per condition and a nonparametric paired effect) labelled exploratory; otherwise state that latency timing data are not available in the stored artifacts.",
+    "Expand discussion of how the shared_initial_candidate semantics may bias effect estimates (quantify direction of bias qualitatively and, if possible, show how the observed discordant pairs align with repair invocations), but avoid introducing new analyses that require additional model calls."
+  ],
+  "accept_for_finalisation": false
+}

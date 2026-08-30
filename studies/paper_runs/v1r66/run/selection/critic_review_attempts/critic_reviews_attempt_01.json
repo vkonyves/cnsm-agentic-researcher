@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "candidate-A1",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.75,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Verifier–agent interface is underspecified (message/API format, timing, error semantics) and may bias outcomes if hand-tuned.",
+        "Emulator/testbed realism risk: results may overfit to the chosen synthetic/emulated topology and not generalize to production networks.",
+        "Missing pre-registered power/sample-size justification and explicit LLM/model identifiers (version, temperature, API) and seeds.",
+        "Potential for implementation choices (e.g., feedback intensity, beam/pruning policies) to drive results rather than the co-design principle."
+      ],
+      "required_design_repairs": [
+        "Specify exact verifier implementation or API (e.g., Batfish/NetKAT or custom) and formally define the verifier feedback primitives (constraints, counterexamples, pruning signals).",
+        "Provide full emulator/testbed specification, task corpus generation scripts, and justify ecological validity; include at least two topology classes to reduce overfitting.",
+        "Pre-register sample-size/power calculation, exact LLM model identifiers and hyperparameters, random seeds, and retry policy.",
+        "Predefine feedback-intensity ablation levels and their deterministic implementations; log all verifier-planner exchanges and publish trace corpus for reproducibility."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "candidate-B2",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Adversarial/noise injection procedures are underspecified and may not reflect realistic retrieval corruption modes.",
+        "Retrieval stack (engine, embeddings, index parameters) is not fully specified; different retrieval implementations could change results substantially.",
+        "Corpus construction and provenance of synthetic state snapshots must be reproducible to avoid unintentional leakage or bias.",
+        "Statistical analysis plan (mixed-effects model) needs specification of random effects structure and correction for multiple contrasts."
+      ],
+      "required_design_repairs": [
+        "Define retrieval stack precisely (retriever type, embedding model/version, index settings) and supply reproducible indexing scripts and artifact hashes.",
+        "Provide deterministic, documented procedures to generate (a) random-noise and (b) adversarial-noise retrieval conditions, including seeds and adversary heuristics; release adversarial generator code.",
+        "Pre-register corpus sources, curation filters, and forensic logging for retrieved passages; include a held-out validation set to check overfitting.",
+        "Specify mixed-effects model formula, random-effects terms, planned contrasts, and multiple-comparison correction procedures in the preregistration; include power analysis for interaction effects."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-C3",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Human-reviewer simulation is central but current design lacks validation against real reviewer behavior; results may not transfer if simulator is miscalibrated.",
+        "Ethical/external-validity risk if simulation-driven conclusions are extrapolated to real operators without human-subject data or careful caveats.",
+        "Reviewer fatigue model and decision-policy parameters are underspecified; outcomes may be highly sensitive to these choices.",
+        "Operational cost and workload modeling needs clearer metrics and sensitivity analysis."
+      ],
+      "required_design_repairs": [
+        "Provide calibration sources and validation for the human-reviewer simulator (public datasets, prior studies) and report fit/limitations of the simulator.",
+        "Pre-register reviewer decision policy (signal inputs, thresholds), fatigue model, and sensitivity ranges; include robustness checks across plausible parameter sweeps.",
+        "Add conservative reporting language and limit extrapolation to production; include plan for future human-subject calibration rather than claiming transferability.",
+        "Define cost-effectiveness metrics clearly (unsafe changes avoided per human-hour) and pre-register thresholds for operationally meaningful differences."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-D4",
+      "novelty": 0.65,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Constrained-decoding grammars and repair heuristics may be hand-tuned to the task corpus and bias results toward constrained methods.",
+        "CoT prompt templates, length/temperature settings, and decoding hyperparameters are not fully specified; CoT benefits may be model- and prompt-sensitive.",
+        "Repair-module determinism and oracle access assumptions need clarification (does repair use the verifier or a separate model?).",
+        "Primary outcome (trade-off curve) requires clear, pre-registered operationalization of 'semantic correctness' and the joint-success criterion."
+      ],
+      "required_design_repairs": [
+        "Publish grammar files, parsing/decoder implementation, and automated scripts used to generate constrained outputs; ensure grammars are developed blind to test set.",
+        "Pre-register CoT prompt templates, generation hyperparameters, and deterministic repair algorithm; specify whether repair uses only syntactic rules or verifier feedback.",
+        "Clarify repair-module inputs/outputs and dependency on additional models or the verifier; make repair code deterministic and releaseable.",
+        "Operationalize semantic-correctness and joint-success metrics in the preregistration and provide thresholds and rationale for area-under-curve summarization."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

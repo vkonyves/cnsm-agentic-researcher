@@ -1,0 +1,164 @@
+{
+  "selected_candidate_id": "candidate-A1",
+  "title": "Verifier–Agent Co-Design to Reduce Verifier Tax in Agentic NetOps Planning (repaired preregistration)",
+  "research_question": "Does runtime verifier feedback integrated into LLM planning (co-design) reduce verifier-induced blocking of safe plans and increase safe end-to-end completion rate relative to a static post-hoc verifier, without materially increasing planning latency, across multiple NetOps task classes (routing, ACL, VLAN) in a deterministic emulated testbed?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The co-design condition (runtime verifier feedback) yields a higher safe end-to-end completion rate than the static post-hoc verifier condition (paired difference > 0).",
+    "H2: Co-design does not increase median planning latency by more than 20% relative to static verification (non-inferiority margin: 20%)."
+  ],
+  "exploratory_questions": [
+    "E1: How do verifier interventions (counts, types) differ by task class (routing, ACL, VLAN)?",
+    "E2: How sensitive are outcomes to verifier-feedback intensity (three deterministic levels)?",
+    "E3: What failure-mode distributions (syntax, semantic-mismatch, unsafe execution) differ between conditions?"
+  ],
+  "benchmark_scope": [
+    "Synthetic intent→configuration NetOps task corpus (three task classes: routing, ACL, VLAN)",
+    "Deterministic emulated execution using containerized network simulator images (two topology classes: small spine-leaf and medium enterprise) described below",
+    "Evaluation strictly bounded to the supplied synthetic/emulated testbed and published task generator"
+  ],
+  "model_scope": [
+    "Hosted LLM API: OpenAI GPT-4o-mini (api.openai.com) — version as-of-execution logged; temperature=0.0; max_tokens=1024; deterministic decoding prompts and fixed seeds for any stochastic subroutines",
+    "Single base LLM used for both conditions to avoid model-family confounds"
+  ],
+  "transformation_scope": [
+    "NL→DSL translation prompt templates and post-generation deterministic parser to canonical DSL",
+    "Verifier feedback primitives (constraint assertions, counterexample traces, prune signals) encoded as JSON messages exchanged with planner",
+    "Execution trace extraction (emulator stdout/stderr and deterministic verdicts) for safety labelling"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_median_planning_latency_ratio_guarded_vs_baseline",
+    "mean_verifier_block_rate_difference",
+    "distributional differences in failure-mode proportions by task class"
+  ],
+  "sampling_plan": "Paired design. Each unique task instance is executed twice (once under Static post-hoc verifier (baseline) and once under Co-design runtime verifier feedback (guarded)), forming one paired observation. Task corpus: 2 topology classes × per-topology task instances = total tasks per scenario (see budget scenarios). Inclusion: tasks produced by the published task-generator script using provided seeds. Exclusion: tasks whose emulator setup fails deterministically (see retry policy). Randomization: task ordering randomized with fixed seed 42 for execution order only; pairing preserved. Retry policy: up to 2 automated infra-retries for transient emulator or API failures; if a retry succeeds both runs of the pair are kept; if retries exhaust and one condition completed while the other failed, pair is marked incomplete and excluded from the primary analysis (complete-pair primary). Sensitivity: secondary analysis treats incomplete pairs as failed (success=0) for guarded and baseline as described in analysis plan.",
+  "analysis_plan": "Primary analysis uses the supplied 'paired_binary_analysis_v1' contract (executor: paired_binary_analysis_v1) computing the paired_success_rate_difference_guarded_minus_baseline. Primary dataset: all complete pairs (both conditions produced final execution outcome within retry policy). Primary test: two-sided paired test (contract will use exact paired test or its internal preferred method); report mean paired difference with 95% CI. Failed-call treatment for primary: 'complete_pair_primary' (exclude incomplete pairs). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' — incomplete pairs counted as failures for robustness. Secondary analyses: paired median latency ratio (report Cohen's d or nonparametric effect size), verifier-block-rate difference, and stratified analyses by task class. Multiple comparisons: single primary confirmatory estimand; Holm-Bonferroni correction applied across secondary estimands and exploratory contrasts. All analysis code deterministic, seeds logged, result schema: paired_binary_episode_v1.",
+  "multiplicity_plan": "One pre-registered primary estimand (paired_success_rate_difference). All other outcomes (latency, block rate, failure-mode proportions, feedback-intensity ablations, task-class strata) are secondary or exploratory. Apply Holm-Bonferroni correction across the set of secondary hypotheses; exploratory analyses reported without confirmatory p-value thresholds and marked exploratory.",
+  "missingness_plan": "Primary analysis excludes incomplete pairs (complete_pair_primary). Automated retry policy as specified in sampling_plan. Sensitivity analysis reinterprets any incomplete pair as a failed success (0) in both conditions for conservative bounds. All exclusions and number of incomplete pairs reported with reasons (infra-failure, API quota, deterministic emulator error). No human adjudication is permitted; all treatments are deterministic and logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic NetOps intent→configuration corpus v1 (published generator and seeds)",
+      "Containerized emulator topology images (small spine-leaf, medium enterprise) v1"
+    ],
+    "risk_factors": [
+      "Task-corpus leakage between development and final run (pre-lock artifacts)",
+      "Public-model pretraining exposure to synthetic corpus (unknown)",
+      "Repeated-seed dependence causing nonindependent pairs",
+      "Artifact duplication across topology classes"
+    ],
+    "detection_procedures": [
+      "Deterministic artifact hashing (SHA256) of every generated task instance and emulator configuration; compare to pre-lock corpus hashes to detect pre-lock leakage.",
+      "Provenance log of generator seed and parameters for each task; detect duplicates by exact-match hashing.",
+      "Automated check for identical NL prompts and DSL outputs across pairs; flag exact duplicates."
+    ],
+    "item_flagging_rules": [
+      "If task hash appears in pre-lock development artifact list → flag contaminated and exclude from primary analysis.",
+      "If task duplicates another task within the same scenario (identical seed/parameters) → collapse into single instance and remove duplicates deterministically.",
+      "If emulator configuration hash mismatches declared topology image hash → exclude task run and mark as infra-failure."
+    ],
+    "analysis_treatment": "Contaminated items are excluded from the primary confirmatory analysis; report excluded-item counts and conduct sensitivity analysis including contaminated items and/or reweighted analyses. All contamination detections and exclusions are deterministic and logged; no human adjudication is used.",
+    "residual_uncertainty": [
+      "Residual uncertainty remains about model pretraining exposure to similar public artifacts (cannot be eliminated); sensitivity analyses reported.",
+      "Emulator ecological validity vs. production networks remains a noncritical external-validity limitation (reported separately)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_small_fast",
+      "description": "Conservative low-budget pilot: 100 paired tasks (50 per topology). Intended as quick-check replication and method debug. Recommended for debugging only; underpowered for small effects.",
+      "planned_model_calls": 600,
+      "models": [
+        "OpenAI GPT-4o-mini (hosted) — same base LLM for both conditions"
+      ],
+      "transformations": [
+        "NL→DSL prompt generation and deterministic parsing; verifier JSON feedback messages (3-level feedback intensity pre-registered)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Per-task average LLM calls estimate = 6 (3 calls per condition × 2 conditions). 100 tasks × 6 calls/task = 600 model calls. Two topology classes: 50 tasks each."
+    },
+    {
+      "scenario_id": "S2_recommended_moderate",
+      "description": "Recommended balanced scenario powered for the primary estimand: 200 paired tasks (100 per topology).",
+      "planned_model_calls": 1200,
+      "models": [
+        "OpenAI GPT-4o-mini (hosted) — same base LLM for both conditions"
+      ],
+      "transformations": [
+        "NL→DSL prompt generation and deterministic parsing; verifier JSON feedback messages (three deterministic intensity levels)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Per-task average LLM calls estimate = 6 (3 calls per condition × 2 conditions). 200 tasks × 6 calls/task = 1,200 model calls, within capability manifest maximum_planned_model_calls (10,000). Two topology classes: 100 tasks each. This scenario is recommended because power calculations (see power_plan) indicate ~80% power to detect an absolute paired difference ≈10 percentage points under the stated assumptions."
+    },
+    {
+      "scenario_id": "S3_large_precise",
+      "description": "High-powered scenario for detecting smaller effects and richer stratified analysis: 400 paired tasks (200 per topology).",
+      "planned_model_calls": 2400,
+      "models": [
+        "OpenAI GPT-4o-mini (hosted) — same base LLM for both conditions"
+      ],
+      "transformations": [
+        "Full logged NL→DSL pipelines and verifier feedback traces"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 400,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Per-task average LLM calls estimate = 6. 400 tasks × 6 = 2,400 model calls. Feasible under manifest limits but requires proportionally more wall-clock time and cost."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute paired difference = 0.10 (10 percentage points)",
+    "clustering_unit": "task (paired within-task comparison: guarded vs baseline)",
+    "calculation_method": "Normal-approximation paired-proportion power calculation with conservative variance estimate and assumed within-task outcome correlation ρ = 0.5. Power target 80%, two-sided α=0.05.",
+    "assumptions": [
+      "Baseline safe completion rate (static verifier) assumed 0.60 for planning; guarded condition expected to be higher under H1.",
+      "Within-task correlation between outcomes (guarded vs baseline) assumed ρ = 0.5; sensitivity analyses sweep ρ in {0.2,0.5,0.8}.",
+      "Per-task average LLM calls and retry policy as in sampling_plan (affects feasibility but not statistical power)."
+    ],
+    "recommended_scenario_id": "S2_recommended_moderate",
+    "minimum_detectable_effect_notes": "Under the stated assumptions (baseline p=0.60, ρ=0.5), N=200 paired tasks yields ~80% power to detect a 10 ppt absolute paired difference. Sensitivity analyses will report MDE across alternative baseline and ρ assumptions.",
+    "sensitivity_analyses": [
+      "Recompute MDE for baseline p in {0.4,0.5,0.6,0.7} and ρ in {0.2,0.5,0.8}.",
+      "Secondary power checks for stratified analyses (per-task-class N=100 under recommended scenario) reported and interpreted as lower-powered and exploratory."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "NL prompt → DSL generation (parser-normalized canonicalization)",
+      "Verifier JSON feedback → planner constraint application",
+      "Emulator execution trace → binary safe/unsafe label extraction"
+    ],
+    "semantic_equivalence_checks": [
+      "Held-out small reference set (N=40) with gold DSL produced by deterministic generator; require exact parse-equivalence for automated acceptance of transformation.",
+      "Round-trip check: DSL → (emulator-simulated validator) → synthesized counterexample → planner-resubmitted DSL should preserve semantics on held-out validation items."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated DSL if deterministic parser reports syntax error or if round-trip parse-normalization changes semantics (non-equivalent AST).",
+      "Reject run if emulator returns non-deterministic execution verdict (not reproducible across 2 deterministic replays)."
+    ],
+    "audit_sample_policy": "Automated deterministic re-execution of 5% of completed pairs (floor(0.05 × total_confirmatory_items)) chosen by fixed seed for reproducibility; logs and hashes published. No human audit is required or used.",
+    "mapping_validation": "Deterministic parser and serializer with unit tests; mapping validated by exact AST equality on reference corpus; failure logs trigger automatic exclusion of affected items.",
+    "residual_risks": [
+      "Parser/serializer bugs could bias measurement; mitigated by unit tests and automated replays but residual coding error risk remains.",
+      "Round-trip semantic-check sample is limited and may not cover all DSL complexities."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Ecological validity: the emulated topologies and synthetic task corpus may not fully represent production network heterogeneity; this is a bounded external-validity limitation.",
+    "Possible unknown overlap between public-model pretraining data and synthetic task wording (residual contamination risk not fully eliminable).",
+    "Estimator sensitivity to the assumed within-task correlation ρ used in power calculations; reported sensitivity analyses will quantify this."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7203715746",
+    "https://openalex.org/W7140954426",
+    "https://openalex.org/W4411700982",
+    "https://openalex.org/W4415066917",
+    "https://openalex.org/W7114889968"
+  ]
+}
