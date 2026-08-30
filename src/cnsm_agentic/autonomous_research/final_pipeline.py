@@ -6064,7 +6064,7 @@ class FinalAutonomousResearchPipeline:
             terminal_bibliographic_records,
         )
 
-        maximum_terminal_revision_rounds = 2
+        maximum_terminal_revision_rounds = 3
 
         for terminal_round in range(
             1,
@@ -6291,7 +6291,15 @@ class FinalAutonomousResearchPipeline:
                         "preregistered analysis was not completed by the "
                         "autonomous analysis stage, report it transparently as "
                         "unexecuted or unavailable and qualify any dependent "
-                        "claim. Preserve all supported scientific content "
+                        "claim. When this is a required peer-review revision, "
+                        "state that explicitly in Methods and/or Results, not "
+                        "only in the Conclusion, limitations, or Disclosure "
+                        "Statement. State that no confirmatory inference from "
+                        "the unexecuted analysis is reported and identify the "
+                        "scope of the analysis that was actually completed and "
+                        "archived. Do not perform a new post-lock analysis "
+                        "merely to satisfy the reviewer. Preserve all supported "
+                        "scientific content "
                         "already present. Do not change empirical results, "
                         "invent evidence, introduce new experiments, or weaken "
                         "required disclosure. Maintain the exact five-page "

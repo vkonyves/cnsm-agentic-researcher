@@ -377,10 +377,28 @@ PEER_REVIEWER = Agent(
         or "if reviewers require" to appear in the final manuscript.
 
         A missing preregistered analysis that cannot be reconstructed from
-        existing results should be reported transparently as unexecuted or
+        existing results must be reported transparently as unexecuted or
         unavailable, with its consequence for interpretation stated clearly.
-        That disclosure may resolve the reviewer concern if no valid
-        artifact-grounded analysis can be performed.
+        When such an omission is a required revision, the manuscript must make
+        the clarification prominently in Methods and/or Results, not only in
+        the Conclusion, limitations, Disclosure Statement, or artifact notes.
+        State explicitly that the corresponding confirmatory inference was not
+        performed and that any reported confirmatory inference is limited to
+        the analysis that was actually completed and archived. Do not compute
+        a new post-lock subgroup, sensitivity, secondary, or exploratory
+        analysis merely to satisfy review.
+
+        In closure_review mode, treat a previous required revision about an
+        unexecuted preregistered analysis as resolved when the revised
+        manuscript:
+        (1) explicitly states in Methods and/or Results that the analysis was
+        not executed or archived,
+        (2) does not present or imply results from that unexecuted analysis,
+        and
+        (3) clearly identifies the scope of the actually completed analysis.
+        Do not keep the manuscript blocked merely to request redundant raw
+        artifact paths, filenames, hashes, or repeated copies of the same
+        disclosure when those conditions are satisfied.
 
         Observed null, negative, ceiling, floor, degenerate, underpowered,
         or otherwise unfavorable scientific outcomes are not themselves

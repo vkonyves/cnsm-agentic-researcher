@@ -248,7 +248,7 @@ def test_format_revision_performs_only_one_revision_per_round():
 
     # Stop before the separate terminal-review/revision loop.
     end = source.index(
-        "maximum_terminal_revision_rounds = 2",
+        "maximum_terminal_revision_rounds = 3",
         start,
     )
 
@@ -275,7 +275,7 @@ def test_format_revision_preserves_best_under_limit_candidate():
         "maximum_format_revision_rounds = 16"
     )
     end = source.index(
-        "maximum_terminal_revision_rounds = 2",
+        "maximum_terminal_revision_rounds = 3",
         start,
     )
 
@@ -339,7 +339,7 @@ def test_best_format_candidate_is_rerendered_before_terminal_review():
         "            best_publication_validation is not None"
     )
     end = source.index(
-        "maximum_terminal_revision_rounds = 2",
+        "maximum_terminal_revision_rounds = 3",
         start,
     )
 
@@ -415,7 +415,7 @@ def test_terminal_peer_review_runs_after_format_revision():
         "maximum_format_revision_rounds = 16"
     )
     terminal_pos = source.index(
-        "maximum_terminal_revision_rounds = 2",
+        "maximum_terminal_revision_rounds = 3",
         format_pos,
     )
 
@@ -437,7 +437,7 @@ def test_terminal_peer_review_can_drive_bounded_revisions():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -447,7 +447,7 @@ def test_terminal_peer_review_can_drive_bounded_revisions():
     terminal_section = source[start:end]
 
     assert (
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
         in terminal_section
     )
     assert (
@@ -497,7 +497,7 @@ def test_terminal_peer_review_receives_evidence_bundle():
     source = _final_pipeline_source()
 
     terminal_start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
 
     terminal_end = source.index(
@@ -539,7 +539,7 @@ def test_terminal_revision_receives_latest_peer_review():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -571,7 +571,7 @@ def test_terminal_revision_is_rerendered_and_archived():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -607,7 +607,7 @@ def test_terminal_review_compatibility_alias_is_written():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -646,7 +646,7 @@ def test_final_publication_validation_alias_is_written():
     source = _final_pipeline_source()
 
     terminal_pos = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
 
     final_alias_pos = source.index(
@@ -751,7 +751,7 @@ def test_terminal_revision_has_bounded_page_convergence_loop():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
@@ -854,7 +854,7 @@ def test_terminal_page_convergence_occurs_after_terminal_revision_render():
     source = _final_pipeline_source()
 
     start = source.index(
-        "maximum_terminal_revision_rounds = 2"
+        "maximum_terminal_revision_rounds = 3"
     )
     end = source.index(
         "if publication_validation is None:",
