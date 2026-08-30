@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator (Mininet) fidelity may under- or over-estimate production semantic errors; threat to external validity.",
+        "Integration complexity between LLM, Batfish, and emulation can create engineering noise interpretable as scientific failure.",
+        "Dataset/vendor heterogeneity may be insufficient to support general claims.",
+        "Unclear whether sample size/topology diversity is powered for paired McNemar tests and subgroup analyses.",
+        "Latency/operational-cost trade-offs (wall-clock repair latency) may reduce operational applicability but are not fully scoped."
+      ],
+      "required_design_repairs": [
+        "Add a formal sample-size/power calculation and explicit topology/vendor sampling plan pre-registered.",
+        "Specify emulator configuration details and run sensitivity analyses vs higher-fidelity images or vendor templates; document known emulator limitations.",
+        "Predefine exact integration failure-handling and logging procedures; archive raw artifacts and hashes.",
+        "Predefine per-intent inclusion/exclusion and handling of timeouts; freeze retry policy.",
+        "Add explicit criteria for when emulation-observed results will be considered decisive vs verifier-only signals."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c2",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Composite metric depends on access to model-specific confidence signals that may not be generally available.",
+        "Predefined weighting scheme risks subjective tuning; post-hoc adjustment would invalidate claims if not strictly preregistered.",
+        "Emulation ground truth is imperfect; metric may overfit emulator artifacts.",
+        "Operational thresholds and decision utility require clearer operationalization for NetOps use."
+      ],
+      "required_design_repairs": [
+        "Preregister exact weighting, thresholds, and ablation plan; lock weights before observing outcomes.",
+        "Provide fallback observable proxies for LLM confidence if model internals are unavailable (e.g., log-prob surrogates or ensemble variance).",
+        "Include an external validation split or cross-benchmark validation to test metric generalization beyond a single emulation corpus.",
+        "Specify how calibration and decision-curve thresholds map to operator actions and costs; include Brier-score-based calibration checks."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Adversarial construction and poisoning must be tightly contained; risk of harmful patterns spreading if not properly managed.",
+        "Results will be sensitive to the retrieval architecture; limited generalizability if only one retrieval setup is tested.",
+        "Ethical oversight and documentation of safeguards are currently underspecified.",
+        "Quantifying realistic adversary strength and mapping to real-world threat models is nontrivial."
+      ],
+      "required_design_repairs": [
+        "Explicitly document and preregister ethical safeguards, containment, and non-distribution rules for adversarial payloads.",
+        "Specify and (if possible) vary retrieval architectures (vector DB, k, reranker) to measure sensitivity; preregister which variants will be reported.",
+        "Define and preregister precise adversarial payload templates, poisoning strengths, and seeds; include a justification linking strengths to plausible threat models.",
+        "Include safe-publication policy: provide sanitized examples only and archive raw adversarial artifacts under restricted access if needed."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Dynamic emulation of routing/convergence behavior may require complex vendor images or routing stacks, increasing engineering burden and reproducibility risk.",
+        "Batfish scope may not cover dynamic run-time behaviors leading to hard-to-interpret disagreement cases.",
+        "Potential confounding from mismatched timeouts, execution ordering, or environment differences between verifier and emulator runs.",
+        "Task taxonomy and stratification (ACL vs routing vs NAT) must be clearly operationalized."
+      ],
+      "required_design_repairs": [
+        "Preregister exact emulation stack (which routing daemons/images), topology generators, and task taxonomy with justification.",
+        "Harmonize timeouts, execution ordering, and input parsing between verifier and emulator; preregister these operational parameters.",
+        "Plan and document qualitative analysis of representative false-negative cases, including root-cause attribution steps.",
+        "Provide sensitivity analyses showing how the verifier false-negative rate varies with topology size and task type; freeze stratification plan pre-execution."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

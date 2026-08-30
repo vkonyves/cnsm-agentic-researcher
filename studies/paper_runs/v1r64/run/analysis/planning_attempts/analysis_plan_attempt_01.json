@@ -1,0 +1,34 @@
+{
+  "study_id": "CNSM2026_GVR_V1_001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis: compute per-intent paired semantic-error booleans (baseline_outcome, guarded_outcome) from execution/raw_results.jsonl; perform two-sided McNemar test on paired binary outcomes (alpha=0.05) using paired_binary_analysis_v1; report primary estimand as absolute difference (guarded minus baseline) with two-sided McNemar p-value and 95% bootstrap CI for the absolute paired success-rate difference. Follow preregistered inclusion/exclusion and missingness rules and use failed_call_treatment = complete_pair_primary for the primary estimate.",
+  "secondary_analyses": [
+    "Per-intent mean iterations_to_pass (capped at 3) summarized by topology_cluster (secondary estimand).",
+    "Syntactic-executability rate difference (guarded vs baseline) computed from static syntactic checks in raw_results.jsonl.",
+    "Iteration-wise cumulative pass probability (Kaplan–Meier-like cumulative pass curve over iterations 0..3) computed from iterations_to_pass field.",
+    "Logistic regression modeling pass ~ iterations_to_pass + topology_cluster (secondary/explanatory), using deterministic covariates in result records."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat missing/failed iterative results as failures) applied to primary estimand.",
+    "Contamination-flag sensitivity: repeat primary analysis excluding intents flagged by n-gram-overlap >80% and report effect-size differences.",
+    "Per-cluster robustness: recompute paired difference within each topology cluster and report BH-FDR (q<=0.10) and Bonferroni-adjusted p-values for the three preplanned clusters."
+  ],
+  "uncertainty_quantification": "Primary two-sided McNemar p-value plus 95% nonparametric bootstrap confidence interval for absolute paired success-rate difference (per preregistration). Secondary models report standard errors, 95% CIs, and BH-FDR adjusted p-values where specified. All CIs and p-values computed deterministically from execution/raw_results.jsonl.",
+  "multiplicity_implementation": "Confirmatory family: single primary hypothesis (no multiplicity correction, alpha=0.05). Preplanned subgroup comparisons (3 topology clusters) reported with Benjamini–Hochberg FDR (q<=0.10) and Bonferroni-adjusted p-values for interpretive caution. Post-hoc tests labeled and not used to support confirmatory claims.",
+  "contamination_analysis": "Follow preregistered contamination_plan: detect exact training-data overlap via SHA-256 hash comparisons (exact-hash matches excluded from confirmatory N); flag high-overlap intents via automated n-gram overlap (>80%) and report sensitivity analyses excluding/isolating these; enforce per-run prompt-context reset and single-turn prompts; log and archive all hash manifests and flags in execution artifacts. Report residual uncertainty (undetected paraphrase overlap) as limitation.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Overall paired outcome contingency (baseline vs guarded): counts of paired outcomes, semantic-error rates, absolute difference, McNemar p-value, 95% bootstrap CI (computed from execution/raw_results.jsonl).",
+    "Table 2 — Per-topology-cluster paired contingency tables and rates (clusters: 2-device, 3–4-device, 5–8-device) with cluster-specific paired differences and adjusted p-values.",
+    "Table 3 — Distribution of iterations_to_pass (0..3) overall and by topology_cluster; mean and median iterations_to_pass.",
+    "Table 4 — Failure-code summary: counts and deterministic failure_codes from result records (LLM timeouts, verifier/emulator infrastructure codes, parsing failures) with artifact hashes.",
+    "Table 5 — Syntactic-executability rates (baseline vs guarded) and difference with CIs."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Cumulative pass-by-iteration curve (Kaplan–Meier-like) showing proportion passing Batfish verification after 0,1,2,3 iterations computed from iterations_to_pass field in raw_results.jsonl.",
+    "Figure 2 — Forest plot of paired absolute success-rate differences (guarded minus baseline) with 95% bootstrap CIs overall and by topology_cluster, produced from paired analysis outputs.",
+    "Figure 3 — Workflow execution flowchart with deterministic counts at each stage (tasks attempted, baseline passes, guarded passes, repair attempts, infrastructure failures) derived from execution_log.jsonl and raw_results.jsonl.",
+    "Figure 4 — Scatter / jitter plot of iterations_to_pass vs topology size cluster with marginal histograms (data from iterations_to_pass and topology_cluster)."
+  ]
+}

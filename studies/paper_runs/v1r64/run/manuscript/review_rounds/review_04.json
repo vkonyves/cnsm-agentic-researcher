@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, fully archived preregistered confirmatory run that transparently demonstrates a ceiling effect produced by a preregistered shared_initial_generation design. The manuscript and artifact bundle provide strong reproducibility evidence (raw responses, validator traces, execution manifest). The principal scientific result (no measurable marginal verifier benefit) is supported by the archived data, but the study design choice made the preregistered primary test uninformative for detecting marginal repair effects; the manuscript should more explicitly acknowledge and clarify that limitation and add a few targeted clarifications drawn from the archived artifacts.",
+  "novelty_score": 3,
+  "technical_depth_score": 4,
+  "soundness_score": 3,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Preregistered shared_initial_generation semantics produced identical baseline vs guarded initial candidates for all confirmatory intents, producing a ceiling (n10=n01=0) that renders the preregistered McNemar confirmatory test uninformative for detecting marginal repair effects; this limitation must be stated more prominently and unambiguously as making the primary hypothesis effectively untestable in the confirmatory cohort.",
+    "The manuscript does not explicitly report the empirically archived counts that demonstrate the ceiling (e.g., number of repair attempts applied = 0/200; fraction of tasks where shared_initial_candidate_sha256 equals baseline/guarded response). Those factual summaries are available in the artifact bundle and must be included in Results (or a compact table).",
+    "The statistical reporting uses McNemar and bootstrap CI correctly but does not explicitly state that these inferential outputs are vacuous under zero discordant pairs; the paper must explicitly label the primary test as uninformative under the observed contingency and reframe confirmatory language accordingly."
+  ],
+  "required_revisions": [
+    "Add an explicit, short factual table or paragraph in Results showing: repair_attempts_by_condition (repair_attempts=0 for confirmatory N), counts of shared_initial_candidate identity (e.g., number and fraction of confirmatory tasks where shared_initial_candidate_sha256 == baseline_raw_response_sha256 == guarded_raw_response_sha256), and reference to the artifact paths/manifests that substantiate those numbers (execution/scoring/ and execution/responses/ entries). This can be filled from the supplied artifacts.",
+    "Prominently and unambiguously revise Abstract and Conclusion to state that, because the preregistered shared_initial_generation design produced identical initial candidates for baseline and guarded conditions in the confirmatory cohort, the preregistered primary hypothesis test (McNemar paired test) was not informative (untestable) for marginal repair detection. Replace any wording that could be read as a substantive negative result about verifier utility with phrasing that the confirmatory test was constrained and uninformative as explained.",
+    "Add an explicit paragraph in the Methods/Statistical-Interpretation subsection that: (a) explains why McNemar is uninformative with zero discordant pairs, (b) references the exact observed contingency (n11=200, n10=n01=n00=0), and (c) links this to the preregistered shared_initial_generation choice and its detectability tradeoff. Cite the archived paired_contingency_table.csv and analysis artifacts (analysis/*) to support these statements."
+  ],
+  "optional_revisions": [
+    "Include a concise numeric summary (or small figure) of pipeline-stage counts (baseline passes, guarded passes, repair attempts invoked, infrastructure failures) even if degenerate—Figure 3 is indicated but ensure the counts appear in the main text or a compact table for reader convenience.",
+    "Add one or two short exemplar validator_trace snippets (canonicalized and sanitized if needed) as inline examples or appendix-like boxed text to illustrate how validation_after.valid and violation_count map to semantic outcomes (artifact hashes already supplied).",
+    "Explicitly state the original preregistered power/MDE assumptions and add a short sentence estimating that, under the observed ceiling, the realized confirmatory run cannot inform the preregistered target effect; optionally point readers to the preregistration manifest for the original power calculation."
+  ],
+  "accept_for_finalisation": false
+}

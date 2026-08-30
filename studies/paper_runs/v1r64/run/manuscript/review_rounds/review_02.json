@@ -1,0 +1,27 @@
+{
+  "summary": "Careful, fully archived preregistered confirmatory study finding a degenerate (ceiling) result: baseline single‑pass gpt‑5‑mini outputs passed the verifier for all N=200 confirmatory multi‑device intents so the bounded verifier‑guided repair loop produced no observable marginal benefit. Execution and analysis artifacts are comprehensive and consistent. The manuscript is overall sound and reproducible, but requires focused revisions to meet normal scientific‑paper standards and to clarify design consequences that limit interpretability.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Manuscript currently reads as provenance/artifact inventory rather than concise, literature‑grounded scientific prose. Several sections embed heavy metadata and archival identifiers (OpenAlex tokens, artifact paths, SHA hashes) inside the narrative; this reduces readability and violates the conference expectation for scholarly exposition.",
+    "The experimental-design choice shared_initial_generation (independent_condition_generation=false) makes baseline and guarded conditions identical unless a repair is applied. This design decision materially reduces sensitivity to detect a marginal improvement from the verifier‑guided repair loop and must be explicitly justified and its implications discussed in the manuscript (detectability/interpretation limits).",
+    "In‑text citations use metadata tokens (e.g., WXXXXX IDs) rather than standard bibliographic citations. Replace these tokens with the verified reference list (DOIs/arXiv) and ensure each cited source supports the associated claim in narrative form.",
+    "The binary decision rule labeled deterministic_netops_validator_v5 / “full_intent_constraint_validation” is not described formally enough in the main text. The manuscript must concisely state the pass/fail criterion (which checks were applied, whether Batfish or emulator reachability checks were used to derive 'semantic error', and any normalization/allowances) so readers can interpret the verifier outcome.",
+    "The preregistration mentions an exploratory reserve of 50 intents but the manuscript does not clearly state whether those exploratory intents were executed or summarized; the methods/results must clearly state the executed sample and give a short summary or explain why the exploratory reserve was not used."
+  ],
+  "required_revisions": [
+    "Rewrite the manuscript to replace provenance‑heavy narrative with compact, literature‑grounded scholarly prose (move detailed artifact paths/hashes to the archived bundle and remove or compress them in the main text). Use normal citation markers tied to the verified BibTeX/DOI entries provided in the artifact bundle.",
+    "Add a concise, explicit justification and interpretation of the shared_initial_generation design choice. Explain how this choice affects the study’s ability to detect marginal benefit from the guarded pipeline and state this as a principal limitation in the Discussion/Threats to Validity. (All required evidence for this clarification is present in the execution manifest and preregistration artifacts.)",
+    "Provide a short formal description (one paragraph or a compact subsection) of the deterministic_netops_validator_v5 scoring rule and the exact verifier/emulation checks that define the preregistered semantic‑error binary outcome (e.g., reachability/policy checks from Batfish, normalized command equivalence, allowed deviations). Cite and/or quote the archived validator spec from the artifact bundle.",
+    "Replace all OpenAlex/metadata tokens in the Related Work and elsewhere with standard bibliographic citations drawn from the verified bibliography included in the artifact bundle; ensure each citation is used to support the associated claim rather than serving as provenance bookkeeping.",
+    "Clarify the status of the exploratory reserve: explicitly state whether the 50 exploratory intents were executed; if not executed, report that the exploratory cohort was not run and explain why (referencing execution_manifest). If exploratory runs exist in the artifact bundle, include a short summary (counts and representative failure modes) in Results or an online appendix reference."
+  ],
+  "optional_revisions": [
+    "If space permits, add a short table (or a compressed paragraph) summarizing a small sample of archived counterexamples from the exploratory reserve (if available) to illustrate the types of failures that would motivate verifier‑guided repair.",
+    "Add a compact paragraph in Discussion outlining how alternative design choices (independent per‑condition generation; multiple independent generations per intent; additional repair iterations) would change detectability and how future preregistrations could address this.",
+    "Consider moving a single short machine‑readable evidence‑to‑claim table (1/2 column) into the manuscript (compressed) to better connect claims to archived artifact identifiers for reproducibility; otherwise keep it only in the artifact bundle to satisfy the paper’s readability requirement."
+  ],
+  "accept_for_finalisation": false
+}

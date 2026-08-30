@@ -1,0 +1,82 @@
+{
+  "study_id": "CNSM2026_GVR_V1_001",
+  "title": "Effectiveness of Iterative Verifier-in-the-Loop Generate–Validate–Repair for NL→Config in Multi-Device Emulation",
+  "research_question": "To what extent does an iterative generate–validate–repair loop using a formal network verifier (Batfish) reduce critical semantic errors in LLM-generated multi-device network configurations when tested in an emulation-grounded closed-loop evaluation?",
+  "confirmatory_hypotheses": [
+    "An iterative generate–validate–repair loop with Batfish will produce a statistically significant reduction in semantic configuration errors compared to a single-pass LLM output (paired, per-intent McNemar test, alpha=0.05).",
+    "A single additional repair iteration yields diminishing returns beyond two verifier-guided repair cycles for the majority of intents in the testset (predefined cumulative pass-by-iteration curve)."
+  ],
+  "exploratory_questions": [
+    "How does pass probability vary with topology size (2 devices, 3–4 devices, 5–8 devices)?",
+    "What are representative root causes for verifier–emulator discordant cases?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4387634435",
+    "doi:10.2139/ssrn.6947162"
+  ],
+  "benchmark_scope": [
+    "Public NL→config intent corpus derived from referenced public corpora (see evidence_record_ids); intents restricted to multi-device changes (>=2 devices).",
+    "Emulation using Mininet-style containerized networks with open-source routing stacks (FRRouting) and VyOS images only (no proprietary vendor images).",
+    "Verifier: Batfish (open-source)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline — absolute difference in per-intent semantic-error rate (semantic-error = verifier-detected OR emulation-observed reachability/policy violation) between baseline single-pass LLM output and the iterative generate–validate–repair pipeline, computed by the registered executor paired_binary_analysis_v1.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-intent mean number of repair iterations until Batfish pass (capped at 3).",
+    "Syntactic-executability rate difference (iterative vs single-pass).",
+    "Iteration-wise cumulative pass probability (Kaplan–Meier-like curve over 0..3 iterations)."
+  ],
+  "sampling_plan": "Confirmatory sample: N=200 distinct multi-device intents (each intent is a paired observational unit). Intents stratified into 3 topology clusters: (A) 2 devices: 80 intents; (B) 3–4 devices: 80 intents; (C) 5–8 devices: 40 intents. Reserve 50 intents for exploratory/discovery (not included in primary paired test). Inclusion: publicly available NL→config intents requiring configuration changes on >=2 devices, unique intent text, no duplicate intent hashes. Exclusion: intents that reference proprietary vendor features not reproducible on FRR/VyOS (deterministic automated filter). Random seed for intent selection and stratified assignment: 42. Each confirmatory intent yields a paired outcome: baseline single-pass vs iterative pipeline.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction of 15 percentage points (e.g., baseline semantic-error rate 30% → iterative 15%), two-sided alpha=0.05, power=0.80. Calculation method: approximate paired McNemar power calculation under conservative discordant-pair assumptions; N=200 confirmatory intents chosen to achieve ~0.80 power under these assumptions. Assumptions: baseline semantic-error ~30%; iterative reduces to ~15%; discordant pairs drive McNemar test signal. Sensitivity analyses: recompute power/CIs under observed baseline rates (post hoc) and treat missing iterative results as failures per missingness_plan.",
+  "exclusion_rules": [
+    "Exclude intents that reference proprietary vendor features not reproducible on FRR/VyOS (automated deterministic filter).",
+    "Exclude exact-hash duplicates of public corpus entries (detected via SHA-256 exact match) from confirmatory sample.",
+    "Exclude intents failing automated parsing/normalization in preprocessing (deterministic rule)."
+  ],
+  "missingness_plan": "LLM call timeout = 60s; Batfish verification timeout = 120s; emulation run timeout = 300s per intent. Single LLM-call timeout retried once immediately; second timeout yields deterministic 'call-failure' tag. If iterative pipeline fails to produce a syntactically executable config within the 3-iteration cap or encounters repeated infrastructure fatal errors (Docker container crash, corrupted image), the pair is handled per the analysis_plan failed-call-treatment rules. All failures logged with deterministic error codes and archived with hashes. No human adjudication; technical failures treated as infrastructure events.",
+  "analysis_plan": "Primary executor: paired_binary_analysis_v1. Primary test: two-sided McNemar test (alpha=0.05) on paired binary semantic-error outcomes (baseline vs guarded per intent). Primary estimand reported as absolute reduction with 95% bootstrap CI. Failed-call treatment (pre-registered): primary analysis uses 'complete_pair_primary' (exclude pairs where both baseline and iterative are missing due to infrastructure fatal error); sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing iterative result as failure). Secondary analyses: logistic regression of pass ~ iteration_count + topology_cluster; iteration-wise cumulative pass curve; subgroup analyses by topology cluster. Exploratory p-values reported with BH-FDR (q<=0.10) and Bonferroni-adjusted summaries for the planned 3 subgroup comparisons.",
+  "multiplicity_plan": "Primary confirmatory test: single hypothesis, alpha=0.05 (no correction). Preplanned exploratory subgroup comparisons (3 clusters) reported with Benjamini–Hochberg FDR (q<=0.10) and Bonferroni-adjusted p-values for interpretive caution. Post-hoc tests labeled as post-hoc and not used to support confirmatory claims.",
+  "contamination_plan": "Risk factors: intent/config templates present verbatim in LLM training data; duplicate/near-duplicate intents between pools; cross-contamination via cached prompts or model-context bleed. Detection: deterministic SHA-256 hash comparison of all intent texts vs scraped public dataset hashes; automated n-gram overlap detector flagging >80% token overlap; per-run prompt-context reset and single-turn prompts. Flagging rules: exact-hash matches → exclude from confirmatory N; n-gram overlap >80% → flag for sensitivity analysis (remain in primary sample but reported separately); evidence of context reuse → discard and re-run with fresh context, repeat occurrences deterministically exclude affected intents. Analysis treatment: exact-hash matches excluded from confirmatory N; flagged high-overlap intents reported in predefined sensitivity analyses. All flags, hashing manifests, and justifications archived. Residual uncertainty: undetected paraphrase overlaps and undisclosed private-corpus overlap.",
+  "stopping_rule": "Execute the full preregistered confirmatory N (200 pairs) plus exploratory reserve (50) unless a sustained infrastructure fatal error (e.g., host-node Docker image corruption) prevents further safe execution; in that case, stop and report affected pairs and follow the missingness_plan/analysis_plan treatment.",
+  "planned_outputs": [
+    "IEEE-format short paper (<=5 pages) including Disclosure Statement",
+    "Machine-readable preregistration (this document)",
+    "Execution manifest and archived raw model/verifier/emulator outputs (hashed)",
+    "Code and container images for transformations and pipeline (public repo)",
+    "Dataset splits (confirmatory and exploratory) with hash manifests",
+    "Statistical-results file and analysis code",
+    "Failure-analysis record and evidence-to-claim table",
+    "NotebookLM presentation brief (machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

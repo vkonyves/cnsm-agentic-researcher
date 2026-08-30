@@ -1,0 +1,123 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1",
+      "title": "Effectiveness of Iterative Verifier-in-the-Loop Generate–Validate–Repair for NL→Config in Multi-Device Emulation",
+      "research_question": "To what extent does an iterative generate–validate–repair loop using a formal network verifier (Batfish) reduce critical semantic errors in LLM-generated multi-device network configurations when tested in an emulation-grounded closed-loop evaluation?",
+      "hypotheses": [
+        "An iterative generate–validate–repair loop with Batfish will produce a statistically significant reduction in semantic configuration errors compared to a single-pass LLM output.",
+        "A single additional repair iteration yields diminishing returns beyond two verifier-guided repair cycles for the majority of intents in the testset."
+      ],
+      "proposed_design": "Preregistered randomized paired evaluation using a public NL→config task corpus augmented with multi-device topologies (vendor-heterogeneous templates). For each NL intent, obtain (A) single-pass LLM-generated configs and (B) iterative generate–validate–repair outputs with up to three repair iterations calling Batfish after each generation. Execute configs in an emulation environment (Mininet + network namespaces / virtual routers) instrumented to run device-appropriate syntax execution and Batfish semantic checks. Inclusion: intents that require multi-device changes (>=2 devices). Metrics: semantic-error rate (Batfish-detected reachability/policy violations observed in emulation), syntactic executability rate, number of repair iterations until pass, wall-clock repair latency. Use fixed LLM prompt templates, fixed random seeds, and capped model-call budget per intent.",
+      "expected_data": "Paired per-intent records: single-pass semantic-error (binary), iterative semantic-error (binary) after each iteration, counts of repair iterations, syntactic-executability flags, Batfish counterexamples, emulation-observed forwarding/policy violations, per-intent model-call counts and latency.",
+      "primary_outcome": "Absolute and relative reduction in semantic-error rate (Batfish-detected and emulation-observed) for iterative generate–validate–repair vs single-pass, reported with 95% confidence intervals.",
+      "analysis_outline": "Predefine primary test as paired comparison of binary semantic-error outcomes (McNemar's test) across intents. Secondary analyses: logistic regression of pass probability vs number of iterations, Kaplan–Meier-like curve of cumulative pass-by-iteration, bootstrap CIs for absolute reduction, per-intent subgroup analyses by topology size and vendor-template type (predefined). Report effect sizes, exact p-values, and multiple-comparison-adjusted exploratory checks. All raw logs and Batfish counterexamples archived for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4387634435",
+        "doi:10.2139/ssrn.6947162"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4387634435"
+      ],
+      "risks": [
+        "Emulator (Mininet) fidelity may not expose all production device quirks, causing under- or overestimation of semantic errors.",
+        "Integration complexity between LLM, Batfish, and emulation may induce engineering failures mistaken for scientific failures; strict logging required.",
+        "Dataset templates may not represent full vendor heterogeneity; results may not generalize to proprietary device behaviors."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "c2",
+      "title": "Design and Validation of a Trace-Centered Safety Metric for Agentic NetOps",
+      "research_question": "Can a process-centered, trace-based safety metric that aggregates LLM traces, tool-call traces, verifier counterexamples, and rollback semantics predict operationally meaningful safety outcomes better than final-config correctness alone?",
+      "hypotheses": [
+        "A composite trace-centered safety score computed from generation confidence, number/type of verifier counterexamples, and rollback/repair operations will correlate more strongly with emulation-observed safety failures than a simple final-config correctness label.",
+        "The trace-centered metric will improve discrimination (AUROC) between safe and unsafe outputs relative to final correctness alone by a practically meaningful margin (>0.10 AUROC)."
+      ],
+      "proposed_design": "Define a reproducible composite metric combining (i) LLM self-reported confidence/clarity signals; (ii) number and severity of Batfish counterexamples; (iii) number of repair iterations and rejections; and (iv) presence/absence of prescribed rollback steps. Apply this metric to a corpus of NL→config attempts from both single-pass and iterative-verifier pipelines (can reuse runs from candidate c1 or freshly generated matched runs). Use emulation-observed safety violations as the operational ground truth. Predefine weighting scheme and thresholds; evaluate metric predictive performance (AUROC, calibration) vs final-config correctness. Perform ablation on metric components.",
+      "expected_data": "Per-run trace records (confidence scores, verifier counterexample counts and severities, repair counts, rollback flags) paired with emulation ground-truth (safe/unsafe), enabling ROC curves, calibration plots, and ablation tables.",
+      "primary_outcome": "Predictive performance (AUROC) of the composite trace-centered safety metric for emulation-observed unsafe outcomes; reported with 95% bootstrap CIs and comparison to baseline (final-config correctness) AUROC.",
+      "analysis_outline": "Compute AUROC and AUPRC for the composite metric and baseline; bootstrap 95% CIs (n=10k resamples). Use DeLong test for AUROC comparison. Report calibration (Brier score) and decision-curve analysis for operational thresholds. Conduct predefined ablations removing one component at a time and report delta-AUROC. Provide contingency-table thresholds for actionable operator alerts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7166901903"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7204209332"
+      ],
+      "risks": [
+        "Metric weights and thresholds may be subjective; pre-registration of weighting required to avoid post-hoc tuning.",
+        "Operational ground-truth (emulation) is an imperfect proxy for production safety; metric may overfit emulation artifacts.",
+        "Collecting reliable LLM-internal confidence signals may require model-specific access not universally available."
+      ],
+      "estimated_model_calls": 500
+    },
+    {
+      "candidate_id": "c3",
+      "title": "Adversarial Retrieval/Prompt-Injection Effects on Agentic NetOps and Verifier-Mitigations",
+      "research_question": "How much do adversarial retrieval or prompt-injection attacks increase the rate of unsafe or policy-violating LLM-generated network changes, and to what extent does a verifier-in-the-loop mitigate these adversarial effects?",
+      "hypotheses": [
+        "Adversarially poisoned retrieval context will significantly increase the incidence of unsafe network-change outputs compared to clean retrieval context.",
+        "A verifier-in-the-loop generate–validate–repair pipeline will reduce but not fully eliminate adversarially induced unsafe outputs compared to no-verifier baselines."
+      ],
+      "proposed_design": "Controlled simulated adversary experiments: for a fixed set of NL intents, create two retrieval-context conditions (clean vs adversarially poisoned snippets embedding malicious directives). For each, run three pipeline variants: (1) single-pass LLM, (2) LLM + verifier reporting (no repair), (3) LLM + iterative verifier repair (up to 3 iterations). Detect unsafe outputs via Batfish and emulation. Predefine adversarial payload patterns, poisoning strengths (fraction of retrieved snippets poisoned), and random seeds. Ethical safeguards: all experiments confined to emulation and synthetic corpora; no live networks. Measure unsafe-output rate, time-to-detect, and repair-success rate under attack.",
+      "expected_data": "Per-intent, per-condition records: presence of adversarial injection, pipeline variant, Batfish-detected violations, emulation-observed unsafe behavior, repair iterations and outcomes, model-call counts, and timestamps. Aggregate attack success rate and mitigation efficacy.",
+      "primary_outcome": "Increase in unsafe-output rate due to adversarial retrieval (absolute difference) and residual unsafe-output rate after verifier-mitigation, with 95% CIs.",
+      "analysis_outline": "Compare unsafe-output rates across conditions using chi-squared or Fisher's exact tests for binary outcomes; model effects using logistic regression with interaction terms (adversarial*mitigation). Estimate mitigation efficacy as relative risk reduction with bootstrap CIs. Pre-specified subgroup analyses by poisoning strength. Report raw confusion matrices and sample adversarial examples in appendices.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7023538",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7204209332"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4386385177"
+      ],
+      "risks": [
+        "Adversarial-context construction must be strictly confined to simulated/emulated data to avoid harmful real-world propagation.",
+        "Effect sizes may depend on retrieval architecture specifics; generalization to other retrieval systems may be limited.",
+        "Ethical review and safeguards are required to ensure responsible handling of adversarial patterns despite experiments being emulation-only."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c4",
+      "title": "Emulator vs Verifier Detection Gap: Quantifying Failures Missed by Static Verification",
+      "research_question": "What proportion of LLM-generated semantic or operational failures observed in network emulation are missed by static/verifier-only checks (e.g., Batfish), and how does reliance on verifier-only evaluation bias assessment of agentic NetOps reliability?",
+      "hypotheses": [
+        "A nontrivial fraction of emulation-observed unsafe behaviors will not be flagged by Batfish-only static verification, leading to underestimation of real-world failure rates when relying solely on verifiers.",
+        "The verifier-only detection gap will be larger for topologies that exercise dynamic forwarding behaviors (e.g., routing convergence, BGP-like policies) than for simple ACL/reachability tasks."
+      ],
+      "proposed_design": "Collect a diverse set of NL→config outputs and run both Batfish static analyses and dynamic emulation tests (Mininet or containerized virtual routers where feasible). Tag each run with whether Batfish reported violations and whether emulation observed unsafe behavior. Stratify by task type (ACL/policy, routing, NAT). Calculate proportion of emulation failures not detected by Batfish. Predefine topologies and task taxonomy; use paired analyses per-run.",
+      "expected_data": "Paired detection labels per run: Batfish-violation (yes/no), emulation-unsafe (yes/no), task type, topology size/vendor template, and detailed event logs showing divergence cases and counterexamples.",
+      "primary_outcome": "Proportion and 95% CI of emulation-observed unsafe runs that were not detected by Batfish (false-negative rate of verifier-only evaluation), reported overall and by task type.",
+      "analysis_outline": "Use paired binary comparison (McNemar's test) to assess disagreement between Batfish and emulation. Compute Cohen's kappa for agreement and stratified false-negative rates with Wilson CIs. Explore task-type interactions via logistic regression predicting emulation-unsafe given Batfish result and task covariates. Archive representative counterexample cases for qualitative analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4309729366",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7204209332"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4387634435"
+      ],
+      "risks": [
+        "Emulation environments may themselves miss certain production dynamic behaviors, complicating interpretation of verifier false negatives.",
+        "Setting up dynamic emulation for routing protocols (BGP/OSPF) may require vendor-specific images or complex containers, increasing engineering burden.",
+        "Differences in model-call budgets and timeouts between verifier and emulator runs can confound direct comparisons; strict preregistration needed."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

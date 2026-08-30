@@ -1,0 +1,197 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models (LLMs) are actively being applied to NetOps tasks (intent translation, config synthesis, diagnosis, remediation) and multiple recent papers/frameworks describe agentic or tool-augmented architectures for NetOps/AIOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "Survey / Architectural proposals",
+      "confidence": 0.9,
+      "limitations": [
+        "Many sources are recent reviews or proposals rather than large-scale production deployments.",
+        "Heterogeneity in definitions of 'agentic' systems across papers."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Closed-loop, emulation-grounded benchmarks and executable testbeds have been proposed to evaluate LLM agents on network-configuration tasks; these studies report that failures include but are not limited to command syntax errors (e.g., planning, specification adherence, execution correctness).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7166901903"
+      ],
+      "evidence_type": "Benchmark / empirical evaluation",
+      "confidence": 0.88,
+      "limitations": [
+        "Benchmarks vary in scope and realism; some task templates are synthetic or emulation-based.",
+        "Reported agent sets and model families differ across studies, limiting direct comparability."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Network verification and analysis toolchains (e.g., Batfish, Header Space Analysis, NetPlumber, Timepiece, ACORN, SMT-based engines) provide established formal validators that can detect reachability, policy compliance, and many semantic configuration errors and are commonly suggested as validators in LLM-driven pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7147289191",
+        "https://openalex.org/W4364387774",
+        "https://openalex.org/W4281650352",
+        "https://openalex.org/W3127353117"
+      ],
+      "evidence_type": "Tool / formal-method literature",
+      "confidence": 0.92,
+      "limitations": [
+        "Verifiers differ in expressiveness, scalability, and the classes of properties they can check.",
+        "Integration cost and fidelity to real device behavior vary by tool and deployment."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Hallucination and unverifiable or unsafe outputs from LLMs are recognized, studied failure modes; ensemble detectors, verifier-grounded workflows, and abductive/self-correction approaches have been proposed to reduce such failures.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7200222",
+        "doi:10.20944/preprints202511.1688.v1",
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "Method / detection proposals and reviews",
+      "confidence": 0.9,
+      "limitations": [
+        "Proposed mitigations show promise in limited benchmarks or domains; general effectiveness in NetOps remains to be validated.",
+        "Many approaches are experimental or preprints with limited reproduction records."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Existing Ops/AIOps and telecom benchmarks (OpsEval, TeleCom-Bench, LogEval, TeleCom-Bench) reveal a large gap between linguistic/interface tasks (intent recognition, entity extraction) and procedural/execution tasks (configuration execution, remediation), often termed an 'execution wall'.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7161914824",
+        "https://openalex.org/W4400377739"
+      ],
+      "evidence_type": "Benchmark studies / empirical evaluations",
+      "confidence": 0.87,
+      "limitations": [
+        "Benchmarks emphasize different task decompositions; quantitative gaps vary by dataset and model set.",
+        "Some benchmarks are multi-domain (telecom, microservices) and may not map exactly to device-vendor configuration tasks."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent can verifier-in-the-loop and iterative generate–validate–repair loops (using tools like Batfish or SMT verifiers) eliminate critical semantic errors in LLM-generated network configurations when evaluated in realistic multi-device emulations or production-like testbeds?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "Method proposals / benchmark motivating evidence",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing verifier-grounded studies show improved syntactic/executable correctness but stop short of definitive claims about full semantic safety in production scenarios.",
+        "Empirical evaluations of end-to-end closed-loop remediation remain limited in scale and diversity."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How representative are current emulation-based benchmarks and synthetic task templates of real-world operator ambiguity, multi-vendor device quirks, and runbook/human-approval workflows in production NetOps?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W3127353117"
+      ],
+      "evidence_type": "Benchmark analyses / surveys",
+      "confidence": 0.7,
+      "limitations": [
+        "Some benchmarks explicitly aim to increase realism, but systematic validation against operator workflows and large vendor corpora is incomplete.",
+        "Simulator fidelity (e.g., Mininet) has known limitations described in the literature."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What are reliable, standardized metrics and scoring methodologies for evaluating safety/reliability of agentic NetOps systems that combine language-model traces, tool calls, verification outcomes, and canary/rollback semantics?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7166901903",
+        "doi:10.2139/ssrn.6869219"
+      ],
+      "evidence_type": "Framework proposals / review",
+      "confidence": 0.6,
+      "limitations": [
+        "Multiple proposals exist but no widely adopted standard yet; proposed frameworks remain at conceptual or early-benchmark stages.",
+        "Trade-offs between operational utility and safety metrics are still being explored."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Benchmarks and evaluations frequently focus on final-answer correctness; there is a gap in standardized, process-centered evaluation that scores intermediate traces (tool calls, verification counterexamples, rollback correctness) and evidence grounding for agentic NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Benchmark findings / survey critiques",
+      "confidence": 0.85,
+      "limitations": [
+        "Some recent works explicitly call for trace-centered evaluation, but community consensus and tooling are immature.",
+        "Creating such benchmarks is resource-intensive (emulation, multi-vendor artifacts)."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Public, large-scale, vendor-diverse datasets mapping natural-language intents to verified, executable, and provenance-tracked device configurations remain limited despite some corpus efforts, constraining reproducible NL→config research.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412979299",
+        "https://openalex.org/W4412565304",
+        "https://openalex.org/W4387634435"
+      ],
+      "evidence_type": "Dataset / corpus reports and surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "NEAT and other corpus efforts exist but may not cover full vendor heterogeneity or include executable provenance for verification.",
+        "Data-sharing and privacy concerns limit availability of large real-world config corpora."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Security and adversary-aware evaluation of agentic NetOps (prompt-injection, retrieval poisoning, excessive autonomous actions, adversarial perturbations to telemetry/config inputs) is underdeveloped relative to the demonstrated threat classes.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7023538",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4393027151"
+      ],
+      "evidence_type": "Security review / threat analyses",
+      "confidence": 0.82,
+      "limitations": [
+        "Surveys identify gaps and threat taxonomies, but systematic adversarial benchmarks for agentic NetOps are nascent.",
+        "Operational threat models vary widely by deployment context."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Simulator and emulator fidelity (e.g., Mininet) can produce misleading performance or correctness signals; integrating verifier and emulation results into reproducible closed-loop evaluation remains a practical challenge.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4387634435",
+        "https://openalex.org/W4309729366",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "Methodological critiques / tool lessons",
+      "confidence": 0.78,
+      "limitations": [
+        "Mininet and other emulators remain useful for risk-free testing but require careful configuration; some fidelity issues are documented but context-dependent.",
+        "Workarounds (vendor-level emulators, real-device testbeds) increase cost and reduce reproducibility."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready for fully autonomous, unattended network changes without human approval (no supplied record demonstrates production deployments that remove human approval gates).",
+    "Verifier-in-the-loop approaches currently guarantee elimination of all critical semantic configuration errors in production networks (existing verifier-grounded work shows improvements but not full guarantees in production conditions).",
+    "There is a single, community-adopted standard metric for safety/reliability of agentic NetOps systems (no record indicates a universally adopted standard yet)."
+  ]
+}

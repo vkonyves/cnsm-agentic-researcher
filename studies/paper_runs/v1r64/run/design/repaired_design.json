@@ -1,0 +1,170 @@
+{
+  "selected_candidate_id": "c1",
+  "title": "Effectiveness of Iterative Verifier-in-the-Loop Generate–Validate–Repair for NL→Config in Multi-Device Emulation",
+  "research_question": "To what extent does an iterative generate–validate–repair loop using a formal network verifier (Batfish) reduce critical semantic errors in LLM-generated multi-device network configurations when tested in an emulation-grounded closed-loop evaluation?",
+  "confirmatory_hypotheses": [
+    "An iterative generate–validate–repair loop with Batfish will produce a statistically significant reduction in semantic configuration errors compared to a single-pass LLM output (paired, per-intent McNemar test, alpha=0.05).",
+    "A single additional repair iteration yields diminishing returns beyond two verifier-guided repair cycles for the majority of intents in the testset (predefined cumulative pass-by-iteration curve)."
+  ],
+  "exploratory_questions": [
+    "How does pass probability vary with topology size (2 devices, 3–4 devices, 5–8 devices)?",
+    "What are representative root causes for verifier–emulator discordant cases?"
+  ],
+  "benchmark_scope": [
+    "Public NL→config intent corpus derived from referenced public corpora (see evidence_record_ids); intents restricted to multi-device changes (>=2 devices).",
+    "Emulation using Mininet-style containerized networks with open-source routing stacks (FRRouting) and VyOS images only (no proprietary vendor images).",
+    "Verifier: Batfish (open-source)."
+  ],
+  "model_scope": [
+    "Hosted LLM API (single hosted model selected at execution time within compute/call budget).",
+    "Batfish network verifier (local/dockerized open-source instance)."
+  ],
+  "transformation_scope": [
+    "Template filling from NL to vendor-agnostic config templates.",
+    "Interface-name normalization and deterministic canonicalization.",
+    "Automated vendor-agnostic translation layers producing FRR/VyOS-compatible commands."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline — absolute difference in per-intent semantic-error rate (semantic-error = verifier-detected OR emulation-observed reachability/policy violation) between baseline single-pass LLM output and the iterative generate–validate–repair pipeline, computed by the registered executor paired_binary_analysis_v1.",
+  "secondary_estimands": [
+    "Per-intent mean number of repair iterations until Batfish pass (capped at 3).",
+    "Syntactic-executability rate difference (iterative vs single-pass).",
+    "Iteration-wise cumulative pass probability (Kaplan–Meier-like curve over 0..3 iterations)."
+  ],
+  "sampling_plan": "Confirmatory sample: N=200 distinct multi-device intents (each intent is a paired observational unit). Intents are stratified into 3 topology clusters: (A) 2 devices: 80 intents; (B) 3–4 devices: 80 intents; (C) 5–8 devices: 40 intents. Additionally reserve 50 intents for exploratory/discovery analyses (not included in primary paired test). Inclusion: publicly available NL→config intents requiring configuration changes on >=2 devices, unique intent text, no duplicate intent hashes. Exclusion: intents that reference proprietary vendor features not reproducible on FRR/VyOS (deterministic automated filter). Random seed for intent selection and stratified assignment: 42. Each confirmatory intent yields a paired outcome: baseline single-pass vs iterative pipeline. Totals derived: 200 confirmatory intents = 80+80+40. Discovery pool = 50 separate intents. Total intents executed in recommended scenario = 250.",
+  "analysis_plan": "Primary executor: paired_binary_analysis_v1 (McNemar-style paired-test implementation). Primary test: two-sided McNemar test (alpha=0.05) on paired binary semantic-error outcomes. Primary estimand computed as absolute reduction in semantic-error rate (iterative minus baseline) with 95% bootstrap CI. Failed-call treatment (pre-registered): primary analysis uses 'complete_pair_primary' (exclude pairs where both baseline and iterative are missing due to infrastructure fatal error); sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing iterative result as failure). Secondary analyses: logistic regression of pass~iteration_count + topology_cluster (pre-registered covariates), iteration-wise cumulative pass curve, subgroup analyses by topology cluster. Multiplicity: only the primary hypothesis is confirmatory; exploratory subgroup p-values reported with Benjamini–Hochberg FDR control at 0.10 and Bonferroni-adjusted summaries for up to 3 planned subgroup comparisons.",
+  "multiplicity_plan": "Primary confirmatory test: single hypothesis, alpha=0.05 (no correction). Preplanned exploratory subgroup comparisons (3 clusters) reported with BH-FDR (q<=0.10) and Bonferroni-adjusted p-values for interpretive caution. Any post-hoc tests will be labeled as post-hoc and not used to support confirmatory claims.",
+  "missingness_plan": "Deterministic timeouts and handling: LLM call timeout = 60s; Batfish verification timeout = 120s; emulation run timeout = 300s per intent. If a single LLM call times out, that call is retried once immediately; a second timeout produces a deterministic 'call-failure' tag. If iterative pipeline fails to produce a syntactically executable config within the 3-iteration cap or encounters repeated infrastructure fatal errors (Docker container crash, corrupted image), the pair is marked according to 'failed_call_treatment' described in analysis_plan. Missingness logging: all failures recorded with deterministic error codes and archived with hashes. No human adjudication: technical failures are treated as infrastructure events and handled per the failed-call-treatment rules.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public NL→config corpora referenced in evidence (see evidence_record_ids)",
+      "Emulation+Batfish closed-loop testbed (Mininet-style with FRR/VyOS)"
+    ],
+    "risk_factors": [
+      "Intent or config templates present verbatim in LLM training data (training-data leakage).",
+      "Duplicate or near-duplicate intents between discovery and confirmatory pools.",
+      "Cross-contamination via cached prompts or model-context bleed between intents."
+    ],
+    "detection_procedures": [
+      "Deterministic SHA-256 hash comparison of all intent texts against a scraped corpus of public dataset artifact hashes (automated).",
+      "Automated n-gram overlap detector: flag intents with >80% token overlap to any public reference sample.",
+      "Per-run prompt-context reset between intents; enforce single-turn prompts to avoid cross-intent leakage."
+    ],
+    "item_flagging_rules": [
+      "If exact-hash match to a public corpus entry → flag and exclude from confirmatory sample.",
+      "If n-gram overlap >80% with any public corpus entry → flag for sensitivity analysis (remain in primary sample but reported separately).",
+      "If prompt-context size shows evidence of re-use across intents (automated context-state fingerprinting) → discard and re-run with guaranteed fresh context; if repeated occurrence, exclude affected intents deterministically."
+    ],
+    "analysis_treatment": "Primary analysis excludes exact-hash matches from confirmatory N (these are removed at sampling step). Flagged high-overlap intents remain in primary analysis but reported in a predefined sensitivity analysis. All flags, hashing manifests, and justifications archived. No human adjudication.",
+    "residual_uncertainty": [
+      "Undetected partial training-data overlaps (semantic paraphrases not detected by hash/ngram thresholds).",
+      "Possible undisclosed private corpora overlap that cannot be detected via public-hash methods."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_conservative",
+      "description": "Conservative confirmatory run (smaller N) to validate pipeline and integration before a larger run.",
+      "planned_model_calls": 600,
+      "models": [
+        "hosted_llm_api_standard"
+      ],
+      "transformations": [
+        "template_fill_v1",
+        "interface_normalize_v1"
+      ],
+      "discovery_items": 25,
+      "confirmatory_items": 100,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Confirmatory N=100 (stratified 2-device:40, 3–4:40, 5–8:20). Baseline single-pass requires 1 call per intent = 100 calls. Iterative pipeline worst-case 4 LLM calls per intent (initial + up to 3 repairs) = 400 calls. Total worst-case model calls = 100 + 400 = 500; add 100 calls overhead for prompt scaffolding/logging = planned_model_calls 600. This fits the maximum_planned_model_calls=10000 and reduces wall-clock runtime and engineering risk for an initial validate-and-debug run."
+    },
+    {
+      "scenario_id": "S2_recommended",
+      "description": "Primary recommended confirmatory run sized for primary estimand power target (N=200 confirmatory intents) plus discovery reserve.",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted_llm_api_standard"
+      ],
+      "transformations": [
+        "template_fill_v1",
+        "interface_normalize_v1",
+        "vendor_agnostic_to_frr_v1"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 200,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Confirmatory N=200 stratified as planned (2-device:80, 3–4:80, 5–8:40). Baseline single-pass = 200 calls. Iterative pipeline worst-case 4 calls/intent = 800 calls. Total worst-case = 200 + 800 = 1000 calls. Add 200 calls overhead for prompt scaffolding, context management, and small auxiliary calls (metadata extraction, logs) → planned_model_calls = 1200. Model-call cap remains well within maximum_planned_model_calls=10000. CPU/docker execution of Batfish and emulation is feasible via containerized FRR/VyOS images; no proprietary images required. Total executed intents = confirmatory 200 + discovery 50 = 250 intents. Per-intent pair-count derivation: 200 paired units for primary McNemar test (baseline vs iterative); model-call arithmetic above is explicit."
+    },
+    {
+      "scenario_id": "S3_large_exploratory (optional)",
+      "description": "Larger exploratory run if additional compute budget available; not recommended as primary due to time/cost.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted_llm_api_standard"
+      ],
+      "transformations": [
+        "template_fill_v1",
+        "interface_normalize_v1",
+        "vendor_agnostic_to_frr_v1"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 400,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Scaling confirmatory N to 400 doubles the model-call estimate from S2 (worst-case 2000 + overhead 400 = 2400). Feasible within planned model-call budget but requires longer wall-clock time and larger storage for archived artifacts."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (per-intent semantic-error binary paired outcome)",
+    "target_effect": "Absolute reduction of 15 percentage points (e.g., baseline semantic-error rate 30% → iterative 15%), two-sided, alpha=0.05, power=0.80",
+    "clustering_unit": "intent (paired baseline vs iterative per intent)",
+    "calculation_method": "Approximate paired McNemar power calculation under conservative discordant-pair assumptions and bootstrap CI planning. Calculation assumes discordant-pair proportion consistent with target absolute reduction; conservative N selected to 200 confirmatory intents to achieve ~0.80 power under these assumptions.",
+    "assumptions": [
+      "Baseline semantic-error rate approximately 30% (literature-motivated conservative estimate).",
+      "Iterative pipeline reduces semantic-errors to ~15% (target effect).",
+      "Discordant pairs (cases where methods disagree) represent the primary signal for McNemar; assumed discordant rate consistent with the above difference.",
+      "Alpha=0.05 two-sided; power target 0.80.",
+      "No clustering beyond per-intent pairing; stratification handled in covariate-adjusted secondary analyses."
+    ],
+    "recommended_scenario_id": "S2_recommended",
+    "minimum_detectable_effect_notes": "With N=200 paired intents and assumed baseline 30%→15% reduction, the design is powered near 80% for the paired McNemar-style contrast under conservative discordant assumptions. If actual baseline error is lower (e.g., 20%), detectable absolute reductions increase; sensitivity analyses and larger sample (S3) are preplanned if observed rates reduce power.",
+    "sensitivity_analyses": [
+      "Recompute power and CI under observed baseline rates (post hoc reporting only).",
+      "Sensitivity analysis treating missing iterative results as failures (per missingness_plan) to report conservative effect bounds."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "template_fill_v1 (NL→vendor-agnostic template)",
+      "interface_normalize_v1 (deterministic name canonicalization)",
+      "vendor_agnostic_to_frr_v1 (translation to FRR/VyOS CLI)"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic parser-based normalization of generated configs into an AST-like intermediate representation; compare against syntactic/semantic invariants (e.g., interface existence, IP consistency).",
+      "Automated static checks: interface IP overlap, missing route targets, ACL syntax verification (failures => automatic rejection)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject generated configs with syntax parse errors (parser exit code != 0) — do not pass to emulator.",
+      "Reject configs with missing referenced interfaces or undefined objects as detected by deterministic static checks.",
+      "If Batfish returns an immediate parse/ingestion error, the config is rejected and the pipeline triggers the next repair iteration up to cap (no human intervention)."
+    ],
+    "audit_sample_policy": "Automated deeper parsing and trace extraction on a deterministic 10% random sample of successful configs per cluster (seed=42) for additional invariant checks; results archived and reported. No manual audits.",
+    "mapping_validation": "Mapping rules (NL->template slots, interface name canonicalization) implemented as deterministic code with unit tests and frozen seed; examples and test vectors archived.",
+    "residual_risks": [
+      "Parser/model-mismatch that misses idiosyncratic vendor semantics not expressible in FRR/VyOS.",
+      "Translation heuristics may not capture some high-level operator intent nuance (e.g., conditional runbook steps)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity: Mininet+FRR/VyOS may not expose proprietary vendor quirks (external validity limitation scoped in manuscript).",
+    "Representativeness: public NL→config corpora may under-represent production operator phrasing and rare vendor features.",
+    "Hosted LLM nondeterminism and provider-side model updates can affect repeatability across calendar time (mitigated by prompting, seeds, and archived raw outputs).",
+    "Batfish/verifier false-negative classes for dynamic runtime behaviors (acknowledged and explored in discordance analyses)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4387634435",
+    "doi:10.2139/ssrn.6947162"
+  ]
+}
