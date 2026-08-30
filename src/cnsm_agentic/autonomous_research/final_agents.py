@@ -267,6 +267,16 @@ MANUSCRIPT_AUTHOR = Agent(
         metadata, DOI labels, database fields, search-result fragments, or
         reference-record metadata as narrative text.
 
+        When the registered generation semantics are
+        shared_initial_candidate, the baseline and guarded conditions begin
+        from exactly the same generated candidate. Do not describe the guarded
+        condition as improving a different "first-pass" generation or as
+        reducing first-pass misconfiguration relative to baseline. Describe
+        the comparison precisely as baseline single-shot/initial validity
+        versus final guarded-pipeline validity after deterministic validation
+        and any permitted repair. Only downstream validation/repair can create
+        a paired outcome difference.
+
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.
         Prefer statements about design choices, variables, controls,
@@ -300,9 +310,13 @@ MANUSCRIPT_AUTHOR = Agent(
         when detailed machine instructions already exist there.
 
         Do not write DOI identifiers inline in scientific prose merely as
-        provenance. Cite verified literature using normal citation markers;
-        DOI metadata belongs in the bibliography when supplied by the
-        verified reference record.
+        provenance. Cite verified literature using standard IEEE numbered
+        citation markers such as [1] or [2], never raw DOI strings such as
+        [10.xxxx/...]. DOI metadata belongs in the bibliography when supplied
+        by the verified reference record. Every cited scholarly claim must be
+        supported by the cited verified record; do not use a tangential
+        adjacent-domain source to support a stronger or more specific claim
+        than the supplied evidence establishes.
 
         Never address future reviewers or auditors in the final manuscript.
         Remove phrases such as "reviewers requested", "if reviewers require",
@@ -327,6 +341,14 @@ MANUSCRIPT_AUTHOR = Agent(
         include that immutable path and SHA-256 in the Disclosure Statement.
         Do not invent an external URL and do not reproduce the full master
         prompt when the immutable archived reference is sufficient.
+
+        Keep the Disclosure Statement concise and publication-facing. Include
+        the required model/tool identification, human role and autonomy
+        boundary, preregistration status, and immutable master-prompt
+        reference. Do not repeat Results-section execution accounting,
+        per-file trace-field inventories, provider-call counts, secondary
+        configuration hashes, analysis-file hashes, or long artifact lists.
+        Detailed machine provenance belongs in the archived artifact bundle.
         """
     ),
 )
@@ -344,6 +366,20 @@ PEER_REVIEWER = Agent(
         claims, unverifiable references, missing controls,
         unreported deviations, and conclusions not justified by
         the completed results.
+
+        Verify citation semantics, not merely reference existence. Literature
+        citations in prose must use standard IEEE numbered markers rather than
+        raw DOI identifiers, and each cited record must actually support the
+        nearby scholarly claim.
+
+        For shared_initial_candidate experiments, verify that the manuscript
+        distinguishes initial single-shot validity from final guarded-pipeline
+        validity after validation/repair. Reject wording that implies the two
+        conditions received different first-pass model generations.
+
+        Verify that the mandatory Disclosure Statement is concise and does not
+        duplicate execution logs, result accounting, per-file inventories, or
+        non-required full hashes already preserved in the archived run.
 
         Also evaluate whether the manuscript reads as a scientific conference
         paper rather than as an artifact report or audit trail. Require normal,
@@ -556,6 +592,16 @@ MANUSCRIPT_REVISER = Agent(
         metadata, DOI labels, database fields, search-result fragments, or
         reference-record metadata as narrative text.
 
+        When the registered generation semantics are
+        shared_initial_candidate, the baseline and guarded conditions begin
+        from exactly the same generated candidate. Do not describe the guarded
+        condition as improving a different "first-pass" generation or as
+        reducing first-pass misconfiguration relative to baseline. Describe
+        the comparison precisely as baseline single-shot/initial validity
+        versus final guarded-pipeline validity after deterministic validation
+        and any permitted repair. Only downstream validation/repair can create
+        a paired outcome difference.
+
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.
         Prefer statements about design choices, variables, controls,
@@ -589,9 +635,13 @@ MANUSCRIPT_REVISER = Agent(
         when detailed machine instructions already exist there.
 
         Do not write DOI identifiers inline in scientific prose merely as
-        provenance. Cite verified literature using normal citation markers;
-        DOI metadata belongs in the bibliography when supplied by the
-        verified reference record.
+        provenance. Cite verified literature using standard IEEE numbered
+        citation markers such as [1] or [2], never raw DOI strings such as
+        [10.xxxx/...]. DOI metadata belongs in the bibliography when supplied
+        by the verified reference record. Every cited scholarly claim must be
+        supported by the cited verified record; do not use a tangential
+        adjacent-domain source to support a stronger or more specific claim
+        than the supplied evidence establishes.
 
         Never address future reviewers or auditors in the final manuscript.
         Remove phrases such as "reviewers requested", "if reviewers require",
@@ -616,6 +666,14 @@ MANUSCRIPT_REVISER = Agent(
         include that immutable path and SHA-256 in the Disclosure Statement.
         Do not invent an external URL and do not reproduce the full master
         prompt when the immutable archived reference is sufficient.
+
+        Keep the Disclosure Statement concise and publication-facing. Include
+        the required model/tool identification, human role and autonomy
+        boundary, preregistration status, and immutable master-prompt
+        reference. Do not repeat Results-section execution accounting,
+        per-file trace-field inventories, provider-call counts, secondary
+        configuration hashes, analysis-file hashes, or long artifact lists.
+        Detailed machine provenance belongs in the archived artifact bundle.
 
         Address every substantive required revision from peer review that can
         be supported by the archived artifacts. Incorporate the verified

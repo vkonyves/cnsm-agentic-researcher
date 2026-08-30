@@ -675,9 +675,17 @@ def audit_manuscript_publication_sanity(
     # prompt in the mandatory Disclosure Statement. Additional
     # full digests belong in machine-readable provenance.
     # ---------------------------------------------------------
+    # Renderer may insert \allowbreak{} inside long digests.
+    # Remove presentation-only break commands before auditing hashes.
+    hash_scan_tex = re.sub(
+        r"\\allowbreak\{\}",
+        "",
+        tex,
+    )
+
     full_hashes = re.findall(
         r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])",
-        tex,
+        hash_scan_tex,
     )
 
     metrics["full_sha256_count"] = len(full_hashes)
@@ -716,6 +724,28 @@ def audit_manuscript_publication_sanity(
             f"{len(inline_doi_labels)} inline DOI: label(s) "
             "before the bibliography; cite literature normally "
             "and keep DOI metadata in references."
+        )
+
+    # Raw DOI strings enclosed in brackets are not IEEE citation
+    # markers, e.g. [10.1002/nem.2313]. Scientific prose must use
+    # numbered bibliography citations such as [1].
+    bracketed_doi_citations = re.findall(
+        r"\[\s*10\.\d{4,9}/[^\]\s]+\s*\]",
+        body_before_bibliography,
+        flags=re.IGNORECASE,
+    )
+
+    metrics["bracketed_doi_citation_count"] = len(
+        bracketed_doi_citations
+    )
+
+    if bracketed_doi_citations:
+        issues.append(
+            "Final manuscript contains "
+            f"{len(bracketed_doi_citations)} raw bracketed DOI "
+            "citation(s) in scientific prose; use standard IEEE "
+            "numbered citations and keep DOI metadata only in "
+            "the bibliography."
         )
 
     # ---------------------------------------------------------

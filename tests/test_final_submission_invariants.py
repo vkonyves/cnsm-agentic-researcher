@@ -83,3 +83,60 @@ def test_preregistration_rejects_unfrozen_holdout_seed_claim():
     assert '"holdout" in prereg_text' in source
     assert '"fixed seed" in prereg_text' in source
     assert 'adapter_contract.get("holdout_selection_seed") is None' in source
+
+
+
+def test_publication_audit_normalizes_allowbreak_inside_sha256():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "hash_scan_tex" in source
+    assert r'\\allowbreak\{\}' in source
+
+
+def test_publication_audit_rejects_raw_bracketed_doi_citations():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "bracketed_doi_citations" in source
+    assert "bracketed_doi_citation_count" in source
+    assert "standard IEEE" in source
+
+
+def test_shared_initial_wording_policy_is_applied_to_author_and_reviser():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "baseline single-shot/initial validity"
+    ) == 2
+    assert source.count(
+        "final guarded-pipeline validity"
+    ) >= 2
+
+
+def test_disclosure_condensation_policy_is_applied_twice():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "Keep the Disclosure Statement concise and publication-facing."
+    ) == 2
+    assert source.count(
+        "Detailed machine provenance belongs in the archived artifact bundle."
+    ) == 2
+
+
+def test_peer_reviewer_checks_citation_semantics():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        "Verify citation semantics, not merely reference existence."
+        in source
+    )
