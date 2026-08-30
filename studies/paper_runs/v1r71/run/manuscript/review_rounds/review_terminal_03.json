@@ -1,0 +1,25 @@
+{
+  "summary": "Closure review finds the revised manuscript scientifically sound and artifact-grounded but still fails to address prior required editorial/provenance fixes. Key scientific claims are supported by archived artifacts and the preregistered analysis; however the Disclosure Statement still contains per-file hashes/paths and run-level bookkeeping, and the Methods do not clearly explain provider-call audit fields (the apparent asymmetry in condition_counts). Required provenance and citation corrections remain unresolved, so the paper is not yet acceptable for finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 4,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Disclosure Statement still duplicates run-level provenance, including multiple full hashes and file-path strings in the manuscript body rather than providing the concise disclosure required by the track; this violates the prior required revision.",
+    "The manuscript includes explicit per-file artifact paths and SHA‑256 strings (e.g., execution/raw_results.jsonl and multiple hashes) in running prose; these must be removed from the paper body and replaced by a single canonical archival pointer as requested.",
+    "Methods do not sufficiently explain provider-call audit fields and the apparent asymmetry in provider_call_audit.condition_counts (keys labeled \"shared\" and \"guarded\"). Readers can reasonably misinterpret audited counts; the paper must explicitly map those audit keys to provider-call events and to episode/pair accounting under the shared_initial_candidate protocol.",
+    "The manuscript still exposes provenance/logging details in the main text that the track asked to condense; until these are removed or relocated to the archived manifest (and cited as a single pointer), the Disclosure requirement is not satisfied."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement into a concise in‑paper paragraph (within pages 1–5) that: (a) names the LLM(s) and orchestration/validator/emulator used, (b) affirms the autonomy-lock and human role, and (c) points readers to the canonical execution-manifest/artifact bundle for complete per-file provenance and hashes. Remove full file paths, SHA‑256 strings, and execution-log excerpts from the manuscript body; cite the single canonical execution_manifest artifact (by name and hash if desired) instead. This revision can be completed from the supplied execution manifest and archived artifacts.",
+    "Replace any raw repository/identifier strings (OpenAlex/DOI/arXiv/manifest paths or raw hashes) appearing in running prose with standard IEEE numbered in-text citations and provide an ordinary IEEE-style bibliography mapping each numbered marker to the verified bibliographic record in terminal_bibliographic_records. Do not remove verified bibliographic records; only convert their in-text presentation to numbered citations. This is a text-formatting/provenance-edit revision and does not require new experiments.",
+    "Add a short, explicit paragraph in Methods that explains the provider-call audit fields (provider_call_audit.stage_counts and provider_call_audit.condition_counts) and reconciles their values with episode/pair accounting under shared_initial_candidate semantics. Specifically: define what the keys labeled \"shared\" and \"guarded\" enumerate (provider-call event types vs. per-condition model-call counts), show how shared_initial_generation = 720 plus repair = 1 produce the audited provider_call counts, and explain why condition_counts can show an apparent asymmetry even though complete_pair_count = 720. Use the archived deterministic_reconciliation and provider_call_audit artifacts as authoritative evidence; do not add new experiments.",
+    "Ensure that any mention of the unique discordant episode or repair-stage activity refers auditors to the canonical execution bundle and pair_id rather than reproducing per-file logs or hashes in prose. If a one-sentence clarification is added (allowed), it must not include raw log excerpts or hashes and must point to the archived raw_results.jsonl and deterministic_reconciliation.json by canonical manifest pointer only."
+  ],
+  "optional_revisions": [
+    "Optionally add a one-paragraph statement (without pasting logs) that succinctly notes whether the archived discordant pair maps to the single recorded repair-stage invocation or to an emulation-only observation, and point auditors to the canonical raw_results.jsonl entry by pair_id for verification (do not paste file contents or hashes).",
+    "Optionally include a compact table summarizing task-difficulty strata (extreme/very_hard/hard/medium) and counts drawn directly from the archived difficulty_summary to help readers assess external validity.",
+    "Optionally shorten Related Work slightly to prioritize the closest empirical/system reports and free space for the concise Methods clarification above to help maintain the five-page limit."
+  ],
+  "accept_for_finalisation": false
+}

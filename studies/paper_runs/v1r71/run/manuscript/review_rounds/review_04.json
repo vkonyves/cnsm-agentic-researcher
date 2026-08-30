@@ -1,0 +1,17 @@
+{
+  "summary": "Careful, well-documented preregistered paired study comparing a deterministic validator vs. validator+sandboxed emulation on synthetic LLM-generated NetOps tasks (Npairs=720). Results show near-ceiling baseline coverage (719/720) and negligible guarded-stage marginal detection gain (estimate 0.00139, exact McNemar p=1.0, 95% bootstrap CI [0.0,0.00417]). Preregistration, execution manifest, artifacts, and disclosure are archived and largely consistent with the reported analysis. The manuscript appropriately frames limitations (synthetic tasks, single model/validator, shared_initial_candidate semantics) and refrains from overclaiming.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "Explicitly identify and report the cause of the single discordant pair (n10=1): state whether the extra detection in the guarded condition arose from (a) emulation observation, (b) the single recorded repair-model call, or (c) another logged mechanism. Cite the archived artifact(s) (path and SHA-256) that support this attribution so readers can verify the claim from the provided evidence bundle. This clarification is resolvable from the archived execution/analysis artifacts and is necessary because the preregistered shared_initial_candidate design means discordance cannot come from differing initial generations.",
+    "In Methods (or Results) explicitly reconcile the provider-call accounting with the paired-design wording: state that model_calls_used=721 (720 shared initial + 1 repair), that shared_initial_candidate semantics were enforced (no independent per-condition generation), and briefly explain why only one repair call was triggered (cite the execution manifest entry and/or provider_call audit)."
+  ],
+  "optional_revisions": [
+    "Replace the manuscript’s cited_record_ids list with full IEEE‑numbered reference entries (BibTeX / IEEE format) in the bibliography and ensure each numbered citation in the text directly maps to a verified primary source in the archived reference record (this appears available in the evidence bundle).",
+    "Condense the Disclosure Statement slightly to avoid run-log verbosity while keeping the required identifiers (model, validator, preregistration SHA) and preserve full provenance in the archived manifest; this will improve readability in the five-page constraint."
+  ],
+  "accept_for_finalisation": false
+}

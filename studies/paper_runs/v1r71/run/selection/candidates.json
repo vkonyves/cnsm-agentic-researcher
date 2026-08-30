@@ -1,0 +1,103 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1a7f9d2-3b4e-4c6f-9a2e-0b2d5e8f1c9a",
+      "title": "A workflow-centred generate→validate→emulate benchmark with rollback-aware scoring",
+      "research_question": "Does adding sandboxed emulation and rollback-aware canary scoring to a generate→validate pipeline materially reduce the rate of unsafe deployments from LLM-generated NetOps artifacts compared to generate→validate alone?",
+      "hypotheses": [
+        "A generate→validate→emulate pipeline with rollback-aware canary scoring detects and prevents a higher fraction of critical unsafe deployments than generate→validate alone."
+      ],
+      "proposed_design": "Construct a benchmark corpus of 200 intent→target pairs across multi-vendor synthetic topologies (public topology templates + parameterized variants). Use a single LLM endpoint to produce device-specific CLI configurations from intents. Implement three pipelines applied to each generated artifact: (A) generation-only (no checks), (B) generate→validator (static analysis using Batfish-like checks), (C) generate→validator→emulation (Mininet-style sandbox run with lightweight traffic/canary probes and automated rollback scoring). Define rollback-aware canary scoring that penalizes candidate changes causing service-impacting behavior during emulation. Run each pipeline deterministically (fixed seeds, fixed prompts). Record detection outcomes, emulation traces, and whether deployment would be classified as unsafe under each pipeline. Preregister dataset, prompts, validator rules, emulation scenarios, and stopping rules before execution.",
+      "expected_data": "Per-intent records containing generated configs, validator findings (rule hits), emulation run outcomes (packet loss, reachability, control-plane errors), canary scores, and binary unsafe/deployable labels under each pipeline. Aggregated tables: detection rates, false negatives/positives, and deployment-prevention counts per pipeline and per vendor.",
+      "primary_outcome": "Reduction in unsafe-deployment rate: proportion of intents that would have led to unsafe deployments under pipeline B minus proportion under pipeline C (expected positive if emulation adds safety).",
+      "analysis_outline": "Compute paired differences in unsafe-deployment rates between B and C across intents; estimate proportion difference with 95% bootstrap confidence intervals. Perform McNemar's test on paired binary outcomes. Report per-vendor and per-misconfiguration-class subgroup analyses with Bonferroni-adjusted CIs. Present confusion matrices for validator vs emulation detections and compute number-needed-to-emulate to prevent one unsafe deployment.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W7203497697"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4409311824",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176"
+      ],
+      "risks": [
+        "Emulation fidelity may not reflect production behavior, producing false confidence; synthetic topology and intent corpus may bias results toward easier/harder cases; validator rule coverage depends on chosen rule set and could understate validator capability; compute/time budget for emulation runs may limit sample size."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "d4b9e7a5-9f21-41c2-8f6d-2e3a7b5c4f12",
+      "title": "Dedicated mistake-finder classifier vs LLM self-critique for NetOps outputs",
+      "research_question": "Can a dedicated mistake-detection classifier (trained on validator/emulation-labeled examples) detect classes of misconfigurations in LLM-generated network configurations with higher F1 than LLM self-critique prompts?",
+      "hypotheses": [
+        "A trained mistake-finder classifier achieves higher F1 score for detecting real misconfigurations in LLM-generated configs than zero-/few-shot LLM self-critique used as an error detector."
+      ],
+      "proposed_design": "Generate a labeled dataset of 5,000 LLM-produced configuration artifacts by prompting the LLM over a diverse set of intents/topologies and synthetically injecting fault types (syntax, routing, ACL semantics, vendor-specific idioms). Label artifacts with ground truth using validators and emulation (batched runs). Extract features (token embeddings, diff-to-sane-template, validator rule flags) and train a classifier (lightweight supervised model) to predict misconfiguration presence and class. Baselines: (1) LLM self-critique prompt that asks the same LLM to detect errors in its output (zero-shot and few-shot variations), (2) simple rule-based heuristic. Evaluate on held-out test set (stratified by fault class and vendor). Freeze training/validation procedure in preregistration.",
+      "expected_data": "Per-artifact labels and classifier outputs: predicted error/no-error, predicted class, confidence scores; baseline self-critique outputs mapped to binary/error-class labels; metrics: precision, recall, F1, calibration curves, per-class confusion matrices.",
+      "primary_outcome": "Difference in macro-averaged F1 score for misconfiguration detection between the trained classifier and the best-performing LLM self-critique configuration on the held-out test set.",
+      "analysis_outline": "Report precision, recall, F1 with 95% bootstrap CIs for classifier and baselines. Use paired bootstrap or stratified McNemar tests for significance of classifier vs LLM self-critique. Analyze per-class performance, ROC curves, and calibration; run ablations on feature subsets. Evaluate robustness to class imbalance via reweighted metrics.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4402670356",
+        "https://openalex.org/W4409311824"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4409311824",
+        "https://openalex.org/W4412039790"
+      ],
+      "risks": [
+        "Label noise from imperfect validators/emulation; overfitting to synthetic fault injection patterns; classifier may not generalize across unseen vendor-specific idioms; dependence on the LLM used to generate training artifacts could bias classifier to that model's error distribution."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "f2c3d8b1-7a6e-4a9a-b2c3-5f8e1d2b6c7e",
+      "title": "Quantitative validator coverage matrix for misconfiguration classes across vendors",
+      "research_question": "Which classes of misconfiguration in LLM-generated artifacts are detected by common validators (e.g., Batfish/NetKAT-like) and which remain undetected across multiple vendor CLIs and topology patterns?",
+      "hypotheses": [
+        "Common validators reliably detect syntactic and local-routing policy errors but have lower detection coverage for cross-device semantic misconfigurations and vendor-specific control-plane nuances, yielding systematic coverage gaps when paired with LLM-generated outputs."
+      ],
+      "proposed_design": "Define a taxonomy of misconfiguration classes (syntax, ACL semantics, routing loop/break, VRF/tenant isolation violations, control-plane inconsistencies, vendor-CLI misuse). Generate 1,200 LLM-produced configs across at least three vendor-CLI families and multiple topology templates; inject representative misconfigs per class. Run a set of validators (Batfish-style, NetKAT-style static analyses) against each artifact and record detection (binary and rule IDs). Validate a stratified subset with emulation to identify validator false negatives. Produce a per-class × per-vendor coverage matrix (proportion detected). Freeze taxonomy, validator configurations, and injection rules preregistration.",
+      "expected_data": "A matrix of detection proportions for each misconfiguration class and vendor, lists of undetected failure examples, validator rule hit frequencies, and emulation-verified false-negative counts.",
+      "primary_outcome": "Per-class detection coverage: the proportion of injected misconfigurations detected by the validator suite for each class and vendor (reported with 95% CIs).",
+      "analysis_outline": "Estimate detection probabilities per class/vendor with logistic regression including random effects for topology and intent; report odds ratios and 95% CIs comparing classes. Use cluster-robust standard errors and report counts of emulation-confirmed false negatives. Visualize coverage matrix and highlight high-risk classes with low coverage.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7203497697"
+      ],
+      "risks": [
+        "Validator configuration drift or mis-specified rules could bias coverage estimates; mapping injected faults to real-world faults may be imperfect; limited vendor set may limit external validity."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "a9e5b2c4-6f31-43d9-9e4b-8c2f0d7a1b3f",
+      "title": "Robustness of LLM+validator pipelines to adversarial intent and topology perturbations",
+      "research_question": "How robust are LLM+validator pipelines to adversarially perturbed intents and topology fuzzing, and to what extent does a bounded repair loop mitigate adverse effects?",
+      "hypotheses": [
+        "Adversarial perturbations of intents/topologies increase unsafe-deployment rates and reduce validator detection rates; introducing a bounded generate→validate→repair loop reduces unsafe deployments compared to a single-pass pipeline but does not fully recover baseline performance under strong perturbations."
+      ],
+      "proposed_design": "Create adversarial perturbation generators that: (1) produce ambiguous/contradictory natural-language intents, (2) fuzz topology parameters (e.g., link delays, heterogeneous vendor mixes), and (3) inject intentionally confusing context (conflicting tenant names). For a corpus of 800 tasks, evaluate two pipelines: single-pass generate→validator and bounded repair pipeline allowing up to three generate→validate→repair iterations (repair uses validator feedback). For varying perturbation strengths, measure validator detection, repair success (number iterations to pass validator), and emulation-verified unsafe-deployment rates. Predefine adversarial generation method and strength levels in preregistration.",
+      "expected_data": "Per-task records with perturbation strength, pipeline applied, number of repair iterations, validator outputs, emulation outcomes, and final deployability decision. Aggregated dose-response curves of unsafe-deployment rate vs perturbation strength for each pipeline.",
+      "primary_outcome": "Interaction effect: difference in unsafe-deployment rate as a function of perturbation strength between single-pass and bounded-repair pipelines (quantified as reduction in unsafe rate attributable to repair at each perturbation level).",
+      "analysis_outline": "Fit logistic regression with terms for perturbation strength, pipeline type, and their interaction; report interaction coefficients with 95% CIs. Produce dose-response plots and estimate the perturbation strength at which repair no longer yields a statistically significant benefit. Perform sensitivity analyses varying repair budget and thresholding rules.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416254940",
+        "https://openalex.org/W4399252700",
+        "https://openalex.org/W4409311824"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4409311824",
+        "https://openalex.org/W7203497697"
+      ],
+      "risks": [
+        "Adversarial generators may create unrealistic perturbations; ethical considerations in publishing adversarial strategies (mitigate by high-level descriptions and omission of exploit recipes); repair loop design may overfit to the validator chosen; compute budget may constrain breadth of adversarial strength sweep."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

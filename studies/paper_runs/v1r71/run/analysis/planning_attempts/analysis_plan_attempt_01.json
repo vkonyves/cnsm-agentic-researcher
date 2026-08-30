@@ -1,0 +1,34 @@
+{
+  "study_id": "f2c3d8b1-7a6e-4a9a-b2c3-5f8e1d2b6c7e",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Use execution/raw_results.jsonl (result_schema_id=paired_binary_episode_v1) with the completed confirmatory paired set (N=720 paired tasks; completed_episode_count=1440) to compute the aggregate paired detection-rate difference (guarded − baseline) using the registered paired_binary_analysis_v1 default paired-binary procedure (McNemar-style / paired logistic with cluster-robust SE clustered by topology_template). Exclude irrecoverable technical pairs per failed_call_treatment = complete_pair_primary. Report point estimate, two-sided p-value, and 95% confidence interval (alpha=0.05).",
+  "secondary_analyses": [
+    "Per-misconfig-class paired detection-rate differences (guarded − baseline) aggregated across vendors (exploratory).",
+    "Per-vendor paired detection-rate differences (guarded − baseline) aggregated across classes (exploratory).",
+    "Per-topology-template paired detection-rate differences (exploratory).",
+    "Counts of emulation-confirmed baseline false negatives by class and vendor (exploratory)."
+  ],
+  "sensitivity_analyses": [
+    "Repeat primary analysis treating irrecoverable technical failures in the guarded pipeline as nondetections (failed_call_treatment = complete_pair_primary_with_failure_as_zero_sensitivity).",
+    "Repeat primary analysis including deterministically replaced/contaminated items (include-vs-exclude sensitivity).",
+    "Bootstrap cluster-robust CIs by topology_template (1000 cluster-resamples) as an alternative uncertainty check."
+  ],
+  "uncertainty_quantification": "Primary uncertainty: 95% CI from paired_binary_analysis_v1 using cluster-robust SE (clusters=topology_template). Sensitivity: bootstrap (percentile) 95% CIs clustered by topology_template (1000 resamples). Report two-sided p-values and exact paired counts (discordant pairs) used by McNemar-style calculation.",
+  "multiplicity_implementation": "Primary estimand is the single confirmatory aggregated paired test (no multiplicity adjustment for primary). Secondary per-class and per-vendor analyses are explicitly exploratory and will be reported with Bonferroni-adjusted confidence intervals for a family size of 18 tests (6 classes × 3 vendors) and flagged as exploratory; no hierarchical gate applied to primary result.",
+  "contamination_analysis": "Follow preregistered contamination_plan: use deterministic artifact SHA-256 hashes and prompt/seed provenance in execution manifest to detect duplicates or template reuse; validator/emulator binary/config checksums verified against preregistered values; any flagged contaminated items were excluded and deterministically reseeded/replaced prior to analysis and recorded in execution_manifest (execution/execution_log.jsonl). Analysis excludes replaced contaminated items in primary analysis; sensitivity analyses report results including replaced items. All contamination flags, replacements, and checksums are taken from execution/transformation_manifest.json and execution/execution_log.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary results: N_paired=720, baseline detection proportion, guarded detection proportion, paired_success_rate_difference_guarded_minus_baseline, 95% CI, two-sided p-value, number of discordant pairs; source: execution/raw_results.jsonl.",
+    "Table 2 — Secondary breakdown: per-misconfig-class (6 rows) paired detection proportions and paired differences with Bonferroni-adjusted 95% CIs; source: execution/raw_results.jsonl (misconfig_class field).",
+    "Table 3 — Vendor breakdown: per-vendor paired detection rates, paired differences, sample sizes; source: execution/raw_results.jsonl (vendor_family).",
+    "Table 4 — Failure & contamination summary: counts of parser failures, automatic reseeds, irrecoverable technical exclusions, contaminated-item exclusions/replacements, model_calls_used; source: execution/execution_log.jsonl and execution_manifest fields.",
+    "Table 5 — Top contributors to guarded-only detections: list of validator_rule_id and emulation_observation types with counts and percent of additional detections they explain; source: execution/raw_results.jsonl (validator_rule_ids, emulation_observations)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Paired detection rates: grouped bar chart of baseline vs guarded detection proportions by misconfig_class (6 groups) with 95% CIs; data from execution/raw_results.jsonl.",
+    "Figure 2 — Paired difference forest plot: paired_success_rate_difference_guarded_minus_baseline with 95% CIs for per-class and per-vendor strata (two panels); data from per-stratum aggregations in raw_results.jsonl.",
+    "Figure 3 — Stacked contribution chart: stacked bars showing sources of guarded-only detections (top validator_rule_ids and emulation_observation types) aggregating counts and percent explained; source: validator_rule_ids and emulation_observations in execution/raw_results.jsonl.",
+    "Figure 4 — Failure timeline: per-batch (8 batches) counts of parser failures, reseeds, and technical exclusions plotted over batch order; sources: execution/execution_log.jsonl and execution/task_manifest.jsonl."
+  ]
+}

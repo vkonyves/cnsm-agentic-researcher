@@ -1,0 +1,23 @@
+{
+  "summary": "Closure review of a preregistered paired confirmatory study comparing a deterministic validator vs. validator+sandboxed emulation for LLM-generated NetOps artifacts. Execution and analysis appear faithful to the preregistration and are artifact-grounded; results show a vanishing marginal guarded benefit (paired difference ≈0.0014, McNemar p=1.0). Major outstanding editorial/provenance issues remain and must be fixed before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 4,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Disclosure Statement in the submitted manuscript still duplicates run-level provenance and per-file artifact bookkeeping (full hashes, multiple artifact paths and SHA‑256 strings) rather than providing the concise disclosure required by the track. This violates the previous required revision.",
+    "In-text citation/ bibliographic presentation is not yet in standard IEEE numbered reference form with an ordinary bibliography mapping each numbered marker to the verified bibliographic record; manuscript fragments and the evidence bundle still expose raw repository/identifier strings (OpenAlex/arXiv/DOI) in running prose or meta fields rather than relying on numbered IEEE citations tied to the verified bibliography.",
+    "Provider-call / audit accounting remains potentially confusing: the manuscript reproduces audit fields (e.g., provider_call_audit.condition_counts with keys such as \"shared\":720 and \"guarded\":1) without the concise, explicit explanation required by the prior review to reconcile these counts with episode/pair accounting. As presented, readers can reasonably misinterpret the audited counts; the Methods must include a clear, artifact-grounded explanation of these audit fields and why the audited counts take the shown values."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement inside the five-page manuscript to a concise human-readable paragraph that (a) names the LLM(s) and orchestration/validator/emulator used, (b) affirms the autonomy-lock and human role, and (c) points readers to the archived execution manifest/artifact bundle for full per-file provenance and hashes. Remove full hashes, per-file paths, and execution-log excerpts from the paper body; cite the canonical execution-manifest artifact (single archival pointer) instead. Ensure the Disclosure remains within pages 1–5.",
+    "Replace any raw OpenAlex/DOI/arXiv/manifest strings in running prose with standard IEEE numbered in-text citations (e.g., [1], [2], [3]) and include a conventional IEEE-style bibliography where each numbered reference maps to one verified terminal_bibliographic_record. Verify that each cited record actually supports the proximate claim where it is cited and fix any mismatches between in-text markers and bibliography entries.",
+    "Add a brief, explicit clarification in Methods describing the provider-call audit fields (stage_counts and condition_counts) and reconcile the apparent confusion in the audit summary (explain what the keys labeled \"shared\" and \"guarded\" mean in the audit report, how they map to provider-call events and to episode/pair accounting under the shared_initial_candidate protocol, and why condition_counts can show asymmetry even though complete_pair_count = 720). Use the archived execution artifacts as the authoritative basis for this explanation; do not add new experiments."
+  ],
+  "optional_revisions": [
+    "Optionally add a short paragraph (one-paragraph) that points auditors to the unique discordant pair_id and briefly states, without pasting logs, whether the archived record attributes the guarded-only detection to the single repair-stage invocation or to an emulation-only observation (reference the canonical execution manifest / raw_results.jsonl entry by pair_id).",
+    "Optionally include a compact table summarizing the observed task-difficulty strata (extreme/very_hard/hard/medium) and counts, drawn verbatim from the archived difficulty_summary artifact to aid readers' interpretation of external validity.",
+    "Optionally shorten Related Work to prioritize the closest empirical/system reports and compress background to help meet the five-page limit if needed."
+  ],
+  "accept_for_finalisation": false
+}

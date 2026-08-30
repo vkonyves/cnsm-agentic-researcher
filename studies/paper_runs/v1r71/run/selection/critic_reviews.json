@@ -1,0 +1,97 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1a7f9d2-3b4e-4c6f-9a2e-0b2d5e8f1c9a",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulation fidelity vs production networks may produce misleading safety gains",
+        "Potential bias from synthetic topology/intent corpus and chosen vendor set",
+        "Validator rule-set selection may under- or over-state baseline capability",
+        "Unclear formalization of rollback-aware canary scoring and deployment decision thresholds",
+        "Compute/time budget for full emulation sweep may be underestimated"
+      ],
+      "required_design_repairs": [
+        "Provide formal definition and justification of emulation fidelity and limitations; specify vendor families and rationale",
+        "Preregister exact validator rule set and scoring thresholds; publish rules with paper",
+        "Include power/sample-size analysis and wall-clock compute estimates",
+        "Define rollback-aware canary scoring mathematically and tie to deployment decision rules",
+        "Release dataset generation scripts, seeds, prompts, and emulation harness for reproducibility"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "d4b9e7a5-9f21-41c2-8f6d-2e3a7b5c4f12",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Label noise from imperfect validators/emulation may bias classifier training",
+        "Risk of overfitting classifier to idiosyncrasies of the LLM used to generate training data",
+        "Synthetic fault injections may not reflect real-world misconfiguration distributions",
+        "Lack of explicit plan to evaluate cross-LLM and cross-vendor generalization"
+      ],
+      "required_design_repairs": [
+        "Specify classifier architecture, feature set, and training regime (regularization, cross-validation) in preregistration",
+        "Add held-out generation from at least one different LLM and vendor-CLI family for generalization testing",
+        "Quantify and mitigate label noise (e.g., multiple verifiers, human adjudication on a sample)",
+        "Provide compute budget and fallback plan if GPU resources are unavailable; publish dataset and seeds"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "f2c3d8b1-7a6e-4a9a-b2c3-5f8e1d2b6c7e",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Construct validity: mapping injected faults to realistic operational misconfigs must be justified",
+        "Validator configuration drift and rule tuning could change coverage estimates",
+        "Limited vendor set may limit external validity"
+      ],
+      "required_design_repairs": [
+        "Preregister misconfiguration taxonomy with concrete examples and mapping rules to real-world incidents",
+        "Specify exact validator versions/configuration and justify chosen rule thresholds",
+        "Allocate emulation-verified sample size for false-negative estimation and report confidence intervals",
+        "Explain vendor selection and, if constrained, discuss external validity limits"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "a9e5b2c4-6f31-43d9-9e4b-8c2f0d7a1b3f",
+      "novelty": 0.8,
+      "falsifiability": 0.75,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.85,
+      "major_concerns": [
+        "Realism of adversarial perturbation generators must be demonstrated",
+        "Ethical concerns about publishing adversarial generation details (risk of misuse)",
+        "Repair loop design may overfit to chosen validator and not generalize",
+        "Reproducibility hinges on tight preregistration of adversary strengths and seeds"
+      ],
+      "required_design_repairs": [
+        "Preregister adversarial perturbation generators, strength levels, and seeds; include rationale and realism validation",
+        "Omit exploit-level details in publication; provide high-level descriptions and responsible-disclosure plan",
+        "Specify repair algorithm, stopping rules, and thresholds; include sensitivity analyses",
+        "Provide compute/time estimates and emulation sampling plan to ensure statistical power"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

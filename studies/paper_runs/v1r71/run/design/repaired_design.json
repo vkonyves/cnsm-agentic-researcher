@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "f2c3d8b1-7a6e-4a9a-b2c3-5f8e1d2b6c7e",
+  "title": "Quantitative validator coverage matrix for misconfiguration classes across vendors (repaired preregistration)",
+  "research_question": "Which classes of injected misconfiguration in LLM-generated network artifacts are detected by a baseline validator suite (validator-only) versus a guarded pipeline (validator + sandboxed emulation), and what is the paired detection-rate difference (guarded − baseline) aggregated across vendors and topology templates?",
+  "confirmatory_hypotheses": [
+    "Primary (confirmatory): The guarded pipeline (validator + automated sandboxed emulation) will detect a higher proportion of injected misconfigurations than the baseline validator-only pipeline. The primary estimand is the paired_success_rate_difference_guarded_minus_baseline aggregated across all injected samples; preregistered minimum effect-of-interest = 0.20 (20 percentage points).",
+    "Secondary (exploratory): Detection gaps will be nonuniform across misconfiguration classes (syntax, ACL semantics, routing loop/break, VRF/tenant isolation violations, control-plane inconsistencies, vendor-CLI misuse) and vendor-CLI families."
+  ],
+  "exploratory_questions": [
+    "Which specific validator rule IDs or emulation observation types account for most additional detections by the guarded pipeline?",
+    "Are there classes or vendors where the guarded pipeline provides negligible benefit (paired difference ≈ 0)?"
+  ],
+  "benchmark_scope": [
+    "Synthetic LLM-generated network configuration artifacts (intent→config) produced via hosted LLM API(s) permitted by the capability manifest",
+    "Three vendor-CLI families (vendor A, vendor B, vendor C; vendor labels used abstractly to preserve reproducibility of CLI families rather than proprietary names)",
+    "A small set of topology templates (leaf-spine, 3-node service chain, simple triangle) represented as input topology manifests used for generation and emulation"
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) allowed by the capability manifest (calls counted in budget scenarios). Exact model identifiers will be recorded in the execution manifest prior to generation runs."
+  ],
+  "transformation_scope": [
+    "Deterministic vendor-specific configuration serializers/parsers",
+    "Automated injection of concrete, parameterized fault templates per misconfiguration class",
+    "Automated translation of generated configs to emulation input artifacts (Docker/Mininet-like harness)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-class paired detection-rate differences (guarded − baseline)",
+    "Per-vendor paired detection-rate differences",
+    "Per-topology paired detection-rate differences",
+    "Counts of emulation-confirmed false negatives for the baseline validator (per class/vendor)"
+  ],
+  "sampling_plan": "Paired design. For each sample we inject one concrete misconfiguration instance into an intent→generated config, then run (1) baseline validator-only pipeline and (2) guarded pipeline (baseline validator followed by automated sandboxed emulation). Outcome per sample is binary: detected_by_baseline ∈ {0,1} and detected_by_guarded ∈ {0,1}. No human adjudication: emulation verdicts are deterministic observations (reachability checks, policy violation traces) and are mapped to binary detection using pre-registered mapping rules. Inclusion: any generated config instance that passes vendor-specific parser checks. Exclusion: parsing failures (automatically rejected and replaced by deterministic reseed, see missingness_plan).",
+  "analysis_plan": "Primary analysis: use the registered analysis executor paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline). Compute aggregate paired detection-rate difference across all confirmatory samples with 95% CI. Use the executor's default paired-binary procedures (McNemar-style / paired logistic with cluster-robust SE for topology clusters). Primary-call failure treatment: follow registered contract options; sensitivity analysis will treat technical failures as nondetections (failed_call_treatment: complete_pair_primary_with_failure_as_zero_sensitivity). Secondary analyses: per-class and per-vendor paired analyses with Bonferroni-adjusted CIs for multiplicity (see multiplicity_plan). All analysis code and seeds will be recorded and published with execution manifest.",
+  "multiplicity_plan": "Primary confirmatory test is the aggregated paired detection-rate difference across all confirmatory samples. Secondary per-class and per-vendor comparisons are exploratory and will be reported with Bonferroni-adjusted confidence intervals (alpha family-wise corrected for number_of_classes × number_of_vendors = 6 × 3 = 18 tests) and flagged as exploratory. No hierarchical gate-rejection is required for the primary aggregated estimand.",
+  "missingness_plan": "Technical failures (parser failures, emulation harness crashes, provider timeouts) are handled deterministically: up to two automatic re-executions per sample; if still failing, the sample is replaced by deterministic reseed using stored PRNG seed and recorded as a technical exclusion. Analysis will use the paired_binary_analysis_v1 contract's failed_call_treatment: primary analysis excludes irrecoverable technical pairs; sensitivity analysis treats irrecoverable failures as nondetections in the guarded pipeline (zero) to produce conservative bounds.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "LLM-generated synthetic NetOps misconfig coverage"
+    ],
+    "risk_factors": [
+      "Duplicate seeds or accidental reuse of generated artifacts across discovery and confirmatory sets",
+      "Leakage of prompt templates or injected fault templates into model prompt history (if hosted API had caching),",
+      "Validator rule-set updates between discovery and confirmatory runs"
+    ],
+    "detection_procedures": [
+      "Deterministic artifact hashing (SHA-256) for every generated sample and input seed fingerprinting; any hash collision auto-flagged",
+      "Prompt and artifact provenance logging with immutable timestamps; automated diff-based detection of template reuse",
+      "Automated validation that validator binary/config version hashes match preregistered values before confirmatory execution"
+    ],
+    "item_flagging_rules": [
+      "Duplicate artifact hash → automatic exclusion and deterministic reseed",
+      "Any validator or emulator binary/config checksum mismatch → automatic halt to confirmatory execution until corrected; mismatched run flagged as invalid",
+      "Prompt-template divergence from preregistered templates beyond exact-token tolerance → automatic exclusion"
+    ],
+    "analysis_treatment": "Flagged contaminated items are excluded and replaced deterministically prior to analysis. All contamination flags and replacements are recorded in the execution manifest. Sensitivity analysis will report results including and excluding replaced items.",
+    "residual_uncertainty": [
+      "Potential hidden caching or provider-side non-determinism in hosted LLM API not detectable by client-side checks",
+      "Unobserved differences between emulation runs and some vendor production behaviors (see remaining_noncritical_uncertainties)"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended",
+      "description": "Full confirmatory design: 3 vendors × 6 misconfig classes × 40 confirmatory samples per cell = 720 confirmatory samples; 80 discovery (pilot) samples for taxonomy and rule tuning; total generated samples = 800. Model-call budget equals one generation call per sample plus 0 extra prototyping calls captured in discovery; planned_model_calls = 800. Models: hosted LLM API(s) allowed by capability manifest. Transformations: deterministic vendor-specific parsing/serialization, injection templates, emulation artifact generation.",
+      "planned_model_calls": 800,
+      "models": [
+        "hosted-llm-api"
+      ],
+      "transformations": [
+        "vendor-specific parser/serializer",
+        "parameterized fault injector",
+        "emulation-input generator"
+      ],
+      "discovery_items": 80,
+      "confirmatory_items": 720,
+      "task_cluster_count": 18,
+      "feasibility_rationale": "Planned_model_calls (800) ≤ capability_manifest.maximum_planned_model_calls (10000). Confirmatory_items = vendors (3) × classes (6) × per_cell_n (40) = 720; discovery 80 used for taxonomy and validator-rule tuning. Docker-based emulation and CPU execution are available per capability manifest. No human annotation or external labs required."
+    },
+    {
+      "scenario_id": "constrained",
+      "description": "Cost-constrained design trimming confirmatory sample size: 3 vendors × 6 classes × 20 confirmatory samples per cell = 360 confirmatory samples; 40 discovery samples; total generated samples = 400. Planned_model_calls = 400. Use if API budget or wall-clock constraints force reduced sampling.",
+      "planned_model_calls": 400,
+      "models": [
+        "hosted-llm-api"
+      ],
+      "transformations": [
+        "vendor-specific parser/serializer",
+        "parameterized fault injector",
+        "emulation-input generator"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 360,
+      "task_cluster_count": 18,
+      "feasibility_rationale": "Scaled-down but structurally identical design. Confirmatory_items = 3 × 6 × 20 = 360. Reduces model-call costs and emulation CPU time; still executable within manifest (Docker + CPU). Recommended only if resource limits require tradeoff against precision."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "0.20 absolute increase (20 percentage points) in detection rate aggregated across confirmatory samples",
+    "clustering_unit": "individual injected misconfiguration sample; topology templates treated as clustering strata for cluster-robust SE",
+    "calculation_method": "Approximate paired-binary power formula (McNemar-type / paired-proportion approximation) used to choose per-cell n such that aggregated confirmatory sample (720) yields ≥80% power to detect a 0.20 absolute paired difference under plausible baseline detection rates (assumed baseline p≈0.40–0.60). Assumptions and approximate calculation will be saved with the execution manifest.",
+    "assumptions": [
+      "Baseline aggregated detection rate between 40% and 60% (literature-informed prior)",
+      "Paired discordance (samples detected by only one pipeline) sufficient to observe differences; conservative intracluster correlation across topology clusters <= 0.05",
+      "Alpha = 0.05 (two-sided) for primary aggregated estimand"
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With total confirmatory N=720 (aggregated), the design targets ≈80% power to detect a 20 percentage-point absolute paired difference under the assumptions above. Smaller per-cell n in the constrained scenario raises the minimum detectable effect; constrained scenario primarily intended for exploratory reporting.",
+    "sensitivity_analyses": [
+      "Recompute paired estimates stratified by class and vendor (exploratory); report achieved CIs and note low power for per-cell inference when per-cell n<40",
+      "Sensitivity analysis treating irrecoverable technical failures as nondetections (conservative)",
+      "Bootstrap cluster-robust CIs by topology template"
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "parsing/serialization to vendor-specific syntaxes",
+      "parameterized misconfiguration injectors",
+      "emulation artifact generator (topology + device configs)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip parse/serialize: generated config must parse with vendor parser; serializing then reparsing must yield equivalent AST; automated acceptance only on equivalence",
+      "Automated, rule-based mapping from injected fault template to observable emulation test (e.g., injected ACL deny on path X maps to a deterministic reachability test failure in the emulator)"
+    ],
+    "automatic_rejection_rules": [
+      "Parser failure on generated artifact → automatic rejection and deterministic reseed",
+      "Round-trip AST inequality beyond exact-keyword tolerance → automatic rejection",
+      "Mapping failure from injected template to emulation test → automatic exclusion and logged as transformation failure"
+    ],
+    "audit_sample_policy": "Automated audit sample = 5% random sample of discovery and confirmatory items; audit consists of additional deterministic diagnostics (extended emulation traces) and is executed automatically without human intervention.",
+    "mapping_validation": "Each injected fault template includes explicit mapping rules (pre-registered) to one or more deterministic emulation checks (reachability, route table inconsistency, VRF isolation test). Mappings are validated in the discovery phase before confirmatory runs.",
+    "residual_risks": [
+      "Parser coverage gaps for rare vendor constructs causing unintended exclusions",
+      "Emulation tests may not capture every production control-plane nuance"
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulation fidelity: automated sandboxed emulation may not fully reproduce some vendor-specific control-plane behaviors seen in production; this is a limitation of external validity rather than a blocker to the confirmatory paired comparison (placed as noncritical)",
+    "Realism of injected misconfiguration taxonomy relative to incident distributions in diverse operator environments; taxonomy was chosen based on supplied literature but may underrepresent some field modes",
+    "Validator configuration drift over time; preregistered validator binary/config checksums mitigate but cannot guarantee equivalence with third-party deployed systems outside the study"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4386385177",
+    "https://openalex.org/W4394661176",
+    "https://openalex.org/W7203497697"
+  ]
+}

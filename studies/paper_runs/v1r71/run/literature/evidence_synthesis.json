@@ -1,0 +1,183 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models are being applied to NetOps/AIOps tasks (intent translation, configuration synthesis, diagnosis, limited self-healing), and their operational reliability depends chiefly on surrounding tooling, validators, and workflow orchestration rather than the model alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "survey_and_architectural_reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Primarily survey/architectural evidence; limited large-scale production empirical data in supplied records"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Pairing generation with external validators, verifiers, or simulators (generate→validate→repair) is a common mitigation pattern and has demonstrated improved correctness in code/specification domains and in several NetOps proof-of-concept systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4409311824",
+        "https://openalex.org/W7125924044",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "tool_and_method_papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence often from prototypes or adjacent domains (program verification); few broad, cross-vendor NetOps deployments in supplied records"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Empirical studies and tools report that LLMs can produce hallucinated or incorrect network/configuration outputs; models vary in effectiveness, and LLMs struggle to find reasoning/configuration errors autonomously though they can often correct known-located errors.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412039790",
+        "https://openalex.org/W4399252700",
+        "https://openalex.org/W4402670356",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "empirical_case_studies_and_experiments",
+      "confidence": 0.8,
+      "limitations": [
+        "Task and model heterogeneity across studies limits quantitative generalization"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Existing LLM evaluation practices and benchmarks are insufficient for assessing operational safety and trustworthiness of agentic NetOps systems; workflow-centred, niche benchmarks and V&V approaches are recommended.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "evaluation_survey_and_position_papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Recommendation-based evidence; concrete standard benchmarks remain to be developed"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Emulation and executable validation (e.g., exporting generated topologies to Mininet; configuration analysis with Batfish/NetKAT) are used to validate generated network artifacts in research prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176"
+      ],
+      "evidence_type": "system_and_tool_reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Scale, fidelity, and representativeness of emulated tests versus production networks are open questions"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do validator-assisted LLM pipelines generalize across diverse vendor CLIs, multi-vendor topologies, and production-scale networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411109869",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "survey_and_tool_limitations",
+      "confidence": 0.5,
+      "limitations": [
+        "No supplied records present broad cross-vendor empirical evaluations addressing this question"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "Which standardized, workflow-centred benchmarks and metrics best capture operational safety, rollback-aware scoring, and real-world trustworthiness for agentic NetOps systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7203497697"
+      ],
+      "evidence_type": "evaluation_gap_reports",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records call for such benchmarks but do not define a single agreed-upon standard"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Can LLMs reliably locate their own reasoning or configuration errors in NetOps outputs without external mistake-finding modules or human oversight?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670356",
+        "https://openalex.org/W4409311824"
+      ],
+      "evidence_type": "empirical_and_methodological_studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Evidence shows limitations and that external verifiers/classifiers help, but NetOps-specific mistake-finding remains underexplored"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How robust are current LLM+validator designs to adversarial inputs, distribution shift, and targeted misconfiguration/fuzzing in realistic network settings?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416254940",
+        "https://openalex.org/W4399252700"
+      ],
+      "evidence_type": "adversarial_and_misconfiguration_studies",
+      "confidence": 0.5,
+      "limitations": [
+        "Limited direct empirical data in supplied records quantifying defensive effectiveness under adversarial conditions"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Develop workflow-centred NetOps benchmarks that combine intent→generation, validator checks, sandboxed execution (emulation), canary scoring, and rollback-aware metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W7203497697"
+      ],
+      "evidence_type": "recommended_research_directions",
+      "confidence": 0.7,
+      "limitations": [
+        "Conceptual proposal supported by calls in the literature; design and validation remain to be implemented"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Design and evaluate dedicated mistake-finding modules or classifiers for NetOps outputs (to locate errors) that can feed verifiers and enable targeted correction.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402670356",
+        "https://openalex.org/W4409311824"
+      ],
+      "evidence_type": "method_transfer_and_empirical_findings",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing evidence is from general reasoning and program-verification domains; NetOps-specific implementations are needed"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Quantitatively map validator coverage gaps: what classes of misconfigurations are detected by tools like Batfish/NetKAT and which remain undetected when used with LLM-generated artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4386385177"
+      ],
+      "evidence_type": "tool_capability_studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied records describe validator capabilities but do not provide a comprehensive misconfiguration coverage matrix when paired with LLM generators"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready for fully autonomous NetOps without external validators, sandboxing, human oversight, or rollback mechanisms.",
+    "LLMs reliably detect all reasoning or configuration errors in their own NetOps outputs without external mistake-finding components.",
+    "A comprehensive, community-adopted public benchmark already exists that fully captures workflow-centred safety and trustworthiness for agentic NetOps (intent→generate→validate→execute)."
+  ]
+}

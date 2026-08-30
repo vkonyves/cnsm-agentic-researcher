@@ -1,0 +1,25 @@
+{
+  "summary": "Well-executed preregistered paired confirmatory study with complete archival evidence showing a vanishing marginal detection benefit for sandboxed emulation over a very strong deterministic validator on a curated synthetic task bank. Methods, execution manifest, and analysis artifacts appear consistent and reproducible. The main scientific limitation (ceiling effect due to synthetic tasks and high validator coverage) is acknowledged. Several manuscript clarifications and formatting/disclosure fixes are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript must provide an explicit, easily-locatable pointer to the single discordant paired episode (pair_id and path within the archived bundle) that the text attributes to the repair-stage call so independent reviewers/readers can verify the claim (resolvable from archived raw_results and reconciliation artifacts).",
+    "Disclosure Statement duplicates provenance/log detail and should be condensed: it must remain complete but concise, avoid embedding run-internal paths or execution logs in the manuscript body, and instead point to the authoritative execution manifest and archive location (the manifest is already archived).",
+    "Citation formatting and verification: convert in-text citations and reference list to standard IEEE numbered markers and ensure each cited record actually supports the nearby claim; add (or point to) the machine-readable citation-verification record already produced in the evidence bundle.",
+    "Sampling semantics and shared_initial_candidate clarity: explicitly state that the model temperature was unset (null) and that null does not imply deterministic sampling, and restate — in plain terms — that preregistered shared_initial_candidate semantics mean the same sampled initial candidate was reused across paired conditions so that between-condition differences can only arise from downstream guarded-stage steps or permitted repair calls. The current wording is close but should be made explicit and unambiguous to avoid implying sampling determinism."
+  ],
+  "required_revisions": [
+    "Add a one-line explicit pointer in Results (pair_id and file/path within the archived execution bundle) identifying the discordant pair (the single n10 item) and the exact artifact that links it to the single repair-stage call (e.g., pair-XXXX → execution/raw_results.jsonl entry and analysis/deterministic_reconciliation.json). This must use the archived artifact identifiers/hashes already present in the evidence bundle (no new runs).",
+    "Condense the Disclosure Statement in the manuscript to a concise paragraph that lists required items (models, validator, orchestration adapter family, preregistration id+hash, assertion of no post-lock manual editing, and pointer to the execution manifest and archive). Remove embedded run-internal path lists or long provenance excerpts from the main text; preserve full provenance in the archived bundle and point to it from the Disclosure Statement.",
+    "Replace raw/citation-identifier prose (URLs/handles) with standard IEEE numbered in-text citations and a matching reference list. Add a sentence (or footnote) indicating that citation verification artifacts are archived and provide their path/hash in the execution manifest (so reviewers can check that each cited work supports the proximate claim).",
+    "Explicitly state sampling semantics in Methods: record that temperature was null in the recorded model_configuration, that null does not imply temperature=0 or deterministic sampling, and clarify that shared_initial_candidate was enforced so the same sampled initial candidate was used for both baseline and guarded conditions per pair (therefore any between-condition difference must come from guarded-stage emulation or repair)."
+  ],
+  "optional_revisions": [
+    "Add a short illustrative example (one representative task_id, validator trace, and emulation observation) inline or as a compact figure to help readers understand typical failure modes and the single discordant case.",
+    "Explicitly state in Methods that the study was powered for 0.20 effect size and briefly quantify what the observed discordant counts imply about the minimum detectable effect given realized data (to help interpret null/near-zero aggregate findings).",
+    "Mention more explicitly that secondary/exploratory per-class/vendor analyses were preregistered but are not reported (if absent) or point to where they are archived in the evidence bundle."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,25 @@
+{
+  "summary": "Well-executed, preregistered paired confirmatory study comparing a deterministic validator alone versus validator+sandboxed emulation on synthetic intent→configuration tasks (Npairs=720). Results show a near-ceiling baseline (719/720) with a single additional guarded detection (720/720), producing a negligible paired aggregate effect (Δ=0.001389, exact McNemar two-sided p=1.0, 95% bootstrap CI [0.0,0.00417]). Artifacts, manifests, and hashes are archived. The manuscript is scientifically credible but needs targeted clarifications and formatting fixes before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Missing IEEE-style numbered bibliography entries in the manuscript body: referenced_record_ids are raw URLs; provide full IEEE-formatted references and ensure each numbered citation in prose actually supports the proximate claim.",
+    "Runtime sampling semantics under-specified in the paper. The archived model_configuration shows temperature=null; the manuscript must explicitly report the literal archived sampling settings (including that temperature was unset) and state that no determinism is being claimed, per preregistered generation semantics.",
+    "Disclosure Statement contains archival identifiers but currently reads as provenance-heavy. Condense the Disclosure Statement in the manuscript to a concise summary (include model name(s), orchestration/validator identifiers, prereg SHA and master-prompt reference) and move execution-log-level details (per-file manifests, full hash lists, long timestamps) to the archived artifact bundle; do not duplicate run-internal logs in the paper body.",
+    "Citation–claim fidelity: where claims cite prior work (e.g., statements about generate–validate–repair practices, validator/emulation usage, and benchmarking gaps), the manuscript must ensure that the numbered IEEE references actually substantiate those specific claims (replace any unsupported inline URL/identifier with the correct primary source entry)."
+  ],
+  "required_revisions": [
+    "Replace the raw cited_record_ids/URLs with a full IEEE-numbered reference list in the manuscript; update in-text citation markers to match and ensure each cited reference supports the adjacent claim (no fabricated or mismatched references).",
+    "In Methods, explicitly state the archived model sampling parameters exactly as recorded (e.g., declared_model_version='gpt-5-mini', temperature=null/unset, max_output_tokens, number of initial-generation calls per task) and include a short sentence that shared_initial_candidate semantics were used and therefore the same initial sampled candidate was reused across both paired conditions (so cross-condition differences could only arise downstream).",
+    "Condense the Disclosure Statement in the manuscript to a concise summary level (model(s) and identifiers, validator/orchestrator identifiers, preregistration SHA, immutable master-prompt reference, statement of autonomous post-lock activity). Remove run-internal per-file logs, long hash lists, and execution-accounting details from the paper body and reference the archived manifest path instead.",
+    "Verify and, if needed, correct all literature-citation semantics so that the numbered references in prose (IEEE style) map to primary sources that substantiate the specific claims made in Related Work and Introduction (no reliance on raw URLs as in-text citations)."
+  ],
+  "optional_revisions": [
+    "Add a one-paragraph, tabular appendix (within the five pages) mapping a few representative validator rule IDs or emulation-observation types to the single guarded-only discordant detection (n10=1) to help readers understand what emulation caught that the validator did not.",
+    "Briefly state in Methods the exact treatment of the single observed repair-stage model call and confirm it followed the preregistered missingness/repair policy (archival trace path is present; a short clarifying sentence would improve transparency).",
+    "Include a short note in Limitations suggesting how an adversarial or broader, less-parser-valid task bank might change expected effect sizes to aid external validity discussion."
+  ],
+  "accept_for_finalisation": false
+}
