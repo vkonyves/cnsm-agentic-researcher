@@ -1,0 +1,19 @@
+{
+  "summary": "Closure review: authors largely addressed prior reviewer comments (clarifying preregistration power assumption and explaining the McNemar outcome) and the run artifacts and analysis appear complete and consistent. One mandatory disclosure remains missing: the manuscript does not explicitly report that the model sampling temperature was unset (temperature=null) nor state the inferential implication that sampling determinism is unspecified. This disclosure can and must be added using the archived model_configuration.json artifact as authoritative evidence. After that single required change the manuscript should be acceptable for finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Missing explicit disclosure that model sampling temperature was unset in the recorded model configuration (execution/model_configuration.json shows temperature=null) and that null does not imply deterministic (temperature=0). The manuscript must explicitly state this fact and its inferential implication (sampling determinism unspecified) in Methods and in the Disclosure Statement, citing the archived model_configuration.json artifact (path and hash) as the authoritative source."
+  ],
+  "required_revisions": [
+    "Add an explicit statement in Methods that model sampling temperature was unset: execution/model_configuration.json records \"temperature\": null (sha256: 1acce92558edeb13cd97b75817329d332afe4a36d01d566f1a26c61b132923fa). State that a null/unset temperature is not evidence of deterministic sampling and thus sampling determinism was unspecified; discuss briefly the inferential implication (i.e., that sampling nondeterminism could affect generator variance and that temperature was not fixed to force deterministic outputs).",
+    "Add the same explicit disclosure text (concise) to the Disclosure Statement, citing the same artifact path & hash as authoritative evidence."
+  ],
+  "optional_revisions": [
+    "Optionally include a one‑sentence pointer to the single corrected discordant episode (pair-000229) and its archived validator/repair trace (artifact path in execution manifest) to aid reader understanding.",
+    "Optionally add a very short sentence or mini-table converting absolute paired improvements into required discordant‑pair counts for N=300 (e.g., absolute +0.30 ≈ 90 net discordant pairs) to help readers relate power planning to practical task design."
+  ],
+  "accept_for_finalisation": false
+}

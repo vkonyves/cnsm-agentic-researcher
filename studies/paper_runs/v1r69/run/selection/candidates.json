@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-001-A",
+      "title": "Effectiveness of RAG + Deterministic Validation and Iterative Repair for Reducing First-pass NetOps Misconfiguration",
+      "research_question": "Can a pipeline combining retrieval-augmented generation (RAG), a deterministic configuration validator, and an automated iterative repair loop reduce the first-pass misconfiguration rate of LLM-generated network configurations to operationally useful levels compared with plain LLM generation?",
+      "hypotheses": [
+        "A RAG + deterministic validator + automated repair pipeline will reduce the first-pass misconfiguration rate by at least 50% relative to plain LLM single-shot generation on the same task set.",
+        "Two or fewer automated repair iterations will recover at least 75% of initially invalid configurations produced by the LLM+RAG generator."
+      ],
+      "proposed_design": "Preregistered, paired, within-task experiment. Construct a corpus of 300 intent→configuration tasks driven by realistic topologies and vendor variants (synthesized from public config corpora and parametrized topologies). Arms: (A) plain LLM single-shot generation; (B) LLM with RAG (retrieval from curated network-config docs) + deterministic validator (Batfish-style checks) + automated repair loop up to 2 iterations. Freeze prompts, retrieval index, validator rules, and repair heuristics before execution. For each task, capture the initial config, validator results, repair edits, and final validator outcome. Do not alter design post hoc. Primary metric: first-pass misconfiguration rate (binary: passes validator). Secondary metrics: repair success rate, number of iterations to pass, latency, and categories of failure (reachability, ACL, routing).",
+      "expected_data": "Per-task records (N=300) containing: initial LLM output, RAG context, validator pass/fail, validation failure types, repair iterations and edits, final pass/fail, response latencies, and retrieval hits. Aggregate counts and proportions for first-pass pass/fail per arm; per-task paired outcomes; confusion matrix of failure types; iteration counts for successful repairs.",
+      "primary_outcome": "Paired difference in first-pass misconfiguration rate between plain LLM and the RAG+validator+repair pipeline (expressed as absolute and relative reduction).",
+      "analysis_outline": "Compute paired binary outcomes (pass/fail) per task; test null hypothesis of no difference using McNemar's test (alpha=0.05) and compute 95% CIs for absolute risk reduction. Report relative reduction and exact binomial CIs for repair success rates. Subgroup analyses by topology complexity and vendor using stratified McNemar and logistic regression with robust SEs. Correct for multiple secondary comparisons using Benjamini–Hochberg FDR. Report raw task-level artifacts for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7203776655",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "10.2139/ssrn.6608518"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W7164054454"
+      ],
+      "risks": [
+        "Validator specification may fail to capture all real-world safety properties causing underestimation of risk.",
+        "RAG corpus quality or retrieval failures could bias results toward poorer or better performance than production.",
+        "Synthetic/topology-limited task set may not generalize to all vendors or complex production topologies.",
+        "Provider API rate limits or transient failures could necessitate retries; retries must follow preregistered policy to avoid result bias."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-2026-002-B",
+      "title": "Adversarial Intent Perturbation: Stress-testing LLM-driven NetOps for Attackable Failure Modes",
+      "research_question": "Do structured adversarial perturbations of high-level intent/input (instruction-injection, equivocation, targeted paraphrase) produce significantly higher NetOps misconfiguration rates from LLM-driven pipelines than equivalently sized random/noise perturbations?",
+      "hypotheses": [
+        "Adversarially crafted intent perturbations will increase the misconfiguration rate of LLM-generated configurations by at least 30% relative to random perturbations of equal token/semantic magnitude.",
+        "A deterministic validator will detect a smaller fraction of adversarially induced misconfigurations on first pass than it detects for random-perturbation-induced misconfigurations (i.e., adversarial failures are less likely to be trivially rejected)."
+      ],
+      "proposed_design": "Paired experiment using 240 base intent tasks. For each base intent, generate two perturbed variants: (1) adversarial perturbation generated by a constrained paraphrase/injection generator (gradient-free adversary: targeted prompt-edit heuristics and paraphrase candidates selected to maximize semantic drift), and (2) random perturbation (token-level synonym replacement / noise controlling perturbation magnitude). Run LLM generation with identical model/config settings and optional RAG retrieval; validate outputs with deterministic validator. Measure misconfiguration rates per perturbation type and validator detection rates. Freeze adversary generation procedure and random seeds before execution. Include manual verification of adversary generation algorithm only at development—do not use human labelers in experimental run.",
+      "expected_data": "Per-intent records (N=240×2) including perturbation text, LLM output config, validator pass/fail, failure types, and retrieval contexts. Aggregate misconfiguration rates for adversarial vs random perturbations, validator detection rates, and distribution of failure types.",
+      "primary_outcome": "Difference in misconfiguration rates between adversarial and random perturbation conditions (absolute and relative), tested at alpha=0.05.",
+      "analysis_outline": "Compare paired binary outcomes per base intent using McNemar's test and compute effect sizes (risk difference, odds ratio). Analyze validator detection rates with paired proportions tests. Use logistic regression to model likelihood of misconfiguration as function of perturbation type, task complexity, and retrieval presence. Perform sensitivity analyses varying adversary strength. Report raw artifact corpus and adversary generator for reproducibility.",
+      "novelty_evidence_ids": [
+        "10.1038/s43856-025-01021-3",
+        "https://openalex.org/W4405490406",
+        "https://openalex.org/W4413427262"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W7203776655"
+      ],
+      "risks": [
+        "Adversary generator could produce unrealistic perturbations not representative of real attacker behavior.",
+        "Deterministic validator may detect many adversarial failures, reducing measurable difference; negative result is informative but must be reported.",
+        "Ethical risk of releasing adversary-generation heuristics; dissemination plan must limit actionable attack details while preserving reproducibility.",
+        "Model provider rate limits or drift could affect adversarial efficacy; preregistered seeds and call budgets mitigate this."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-2026-003-C",
+      "title": "Operational Value of Integrated Provenance and Auditability for Automated Approval Policies in LLM-driven NetOps",
+      "research_question": "Does embedding machine-verifiable provenance and evidence-capture with LLM-generated configuration artifacts improve the precision of an automated approval policy (simulated operator) and reduce propagation of misconfigurations compared to outputs without provenance metadata?",
+      "hypotheses": [
+        "Providing structured provenance (retrieval citations, validator traces, deterministic execution proofs) with each LLM-generated configuration will increase the precision of a pre-specified automated approval policy by at least 20% relative to identical outputs without provenance.",
+        "Provenance-enriched artifacts will reduce the proportion of misconfigurations that reach a simulated deployment state under the automated policy by at least 30%. "
+      ],
+      "proposed_design": "Controlled simulation experiment with N=200 intent tasks. Define an automated approval policy that accepts configurations only when provenance confidence score ≥ threshold (score computed from retrieval hit quality, validator trace completeness, and a deterministic proof-of-check flag). Two arms: (A) LLM outputs with provenance metadata; (B) identical LLM outputs with provenance metadata stripped (same textual config). Use deterministic validator to label ground-truth deployability. The simulated operator is a deterministic policy (no humans) whose actions are recorded. Freeze provenance scoring heuristics and approval threshold before runs. Measure approval precision/recall, false-accept rate (deployable vs misconfig), and downstream simulated propagation (e.g., number of affected flows incorrectly disrupted).",
+      "expected_data": "Per-task records: config text, provenance fields (retrieval ids, validator trace), computed provenance confidence, automated decision (approve/reject), ground-truth validator label, and simulated propagation impact metrics. Aggregate approval precision, false-accept rates, and simulated propagation measures across arms.",
+      "primary_outcome": "Increase in approval precision (true positive approvals / total approvals) of the automated policy when provided provenance metadata vs not (absolute difference and relative improvement).",
+      "analysis_outline": "Paired comparison of approval precision using McNemar's test on approve/reject decisions; compute false-accept rates and compare via paired proportions test. Estimate reduction in misconfiguration propagation with bootstrap CIs. Conduct sensitivity analysis varying provenance confidence threshold and report ROC of automated policy. Provide complete provenance scoring algorithm and raw artifacts for reproducibility.",
+      "novelty_evidence_ids": [
+        "10.2139/ssrn.6103587",
+        "https://openalex.org/W4407163436",
+        "10.36227/techrxiv.176118749.93102582/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7203776655"
+      ],
+      "risks": [
+        "Simulated automated operator may not capture human cognitive factors (automation bias); results concern automated policies rather than human trust.",
+        "Provenance scoring heuristics may be tuned to the experiment and not generalize; preregistration and release of heuristics mitigate concerns.",
+        "Potential for over-reliance on incomplete provenance fields which could produce false safety signals.",
+        "Operationalizing provenance at scale may be engineering-heavy; experiment scope is constrained to simulation/emulation."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "cand-2026-004-D",
+      "title": "Calibration and Overconfidence Reduction via Bounded Iterative Self-correction in LLM-driven Configuration Generation",
+      "research_question": "Do bounded iterative generate→validate→correct cycles reduce LLM overconfidence (miscalibration) and improve calibration metrics (ECE, Brier score) compared to single-shot generation for NetOps configuration tasks?",
+      "hypotheses": [
+        "Iterative bounded self-correction (up to 3 iterations with validator feedback) will reduce expected calibration error (ECE) by at least 20% relative to single-shot LLM outputs.",
+        "Iterative self-correction will reduce overconfident incorrect outputs (high predicted confidence but invalid config) by at least 30% relative to single-shot generation."
+      ],
+      "proposed_design": "Paired experiment on 400 intent→config tasks. For each task, obtain (A) single-shot LLM output with an associated model confidence proxy (e.g., normalized token log-probability or explicit confidence head if available), and (B) iterative pipeline where the LLM receives validator feedback and attempts up to 3 corrections; compute same confidence proxy after each iteration and report final confidence. Use deterministic validator to label correctness. Predefine confidence-calculation method and calibration binning. Primary metrics: ECE, Brier score, proportion of instances with high confidence (>0.8) but incorrect. Freeze iteration protocol and feedback format before execution.",
+      "expected_data": "Per-task vectors including single-shot confidence and correctness label; iterative confidence/correctness per iteration; per-instance ECE bin assignments; distributions of confidence on correct vs incorrect outputs; iteration counts for successful corrections.",
+      "primary_outcome": "Relative reduction in ECE between single-shot and final-iteration outputs (expressed as percentage change with 95% CI).",
+      "analysis_outline": "Compute ECE and Brier scores for both conditions using standard binning (10 bins) and bootstrap 95% CIs. Test difference in ECE using paired bootstrap. Compare rates of high-confidence errors with McNemar's test for paired proportions. Report calibration curves, per-iteration improvement trajectories, and subgroup analyses by task complexity. Disclose confidence proxy limitations and perform sensitivity checks with alternate proxies.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4391221150",
+        "10.1038/s43856-025-01021-3",
+        "10.2139/ssrn.6834458"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7203776655"
+      ],
+      "risks": [
+        "Model confidence proxies (token log-probabilities) may imperfectly track true epistemic confidence, limiting interpretability.",
+        "Iterative loops may create correlated artifacts (overfitting to validator feedback) that improve calibration artifacts but not true correctness; report limitations.",
+        "Increased latency from iterations may be operationally unacceptable even if calibration improves.",
+        "Provider API variability could affect confidence proxy comparability; fixed seeds and call budgets mitigate this."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

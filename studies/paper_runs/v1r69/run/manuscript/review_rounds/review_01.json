@@ -1,0 +1,25 @@
+{
+  "summary": "This preregistered, artifact-backed paired experiment tests whether a deterministic validator plus a single automated repair iteration reduces first-pass misconfiguration for LLM-generated network configurations (N=300, model=gpt-5-mini). Execution and archiving are thorough. Results: baseline 299/300 valid, guarded 300/300 valid, paired difference 0.00333 (95% bootstrap CI [0.00,0.01]), exact McNemar two-sided p=1.00. The preregistered ≥50% relative reduction hypothesis is not supported; the null result is driven by a near-ceiling baseline. The run preserved preregistration, recorded full artifacts, and shows no technical failures.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript places excessive execution-provenance and manifest detail in main prose (methods/results), reducing readability and making the paper read like an artifact report rather than a concise conference paper.",
+    "Sampling/runtime semantics are under-specified in the Methods: model temperature is recorded as null and generation_semantics indicates 'shared_initial_candidate' and independent_condition_generation=false in the preregistration/execution manifests, but the manuscript does not explicitly explain the sampling implication that the same initial candidate was reused across paired conditions and what that implies for between-condition variance.",
+    "Statistical interpretation needs clearer framing: the preregistered confirmatory inference targeting a 50% relative reduction is rendered untestable by the observed near-ceiling baseline. The manuscript states this, but Methods and Results must explicitly and prominently report that the planned power assumptions were not met and that the confirmatory test therefore has limited interpretability.",
+    "Manuscript disclosure/provenance text includes low-level artifact paths and many full hashes in running prose rather than concise disclosure referencing the archived manifest; the paper should use compact scholarly prose and point to archived artifacts instead."
+  ],
+  "required_revisions": [
+    "Revise Methods to explicitly state runtime sampling semantics from the archived model_configuration and preregistration: that temperature was unset (recorded as null), generation_semantics was 'shared_initial_candidate', independent_condition_generation=false, and therefore the same initial sampled candidate was reused across paired baseline/guarded conditions — explain consequences for within-pair vs between-condition variance and for interpretation of the paired test. (This change can be made from supplied artifacts.)",
+    "Prominently and unambiguously state in Methods and Results that the preregistered power assumptions (baseline pass rate ≈0.40) were not met, that baseline performance was near-ceiling (299/300), and that this lack of headroom limits the confirmatory inference for H1 — include the preregistered power discussion and recomputed realized power or an explicit statement that the planned detectable effect was not testable given observed margins (use archived contingency and condition_summary artifacts).",
+    "Compress provenance and metadata in main manuscript prose: remove or substantially shorten run-internal artifact paths and full hashes from the narrative; retain a concise Disclosure Statement within pages 1–5 that summarizes the autonomy and artifact provenance and points readers to the archived execution_manifest and full hash manifest (files/sha paths may be cited parenthetically). The full hash manifest and low-level provenance should remain archived and referenced, not reproduced verbatim in the body.",
+    "In Results or a short Supplementary paragraph (still within pages 1–5), report contamination/deterministic exclusion checks clearly: state that contamination_summary reported zero flagged items and that no preregistered deterministic exclusions/replacements occurred (or report the replacements if any), using the archived contamination_summary.csv and deterministic_reconciliation.json as evidence."
+  ],
+  "optional_revisions": [
+    "State explicitly why a two-sided exact McNemar was used despite a directional preregistered hypothesis (or report the one-sided exact p-value as supplementary), and note implications for interpretation in the near-ceiling regime.",
+    "Add a brief sentence in Discussion noting that the single repair call resolved the one discordant pair and include the repair trace artifact path/sha as a pointed reference (not full trace in prose).",
+    "Replace a small fraction of in-text execution-statistics (e.g., model_calls_used) with concise table or single-sentence summary and move technical counts to the archived manifest reference to improve flow."
+  ],
+  "accept_for_finalisation": false
+}

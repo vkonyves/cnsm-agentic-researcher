@@ -1,0 +1,81 @@
+{
+  "study_id": "cand-2026-001-A-prereg-v1",
+  "title": "Effectiveness of Deterministic Validation and Automated Repair for Reducing First-pass NetOps Misconfiguration",
+  "research_question": "Can a pipeline combining a frozen deterministic configuration validator and an automated iterative repair loop (≤1 automated repair iteration per the registered adapter) reduce the first-pass misconfiguration rate of LLM-generated network configurations relative to plain LLM single-shot generation on a paired intent→configuration task set?",
+  "confirmatory_hypotheses": [
+    "H1: The guarded pipeline (deterministic validator + automated repair) reduces the first-pass misconfiguration rate by at least 50% (relative) versus plain LLM single-shot generation on the paired task set.",
+    "H2: One or fewer automated repair iterations recover ≥75% of initially invalid configurations produced by the LLM generator."
+  ],
+  "exploratory_questions": [
+    "E1: Which validator failure categories (reachability, ACL, routing, syntax) are most amenable to automated repair?",
+    "E2: How sensitive pipeline effectiveness is to validator coverage and transformation canonicalization choices (sensitivity analyses)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7203776655",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "10.2139/ssrn.6608518",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4407163436",
+    "https://openalex.org/W7164054454"
+  ],
+  "benchmark_scope": [
+    "Paired intent→configuration tasks synthesized deterministically from the frozen topology seed list (N=300).",
+    "Vendor variants limited to the vendor templates enumerated in the frozen transformation/unit-test artifacts described in the preregistration."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute and relative reduction in misconfiguration (fail) rate",
+    "repair success rate among initially invalid outputs",
+    "distribution of repair iterations to success",
+    "per-category (reachability/ACL/routing/syntax) failure reduction"
+  ],
+  "sampling_plan": "Paired within-task sampling. Fixed deterministic seed list of 300 task seeds (task IDs 0001–0300) produced by the frozen topology generator; each seed yields identical paired tasks for baseline and guarded arms. Inclusion: tasks whose generated intent parses to a valid intent template by the frozen prompt parser. Exclusion: any seed whose generated intent is uninterpretable by the frozen prompt parser; excluded seeds are deterministically replaced from a preregistered reserve list. All inclusions, exclusions, and replacements are recorded in the execution manifest.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: 50% relative reduction in first-pass misconfiguration rate (H1). For planning, assume baseline pass rate 0.40 (baseline fail 0.60); a 50% relative reduction in fail rate maps roughly to an increase in pass rate from 40%→70% (absolute +30%). With N=300 paired tasks, McNemar-based approximations indicate >80% power to detect absolute differences ≥0.20 at alpha=0.05 under conservative discordant assumptions. Exact power conditioned on observed discordant counts will be recomputed and recorded in the execution manifest. Sensitivity analyses: recompute power and report primary test under baseline pass rates 0.30, 0.40, and 0.50; report exact 95% CIs for observed absolute and relative reductions; use permutation-based paired tests if McNemar assumptions appear strained.",
+  "exclusion_rules": [
+    "Deterministic exclusion of seeds whose generated intent is uninterpretable by the frozen prompt parser; replacement from preregistered reserve seeds.",
+    "Reject any generated configuration that fails to parse to a valid AST after canonicalization; affected seed replaced deterministically prior to inclusion."
+  ],
+  "missingness_plan": "Record every failed model call and classify as API/provider failure or technical failure. Apply the registered adapter's preregistered retry policy (one retry allowed only per contract limits). Primary analysis will use the available_analysis_contract failed_call_treatments: 'complete_pair_primary' (drop pairs only if both calls failed) and sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat any failed generation as a failure). All failed-call events, retries, and outcomes are logged in the execution manifest.",
+  "analysis_plan": "Confirmatory analysis executed by the registered executor 'paired_binary_analysis_v1' computing the estimand 'paired_success_rate_difference_guarded_minus_baseline'. Primary test: exact McNemar test (alpha=0.05) on paired pass/fail outcomes, reporting absolute risk reduction with 95% CI. Analysis will run both preregistered failed_call_treatments: 'complete_pair_primary' and the sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity' and report both. Secondary analyses: exact binomial CIs for repair success, stratified McNemar tests by topology complexity and vendor, and robust logistic regression for subgroup checks. Multiple secondary comparisons controlled by Benjamini–Hochberg FDR (q=0.05). All per-task artifacts and analysis code are output for reproducibility.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired hypothesis (H1). Secondary metrics (repair success, iteration counts, failure categories) are exploratory; reported p-values for secondary analyses are corrected using Benjamini–Hochberg FDR (q=0.05). No alpha-splitting of the primary test.",
+  "contamination_plan": "{\"benchmark_names\": [\"Frozen transformation/unit-test artifacts (preregistered snapshot v1)\"], \"risk_factors\": [\"Exact configuration templates in transformation/unit-test artifacts could overlap with generated task targets; such leakage would bias guarded-arm improvements upward.\"], \"detection_procedures\": [\"Deterministic exact-string and normalized-AST matching between each test-task target (when available) and the transformation/unit-test documents; lexical overlap thresholds for near-duplicates computed deterministically.\"], \"item_flagging_rules\": [\"If an exact duplicate (AST-equal) is detected, the seed is excluded deterministically and replaced from the reserve list; log exclusion and replacement.\", \"If a near-duplicate exceeds the preregistered similarity threshold, flag and run prespecified sensitivity analyses excluding flagged tasks.\"], \"analysis_treatment\": \"Primary analysis uses the decontaminated paired set after deterministic exclusions/replacements. Secondary sensitivity analyses report results on the full paired set and on the flagged-excluded set to quantify contamination impact.\", \"residual_uncertainty\": [\"Residual leakage via near-synonymous but semantically equivalent corpus items below detection thresholds may remain; reported as a limitation.\"]}",
+  "stopping_rule": "Complete all planned pairs (N=300). Early stopping only permitted for bona fide infrastructure/provider failure exceeding the preregistered retry and recovery policy or if the capability-manifest model-call budget is exhausted; any early stop must be logged in the execution manifest with reason and timestamp. No data-dependent early stopping for efficacy is permitted.",
+  "planned_outputs": [
+    "Execution manifest and raw model-call artifacts for every task and condition",
+    "Per-task canonicalized configurations, validator outputs, and repair traces",
+    "Primary analysis results (McNemar exact test, effect sizes, 95% CIs)",
+    "Secondary analyses and sensitivity checks",
+    "Complete methods and code needed to reproduce the run",
+    "IEEE-format manuscript and Disclosure Statement"
+  ],
+  "unresolved_critical_issues": []
+}

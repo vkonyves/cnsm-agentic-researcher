@@ -1,0 +1,145 @@
+{
+  "selected_candidate_id": "cand-2026-001-A",
+  "title": "Effectiveness of RAG + Deterministic Validation and Automated Repair for Reducing First-pass NetOps Misconfiguration",
+  "research_question": "Can a pipeline combining retrieval-augmented generation (RAG), a frozen deterministic configuration validator, and an automated iterative repair loop (≤2 iterations) reduce the first-pass misconfiguration rate of LLM-generated network configurations relative to plain LLM single-shot generation on a paired intent→configuration task set?",
+  "confirmatory_hypotheses": [
+    "H1: The RAG + deterministic validator + automated repair pipeline reduces the first-pass misconfiguration rate by at least 50% (relative) versus plain LLM single-shot generation on the paired task set.",
+    "H2: Two or fewer automated repair iterations recover ≥75% of initially invalid configurations produced by the LLM+RAG generator."
+  ],
+  "exploratory_questions": [
+    "E1: Which validator failure categories (reachability, ACL, routing, syntax) are most amenable to automated repair?",
+    "E2: How sensitive pipeline effectiveness is to RAG-corpus size and retrieval recall (sensitivity analyses)."
+  ],
+  "benchmark_scope": [
+    "Paired intent→configuration tasks synthesized deterministically from the frozen topology seed list (N=300 in recommended scenario).",
+    "Vendor variants limited to the vendor templates enumerated in the frozen RAG corpus (see preregistration)."
+  ],
+  "model_scope": [
+    "single hosted LLM API for generation (plain single-shot arm and pipeline arm) — provider and exact API endpoint frozen in preregistration",
+    "single hosted embedding API used for RAG retrieval indexing and per-query retrieval embedding (provider and endpoint frozen in preregistration)"
+  ],
+  "transformation_scope": [
+    "Deterministic configuration canonicalization (whitespace/token normalization), vendor-template parameter mapping, and AST-based syntax normalization used prior to validator execution."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute and relative reduction in misconfiguration (fail) rate",
+    "repair success rate among initially invalid outputs",
+    "distribution of repair iterations to success",
+    "per-category (reachability/ACL/routing/syntax) failure reduction"
+  ],
+  "sampling_plan": "Paired within-task sampling. Fixed seed list of 300 task seeds (task IDs 0001–0300) generated deterministically from the frozen topology generator; every seed produces the same task for both arms. Inclusion: tasks that parse to a valid intent template from the frozen generator. Exclusion: any seed whose generated intent is uninterpretable by the frozen prompt parser; exclusions are deterministic and recorded in the execution manifest along with replacement seed(s) from a precomputed reserve list. Randomness is controlled by the frozen seed list; no human selection.",
+  "analysis_plan": "Confirmatory analysis executed by the registered executor 'paired_binary_analysis_v1' computing the paired_success_rate_difference_guarded_minus_baseline estimand. Primary test: McNemar's exact test (alpha=0.05) on paired pass/fail outcomes, reporting absolute risk reduction with 95% CI. Analysis will run both pre-specified failed_call_treatments per available_analysis_contract: 'complete_pair_primary' (drop pairs with technical failure only if both calls failed) and sensitivity 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat failed generation as fail) and report both. Secondary analyses: exact binomial CIs for repair success, stratified McNemar by topology complexity and vendor using robust logistic regression for subgroup checks. Multiple secondary comparisons controlled by Benjamini–Hochberg FDR (q=0.05). Full per-task artifacts output for reproducibility.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired hypothesis (H1). Secondary metrics (repair success, iteration counts, failure categories) are treated as exploratory or corrected with Benjamini–Hochberg FDR for reported p-values. No alpha-splitting of the primary test.",
+  "missingness_plan": "Technical/API failures: record every failed model call and apply preregistered retry policy (see Execution & Retry Policy below). Primary analysis uses the registered contract's allowed failed_call_treatments; sensitivity analyses include treating any failed generation as fail. If a task pair is invalid because the intent generator produced an uninterpretable input (deterministic, documented), the seed is replaced from the reserve list and the replacement recorded. All missingness and replacements are fully logged in the execution manifest.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Frozen RAG corpus (preregistered corpus snapshot v1)"
+    ],
+    "risk_factors": [
+      "Exact configuration templates in the RAG corpus could contain copies of items in the task seed set, allowing leakage and upward-biased pipeline performance.",
+      "RAG corpus provenance heterogeneity may bias retrieval recall toward high-quality examples."
+    ],
+    "detection_procedures": [
+      "Deterministic exact-string and normalized-AST matching between each test-task target (when available) and the RAG corpus documents; lexical overlap thresholds for near-duplicates computed deterministically.",
+      "Per-task retrieval hit inspection: if top-k retrieval contains an exact duplicate of the task target, the task is flagged."
+    ],
+    "item_flagging_rules": [
+      "If exact duplicate detected (AST-equal), automatically exclude the seed and replace with the next reserve seed; log exclusion and replacement deterministically.",
+      "If near-duplicate above the preregistered similarity threshold is detected, flag and run prespecified sensitivity analysis excluding flagged tasks."
+    ],
+    "analysis_treatment": "Primary analysis uses the decontaminated paired set after deterministic exclusions and replacements. Secondary sensitivity analysis reports results on the full paired set including flagged items and on the flagged-excluded set to quantify contamination impact.",
+    "residual_uncertainty": [
+      "Residual leakage via near-synonymous but semantically equivalent corpus items below the detection threshold may remain; treated as noncritical limitation and reported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-recommended",
+      "description": "Full preregistered run: N=300 paired tasks, frozen RAG corpus with 500 documents (embeddings computed once before confirmatory runs), up to 2 repair iterations per pipeline task (worst-case).",
+      "planned_model_calls": 2000,
+      "models": [
+        "hosted_LLM_api (generation)",
+        "hosted_embedding_api (corpus indexing + per-query retrieval embeddings)"
+      ],
+      "transformations": [
+        "canonicalization (per-task AST normalization)",
+        "vendor-template parameter mapping"
+      ],
+      "discovery_items": 500,
+      "confirmatory_items": 300,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Planned_model_calls computed as: plain-LLM arm = 1 call/task * 300 = 300; pipeline arm worst-case = (1 retrieval-embedding + 1 initial generation + up to 2 repair generations) = 4 calls/task * 300 = 1200; corpus indexing embeddings (one-time) = 500 calls; total = 300 + 1200 + 500 = 2000. This matches candidate estimated_model_calls and fits the capability manifest model-call budget (≤10000)."
+    },
+    {
+      "scenario_id": "S2-cost-constrained",
+      "description": "Reduced-budget run: N=150 paired tasks, frozen RAG corpus reduced to 300 documents, same pipeline; meant for rapid feasibility checks or constrained compute.",
+      "planned_model_calls": 1050,
+      "models": [
+        "hosted_LLM_api (generation)",
+        "hosted_embedding_api (corpus indexing + retrieval embeddings)"
+      ],
+      "transformations": [
+        "canonicalization",
+        "vendor-template mapping"
+      ],
+      "discovery_items": 300,
+      "confirmatory_items": 150,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Planned_model_calls computed as: plain arm = 1*150 = 150; pipeline worst-case = 4*150 = 600; corpus indexing = 300; total = 150 + 600 + 300 = 1050. Use S2 when API-call or time budget requires a smaller confirmatory run; results are exploratory relative to S1."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "50% relative reduction in first-pass misconfiguration rate (as pre-specified in H1); operationalized as the paired difference in pass rates consistent with that relative reduction given assumed baseline fail rate.",
+    "clustering_unit": "task (paired within-task comparison)",
+    "calculation_method": "McNemar-based paired binary effect-size reasoning with conservative discordant-pair assumptions. Power justification is approximate given prior uncertainty: we assume a baseline pass rate of 40% (baseline fail rate 60%). A 50% relative reduction in fail rate corresponds to an increase in pass rate from 40% to 70% (absolute +30%). Under conservative discordant proportions, N=300 paired tasks provides >80% power to detect absolute differences ≥0.20 with alpha=0.05 using McNemar approximations. Exact power recomputation will be reported in the execution manifest conditioned on observed discordant counts.",
+    "assumptions": [
+      "Baseline pass rate (plain LLM single-shot) assumed 0.40 for planning (conservative anchor); sensitivity analyses will evaluate baseline=0.30–0.50.",
+      "Discordant-pair fraction sufficient to support McNemar power; if observed discordancy is much lower, detectability decreases—sensitivity analyses pre-specified.",
+      "Paired independence across tasks because tasks are generated from distinct seeds and deterministic generator."
+    ],
+    "recommended_scenario_id": "S1-recommended",
+    "minimum_detectable_effect_notes": "With N=300 and conservative discordant assumptions, absolute risk reductions ≥0.20 are expected to be detectable at 80% power; the preregistered target (50% relative reduction) maps to different absolute reductions depending on baseline—this uncertainty is why sensitivity analyses across baseline assumptions are preregistered.",
+    "sensitivity_analyses": [
+      "Recompute power and report primary test under baseline pass rates 0.30, 0.40, and 0.50.",
+      "Report exact 95% CIs for observed absolute and relative reductions; perform permutation-based paired tests if McNemar assumptions are strained."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Whitespace/token canonicalization",
+      "Vendor-template parameter normalization",
+      "AST-based syntax normalization and pretty-print mapping"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic AST parse after canonicalization; equality check between original and transformed AST for reversible transformations.",
+      "Reference-run validator check before/after transformation on a held-out 30-task validation subset to confirm no semantic change introduced by canonicalization (validator pass/fail parity)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated configuration that fails to parse to a valid AST after canonicalization (automatic exclusion and replacement with reserve seed).",
+      "Reject transformations that change AST semantics as detected by non-equivalent reachable state in validator's deterministic checks on the held-out validation subset."
+    ],
+    "audit_sample_policy": "Audit a deterministic 5% sample of transformed artifacts (every 20th seed) by re-running the canonicalization and AST-compare; any discrepancy triggers deterministic rollback of the affected seeds and logging; no human adjudication is required.",
+    "mapping_validation": "Vendor-template parameter mapping validated by running a fixed suite of template-unit checks (predefined mappings and unit test cases in the preregistration). Mappings and unit tests are frozen in the preregistration artifact.",
+    "residual_risks": [
+      "Transformation bugs that only manifest for rare vendor-specific template permutations; mitigated by 5% audit sample and unit tests but residual low-frequency risk remains."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Deterministic validator (frozen ruleset) may not capture all production safety properties; results are explicitly bounded to the validator's coverage and not claimed to imply production-ready safety.",
+    "RAG-corpus provenance heterogeneity and corpus size choices may limit external generalizability; sensitivity analyses will quantify impact but cannot fully guarantee production transfer.",
+    "Synthetic/topology-limited task set may not represent all vendor or complex-production topologies; generalization beyond the declared benchmark scope is noncritical and reported as a limitation.",
+    "API-provider nondeterminism (commercial hosted LLM entropy variability) may add measurement noise; this is controlled by frozen prompts, seeds, and logging and handled via sensitivity analyses but remains a noncritical source of uncertainty."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7203776655",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "10.2139/ssrn.6608518",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4407163436",
+    "https://openalex.org/W7164054454"
+  ]
+}

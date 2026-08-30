@@ -1,0 +1,21 @@
+{
+  "summary": "Preregistered paired experiment (N=300 pairs) testing whether a frozen deterministic validator + ≤1 automated repair iteration (guarded) reduces first‑pass misconfiguration vs plain single‑shot gpt‑5‑mini generation. Execution artifacts archived. Observed baseline = 299/300 valid (99.667%), guarded = 300/300 valid (100%). Paired counts n11=299, n10=1, n01=0, n00=0; exact McNemar two‑sided p = 1.00; absolute paired difference = 0.00333 (bootstrap 95% CI [0.00,0.01]). Preregistered primary hypothesis (≥50% relative reduction) not supported because baseline was near ceiling and runtime sampling semantics (shared_initial_candidate) reduced discordant pairs. Comprehensive artifacts, preregistration, and hashes are present.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "A preregistered confirmatory hypothesis (H2: ≥75% recovery of initially invalid configs with ≤1 repair iteration) is not explicitly reported in the manuscript's confirmatory results table. The archived artifacts contain the necessary counts to compute H2 (initial invalids = 1; repaired = 1). The manuscript must explicitly report the preregistered H2 result (point estimate and appropriate CI) or state that the confirmatory analysis was not performed and why."
+  ],
+  "required_revisions": [
+    "Add an explicit confirmatory-results entry for H2 (repair recovery among initially invalid outputs): report numerator/denominator, point estimate, and an exact/binomial 95% CI (Clopper–Pearson or equivalent) and state how H2 was handled relative to the preregistration. Use archived artifacts (validator/repair traces) to populate these numbers—no new experiments required.",
+    "Clarify the manuscript language about sampling/configuration semantics: explicitly state that a null/unset temperature value alone is not evidence of deterministic sampling, and that the authoritative archived field governing paired-sample behavior is generation_semantics = \"shared_initial_candidate\" (cite execution/model_configuration.json). Explain concisely how shared_initial_candidate was implemented and how it affects within‑pair correlation and statistical sensitivity (this is a disclosure/clarification, not a new analysis).",
+    "In Methods (or Results) add a short explicit statement listing all preregistered confirmatory hypotheses (H1 and H2) and confirm that each was executed and where its result appears in the paper or, if not executed, that it was unexecuted and why. If H2 is now reported (per first required revision) update any summary/abstract sentence that might misleadingly imply only H1 was confirmatory."
+  ],
+  "optional_revisions": [
+    "Reduce provenance-heavy prose density in the main body by moving long artifact-path listings or full-hash details into a concise paragraph referencing the archived evidence bundle; retain mandatory disclosure content within pages 1–5 but prefer compact presentation.",
+    "Add the exact Clopper–Pearson interval numeric values (e.g., lower bound for 1/1) and note limits of such wide CIs when n_initial_invalid is very small.",
+    "Add a short worked example or appendix (one paragraph) using archived per-task validator traces to illustrate the single repaired failure’s trace and how the repair prompt modified the candidate—this can improve pedagogical value but is optional."
+  ],
+  "accept_for_finalisation": false
+}

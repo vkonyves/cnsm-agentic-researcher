@@ -1,0 +1,34 @@
+{
+  "study_id": "cand-2026-001-A-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis per preregistration: exact (exact McNemar) paired test on per-task pass/fail outcomes using the decontaminated paired set; report absolute risk reduction (guarded minus baseline), two-sided p-value (alpha=0.05), and exact 95% CI for the absolute difference. Use failed_call_treatment = complete_pair_primary (drop pairs only if both calls failed). All inputs taken from execution/raw_results.jsonl and aggregated paired pass/fail table.",
+  "secondary_analyses": [
+    "Exact binomial 95% CIs for repair success among initially-invalid guarded outputs",
+    "Distribution of repair iterations to success (counts: 0 vs 1) and descriptive summary",
+    "Per-category (reachability, ACL, routing, syntax) failure counts and reductions (paired comparisons)",
+    "Stratified paired McNemar tests by topology complexity and by vendor template",
+    "Robust logistic regression for subgroup checks (task-level covariates from task_manifest) with BH-FDR correction for listed secondary tests"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat any failed generation as failure)",
+    "Contamination sensitivity: re-run primary test on full paired set and on set with flagged-near-duplicates excluded (per preregistered flagging rules)",
+    "Permutation-based paired test if McNemar assumptions appear strained; report concordant/discordant counts and exact p-values",
+    "Power-sensitivity: recompute observed-power and report primary test under baseline pass rates 0.30/0.40/0.50 scenarios"
+  ],
+  "uncertainty_quantification": "Report exact 95% CIs for absolute risk reduction (Agresti-Coull / exact binomial-based paired CI where applicable), exact two-sided p-values for McNemar, exact binomial CIs for repair-success rates, and permutation p-value fallback for paired test if required. Report effect-size (absolute and relative reduction) with CIs.",
+  "multiplicity_implementation": "Primary confirmatory hypothesis: single paired test (no alpha splitting). Secondary analyses: p-values corrected using Benjamini–Hochberg FDR at q=0.05 as preregistered.",
+  "contamination_analysis": "Follow preregistered deterministic contamination_plan: run exact-string and normalized-AST matching between each test-task target and the frozen transformation/unit-test artifacts; deterministically exclude and replace any exact-duplicate (AST-equal) seeds and log replacements in the execution manifest; flag near-duplicates above preregistered similarity threshold and run sensitivity analyses excluding flagged tasks. Primary analysis uses the decontaminated paired set after deterministic exclusions/replacements; sensitivity analyses report full-set and flagged-excluded results. Residual near-synonymous leakage noted as limitation.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired contingency table (baseline pass / guarded pass) with counts of concordant and discordant pairs, McNemar exact p-value, absolute risk reduction and 95% CI (produced from aggregated paired pass/fail records in execution/raw_results.jsonl).",
+    "Table 2: Repair outcomes table: number initially invalid in guarded arm, number recovered after ≤1 repair, repair success rate with exact 95% CI, and distribution of repair iterations (0,1).",
+    "Table 3: Failure-category breakdown: counts and paired reductions for reachability, ACL, routing, syntax failures (baseline vs guarded) with uncorrected p-values and BH-FDR-adjusted q-values for these secondary comparisons.",
+    "Table 4: Execution manifest summary: planned vs completed episodes, model_calls_used, failed_episode_count, preregistration_sha256, and artifact_hashes_total_count (for reproducibility)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of pass rates (baseline vs guarded) with 95% CIs computed from per-condition pass counts (data from aggregated paired records).",
+    "Figure 2: Stacked bar chart of failure-category counts by condition (baseline and guarded) using validator_result.failure_categories from raw_results.jsonl.",
+    "Figure 3: Repair outcome bar/pie chart showing fraction of initially-invalid guarded outputs that were recovered by the single allowed repair iteration (data from repair_call_trace and final_status fields)."
+  ]
+}

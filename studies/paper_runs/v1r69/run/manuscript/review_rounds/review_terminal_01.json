@@ -1,0 +1,22 @@
+{
+  "summary": "This manuscript reports a fully preregistered, artifact‑archived paired experiment (N=300 pairs) evaluating a minimal guarded pipeline (frozen deterministic validator + ≤1 automated repair) for LLM‑generated network configurations (declared model gpt-5-mini). Execution artifacts show baseline 299/300 valid, guarded 300/300 valid, contingency n11=299, n10=1, n01=0, n00=0; exact McNemar two‑sided p=1.00; paired bootstrap 95% CI for absolute difference = [0.00,0.01]. The run is well documented and reproducible; the principal scientific limitation is an observed near‑ceiling baseline that eliminates statistical headroom for the preregistered ≥50% relative reduction target. Overall the work is technically thorough and useful for methodological guidance in NetOps confirmatory studies, but a small number of manuscript clarifications (resolvable from archived artifacts) are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript omits an explicit statement of the model sampling semantics (temperature / determinism). The model_configuration artifact records temperature=null; per the preregistration/runtime rules, null/unset temperature is not evidence of deterministic sampling. This must be disclosed and interpreted explicitly in Methods/Disclosure (provider default sampling behavior or explicit statement that sampling determinism is unspecified).",
+    "The preregistered primary confirmatory hypothesis (H1: ≥50% relative reduction) relied on a planning assumption (baseline pass rate = 0.40) that was contradicted by observed data (baseline ≈99.67%), making the preregistered large‑effect confirmatory test effectively untestable. The manuscript must more prominently and unambiguously report that H1 could not be meaningfully tested as a confirmatory claim, and that the reported inferential output (McNemar p, CI) is conditional/descriptive given the observed near‑ceiling baseline and extremely low discordant count (n10+n01=1)."
+  ],
+  "required_revisions": [
+    "Add an explicit disclosure in Methods and the Disclosure Statement that model sampling temperature was unset (temperature=null in execution/model_configuration.json), state the provider default sampling semantics or, if unknown, explicitly state sampling determinism is unspecified and discuss the inferential implication (i.e., that temperature was not fixed to yield deterministic sampling). Cite execution/model_configuration.json artifact (path & hash) as authoritative evidence.",
+    "Explicitly and prominently state in Methods (not only Discussion/Conclusion) that the preregistered H1 target depended on a planning assumption (baseline pass rate = 0.40) and that the observed baseline (299/300) removed statistical headroom; therefore H1 was not testable as a confirmatory large‑effect hypothesis. Revise all claim language so no confirmatory claim of meeting H1 is implied; limit claims to the executed analysis (reported counts, McNemar p, bootstrap CI) and to artifact‑grounded recommendations.",
+    "Add one short paragraph in Results clarifying why exact McNemar two‑sided p=1.00 arose for the observed discordant counts (n10=1, n01=0), noting that the test conditions on the discordant total and making explicit that effect‑size and CI statements are the primary informative summaries in this setting. Reference the archived paired_contingency_table.csv and bootstrap parameters (seed, resamples) for reproducibility."
+  ],
+  "optional_revisions": [
+    "Include a brief example validator+repair trace (path and short excerpt or a one‑line summary) for the single corrected episode (pair-000229) to aid readers in understanding the concrete repair action; point to its artifact path in the execution bundle.",
+    "Add a concise table or sentence that translates required absolute paired improvements into required discordant‑pair counts for N=300 (e.g., absolute +0.30 requires ~90 net discordant pairs) to help readers connect power planning arithmetic to practical design choices; cite the deterministic_reconciliation/paired_contingency_table artifact as background.",
+    "State explicitly in Methods that the shared_initial_candidate pairing semantics were chosen to model remediation of a single proposed plan and note (briefly) the tradeoff versus independent‑draws designs for power; although present in Discussion, this is useful earlier for reader framing."
+  ],
+  "accept_for_finalisation": false
+}

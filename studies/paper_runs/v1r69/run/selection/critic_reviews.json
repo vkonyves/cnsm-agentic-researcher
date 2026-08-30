@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-001-A",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Validator specification undercaptures production safety properties (false sense of safety).",
+        "RAG corpus and retrieval tuning may bias results; corpus provenance must be fixed and released.",
+        "Synthetic/topology-limited task set may limit external validity across vendors/topologies.",
+        "Retry/ rate-limit policy needs strict preregistration to avoid biased reruns."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic validator (ruleset, Batfish version or equivalent) and share rule corpus prior to runs.",
+        "Freeze and publish the RAG corpus, retrieval index, and retrieval method (embedding model, vector store) in preregistration.",
+        "Define explicit inclusion/exclusion rules for synthesized topologies and provide seed list for topology generation.",
+        "Predefine retry policy for provider/API failures (when a retry is allowed, how outcomes are recorded) and log all retries in execution manifest."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-002-B",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversary generator may produce unrealistic/implausible perturbations unless validated against real-world attempts.",
+        "Ethical risk: releasing adversary-generation details could enable attack replication—disclosure policy needed.",
+        "Deterministic validator may trivially detect many adversarial failures, yielding a null result; that outcome must be reported and interpreted.",
+        "Adversary strength calibration and seed control must be rigorous to make comparisons fair."
+      ],
+      "required_design_repairs": [
+        "Add an adversary realism validation step (automated heuristics or small expert-reviewed holdout) and preregister its pass/fail criteria.",
+        "Include an explicit ethical disclosure/mitigation plan restricting actionable exploit details while preserving reproducibility (e.g., redacted adversary configs with generator code and seeds).",
+        "Predefine perturbation-strength metrics and fixed seeds; publish perturbation algorithms and parameters in preregistration.",
+        "Clarify whether RAG is enabled/disabled for these runs and freeze retrieval settings."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-003-C",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulated automated operator may not reflect human decision-making biases (automation bias, latency).",
+        "Provenance scoring heuristics may be experiment-tuned and not generalize; must be fully specified.",
+        "Measuring downstream propagation impact requires a clearly articulated simulation model (how flows/impact are computed).",
+        "Stripping provenance while keeping 'identical' outputs needs careful artifact management to ensure true pairing."
+      ],
+      "required_design_repairs": [
+        "Publish the exact provenance schema and the provenance-confidence scoring algorithm (weights, thresholds) in the preregistration.",
+        "Describe and freeze the simulated propagation model used to compute impact metrics (flow definitions, affected resource model).",
+        "Define the procedure that produces paired artifacts with/without provenance to guarantee identical textual configs across arms.",
+        "Include sensitivity analyses for provenance-threshold choice and preregister the primary threshold(s)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-004-D",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Model confidence proxy (token log-probs or heuristic head) may poorly reflect epistemic uncertainty and vary by provider/model.",
+        "Iterative correction may overfit to validator feedback and produce calibration improvements that do not reflect true correctness.",
+        "Latency and operational cost of up-to-3 iterations may make improvements impractical even if statistically significant.",
+        "Normalization of confidence across runs/providers must be specified to permit fair paired comparisons."
+      ],
+      "required_design_repairs": [
+        "Predefine and justify the confidence proxy(s); preregister at least one backup proxy and report both (e.g., token log-prob and calibrated ensemble if available).",
+        "Specify normalization procedure for token log-probabilities (per-token normalization, length correction) and freeze it.",
+        "Include an analysis plan to detect overfitting-to-validator (e.g., blind out a subset of validator checks for validation of generalization) and preregister it.",
+        "Preregister latency budget and assess operational trade-offs; report iteration costs and an acceptability criterion."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
