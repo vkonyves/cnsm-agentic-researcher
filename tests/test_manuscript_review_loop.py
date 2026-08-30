@@ -52,10 +52,14 @@ def test_final_pipeline_has_bounded_review_revision_loop():
 
     assert '"peer_review"' in final_judge_section
     assert "latest_peer_review" in final_judge_section
-    assert (
-        "peer_review.model_dump()"
-        not in final_judge_section
-    )
+    # Reject use of a stale standalone `peer_review` object, while
+    # allowing the authoritative `latest_peer_review.model_dump()`.
+    import re
+
+    assert re.search(
+        r"(?<![A-Za-z0-9_])peer_review\.model_dump\(\)",
+        final_judge_section,
+    ) is None
 
 
 def test_final_pipeline_requires_full_five_page_budget():

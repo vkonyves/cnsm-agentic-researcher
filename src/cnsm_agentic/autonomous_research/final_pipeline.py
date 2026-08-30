@@ -7957,6 +7957,142 @@ class FinalAutonomousResearchPipeline:
 
             return final_report
 
+        # -----------------------------------------------------
+        # Final authoritative peer-review closure.
+        #
+        # Earlier terminal reviews necessarily inspect manuscript states
+        # that can subsequently be changed by deterministic publication
+        # hygiene, exact-page recovery, or protected-candidate rescue.
+        # Re-review exactly the authoritative manuscript that passed the
+        # final deterministic gates so stale objections are neither carried
+        # forward nor silently overridden.
+        # -----------------------------------------------------
+        final_closure_review = await run_agent(
+            PEER_REVIEWER,
+            {
+                "master_prompt": master_prompt,
+                "evidence_verification": (
+                    evidence_report
+                ),
+                "preregistration": (
+                    preregistration.model_dump()
+                ),
+                "execution_manifest": (
+                    _compact_execution_manifest_for_manuscript(
+                        execution_manifest
+                    )
+                ),
+                "analysis_results": (
+                    analysis_results
+                ),
+                "deterministic_reconciliation": (
+                    deterministic_reconciliation
+                ),
+                "manuscript_evidence_bundle": (
+                    manuscript_evidence_bundle
+                ),
+                "manuscript": (
+                    revised_manuscript.model_dump()
+                ),
+                "review_round": (
+                    maximum_peer_review_rounds
+                    + maximum_terminal_revision_rounds
+                    + 2
+                ),
+                "review_mode": (
+                    "final_authoritative_closure_review"
+                ),
+                "terminal_factual_accounting": (
+                    terminal_factual_accounting
+                ),
+                "terminal_bibliographic_records": (
+                    terminal_bibliographic_records
+                ),
+                "publication_validation": (
+                    publication_validation
+                ),
+                "publication_sanity_audit": (
+                    publication_sanity_audit
+                ),
+                "artifact_reference_audit": (
+                    artifact_reference_audit
+                ),
+                "terminal_factual_accounting_instruction": (
+                    "Treat terminal_factual_accounting as "
+                    "authoritative for exact pair IDs, episode "
+                    "IDs, discordant scores, raw-results record "
+                    "indices, attempt counts, model-call counts, "
+                    "and transformation identifiers. Do not "
+                    "infer or invent raw-results fields. Do not "
+                    "require machine paths, hashes, raw record "
+                    "indices, or provider-call filenames in the "
+                    "scientific paper merely for audit "
+                    "convenience; require the scientifically "
+                    "material verified fact instead. "
+                    "terminal_bibliographic_records contains "
+                    "verified metadata for records already cited "
+                    "by the manuscript. Require normal scholarly "
+                    "references and verify that cited records "
+                    "support the proximate claims."
+                ),
+                "previous_terminal_review": (
+                    latest_peer_review.model_dump()
+                    if latest_peer_review is not None
+                    else None
+                ),
+                "final_authoritative_closure_instruction": (
+                    "This is the final peer-review closure of the "
+                    "authoritative manuscript that has already "
+                    "passed the final deterministic publication, "
+                    "sanity, artifact-reference, and exact-page "
+                    "gates. Judge ONLY the current manuscript "
+                    "supplied in this request. The previous "
+                    "terminal review is historical context, not "
+                    "an automatically inherited set of failures. "
+                    "For every previous objection, verify whether "
+                    "the defect is still present in the current "
+                    "manuscript before repeating it. In "
+                    "particular, use publication_sanity_audit, "
+                    "artifact_reference_audit, and "
+                    "publication_validation as authoritative for "
+                    "current formatting/provenance properties "
+                    "such as full hashes, artifact paths, raw DOI "
+                    "citation forms, compilation, and page count. "
+                    "Do not require a revision for an earlier "
+                    "formatting or provenance defect that those "
+                    "final artifacts show has been removed. "
+                    "However, retain any genuine unresolved "
+                    "scientific, methodological, accounting, "
+                    "citation-semantic, or disclosure-content "
+                    "problem that is still present in the current "
+                    "manuscript. This stage is review-only: do not "
+                    "request new experiments merely to improve an "
+                    "unfavorable scientific result."
+                ),
+            },
+            expected_type=PeerReviewReport,
+            stage_name=(
+                "Final authoritative AI peer-review closure"
+            ),
+        )
+
+        write_json(
+            review_rounds_dir
+            / "review_final_closure.json",
+            final_closure_review,
+        )
+
+        # From this point onward the authoritative peer-review state must
+        # correspond to exactly the manuscript entering final judgement.
+        latest_peer_review = final_closure_review
+
+        # Keep the compatibility alias aligned with the true latest review.
+        write_json(
+            review_rounds_dir
+            / "review_terminal.json",
+            latest_peer_review,
+        )
+
         final_report = await run_agent(
             FINAL_JUDGE,
             {

@@ -182,3 +182,61 @@ def test_ordinary_manuscript_prose_removes_full_sha256_digests():
         "master-prompt digest in Disclosure is protected"
         in source
     )
+
+
+
+def test_final_peer_review_closure_uses_authoritative_manuscript():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "review_final_closure.json" in source
+    assert "final_authoritative_closure_review" in source
+    assert "final_authoritative_closure_instruction" in source
+    assert "latest_peer_review = final_closure_review" in source
+
+    closure_pos = source.index(
+        "final_closure_review = await run_agent("
+    )
+    final_judge_pos = source.index(
+        "final_report = await run_agent(",
+        closure_pos,
+    )
+
+    assert closure_pos < final_judge_pos
+
+
+def test_final_closure_receives_final_deterministic_audits():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    closure_start = source.index(
+        "final_closure_review = await run_agent("
+    )
+    closure_end = source.index(
+        "expected_type=PeerReviewReport",
+        closure_start,
+    )
+    closure = source[closure_start:closure_end]
+
+    assert '"publication_validation"' in closure
+    assert '"publication_sanity_audit"' in closure
+    assert '"artifact_reference_audit"' in closure
+    assert '"manuscript"' in closure
+    assert "revised_manuscript.model_dump()" in closure
+
+
+def test_final_closure_is_after_deterministic_failure_return():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    deterministic_failure = source.index(
+        "MANUSCRIPT_FINAL_DETERMINISTIC_AUDIT_FAILED"
+    )
+    closure = source.index(
+        "final_closure_review = await run_agent("
+    )
+
+    assert deterministic_failure < closure
