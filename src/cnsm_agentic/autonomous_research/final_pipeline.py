@@ -5144,9 +5144,13 @@ class FinalAutonomousResearchPipeline:
             and (
                 publication_validation is None
                 or best_page_count
-                > publication_validation.get(
-                    "page_count",
-                    -1,
+                > (
+                    publication_validation.get("page_count")
+                    if isinstance(
+                        publication_validation.get("page_count"),
+                        int,
+                    )
+                    else -1
                 )
             )
         ):

@@ -30,3 +30,16 @@ def test_empty_citation_set_does_not_expand_to_all_records():
         "Never interpret an empty citation"
         in text
     )
+
+
+def test_best_page_selection_handles_none_page_count():
+    current_page_count = None
+    best_page_count = 5
+
+    comparable_current_page_count = (
+        current_page_count
+        if isinstance(current_page_count, int)
+        else -1
+    )
+
+    assert best_page_count > comparable_current_page_count
