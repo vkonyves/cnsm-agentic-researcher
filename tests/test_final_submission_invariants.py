@@ -43,3 +43,11 @@ def test_best_page_selection_handles_none_page_count():
     )
 
     assert best_page_count > comparable_current_page_count
+
+
+def test_publication_hygiene_removes_non_bmp_unicode_for_pdflatex():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert r'[\U00010000-\U0010FFFF]' in source

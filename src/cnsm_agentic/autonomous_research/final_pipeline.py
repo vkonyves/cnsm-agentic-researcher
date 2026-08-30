@@ -194,6 +194,16 @@ def sanitize_structured_manuscript_publication_metadata(
         # Defensive fallback for a DOI label that was not bracketed.
         cleaned = inline_doi_label_pattern.sub("", cleaned)
 
+        # pdfLaTeX cannot render arbitrary astral-plane Unicode such as
+        # emoji embedded in titles or bibliographic metadata. Remove these
+        # presentation symbols deterministically while preserving ordinary
+        # Unicode text such as accented names and scientific punctuation.
+        cleaned = re.sub(
+            r"[\U00010000-\U0010FFFF]",
+            "",
+            cleaned,
+        )
+
         # Repair only whitespace introduced by local metadata removal.
         cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
         cleaned = re.sub(r"\s+([,.;:])", r"\1", cleaned)
