@@ -1,0 +1,154 @@
+{
+  "selected_candidate_id": "rX4f7-1",
+  "title": "NetOpsTraceBench: workflow-centered paired evaluation of verifier-assisted vs one-shot LLM NL→config pipelines",
+  "research_question": "Can a reproducible, workflow-centered benchmark of paired intent→config episodes (one-shot LLM vs verifier-assisted) produce an objective paired binary success metric that reliably distinguishes verifier-assisted pipelines from one-shot generation across two simulated topologies?",
+  "confirmatory_hypotheses": [
+    "H1 (confirmatory): The paired mean success rate (paired_success_rate_difference_guarded_minus_baseline) is > 0 (two-sided test at α=0.05) favoring the verifier-assisted pipeline, where an episode counts as a binary success if (a) the verifier accepts the final config, (b) execution-ground-truth checks in the emulator show no rollback-triggering availability degradation above the preregistered threshold, and (c) no automatic rollback event occurred during simulated execution.",
+    "H2 (confirmatory): Per-task paired trace metrics reveal failure-mode categories (semantic-unit errors, missing dependencies) that are not captured by single-output correctness; these categories will be reported descriptively and used only in exploratory subgroup analyses.",
+    "H3 (confirmatory): The paired success-rate difference (H1) is consistent (same sign) across two simulated topology clusters (edge vs core) in a paired breakdown analysis (exploratory significance tests only)."
+  ],
+  "exploratory_questions": [
+    "How do repair-iteration counts within the verifier-assisted pipeline correlate with final success and time-to-repair?",
+    "Which failure-mode categories (as automatically detected by deterministic parsers + execution checks) explain most paired-discordant episodes?",
+    "Sensitivity of the primary binary success result to alternative binary-success thresholds (availability-degradation tolerances) and to treating verifier disagreements as automatic exclusions vs failures."
+  ],
+  "benchmark_scope": [
+    "Public synthetic + consented examples (no private operator templates). Each example is labeled synthetic or consented and provenance recorded deterministically.",
+    "Two simulated topology clusters: 'edge' and 'core' (600 confirmatory paired tasks each).",
+    "Canonical device-configuration sequences in common vendor-agnostic canonical form plus vendor-specific renderings for emulator execution."
+  ],
+  "model_scope": [
+    "hosted-llm-primary (single hosted LLM API endpoint; exact model identifier will be frozen in the preregistration record and logged in the execution manifest)."
+  ],
+  "transformation_scope": [
+    "NL→canonical-config generation (LLM output)",
+    "canonical→vendor-renderer (deterministic transformer)",
+    "parser-based verifier (syntax + semantic checks)",
+    "execution-ground-truth comparator (simulator-driven reachability/ACL/availability checks)",
+    "automated repair-prompt generator (LLM templated prompt) for verifier-assisted pipeline"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_difference_in_verifier_pass_rate",
+    "paired_difference_in_automatic_rollback_rate",
+    "distribution_of_repair_iterations_guarded"
+  ],
+  "sampling_plan": "Confirmatory paired sample: 1,200 distinct operator-intent tasks total, split into two topology clusters of 600 tasks each (edge=600, core=600). For each task we run two paired episodes: (A) one-shot NL→config (baseline) and (B) verifier-assisted generate–validate–repair (guarded). Inclusion rule: task included in primary analysis if neither episode triggers deterministic exclusion rules (see transformation_validation) and neither is flagged by contamination-detection; any excluded tasks are counted and reported; primary confirmatory N = 1,200 unless deterministic exclusions occur (sensitivity analyses will treat excluded pairs via preregistered failed_call_treatment).",
+  "analysis_plan": "Primary confirmatory analysis: paired test of the estimand 'paired_success_rate_difference_guarded_minus_baseline' using the registered analysis executor 'paired_binary_analysis_v1'. Primary test: two-sided Wilcoxon signed-rank for paired outcomes (nonparametric) for confirmatory reporting of direction and significance; paired_binary_analysis_v1 will compute the paired-success-rate difference and 95% bootstrap CI. Predefined alpha=0.05 two-sided. Failed-call treatment preregistered per available contract: first complete_pair_primary (exclude pairs where both episodes failed to produce executable configs or were deterministically excluded), second sensitivity run complete_pair_primary_with_failure_as_zero_sensitivity (treat missing/failed episodes as failures for that method). Secondary analyses: breakdown by topology cluster, repair-iteration counts, and automated failure-mode categories (exploratory; reported without multiplicity correction). All analysis code and seeds are frozen in the preregistration artifact.",
+  "multiplicity_plan": "One confirmatory hypothesis (H1) controls Type I error at α=0.05. Secondary and exploratory analyses are explicitly labeled exploratory and are not used to overturn the primary conclusion; where multiple exploratory contrasts are shown, Benjamini–Hochberg FDR is reported but not used to change confirmatory inference.",
+  "missingness_plan": "Deterministic exclusion rules: tasks are excluded from primary analysis only if automated contamination checks (see contamination_plan) flag provenance-leakage above threshold, or both episodes fail to produce parsable vendor-rendered configs after a single automated re-execution attempt. Exclusions are automatic and logged; no human adjudication. Primary analysis uses complete_pair_primary; sensitivity analyses treat excluded/failed episodes as failures for the affected method (complete_pair_primary_with_failure_as_zero_sensitivity). All exclusion counts and reasons are reported.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "NetOpsTraceBench_v1"
+    ],
+    "risk_factors": [
+      "Possible overlap between synthetic/consented templates and LLM training data (memorized patterns)",
+      "Sensitive operator templates mistakenly included"
+    ],
+    "detection_procedures": [
+      "Deterministic provenance tagging at generation time (synthetic vs consented) with stored generation-seed and template-id.",
+      "Automated substring and token-overlap scan against a public-corpus index (public-repo regex list) with threshold T_contam = 0.85 normalized overlap; items > T_contam are flagged.",
+      "Optional embedding-similarity check using the hosted model API embeddings (cosine threshold 0.92) against a public benchmark corpus; flagged items excluded from primary analysis."
+    ],
+    "item_flagging_rules": [
+      "If either substring/token-overlap OR embedding-similarity exceeds thresholds, item is flagged and automatically excluded from primary confirmatory analysis; it remains in exploratory reports.",
+      "All flagged items and deterministic reasons are logged in the dataset release manifest; no manual review."
+    ],
+    "analysis_treatment": "Primary analysis excludes flagged items (complete_pair_primary). Sensitivity analyses include flagged items and report effect-size deltas.",
+    "residual_uncertainty": [
+      "Cannot deterministically prove absence of overlap with the LLM's private training data; procedural mitigation is conservative exclusion rules and full provenance logging."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended_1200",
+      "description": "Recommended confirmatory run: 1,200 paired tasks (600 edge, 600 core). Uses single hosted LLM API for generation and repair prompts, two deterministic verifier implementations (parser + execution comparator), and Mininet-based CPU emulation.",
+      "planned_model_calls": 4800,
+      "models": [
+        "hosted-llm-primary"
+      ],
+      "transformations": [
+        "NL→generation (1 call/task baseline)",
+        "Verifier-assisted pipeline (1 initial generation + avg 2 repair-generation calls per task = 3 calls/task)",
+        "Deterministic vendor-renderer/parsers (no model calls)",
+        "Embedding-based contamination checks (up to 0.5 call/task on flagged subset; included in 4800 estimate conservatively)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1200,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Per-task model-call accounting: baseline 1 * 1200 = 1200 calls; guarded 3 * 1200 = 3600 calls; combined = 4800 ≤ manifest cap 10,000. CPU emulation and deterministic parsers run on available CPU resources; hosted model API usage fits manifest 'hosted_model_api_available'."
+    },
+    {
+      "scenario_id": "minimal_600",
+      "description": "Budget-constrained confirmatory run: 600 paired tasks (300 edge, 300 core). Same pipeline but smaller sample to reduce API cost.",
+      "planned_model_calls": 2400,
+      "models": [
+        "hosted-llm-primary"
+      ],
+      "transformations": [
+        "NL→generation (1 call/task baseline)",
+        "Verifier-assisted pipeline (1 initial generation + avg 2 repair-generation calls per task = 3 calls/task)",
+        "Deterministic vendor-renderer/parsers (no model calls)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 600,
+      "task_cluster_count": 2,
+      "feasibility_rationale": "Per-task accounting: baseline 1*600=600; guarded 3*600=1800; total=2400 ≤ manifest cap. Minimal run reduces ability to detect small effects but remains executable."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute paired success-rate increase of 0.05 (5 percentage points) favoring guarded pipeline (conservative operational target).",
+    "clustering_unit": "task (paired episodes per task across two methods)",
+    "calculation_method": "Normal approximation for paired proportions and bootstrap CI estimates; Monte Carlo bootstrap confirmation using preregistered seeds (frozen) to validate power under assumed base rates.",
+    "assumptions": [
+      "Baseline (one-shot) success rate p0 ≈ 0.70 (literature-informed, conservative).",
+      "Guarded success rate p1 ≈ 0.75 (target effect 0.05).",
+      "Two-sided α=0.05, desired power 0.8.",
+      "Paired discordant rate estimated from similar demo systems ≈ 0.20 (conservative)."
+    ],
+    "recommended_scenario_id": "recommended_1200",
+    "minimum_detectable_effect_notes": "Under these assumptions: with n=1,200 paired tasks, approximate detectable absolute paired difference ≈ 0.02–0.05 (2–5 pp) depending on discordant-pair rate; with n=600 the MDE rises to ≈ 0.04–0.08. Exact MDE and achieved power will be computed by the preregistered Monte Carlo bootstrap using frozen seeds prior to final analysis.",
+    "sensitivity_analyses": [
+      "Vary baseline p0 in [0.5,0.8] and discordant rates in [0.1,0.4] to report achieved power contours.",
+      "Run sensitivity treating excluded pairs as failures for one method and as excluded (complete_pair_primary_with_failure_as_zero_sensitivity)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "vendor-renderer (canonical→vendor-specific deterministic transformer)",
+      "parser-based verifier (syntax + static semantic checks)",
+      "execution-ground-truth comparator (emulator-driven checks)",
+      "automated repair-prompt generator (LLM templated prompt)"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic unit tests: vendor-renderer outputs will be checked against canonical expected renderings for a suite of 200 held-out deterministic test cases; any renderer deviation triggers automatic rejection of the renderer build.",
+      "Execution equivalence: for each produced config, emulator-driven reachability/ACL checks produce deterministic pass/fail answers compared to the canonical ground truth; mismatch flags the episode."
+    ],
+    "automatic_rejection_rules": [
+      "If parser fails to parse generated vendor-rendered config after two automated re-render attempts, the episode is deterministically excluded from primary analysis and logged with failure code.",
+      "If the execution-ground-truth comparator cannot deterministically measure availability (emulator error), the pair is excluded and logged; no human adjudication."
+    ],
+    "audit_sample_policy": "Audit of transformations is automated: a reproducible deterministic sample of 10% of tasks (seeded) is re-run and checksummed; mismatches trigger pipeline halt and automatic re-execution of failing components until deterministic pass or pre-specified retry limit reached.",
+    "mapping_validation": "Canonical→vendor renderers validated via deterministic unit-test suite (200 cases) and continuous integration; parser/verifier correctness validated by comparing parser-extracted semantics to canonical ground truth on the unit-test suite; inter-verifier agreement reported (parser vs exec-comparator) as a metric.",
+    "residual_risks": [
+      "Parser semantic gaps may still miss subtle policy semantics not captured by canonical forms.",
+      "Emulator fidelity to production networks is limited; sensitivity analyses are preregistered to probe this."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator (Mininet) fidelity to production network failure modes — addressed via sensitivity analyses but remains an external-validity limitation.",
+    "Residual risk that LLM private training data overlaps with synthetic/consented templates despite conservative automated exclusion checks.",
+    "Residual parser/verifier coverage gaps that deterministic testing may not expose for rare vendor features."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4405229682",
+    "https://openalex.org/W7163720692",
+    "https://openalex.org/W7203497697",
+    "https://openalex.org/W4392875514",
+    "https://openalex.org/W4399252700"
+  ]
+}

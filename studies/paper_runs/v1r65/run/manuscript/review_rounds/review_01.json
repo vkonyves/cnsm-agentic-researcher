@@ -1,0 +1,21 @@
+{
+  "summary": "Well‑executed, preregistered paired study (NetOpsTraceBench) comparing one‑shot vs verifier‑assisted gpt-5-mini NL→config pipelines with comprehensive artifactization and transparent limitations. Main confirmatory result: no significant difference (complete pairs=1199; baseline 1196/1199; guarded 1199/1199; paired difference ≈0.0025; exact McNemar p=0.25). Study is reproducible and relevant, but the manuscript fails to disclose and justify a clear deviation from the preregistered analysis procedure and has minor clarity gaps about validator/repair behavior and power implications.",
+  "novelty_score": 3,
+  "technical_depth_score": 5,
+  "soundness_score": 4,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript/preregistration mismatch for the primary statistical test: preregistration specified a paired two‑sided Wilcoxon signed‑rank procedure, but the archived analysis used an exact McNemar test. This deviation is not recorded in the manuscript's deviations list and is not justified or explained in the paper (methodology still states Wilcoxon)."
+  ],
+  "required_revisions": [
+    "Add an explicit, prominent disclosure in Methods (and in the preregistration/deviations summary paragraph) that the final confirmatory analysis used an exact McNemar two‑sided test on paired binary outcomes rather than the preregistered Wilcoxon signed‑rank; state where the archived analysis artifacts supporting the chosen test are located (e.g., analysis/paired_contingency_table.csv, analysis/results.json, analysis_log.jsonl) and why McNemar is the appropriate test for the observed binary paired data (brief statistical justification).",
+    "Correct the Methods text that currently claims the primary test was Wilcoxon so it matches the executed analysis and ensure the deviations_from_preregistration field in the manuscript/evidence bundle explicitly documents this change and its timestamp (refer to existing archived artifacts; do not require new analysis).",
+    "Add a short paragraph in Results or Discussion explaining the low number of repair‑stage invocations (3 repairs): use the archived validator/repair traces to state whether repairs were unnecessary because initial candidates met validator criteria, or whether repair policy/thresholds suppressed repair calls (point to representative artifact paths)."
+  ],
+  "optional_revisions": [
+    "Add a concise post‑hoc sensitivity note (using existing artifacts) explaining detectable effect sizes under the observed near‑ceiling baseline (e.g., refer to preregistered power assumptions and note practical headroom limits), or point readers to the preregistered power plan and clarify why observed baseline reduces ability to detect small absolute gains.",
+    "Include one short representative discordant example (artifact path already present) showing a guarded success vs baseline failure to illustrate the kinds of errors the verifier corrected (if available), and briefly summarize failure‑mode taxonomy from archival traces.",
+    "In the Discussion, expand the operational implications paragraph with concrete suggestions for constructing more stress‑ful task sets (leveraging deterministic task generator settings already archived) so readers can reproduce a harder corpus without new external resources."
+  ],
+  "accept_for_finalisation": false
+}

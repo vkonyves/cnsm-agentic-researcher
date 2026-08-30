@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "rX4f7-1",
+      "title": "NetOpsTraceBench: a workflow-centered benchmark measuring intent→config traces, validator interaction, and rollback safety",
+      "research_question": "Can a publicly reproducible, workflow-centered benchmark that records multi-step agent traces, validator interactions, and rollback events produce operationally meaningful metrics that distinguish plain LLM generation from verifier-assisted workflows in NetOps tasks?",
+      "hypotheses": [
+        "A composite trace-level safety metric (validator-pass rate weighted by rollback frequency and simulated-availability impact) will be significantly higher for verifier-assisted pipelines than for one-shot LLM generation.",
+        "Per-task trace metrics will reveal systematic failure modes (e.g., semantic unit errors, missing dependencies) not captured by single-output correctness measures.",
+        "Benchmark-derived differences between methods will be robust across at least two simulated network topologies (edge vs. core)."
+      ],
+      "proposed_design": "Assemble a public dataset of 1,200 natural-language operator intents mapped to canonical multi-device configuration sequences and expected execution-ground-truth (reachability and ACL effects). Use two LLM-driven pipelines: (A) one-shot NL→config; (B) generate–validate–repair with an automated verifier and targeted repair prompts. Execute generated configs in Mininet-based emulators and record full agent traces (prompts, model outputs, verifier feedback, repairs) and simulated telemetry. Define and compute a composite safety score combining validator-pass rate, attempted rollback events, and simulated-availability impact. Release dataset, verifiers (parsers), and trace schema.",
+      "expected_data": "For each of 1,200 tasks: original intent, baseline LLM config, verifier-assisted final config, verifier pass/fail logs, number of repair iterations, simulated telemetry (ping/flow results), rollback occurrences, time-to-repair, and human-readable failure labels. Aggregate per-method distributions of composite safety score and component metrics.",
+      "primary_outcome": "Difference in mean composite safety score between one-shot LLM and verifier-assisted pipeline across tasks; effect size and 95% CI.",
+      "analysis_outline": "Predefine primary comparison as paired test across tasks; use Wilcoxon signed-rank test (nonparametric) and paired t-test for effect-size estimate; compute bootstrapped 95% CIs for composite score difference. Secondary analyses: breakdown by failure-mode category, topology type (edge/core), and repair-iteration counts. Report false-negative and false-positive rates for validator judgments against execution-ground-truth. Provide per-task trace exemplars.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W7163720692"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4399252700"
+      ],
+      "risks": [
+        "Emulator fidelity may not reflect production failure modes, biasing metric applicability.",
+        "Constructed intent→config mappings may encode researcher bias and not cover rare real-world policy semantics.",
+        "Validator implementation errors could conflate verifier failures with model failures.",
+        "Dataset release may expose sensitive operator templates if sourced inadequately; ensure synthetic/consented examples."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "q7Kp2-3",
+      "title": "Cross-vendor scaling of verifier-assisted NL→config pipelines",
+      "research_question": "Does integrating vendor-specific parsers and verifiers with an LLM-based generation pipeline maintain or improve semantic-correctness (validator pass rate) across heterogeneous vendor syntaxes compared to a vendor-agnostic baseline?",
+      "hypotheses": [
+        "A vendor-aware verifier-assisted pipeline will yield a higher validator-pass rate than a vendor-agnostic one across at least three vendor syntaxes (e.g., Cisco IOS, Juniper Junos, Arista EOS).",
+        "Improvements will persist after controlling for configuration length and task complexity (i.e., not solely due to simpler vendor formats).",
+        "Parser/verifier coverage gaps will account for a majority of residual semantic failures after enabling verifier-assisted repair."
+      ],
+      "proposed_design": "Curate 900 NL→config tasks evenly split across three representative vendor syntaxes with matched intent complexity. Implement two pipelines: (1) vendor-agnostic LLM prompts producing configs with no vendor checks; (2) LLM with vendor-specific parsing and verifier modules that return structured errors and drive iterative repairs. Validate outputs with vendor-parsers and execute in per-vendor emulators or syntactic validators; collect validator pass/fail, semantic error types, repair iterations, and final execution checks (where emulator allows). Evaluate per-vendor performance and pooled performance; release parsers and verifier specifications.",
+      "expected_data": "Per-task records including vendor, intent, initial LLM output, verifier errors, repair logs, final validator pass/fail, categorized semantic error types (syntax, policy, dependency), and execution-checks where available. Summary tables of pass rates by vendor and complexity strata.",
+      "primary_outcome": "Increase in validator-pass rate for vendor-aware verifier-assisted pipeline versus vendor-agnostic baseline (paired per-task), with p-value and effect size.",
+      "analysis_outline": "Primary analysis: mixed-effects logistic regression with task as random effect and fixed effects for pipeline, vendor, and complexity, testing pipeline coefficient. Secondary: per-vendor paired comparisons (McNemar or paired-proportion tests), analysis of residual failure causes (percentage attributable to parser gaps). Report confidence intervals and adjust for multiple comparisons (Benjamini–Hochberg).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4399252700",
+        "https://openalex.org/W4392875514"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7203497697",
+        "doi:10.3390/app16010085"
+      ],
+      "risks": [
+        "Vendor parsers/verifiers may be incomplete, producing false failure attributions.",
+        "Emulator coverage may differ by vendor, limiting execution-grounded validation for some syntaxes.",
+        "Licensing or proprietary syntax edge cases could be omitted, reducing external validity.",
+        "LLM hallucinations may generate superficially plausible but semantically incorrect constructs that parsers fail to flag."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "mT9vB-5",
+      "title": "Provenance-linked runtime detection of hallucination and policy violations in agentic NetOps",
+      "research_question": "Can lightweight provenance features linking LLM outputs to retrieval/document sources improve automated detection of hallucinated or policy-violating NetOps proposals compared to output-only heuristics?",
+      "hypotheses": [
+        "Incorporating provenance-derived features (source-match score, citation density, retrieval-recall) into a detector will significantly improve AUC for identifying hallucinated or policy-violating proposals versus detectors using only text-derived features.",
+        "Provenance features will particularly reduce false negatives for hallucinations that introduce fabricated device identifiers or non-existent policies.",
+        "Adversarially crafted prompts reduce detector performance, but provenance-enhanced detectors degrade less than text-only baselines under the same adversary budget."
+      ],
+      "proposed_design": "Construct a labeled corpus (≈2,000 examples) of LLM-generated NetOps proposals: grounded outputs, hallucinated outputs, and explicit policy-violating proposals. For each output, record retrieval provenance (documents/sections used), link strength metrics (token overlap, retrieval score), and text features. Train multiple classifiers: baseline (text features), provenance-enhanced, and adversarial-robustified provenance-enhanced. Evaluate detection AUC, precision/recall, and under simulated adversarial prompts (prompt-injection patterns).",
+      "expected_data": "For each example: intent, LLM output, provenance links (doc IDs, retrieval scores), label (grounded/hallucinated/policy-violation), classifier predictions, and adversarial perturbation logs. Aggregated classifier metrics (AUC, precision@k) and robustness curves under adversarial strength.",
+      "primary_outcome": "Increase in detection AUC (provenance-enhanced vs text-only) on held-out test set with bootstrapped 95% CI.",
+      "analysis_outline": "Train/test splits fixed with stratification; compare ROC AUCs using DeLong's test. Report precision/recall at operational thresholds and calibration plots. For adversarial evaluation, compute AUC as adversary budget varies and report degradation slopes. Provide error analysis with exemplar failures and confusion matrices.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.7222278",
+        "https://openalex.org/W7138848763",
+        "https://openalex.org/W7172473782"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7203497697"
+      ],
+      "risks": [
+        "Adversarial actors may adapt to provenance signals, reducing long-term detector efficacy.",
+        "False positives could unnecessarily block safe operational changes, increasing operator workload.",
+        "Provenance instrumentation adds latency and storage cost to agentic workflows.",
+        "Labeled hallucination/policy-violation datasets may be hard to curate without domain expert input; synthetic labeling risks bias."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "zP2nH-8",
+      "title": "Simulated HITL oversight policies: balancing safety and operator burden in reversible NetOps tasks",
+      "research_question": "Which human-in-the-loop oversight patterns (automatic, canary-with-auto-rollback, human-approval-for-high-risk) optimize the trade-off between severe incident reduction and operator intervention burden for reversible NetOps changes in simulated operations?",
+      "hypotheses": [
+        "A tiered oversight policy that routes low-risk changes to automated canaries and high-risk changes to human approval will reduce severe simulated incidents more than a fully automated policy while increasing operator interventions less than a universal human-approval policy.",
+        "Canary-with-auto-rollback will catch a majority of severe semantic failures with lower operator burden than mandatory human approval.",
+        "Relative policy performance will depend on reversibility: for highly reversible changes, automated canary policies approach human-approval safety with substantially fewer interventions."
+      ],
+      "proposed_design": "Simulate 1,500 NetOps change tasks labeled with risk and reversibility tiers and mapped to expected failure impact. Implement three oversight policies in the simulation: (A) fully automated commit, (B) canary execution with automated rollback and telemetry-based gating, (C) risk-tiered human-approval (simulated operator model) for high-risk tasks. Use LLM-generated proposals with injected realistic failure rates (based on prior literature). Measure severe-incident rate, number of human interventions (simulated approvals), mean time-to-recovery, and availability impact. Conduct sensitivity analysis by varying LLM base failure rates and canary detection sensitivity.",
+      "expected_data": "Per-simulated-task records: risk tier, reversibility flag, chosen oversight action, canary telemetry outcome, rollback events, whether simulated severe incident occurred, simulated operator interaction timestamps and counts. Aggregated metrics: severe-incident rate, interventions per 100 tasks, availability loss, and time-to-recovery.",
+      "primary_outcome": "Policy trade-off curve: severe incidents prevented per additional human intervention comparing policies, reported with 95% CIs; identification of Pareto-optimal policy under simulated cost model.",
+      "analysis_outline": "Compute incident rates and intervention counts per policy; compare policies using Poisson or negative-binomial regression for count outcomes and survival analysis for time-to-recovery. Produce cost–benefit curves parameterized by operator cost and incident cost; run sensitivity sweeps over LLM failure-rate and canary sensitivity. Report threshold regions where each policy is optimal.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4415872849",
+        "https://openalex.org/W4416553765",
+        "https://openalex.org/W7163720692"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682"
+      ],
+      "risks": [
+        "Simulated operator model may not capture real human decision patterns, limiting external validity.",
+        "Parametric assumptions about LLM failure rates could bias policy recommendations.",
+        "Canary detectors in simulation may overestimate real-world detection fidelity.",
+        "No-live-human trials may reduce confidence in operational acceptability of recommended policies."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

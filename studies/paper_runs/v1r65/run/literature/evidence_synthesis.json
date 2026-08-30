@@ -1,0 +1,256 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Operational reliability of LLM-enabled NetOps depends primarily on surrounding orchestration, verification, and assurance machinery rather than the base LLM alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "survey/system-argument",
+      "confidence": 0.9,
+      "limitations": [
+        "Based on synthesis and system-level argumentation rather than large-scale deployed production trials.",
+        "Evidence describes patterns and recommendations; quantitative impact of specific machinery varies by implementation."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Generate–validate–repair (or verifier-assisted) architectures are proposed and used to improve correctness of LLM-produced formal or executable artifacts (e.g., NL→formal specs, topologies) by iterating generation with automated verifiers.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W7203497697",
+        "doi:10.3390/app16010085"
+      ],
+      "evidence_type": "method-demo / system-proposal",
+      "confidence": 0.85,
+      "limitations": [
+        "Demonstrations are domain-specific (CTL/NuSMV, security-topology compilation, RAG firewall) and may not generalize to all NetOps tasks.",
+        "Most reports show feasibility and localized gains; end-to-end operational impact is less explored."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "LLM failure modes relevant to NetOps—hallucination, incorrect semantics/units, overconfidence/miscalibration, provenance loss, and susceptibility to prompt-injection—are documented across recent literature.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6834458",
+        "https://openalex.org/W7138848763",
+        "https://openalex.org/W7172473782",
+        "doi:10.24108/preprints-3115999",
+        "doi:10.2139/ssrn.5401993"
+      ],
+      "evidence_type": "empirical studies / surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Failure-mode studies span varied domains and benchmarks; transferability of specific failure frequencies to NetOps tasks requires targeted evaluation.",
+        "Adversarial and runtime conditions in real NetOps may produce additional modes not yet empirically characterized."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "There is active work and multiple surveys calling for workflow-centered evaluation of agentic NetOps systems (trace quality, bounded tool use, replayable sandboxes, canary trials) instead of one-shot QA benchmarks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W7163720692"
+      ],
+      "evidence_type": "survey / position papers",
+      "confidence": 0.88,
+      "limitations": [
+        "Recommendations are consistent across surveys but are prescriptive; empirical consensus on standardized workflow metrics is not yet established."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Some domain-specific LLM-based NetOps tools and prototypes (e.g., PreConfig, GenKubeSec, TopoIntent, GenKubeSec) demonstrate feasibility of text-to-config, misconfiguration detection, and intent→topology compilation, often constructing their own evaluation sets.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4399252700",
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "system-proposals / tool-demos",
+      "confidence": 0.82,
+      "limitations": [
+        "Prototypes typically evaluate on constructed or limited held-out sets; external validity to diverse production configs is unproven.",
+        "Some systems rely on synthetic templates or small retrieval/template libraries."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "What standardized, externally valid metrics and benchmark datasets best capture operational correctness, safety, and rollback-aware risk for agentic NetOps workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W4408167800"
+      ],
+      "evidence_type": "research-question / survey-identified-gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Surveys call for such metrics but do not define a single agreed standard; empirical validation remains outstanding."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How well do verifier-assisted NL→config pipelines scale to heterogeneous vendor syntaxes, large-scale networks, and subtle semantic policy constraints in production?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4399252700"
+      ],
+      "evidence_type": "method-limit question",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing work shows feasibility on constrained tasks; scaling and vendor-coverage are not yet empirically demonstrated."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "To what extent do experimental emulators/simulators (Mininet/ns-3) and synthetic testbeds reflect production NetOps failure modes when evaluating LLM-driven changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "external-validity question",
+      "confidence": 0.72,
+      "limitations": [
+        "Surveys flag fidelity concerns; quantitative bridging studies comparing emulator results to production are rare in supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What are effective runtime monitoring, audit-trace, and provenance mechanisms that reliably detect LLM hallucination or unauthorized policy-violating proposals in agentic NetOps?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "doi:10.2139/ssrn.7222278",
+        "doi:10.36227/techrxiv.177129951.11824582/v1"
+      ],
+      "evidence_type": "operational-detection question",
+      "confidence": 0.7,
+      "limitations": [
+        "Proposed linkers and audit strategies exist but have been validated on synthetic or limited corpora; operational deployment constraints are under-characterized."
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "How much human oversight (HITL) and which oversight patterns are necessary to maintain safety/trust for different NetOps task risk tiers?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415872849",
+        "https://openalex.org/W4416553765",
+        "https://openalex.org/W7163720692"
+      ],
+      "evidence_type": "HITL-policy question",
+      "confidence": 0.76,
+      "limitations": [
+        "Reviews and position pieces outline the issue; empirical controlled comparisons across risk tiers are not present in supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q6",
+      "statement": "What are robust adversarial tests and stress generators that expose realistic, production-relevant edge cases for agentic NetOps?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7346520",
+        "https://openalex.org/W7172473782",
+        "https://openalex.org/W7138848763"
+      ],
+      "evidence_type": "robustness-evaluation question",
+      "confidence": 0.68,
+      "limitations": [
+        "Adversarial self-play and stress-testing frameworks exist in other domains; adaptation and validation for NetOps-specific dynamics remain open."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Absence of large, public, vendor-diverse datasets mapping operator intent → device-specific configurations with execution-ground truth for reproducible NL→config evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203497697",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "dataset-gap",
+      "confidence": 0.86,
+      "limitations": [
+        "Some projects construct private or small held-out sets; TopoIntent explicitly notes no existing public benchmark for its task.",
+        "Gap characterization is supported by system papers and survey calls for better datasets."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Lack of standardized workflow-centered benchmarks that measure multi-step agent traces, validator interactions, rollback capability, and safety contracts for NetOps agent evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W7163720692"
+      ],
+      "evidence_type": "benchmark-gap",
+      "confidence": 0.84,
+      "limitations": [
+        "Surveys prescribe needs but concrete community benchmarking efforts (large-scale, standardized) are not present in supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Limited empirical evidence about verifier-assisted LLM pipelines operating at production scale across heterogeneous real-world policy semantics.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6947162",
+        "https://openalex.org/W4399252700",
+        "https://openalex.org/W4392875514"
+      ],
+      "evidence_type": "empirical-gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing demonstrations show feasibility on constrained corpora; scalability and semantic-coverage remain untested in supplied material."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Insufficiently validated provenance and audit tooling (data→LLM linkers, per-output provenance) for NetOps workflows that require high-assurance traceability.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7222278",
+        "doi:10.64898/2026.03.05.709623",
+        "doi:10.36227/techrxiv.177129951.11824582/v1"
+      ],
+      "evidence_type": "tooling-gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Linker and provenance schema work shows structural promise but has been validated mostly on constructed or domain-specific corpora."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "A gap exists in empirically grounded guidance on HITL oversight policies (when to require human approval vs automated canary) tailored to NetOps risk and reversibility profiles.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415872849",
+        "https://openalex.org/W4416553765",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "policy-gap",
+      "confidence": 0.77,
+      "limitations": [
+        "Surveys identify the need; prescriptive operational policies with measured outcomes are not present in supplied records."
+      ]
+    },
+    {
+      "claim_id": "G6",
+      "statement": "Limited public evidence assessing emulator-to-production fidelity for LLM-driven config changes and their effect on safety/availability.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W4405229682"
+      ],
+      "evidence_type": "validation-gap",
+      "confidence": 0.73,
+      "limitations": [
+        "Records highlight the concern; empirical bridging studies are not supplied."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already production-ready to autonomously perform high-risk NetOps changes without human oversight.",
+    "There exists a single, agreed-upon benchmark that fully captures operational safety and rollback behavior for agentic NetOps systems.",
+    "Verifier-assisted NL→config approaches have been demonstrated at Internet-scale across heterogeneous vendor ecosystems (no supplied record shows full production-scale, multi-vendor deployment)."
+  ]
+}

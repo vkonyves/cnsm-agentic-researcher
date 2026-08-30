@@ -1,0 +1,32 @@
+{
+  "study_id": "rX4f7-1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis executed by paired_binary_analysis_v1: two-sided Wilcoxon signed-rank test on paired binary-success indicators (guarded vs baseline), report test statistic and two-sided p-value (α=0.05). Paired-success-rate difference computed (guarded minus baseline) with 95% bootstrap confidence interval using the frozen seeds and analysis_code_and_seeds artifact. Primary denominators follow preregistered complete_pair_primary exclusion rules; input data read from execution/raw_results.jsonl and paired_binary_results.csv.",
+  "secondary_analyses": [
+    "paired_difference_in_verifier_pass_rate (paired comparison of verifier pass proportions; bootstrap CI)",
+    "paired_difference_in_automatic_rollback_rate (paired comparison of emulator rollback event rates; bootstrap CI)",
+    "distribution_of_repair_iterations_guarded (descriptive distribution and median/IQR from raw_results.jsonl)",
+    "topology_cluster_breakdown: paired success rates reported separately for 'edge' and 'core' clusters (descriptive; exploratory significance tests reported but labeled exploratory)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat excluded/missing episodes as failures for affected method; recompute paired difference and CI)",
+    "Alternative binary-success thresholds: recompute primary estimand using preregistered availability-degradation tolerances (sensitivity grid)",
+    "Treat verifier-disagreement exclusions as failures vs exclusions: recompute primary estimand under both policies"
+  ],
+  "uncertainty_quantification": "95% bootstrap confidence intervals (frozen seeds) for paired-success-rate difference and secondary proportion differences; two-sided Wilcoxon signed-rank p-value for primary hypothesis. All bootstrap draws, seeds, and replicates are published with analysis_code_and_seeds artifact.",
+  "multiplicity_implementation": "Single confirmatory hypothesis (H1) controls Type I error at α=0.05. All other contrasts are explicitly exploratory. For exploratory multiple contrasts we report Benjamini–Hochberg FDR-adjusted q-values where shown but do not alter the primary inference.",
+  "contamination_analysis": "Follow preregistered contamination_plan using task_manifest_path and transformation_manifest_path: deterministic provenance tags (synthetic/consented) and automated substring/token-overlap scan (T_contam=0.85 normalized overlap) plus optional embedding-similarity checks (cosine threshold=0.92) for flagged subset. Any item flagged by these rules is automatically excluded from the primary confirmatory dataset and logged in dataset_release_manifest; all flags and reasons are reported in the exclusions table and dataset manifest (execution/task_manifest.jsonl and execution/transformation_manifest.json).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary outcome: paired counts and proportions (baseline, guarded), paired-success-rate difference, Wilcoxon signed-rank statistic, two-sided p-value, 95% bootstrap CI (source: paired_binary_results.csv, execution/raw_results.jsonl, analysis_code_and_seeds)",
+    "Table 2 — Topology breakdown: edge vs core paired-success rates, paired differences, descriptive counts and bootstrap CIs (source: paired_binary_results.csv)",
+    "Table 3 — Exclusions and contamination: counts and indices of excluded pairs, exclusion reasons (contamination, parser/transform failures, emulator errors), list of flagged task_ids with provenance tags (source: execution/task_manifest.jsonl, dataset_release_manifest)",
+    "Table 4 — Failure-mode catalog and repair-iteration summary: automated failure-mode categories (semantic-unit errors, missing dependencies, parser failures), counts, and median repair iterations for guarded pipeline (source: failure_analysis_record, execution/raw_results.jsonl)"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Paired-success-rate difference plot: point estimate and 95% bootstrap CI (source: paired_binary_results.csv, bootstrap outputs)",
+    "Figure 2 — Repair-iterations distribution for guarded pipeline: histogram and empirical CDF (source: execution/raw_results.jsonl)",
+    "Figure 3 — Processing pipeline flowchart annotated with deterministic exclusion points (rendered from preregistered transformation_manifest and execution logs)"
+  ]
+}

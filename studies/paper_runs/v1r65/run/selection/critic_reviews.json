@@ -1,0 +1,99 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "rX4f7-1",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator (Mininet) fidelity to production may limit external validity of safety metric.",
+        "Construction of 1,200 intent→config mappings risks researcher bias and leakage of sensitive templates.",
+        "Validator implementation bugs could conflate model vs verifier failure.",
+        "Composite safety-score design is underspecified and may overweight easily-measured components.",
+        "Scaling and dataset-release privacy/legal concerns not addressed."
+      ],
+      "required_design_repairs": [
+        "Specify exact composite-safety-score formula and justify component weights; preregister primary threshold and score aggregation.",
+        "Provide provenance for intent→config creation (sources, synthetic vs consented) and explicit exclusion rules for sensitive templates.",
+        "Include independent validator verification: unit tests, ground-truth comparisons, and inter-verifier agreement reporting.",
+        "Define emulator limitations and include sensitivity analyses vs emulator fidelity (e.g., alternative topology/parameters).",
+        "Freeze and release full prompting, model versions, seeds, trace-schema, and baseline one-shot prompts in preregistration."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "q7Kp2-3",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Vendor-parsers/verifiers are hard to implement comprehensively; parser gaps may dominate measured failures.",
+        "Emulator or execution-check coverage will vary per vendor and may prevent execution-ground-truth for some tasks.",
+        "Proprietary/edge syntax features risk being omitted, biasing results toward open/simple cases.",
+        "Risk that improvements reflect parser coverage rather than genuine generator robustness."
+      ],
+      "required_design_repairs": [
+        "List exact vendor versions, syntactic features targeted, and gap-coverage plan; preregister allowed omission list.",
+        "Define protocol for handling tasks with missing emulator execution (e.g., synthetic validator fallback) and report separately.",
+        "Include human adjudication for ambiguous parser failures and report inter-annotator agreement.",
+        "Predefine matching procedure to equalize task complexity across vendors and preregister complexity metrics.",
+        "Release parsers, verifier specs, and test suites used for validation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "mT9vB-5",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Curating a labeled hallucination/policy-violation corpus (~2,000 examples) requires domain experts; synthetic labels may bias results.",
+        "Adversaries can adapt to provenance signals; robustness claims need clear threat model.",
+        "Provenance collection (retrieval indices) may be sensitive or variable across deployments.",
+        "Potential latency/operational costs of provenance instrumentation are not quantified."
+      ],
+      "required_design_repairs": [
+        "Specify labeling protocol, annotator qualifications, and inter-annotator agreement thresholds; if synthetic labels used, justify and quantify bias risk.",
+        "Define retrieval/provenance pipeline in detail (index, retriever, scoring) and release code/config for reproducibility.",
+        "Predefine adversary models and budgets for robustness tests; preregister adversarial perturbation generation procedures.",
+        "Include operational-cost analysis (latency/storage) and report detector runtime metrics alongside AUC results."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "zP2nH-8",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Results hinge on simulated operator model and assumed LLM failure rates; external validity to human operators is uncertain.",
+        "Canary detector model may be optimistic; detection fidelity in simulation may not reflect production.",
+        "Policy cost model (operator cost vs incident cost) is underspecified.",
+        "No live-human validation planned to calibrate simulated approval behavior."
+      ],
+      "required_design_repairs": [
+        "Preregister the simulated operator decision model, its calibration procedure, and validation against any empirical human-behavior studies or proxies.",
+        "Specify priors and ranges for LLM base failure rates and justify them from literature or pilot data; include broad sensitivity sweeps.",
+        "Define canary detector model and detection-performance assumptions; test robustness to degraded detector sensitivity.",
+        "Formalize the cost model used to compute Pareto-optimal policies and provide alternative cost parameterizations in sensitivity analysis."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
