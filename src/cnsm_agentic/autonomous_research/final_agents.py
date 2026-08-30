@@ -400,6 +400,16 @@ PEER_REVIEWER = Agent(
         artifact paths, filenames, hashes, or repeated copies of the same
         disclosure when those conditions are satisfied.
 
+        For publication-style closure, treat citation/reference formatting,
+        artifact-path cleanup, hash cleanup, and Disclosure Statement
+        condensation as resolved when the revised manuscript uses standard
+        IEEE numbered citations/references, keeps run-internal paths and full
+        hashes out of ordinary scientific prose unless strictly required for
+        disclosure, and preserves the mandatory disclosure content in a
+        concise form. Do not require audit-log-level provenance density in the
+        camera-ready manuscript when the archived artifacts already preserve
+        that provenance.
+
         Observed null, negative, ceiling, floor, degenerate, underpowered,
         or otherwise unfavorable scientific outcomes are not themselves
         manuscript defects and must not be listed as critical issues when

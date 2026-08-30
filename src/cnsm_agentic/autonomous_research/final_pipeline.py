@@ -6312,8 +6312,17 @@ class FinalAutonomousResearchPipeline:
                         "scientific content "
                         "already present. Do not change empirical results, "
                         "invent evidence, introduce new experiments, or weaken "
-                        "required disclosure. Maintain the exact five-page "
-                        "IEEE publication requirement."
+                        "required disclosure. For publication-style required "
+                        "revisions, normalize citations and references to "
+                        "standard IEEE numbered citation form; remove or "
+                        "relocate run-internal artifact paths and full hashes "
+                        "from ordinary scientific prose; and condense the "
+                        "Disclosure Statement to the minimum track-required "
+                        "provenance content while preserving every mandatory "
+                        "disclosure fact. Prefer concise scientific prose and "
+                        "normal bibliographic references over audit-log-style "
+                        "metadata. Maintain the exact five-page IEEE "
+                        "publication requirement."
                     ),
                 },
                 expected_type=ManuscriptPackage,
