@@ -1,0 +1,21 @@
+{
+  "summary": "Closure review: the revised manuscript remains honest and well‑documented, but the two prior required revisions from the terminal review are not resolved. The paper still embeds low‑level artifact paths/hashes in main prose and does not explicitly reconcile runtime determinism/sampling semantics (temperature null in model_configuration.json) with the claimed adapter‑enforced deterministic shared_initial generation. These must be fixed using the existing archived artifacts before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 3,
+  "soundness_score": 3,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Main manuscript still includes low‑level artifact file paths and explicit hashes in Methods/Results/Disclosure, preserving an artifact‑inventory style rather than concise scholarly prose (violates prior required revision).",
+    "Determinism/sampling semantics remain ambiguous: model_configuration.json records \"temperature\": null while the manuscript claims adapter‑enforced deterministic shared_initial generation; the Methods do not explicitly reconcile whether determinism was achieved via temperature=0 or solely via adapter enforcement, nor do they cite the precise archived fields that demonstrate enforcement (e.g., execution/model_configuration.json, deterministic_reconciliation.json, execution/execution_log.jsonl/provider audit)."
+  ],
+  "required_revisions": [
+    "Remove per‑file artifact paths and full hashes from the main manuscript prose (Methods, Results, Disclosure). Replace them with concise descriptive pointers to the archived execution bundle and a single short locator (e.g., “archived execution bundle: execution/raw_results.jsonl, deterministic_reconciliation.json; see artifact manifest”), and move detailed provenance (file listings, full hashes) to the archived artifact index or a single compact appendix line within the five pages. This change can be completed using the supplied execution bundle and manifest artifacts.",
+    "Explicitly reconcile runtime determinism/sampling semantics in Methods: state whether model calls used temperature=0 or whether determinism was achieved by adapter enforcement despite model_configuration.json listing \"temperature\": null. Cite the specific archived artifacts and fields that prove single shared_initial invocations per task (for example: execution/model_configuration.json, deterministic_reconciliation.json, and provider‑audit fields in execution/execution_log.jsonl). Explain the consequence for the inferential claim (that sampling variance was excluded). This clarification can be completed from the existing artifacts; no new experiments are required."
+  ],
+  "optional_revisions": [
+    "Shorten Related Work to prioritize closest verifier‑assisted and GVR studies to save space.",
+    "Add one short paragraph in Methods clarifying limitations of bootstrap percentile CIs and exact McNemar inference in the degenerate paired case with zero discordant pairs.",
+    "If space permits, include a single compact mapping row per principal empirical claim linking it to one canonical archived artifact name (kept extremely concise)."
+  ],
+  "accept_for_finalisation": false
+}

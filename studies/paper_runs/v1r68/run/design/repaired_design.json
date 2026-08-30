@@ -1,0 +1,147 @@
+{
+  "selected_candidate_id": "cand-gvr-effectiveness-02",
+  "title": "Effectiveness of Generate–Validate–Repair (GVR) with Deterministic Validation vs LLM-only for Reducing Unsafe Network Changes",
+  "research_question": "Does an automated generate–validate–repair (GVR) pipeline that uses a deterministic network validator materially reduce the incidence of unsafe or semantically incorrect network changes relative to an LLM-only generation pipeline on a curated NetOps task bank?",
+  "confirmatory_hypotheses": [
+    "A closed-loop generate–validate–repair pipeline incorporating a deterministic validator reduces the post-application unsafe-change incidence by at least 50% (relative reduction) compared to LLM-only generation on the same tasks (paired design)."
+  ],
+  "exploratory_questions": [
+    "What fraction of GVR-corrected cases introduce new, validator-undetected failure modes (GVR-introduced failures)?",
+    "How many repair iterations are required on average for successful repairs, and what is the average model-call cost per successful repair?",
+    "How sensitive are results to validator choice (primary validator vs independent secondary validator) and to task cluster (topology class)?"
+  ],
+  "benchmark_scope": [
+    "Curated public/synthetic NetOps task bank (200 confirmatory tasks) covering four topology clusters: enterprise, campus, datacenter, and edge (50 tasks each). Tasks are intent→configuration translation problems synthesised from public config corpora and canonicalized into machine-checkable intents."
+  ],
+  "model_scope": [
+    "Single hosted LLM API selected at execution time (deterministic sampling: temperature=0, fixed system prompt). Exact model identifier(s) will be recorded in execution manifest and disclosure.",
+    "Deterministic validators executed in Docker containers (primary: Batfish; secondary independent validator: data-plane emulator using Mininet + automated reachability test suite)."
+  ],
+  "transformation_scope": [
+    "Natural-language intent → device-configuration text outputs (Cisco-like IOS/JunOS snippets) with syntactic normalization to canonical representation for automated comparison and validation."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion of tasks that transition from unsafe under LLM-only to safe under GVR, reported as absolute and relative reduction; computed by paired_binary_analysis_v1 executor using exact McNemar test).",
+  "secondary_estimands": [
+    "Average repair iterations per repaired task (mean, 95% CI).",
+    "Proportion of tasks where GVR introduced a new validator-detected failure (GVR-introduced-failure rate).",
+    "Model-call cost per successful repair (mean, 95% CI)."
+  ],
+  "sampling_plan": "Confirmatory sample: 200 tasks total (4 topology clusters × 50 tasks each). For each task: generate a single deterministic initial LLM output (one API call, stored). Paired conditions use the same initial output: (A) LLM-only — apply initial generated config to emulator/validator and record pass/fail; (B) GVR — run initial LLM output through deterministic validator; if validator reports violations, issue automated repair prompt to the same LLM (up to 3 repair iterations) and re-validate after each iteration; apply final repaired config to emulator and record pass/fail. Randomization: task ordering randomized for execution; seeds fixed for deterministic generation. Inclusion/exclusion: tasks with infrastructure execution failures are logged and handled per missingness plan.",
+  "analysis_plan": "Primary confirmatory analysis executed by paired_binary_analysis_v1 (registered analysis contract). Primary test: exact McNemar test (two-sided, alpha=0.05) on paired binary outcomes (LLM-only pass/fail vs GVR pass/fail). Report absolute risk reduction, relative reduction, and exact p-value; compute 95% confidence intervals for paired difference via exact/pivot methods supported by the executor. Secondary analyses: logistic regression (repair-success ~ topology_cluster + initial_validator_failure_type + repair_iterations) computed on confirmatory sample as exploratory analyses with multiplicity controls (see multiplicity_plan). Failed-call handling: use analysis executor's primary failed_call_treatment 'complete_pair_primary' (treat technical failures according to contract rules) and run sensitivity analysis using 'complete_pair_primary_with_failure_as_zero_sensitivity' to verify robustness. All inputs, seeds, model-call logs, validator diagnostics, and hashes will be recorded and published in execution manifest.",
+  "multiplicity_plan": "One pre-registered primary confirmatory test (McNemar). All secondary tests are explicitly labeled exploratory. For post-hoc or multiple secondary comparisons, apply Bonferroni or Benjamini–Hochberg correction as appropriate; exploratory subgroup claims will be reported with unadjusted p-values but flagged as exploratory.",
+  "missingness_plan": "Execution-infrastructure failures: pairs where neither condition completes are excluded from primary analysis and counted in a technical-failure log. Single-condition technical failures: follow paired_binary_analysis_v1 failed_call_treatment 'complete_pair_primary' (documented in execution manifest). Missingness is reported by task with deterministic exclusion/inclusion rules. No manual adjudication: all exclusion decisions are deterministic and logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public/synthetic NetOps task bank v1 (curated for this study)"
+    ],
+    "risk_factors": [
+      "Validator coverage blind spots leading to overfitting of repairs to validator rules (false sense of safety).",
+      "GVR introducing new failure modes not captured by primary validator.",
+      "Model API rate limits or outages causing incomplete pairs."
+    ],
+    "detection_procedures": [
+      "Primary deterministic validator (Batfish) run on every generated/repaired config.",
+      "Secondary independent validator: Mininet data-plane emulator with automated reachability and functional test-suite run on a randomized 10% holdout of tasks (automated, deterministic).",
+      "Automated discrepancy detector: any task where Batfish and Mininet disagree on pass/fail is flagged.",
+      "Automatic logging of validator diagnostic messages and difference traces for every flagged item."
+    ],
+    "item_flagging_rules": [
+      "Flag automatically if Batfish verdict != Mininet emulator verdict.",
+      "Flag if GVR completes with >1 repair iteration and final validator reports 'warning' diagnostics (non-pass states).",
+      "Flag if repair loop reaches max iterations (3) without a pass."
+    ],
+    "analysis_treatment": "Primary analysis excludes tasks flagged for validator-emulator disagreement (predefined conservative treatment). Sensitivity analyses: (a) include flagged tasks as failures for GVR; (b) include flagged tasks as successes for GVR; (c) report results restricted to unflagged subset. All flagged-task handling is deterministic and automated.",
+    "residual_uncertainty": [
+      "Residual blind spots where both deterministic validators agree but both miss a real operational failure that neither validator models.",
+      "External-validity gap between emulator-detectable failures and production-network failure modes."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_low",
+      "description": "Conservative (recommended) execution: single initial LLM call per task; expect low average repair iterations (≈0.3 repairs/task); run secondary validator on 10% holdout. Enforces strict model-call cap and per-task call caps to avoid rate-limit exposure.",
+      "planned_model_calls": 300,
+      "models": [
+        "hosted LLM API (single model; exact identifier recorded at execution)"
+      ],
+      "transformations": [
+        "intent → configuration generation (1 call/task)",
+        "repair prompts (expected avg 0.3 calls/task; max 3 calls/task when triggered)"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Total planned_model_calls = initial_calls (200) + expected_repairs (≈60) + 10% overhead (40) = 300. This stays well under platform maximum planned_model_calls (10,000) and inside the estimated operational budget while preserving confirmatory sample size."
+    },
+    {
+      "scenario_id": "scenario_high",
+      "description": "Generous budget: allows full worst-case repair iterations and expanded exploratory holdout testing and repeated repair-strategy variants.",
+      "planned_model_calls": 3000,
+      "models": [
+        "hosted LLM API (single model; exact identifier recorded at execution)"
+      ],
+      "transformations": [
+        "intent → configuration generation",
+        "up to 3 repair iterations per task (max worst-case budget)"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 200,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Worst-case calls per task = 1 initial + 3 repairs = 4; for 200 tasks that is 800 calls. Extra headroom (3,000 planned) permits multiple repair-prompt variants, reruns for sensitivity exploration, and expanded exploratory discovery items while remaining within maximum_planned_model_calls (10,000)."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute and relative change in unsafe-change incidence between LLM-only and GVR).",
+    "target_effect": "50% relative reduction in unsafe-change incidence (e.g., from 30% baseline failure rate to 15% after GVR); primary confirmatory target is relative ≥50% reduction.",
+    "clustering_unit": "task (paired within-task comparison).",
+    "calculation_method": "Exact McNemar test for paired binary outcomes (two-sided alpha=0.05). Power approximations use discordant-pair assumptions: with n=200 tasks, if baseline discordant pairs are consistent with baseline failure rate ≈30% and expected improvement yields discordant counts consistent with an absolute reduction of 0.15, power ≈0.8. Sensitivity analyses will report power under alternative baseline failure-rate assumptions (20%–40%).",
+    "assumptions": [
+      "Baseline unsafe-change incidence (LLM-only) assumed in planning: 30% (uncertain — sensitivity analyses will consider 20% and 40%).",
+      "GVR effect hypothesised as a 50% relative reduction (absolute reduction 0.15 if baseline=0.30).",
+      "Pairs are independent across tasks (no cross-task contamination); dependence assessed in diagnostics and addressed if present.",
+      "Alpha=0.05 two-sided for primary test; power target=0.8 for planning."
+    ],
+    "recommended_scenario_id": "scenario_low",
+    "minimum_detectable_effect_notes": "With n=200 and the above baseline assumptions, the pre-registered minimum detectable absolute reduction is approximately 0.12–0.16 depending on discordant-pair distribution; sensitivity analyses will report exact detectable-effect curves.",
+    "sensitivity_analyses": [
+      "Recompute power and main test under baseline failure-rate assumptions 0.20 and 0.40.",
+      "Run primary analysis restricted to unflagged tasks (no validator-emulator disagreement) and report effect sizes.",
+      "Perform the failed-call sensitivity analysis per registered analysis contract."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Syntactic canonicalization (normalize device/line order, whitespace, canonical interface names).",
+      "Semantic parsing to canonical rule objects (ACL entries, route statements) for equivalence checks.",
+      "Repair-prompt-derived deltas applied to canonical representation; re-serialization to device config text for validation."
+    ],
+    "semantic_equivalence_checks": [
+      "Automated parser validates that generated/repaired config implements the intent-specified invariants (reachability/blacklist invariants represented as canonical checks).",
+      "Compare canonical rule objects before and after repair to detect unintended semantic changes beyond target fixes."
+    ],
+    "automatic_rejection_rules": [
+      "Reject repaired config automatically (label as failure) if repair introduces any rule that contradicts the declared intent invariants or introduces deny/permit changes outside repair scope.",
+      "Reject if repair loop reaches max iterations (3) without a validator pass; mark as unresolved."
+    ],
+    "audit_sample_policy": "Automated holdout audit: 10% of confirmatory tasks (randomly selected with fixed seed) are executed on the secondary validator/emulator (Mininet) to detect validator overfitting; all audit outcomes are logged and trigger automatic flags if disagreement occurs.",
+    "mapping_validation": "Mapping from intent to canonical representations is unit-tested with a small deterministic suite of canonical intent→config examples included in the repo; all mapping checks run automatically in CI prior to the main run.",
+    "residual_risks": [
+      "Parser bugs causing incorrect canonicalization (mitigated by unit tests but residual risk remains).",
+      "Semantic constructs outside validator/emulator modelling (e.g., vendor-specific features not modelled by Batfish or Mininet)."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator and validator fidelity vs production networks (external validity): results are explicitly scoped to the curated public/synthetic task bank and emulator/validator models used.",
+    "Exact hosted LLM model identifier(s) and runtime characteristics (latency/cost) will be recorded only at execution time; availability risk is mitigated by per-scenario call caps and enforcement.",
+    "Validator coverage blind spots: secondary validator and holdout audits reduce but do not eliminate unmodelled failure modes."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4410125989",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399803256"
+  ]
+}

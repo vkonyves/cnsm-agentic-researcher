@@ -1,0 +1,33 @@
+{
+  "study_id": "cnsms2026-gvr-effectiveness-02",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis executed by paired_binary_analysis_v1 on execution/raw_results.jsonl. Compute paired binary outcomes (baseline vs guarded) per task, exclude pairs flagged for Batfish–Mininet disagreement per preregistered contamination_plan, apply failed-call handling complete_pair_primary. Primary test: exact McNemar test (two-sided, alpha=0.05) implemented by the executor; report 2×2 contingency table, absolute risk reduction, relative reduction, exact p-value, and 95% confidence interval for the paired difference using exact/pivot methods. Report number of included pairs and all exclusion counts.",
+  "secondary_analyses": [
+    "Average repair iterations per repaired task (mean with 95% CI) — source: repair_iterations_count in execution/raw_results.jsonl.",
+    "Proportion of tasks where GVR introduced a new validator-detected failure (GVR-introduced-failure rate) — source: discrepancy_flags and Batfish diagnostics.",
+    "Model-call cost per successful repair (mean, 95% CI) — source: model_call metadata and repair_iterations_count.",
+    "Exploratory logistic regression: repair_success ~ topology_cluster + initial_validator_failure_type + repair_iterations (unadjusted p-values; flagged exploratory)."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (exact contract identifier) applied by executor to assess missingness impact.",
+    "Contamination sensitivities (implemented deterministically): (a) include flagged tasks as failures for GVR; (b) include flagged tasks as successes for GVR; (c) restrict primary analysis to unflagged subset. All read from execution/raw_results.jsonl discrepancy_flags and exclusion_flag fields.",
+    "Power-sensitivity re-evaluation under baseline rates 20% and 40% (per preregistration)."
+  ],
+  "uncertainty_quantification": "Primary: exact McNemar two-sided p-value and 95% CI for paired difference via exact/pivot methods (as preregistered). Secondary: 95% CIs for means and proportions (t-based or exact/binomial CIs as appropriate) computed by executor; report sample sizes and show exact CIs. All CIs and p-values produced deterministically from execution/raw_results.jsonl.",
+  "multiplicity_implementation": "One pre-registered primary confirmatory test (McNemar). All other tests labeled exploratory. For multiple secondary hypothesis tests, apply Bonferroni or Benjamini–Hochberg corrections where an explicit (post-hoc) inferential claim is attempted; otherwise report unadjusted p-values and explicitly flag exploratory findings.",
+  "contamination_analysis": "Primary-treatment: exclude tasks flagged for Batfish vs Mininet disagreement (discrepancy_flags) as specified in contamination_plan. Flagging criteria and counts pulled from execution/raw_results.jsonl (Batfish diagnostics, Mininet_emulator_trace, discrepancy_flags). Sensitivity analyses: include-flagged-as-fail, include-flagged-as-success, and restrict-to-unflagged are run programmatically. All contamination-handling decisions deterministic and logged; exclusion counts reported.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Primary 2×2 contingency table (baseline pass / fail × guarded pass / fail), McNemar exact p-value, absolute and relative reduction, N included pairs — source: execution/raw_results.jsonl.",
+    "Table 2: Per-topology (enterprise, campus, datacenter, edge) pass rates by condition with counts and 95% CIs — source: execution/raw_results.jsonl.task_manifest_path + raw results.",
+    "Table 3: Repair-summary table: tasks with repairs, repair_iterations_count distribution (mean, sd, median, 95% CI), model-call cost per repaired task — source: repair fields and model_call metadata in execution/raw_results.jsonl.",
+    "Table 4: Contamination and exclusion summary: counts and IDs for Batfish–Mininet discrepancies, infrastructure failures, excluded pairs, and hashes/timestamps — source: execution/raw_results.jsonl and execution/execution_log.jsonl."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of pass rates (baseline vs guarded) with 95% CIs, overall and by topology cluster — data from execution/raw_results.jsonl.",
+    "Figure 2: Histogram of repair_iterations_count for tasks where a repair was issued (count and percent) — source: execution/raw_results.jsonl.",
+    "Figure 3: Boxplot of model-call cost per successful repair (model_call metadata aggregated by task) — source: execution/raw_results.jsonl.",
+    "Figure 4: Scatter / jitter plot of repair_iterations_count vs initial_validator_failure_type with marginal rates (exploratory) — source: execution/raw_results.jsonl."
+  ]
+}

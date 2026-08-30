@@ -1,0 +1,79 @@
+{
+  "study_id": "cnsms2026-gvr-effectiveness-02",
+  "title": "Effectiveness of Generate–Validate–Repair (GVR) with Deterministic Validation vs LLM-only for Reducing Unsafe Network Changes",
+  "research_question": "Does an automated generate–validate–repair (GVR) pipeline that uses a deterministic network validator materially reduce the incidence of unsafe or semantically incorrect network changes relative to an LLM-only generation pipeline on a curated NetOps task bank?",
+  "confirmatory_hypotheses": [
+    "A closed-loop generate–validate–repair pipeline incorporating a deterministic validator reduces the post-application unsafe-change incidence by at least 50% (relative reduction) compared to LLM-only generation on the same tasks (paired design)."
+  ],
+  "exploratory_questions": [
+    "What fraction of GVR-corrected cases introduce new, validator-undetected failure modes (GVR-introduced failures)?",
+    "How many repair iterations are required on average for successful repairs, and what is the average model-call cost per successful repair?",
+    "How sensitive are results to validator choice (primary validator vs independent secondary validator) and to task cluster (topology class)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4410125989",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399803256"
+  ],
+  "benchmark_scope": [
+    "Curated public/synthetic NetOps task bank (200 confirmatory tasks) covering four topology clusters: enterprise, campus, datacenter, and edge (50 tasks each). Tasks are intent→configuration translation problems synthesised from public config corpora and canonicalized into machine-checkable intents."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (proportion of tasks that transition from unsafe under LLM-only to safe under GVR, reported as absolute and relative reduction; computed by paired_binary_analysis_v1 executor using exact McNemar test).",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Average repair iterations per repaired task (mean, 95% CI).",
+    "Proportion of tasks where GVR introduced a new validator-detected failure (GVR-introduced-failure rate).",
+    "Model-call cost per successful repair (mean, 95% CI)."
+  ],
+  "sampling_plan": "Confirmatory sample: 200 tasks total (4 topology clusters × 50 tasks each). For each task: generate a single deterministic initial LLM output (temperature=0, one API call, stored). Paired conditions use the same initial output: (A) LLM-only — apply initial generated config to primary deterministic validator (Batfish) and record pass/fail; (B) GVR — run the same initial LLM output through the deterministic validator; if validator reports violations, issue one automated repair prompt to the same LLM (maximum 1 repair call per task per registered adapter contract) and re-validate; apply final repaired config to emulator/validator and record pass/fail. Task ordering randomized with fixed seed. Inclusion/exclusion: tasks with infrastructure execution failures are logged and handled per missingness plan. Planned model-calls: initial 200 calls + up to 200 repair calls = maximum 400 model calls (adapter-enforced cap).",
+  "power_and_precision_plan": "Primary confirmatory analysis: exact McNemar test (two-sided, alpha=0.05) on paired binary outcomes (LLM-only pass/fail vs GVR pass/fail), executed by paired_binary_analysis_v1. Report absolute risk reduction, relative reduction, exact p-value, and 95% confidence intervals for paired difference using exact/pivot methods. Planning assumptions: baseline unsafe-change incidence ≈30%; target effect = 50% relative reduction (e.g., 30%→15% absolute reduction 0.15). With n=200, power ≈0.8 under these assumptions; sensitivity analyses re-evaluate power under baseline rates 20% and 40%. Secondary estimands use descriptive CIs and exploratory regressions (see multiplicity_plan).",
+  "exclusion_rules": [
+    "Pairs where neither condition completes due to infrastructure execution failures are excluded from primary analysis and logged as technical failures.",
+    "Pairs with primary validator vs emulator disagreement are flagged and excluded from primary analysis per contamination_plan (deterministic rule)."
+  ],
+  "missingness_plan": "Execution-infrastructure failures: pairs where neither condition completes are excluded from primary analysis and counted in a technical-failure log. Single-condition technical failures follow the paired_binary_analysis_v1 failed_call_treatment 'complete_pair_primary' (documented in the execution manifest). All exclusion/handling decisions are deterministic and logged. Sensitivity analysis: run 'complete_pair_primary_with_failure_as_zero_sensitivity' to assess robustness.",
+  "analysis_plan": "Primary confirmatory analysis executed by paired_binary_analysis_v1. Primary test: exact McNemar test (two-sided, alpha=0.05) on paired binary outcomes. Report absolute and relative reductions, exact p-value, and 95% CI. Secondary/exploratory analyses: (a) logistic regression (repair_success ~ topology_cluster + initial_validator_failure_type + repair_iterations) on confirmatory sample (exploratory; report unadjusted p-values and effect sizes); (b) descriptive statistics for repair-iteration counts and model-call costs. All inputs, seeds, model-call logs, validator diagnostics, and hashes recorded and published in execution manifest. Sensitivity analyses per power_plan and missingness_plan will be executed programmatically.",
+  "multiplicity_plan": "One pre-registered primary confirmatory test (McNemar). All secondary tests are explicitly labeled exploratory. For multiple secondary comparisons, apply Bonferroni or Benjamini–Hochberg correction as appropriate; exploratory subgroup claims reported with unadjusted p-values and explicitly flagged as exploratory.",
+  "contamination_plan": "Benchmark: Public/synthetic NetOps task bank v1. Risk factors: validator coverage blind spots leading to overfitting of repairs; GVR introducing new failure modes not captured by primary validator; model API outages causing incomplete pairs. Detection: primary deterministic validator (Batfish) on every generated/repaired config; secondary validator: Mininet data-plane emulator + reachability test-suite on randomized 10% holdout (fixed seed). Automated discrepancy detector flags any Batfish vs Mininet disagreement. Item-flagging: flag if Batfish verdict != Mininet verdict; flag if GVR requires repair and final validator reports warnings or non-pass; flag if repair attempt reaches maximum allowed attempts without pass. Analysis treatment: primary analysis excludes tasks flagged for validator-emulator disagreement (conservative predetermined treatment). Sensitivity analyses: (a) include flagged tasks as failures for GVR; (b) include flagged tasks as successes for GVR; (c) report results restricted to unflagged subset. All handling deterministic and logged. Residual uncertainty: validators may jointly miss real operational failures not modelled.",
+  "stopping_rule": "Stop when all tasks in the confirmatory sample (n=200) have been processed or when the adapter-enforced maximum model-call cap is reached (maximum_model_calls=400). Per-task limits: initial generation 1 call; if validator fails, allow at most 1 repair call (per registered adapter contract). Any technical runtime failures are handled per missingness_plan and logged; no post-hoc repeats outside the frozen retry policy.",
+  "planned_outputs": [
+    "Machine-readable preregistration (this document).",
+    "Execution manifest and raw experiment artifacts (model-call logs, validator outputs, emulator traces, hashes).",
+    "Statistical-results file with primary and secondary analyses and sensitivity analyses.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript (≤5 pages) including mandatory Disclosure Statement.",
+    "BibTeX bibliography and compiled PDF.",
+    "NotebookLM presentation brief for post-acceptance if required."
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,115 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-quant-failurerates-01",
+      "title": "Quantifying Failure Rates of LLM-Generated Network Configurations in Production-like Emulators",
+      "research_question": "What are the semantic and functional failure rates (incorrect policy, reachability loss, routing blackholes, unsafe ACLs) when LLM-generated network configurations are applied and executed in representative, production-like network emulators?",
+      "hypotheses": [
+        "LLM-generated network configurations applied without deterministic validation produce non-trivial semantic/functional failure rates (>5%) in production-like emulated topologies."
+      ],
+      "proposed_design": "Preregistered, controlled experiment using a fixed task bank of 120 intent-to-configuration tasks (mix of ACL, routing, VLAN, BGP policy intents) derived from public NetOps examples. Create three representative emulated topologies (small enterprise, campus, WAN/ISP) in a deterministic network emulator/validator (Batfish-compatible configs). For each intent, prompt a single hosted LLM API (same model across conditions) with a fixed prompt template to produce device-level configs. Two conditions: (A) LLM-only (configs applied directly to emulator); (B) Human-free instrumentation only (no manual edits) to measure baseline LLM output behavior — note: no human approval. Record emulator-executed state and detect semantic/functional failures (reachability violations, route loops, policy mismatches, dropped services). Use fixed random seeds for any stochastic sampling; log all prompts, outputs, and emulator traces. Predefine exclusion rules and failure definitions in the preregistration.",
+      "expected_data": "Per-task artifacts: original intent, LLM-generated configs, emulator application logs, pass/fail flags for a battery of validators (reachability matrix, ACL effect, BGP convergence time proxy, rollback-necessity flag), categorized failure types, and raw execution traces. Aggregate counts: N=120 tasks × 3 topologies = 360 applied cases. Compute per-case binary failure and multi-label failure taxonomy.",
+      "primary_outcome": "Proportion of applied cases that exhibit at least one semantic/functional failure as detected by the emulator (binary failure rate).",
+      "analysis_outline": "Compute observed failure rate with 95% Wilson confidence intervals. Report failure rates stratified by topology and task type. Use logistic regression to test association between topology/task-type and failure probability; report odds ratios and p-values (alpha=0.05). Correct for multiple comparisons across task types using Benjamini–Hochberg FDR. Provide descriptive summaries of failure taxonomy and representative demonstrative examples from emulator traces.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400072049"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4410125989",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Dual-use risk: published failure examples could aid adversaries; mitigate by redacting operationally sensitive topology details and device identifiers in outputs.",
+        "Emulator fidelity risk: emulator may not capture all production behaviors, limiting external validity.",
+        "API-rate and cost risks: hosted-model call budget may constrain sample size; monitor budget and abort per preregistered stopping rules."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-gvr-effectiveness-02",
+      "title": "Effectiveness of Generate–Validate–Repair (GVR) with Deterministic Network Validation vs LLM-only for Reducing Unsafe Changes",
+      "research_question": "Does an automated generate–validate–repair pipeline that uses deterministic network validation (e.g., Batfish) materially reduce the incidence of unsafe or semantically incorrect network changes relative to an LLM-only generation pipeline?",
+      "hypotheses": [
+        "A closed-loop generate–validate–repair pipeline incorporating a deterministic validator reduces the post-application unsafe-change incidence by at least 50% relative to LLM-only generation on the same task set."
+      ],
+      "proposed_design": "Paired, within-task randomized experiment on a curated task bank of 200 intent-to-configuration tasks. For each task, obtain an initial LLM config (seeded deterministically). Two paired conditions per task executed sequentially with fixed seeds: (1) LLM-only: apply generated config to emulator and measure failures; (2) GVR: run same LLM output through deterministic validator; if validator reports violations, trigger an automated repair prompt to the same LLM (limited to up to 3 repair iterations) and re-validate; apply final repaired config to emulator. All steps and validator diagnostics logged. Predefine repair prompt template and maximum repair iterations in preregistration. Primary comparison uses paired proportions (each task yields a binary success/fail for each condition).",
+      "expected_data": "For each of 200 tasks: original LLM output, validator reports per iteration, repaired LLM outputs up to 3 iterations, final emulator pass/fail, number of repair iterations performed, and time/call costs. Aggregated counts of tasks corrected by GVR that would have failed under LLM-only, plus cases where GVR introduced new failures.",
+      "primary_outcome": "Paired reduction in unsafe-change incidence: proportion of tasks failing under LLM-only but passing after GVR, expressed as absolute and relative change.",
+      "analysis_outline": "Primary test: McNemar's test for paired binary outcomes (LLM-only vs GVR) with exact p-value; compute absolute risk reduction and relative risk reduction with 95% CIs. Secondary analyses: logistic regression of repair-success (binary) on task type and number of iterations; analyze cases where GVR introduced new failure modes. Report average model-call cost per successful repair; predefine success threshold (two-sided alpha=0.05).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4410125989",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "risks": [
+        "Automated repair loops may overfit to validator coverage, leaving unverified failure modes undetected.",
+        "Repeated automated repairs could produce config churn or introduce new semantic errors not captured by the validator.",
+        "Operational cost and rate-limit risks from multiple model calls per task; include budget guardrails in preregistration."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-tool-injection-adversarial-03",
+      "title": "From Tool-Description Injection to Unsafe Network Changes: An Adversarial Audit of Agentic NetOps Pipelines",
+      "research_question": "To what extent can adversarially crafted tool-description or prompt injections cause an agentic NetOps pipeline (LLM + tool orchestration + validator) to produce and apply unsafe network changes in an emulator, and which injection vectors are most effective?",
+      "hypotheses": [
+        "Adversarial tool-description or prompt-injection vectors can significantly increase the success rate of producing emulator-detectable unsafe changes compared to non-adversarial baselines.",
+        "Some injection vectors (misleading tool docs, ambiguous tool names, nested chain-of-tool prompts) are more effective at bypassing simple validator checks than others."
+      ],
+      "proposed_design": "Controlled red-team style experiment using an agentic pipeline (LLM orchestrator, tool registry with tool descriptions, deterministic validator). Define a taxonomy of injection vectors (malicious tool-description, ambiguous naming, chained tool-call embedding, context poisoning). For a fixed set of 80 high-impact NetOps intents, run baseline agentic pipeline with benign tool descriptions and measure unsafe-change incidence when applied to a representative emulator. Then, for each injection vector variant (predefined adversarial templates), rerun the pipeline and measure delta in unsafe-change incidence. Ensure all exploits execute only in emulator; preregister adversarial templates and stopping rules. Collect qualitative traces showing how injections influenced agent reasoning and tool selection.",
+      "expected_data": "Per-task, per-vector: agent prompts, chosen tool calls, final generated configs, validator outputs, emulator pass/fail, and success/failure of the adversarial vector (binary). Aggregate success rates per injection vector and per task type; representative trace examples of successful bypasses.",
+      "primary_outcome": "Increase in unsafe-change incidence attributable to adversarial injection vectors measured as difference in proportions (adversarial vs baseline) with 95% CIs.",
+      "analysis_outline": "Compute per-vector success rates with exact binomial CIs. Compare vectors using Fisher's exact tests (pairwise) and logistic regression controlling for task type; report odds ratios for successful bypass. Perform qualitative root-cause analysis on successful bypass traces to categorize weakness (tool-description ambiguity, validator blind spot, chain-of-tool exploitation). Correct for multiple comparisons with FDR where applicable.",
+      "novelty_evidence_ids": [
+        "10.21203/rs.3.rs-10646209/v1",
+        "10.2139/ssrn.7203631",
+        "https://openalex.org/W4415030290"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4410125989",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4402860127"
+      ],
+      "risks": [
+        "Dual-use and safety risk: adversarial injection templates are sensitive; redact or abstract templates in public artifacts and follow disclosure-minimization practices.",
+        "Ethical risk: experiments could reveal exploit mechanisms; mitigate via responsible disclosure and limited detail in published artifacts.",
+        "Emulator vs production gap: attack success in emulator may not directly translate to production, limiting external interpretability."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-prompt-ctx-transferability-04",
+      "title": "Prompt Sensitivity and Cross-Model Transferability of NetOps Config Generation under Context-Window Constraints",
+      "research_question": "How sensitive are NetOps intent-to-configuration outputs to prompt formulation, system persona, and context-window truncation, and how consistent are these sensitivities across different model families and context-window budgets?",
+      "hypotheses": [
+        "Prompt template and system-persona choices produce statistically significant variation in functional correctness of generated configs.",
+        "Reducing available context (simulated shorter context windows) systematically increases failure rates, and the magnitude of this effect differs across model families (i.e., non-uniform transferability)."
+      ],
+      "proposed_design": "Factorial experiment varying (A) prompt template (3 templates: terse, structured, stepwise-checklist), (B) system persona (2: conservative/network-expert vs neutral), (C) simulated context-window budget (full, medium truncated, small truncated), and (D) model family (select 3 hosted-model families with differing context capacities). Use a fixed held-out set of 90 tasks (intents) balanced across task types. For each task × factor combination, generate one config deterministically (fixed seeds where available) and apply to emulator for correctness checking. Log per-output and compute cross-model agreement metrics. Predefine truncation procedure (drop oldest context), prompt templates, and model selection criteria in preregistration.",
+      "expected_data": "Matrix of correctness outcomes (binary) for 90 tasks × 3 templates × 2 personas × 3 context levels × 3 model families = 9720 cases. For each case, store generated config, model log-prob or confidence proxy if available, emulator pass/fail, and inter-model agreement indices.",
+      "primary_outcome": "Variance in failure rate attributable to prompt template, persona, context-window level, and model family as decomposed by ANOVA/variance components; quantify effect sizes (eta-squared) and pairwise contrasts.",
+      "analysis_outline": "Use mixed-effects logistic regression with task as a random effect to estimate fixed effects of prompt template, persona, context level, and model family, and interactions. Report variance decomposition (ICC) to quantify proportion of variance explained by each factor. Perform post-hoc pairwise comparisons with Tukey correction. Compute inter-model agreement (Fleiss' kappa) across model families per factor level.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4402860127",
+        "10.21203/rs.3.rs-8759042/v1",
+        "https://openalex.org/W4393065402"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4410125989"
+      ],
+      "risks": [
+        "Sampling and cost risk: large cross-factor matrix increases model-call costs—preregister maximum calls and sampling plan; stop early if budget exhausted according to stopping rules.",
+        "Potentially sensitive correctness failures might be misinterpreted as model-specific when influenced by emulator coverage; mitigate via clear threat-to-validity discussion.",
+        "Access variability: availability of different hosted-model families may change over time; preregister model family identifiers and substitutes."
+      ],
+      "estimated_model_calls": 2500
+    }
+  ]
+}

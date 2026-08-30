@@ -1,0 +1,97 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-quant-failurerates-01",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulator fidelity vs production (external validity) may limit claim scope.",
+        "Dual-use / disclosure risk from published failing configs.",
+        "Definition and operationalization of 'semantic/functional failure' needs tighter, pre-registered specification.",
+        "Budget and API-rate exposure for 2,000 model calls needs explicit guardrails."
+      ],
+      "required_design_repairs": [
+        "Specify emulator fidelity targets and justify topology choices; document limits to external validity in preregistration.",
+        "Redact sensitive topology/device details and define safe-publication policy for failure examples.",
+        "Provide an explicit, machine-readable failure taxonomy with deterministic detection rules and thresholds.",
+        "Add concrete budget/stop rules tied to model-call limits and cost caps; confirm hosted-model availability and exact model identifier(s).",
+        "Predefine randomization/seeding, exclusion rules, and logging/hash manifest formats."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-gvr-effectiveness-02",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Risk that repairs overfit to validator blind spots (false sense of safety).",
+        "Potential for GVR to introduce new, unvalidated failure modes.",
+        "Need to ensure paired design preserves independence assumptions for McNemar test.",
+        "Cost and rate limits from up to 3 repair iterations per task."
+      ],
+      "required_design_repairs": [
+        "Include validator-coverage diagnostics and a secondary independent validator or randomized holdout checks to detect overfitting to validator rules.",
+        "Predefine detection and logging for newly introduced failure types and criteria for treating GVR as harmful.",
+        "Clarify statistical assumptions, plan for dependency handling, and register exact McNemar implementation and multiple-comparison corrections.",
+        "Preregister repair-prompt templates, iteration stopping rules, and maximum per-task call budget; include runtime budget enforcement."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-tool-injection-adversarial-03",
+      "novelty": 0.9,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "High dual-use / ethical risk from publishing adversarial templates and exploit traces.",
+        "Emulator success may not map to production exploitability (external validity).",
+        "Reproducibility challenges if adversarial templates are redacted or if hosted models change behavior.",
+        "Need for oversight/ethics clearance and a responsible-disclosure plan."
+      ],
+      "required_design_repairs": [
+        "Obtain and document an institutional ethical review or equivalent risk assessment; include a redaction and responsible-disclosure plan in preregistration.",
+        "Limit public release of adversarial templates; publish abstracted findings and sanitized representative traces only.",
+        "Include baseline controls and validation that emulator-detected unsafe changes correspond to meaningful operational harms; state limits of transferability to production.",
+        "Preregister exact adversarial-template generation process, stopping rules, and safety constraints; define how reproducible artifacts will be provided without enabling misuse."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-prompt-ctx-transferability-04",
+      "novelty": 0.7,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Large-factor design depends on stable access to multiple hosted-model families (availability risk).",
+        "Simulated context-window truncation (dropping oldest context) may not faithfully emulate shorter-window model behavior—threat to construct validity.",
+        "High multiple-comparisons burden and analytic complexity; requires clear preregistered analysis pipeline.",
+        "Resource/cost risk for ~9,720 cases if substitutes or retries are needed."
+      ],
+      "required_design_repairs": [
+        "Preregister exact model identifiers and acceptable substitution hierarchy; include contingency plan if a model becomes unavailable.",
+        "Justify and document the context-truncation method and validate it with a small pilot showing it approximates true short-context behavior where possible.",
+        "Provide a detailed, preregistered mixed-effects analysis plan, correction methods for multiple testing, and power/sample-size justification.",
+        "Add budget caps, sampling/reduction strategy if cost limits hit (e.g., stratified subsampling), and exact logging/seeding procedures."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

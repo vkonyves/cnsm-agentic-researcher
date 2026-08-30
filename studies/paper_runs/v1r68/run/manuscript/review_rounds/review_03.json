@@ -1,0 +1,24 @@
+{
+  "summary": "Careful, well‑instrumented preregistered paired study comparing an LLM-only pipeline to a deterministic generate–validate–repair (GVR) pipeline on 200 synthetic intent→configuration NetOps tasks. Execution artifacts show one shared initial generation per task (200 model calls), every initial candidate passed the deterministic validator in both conditions (n11=200, no discordant pairs), no repair prompts were issued, and the preregistered McNemar confirmatory test is therefore uninformative. The manuscript archives execution/verification artifacts and explicitly frames the outcome as a null/limited result tied to this task bank, model, validator, and shared‑initial semantics.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 4,
+  "clarity_score": 4,
+  "critical_issues": [
+    "Primary confirmatory test is uninformative because baseline unsafe‑change incidence was 0% (n11=200, n10=n01=n00=0). The manuscript must explicitly state in Methods and Results that the pre-registered hypothesis could not be evaluated and describe consequences for inference.",
+    "The preregistered Mininet holdout selection seed is missing from the archived bundle; the manuscript notes this in Discussion but does not prominently disclose it in Methods or Results as required for reproducibility disclosure.",
+    "Main text contains excessive provenance/metadata (paths, hashes, internal artifact bookkeeping) that interferes with normal scientific prose. The paper should compress provenance details in the body and relocate raw artifact identifiers to a concise appendix or the archived evidence bundle while preserving required disclosures."
+  ],
+  "required_revisions": [
+    "In Methods and Results explicitly and prominently state (a) that shared‑initial generation semantics were adapter‑enforced (one identical initial model output per task reused across baseline and guarded), (b) that no repair prompts were issued because every initial candidate passed the validator, and (c) that the McNemar test is non‑informative under zero discordant pairs so the preregistered confirmatory hypothesis cannot be evaluated on this sample. Cite the archived artifacts (e.g., execution/model_configuration.json and analysis/paired_contingency_table.csv) to support these facts.",
+    "Disclose the missing Mininet holdout selection seed in Methods or Results (not only Discussion), describe its concrete consequence for exact reproducibility of the emulator holdout selection, and state how this gap affects interpretation of the contamination check.",
+    "Edit the manuscript prose to remove or greatly shorten inline artifact‑level provenance (full paths, long hashes) from the main narrative. Preserve required disclosure content but move raw artifact identifiers and extensive hash lists to a compact appendix section (or clearly referenced archived bundle) and ensure the main text reads as literature‑grounded scientific prose."
+  ],
+  "optional_revisions": [
+    "In Results, add a short explicit statement that no repair iterations were observed and therefore all exploratory secondary estimands are vacuous for this run (point to the analysis/paired_contingency_table.csv).",
+    "Clarify in Methods the rationale for choosing shared‑initial semantics and discuss, in Limitations, how independent per‑condition sampling or nonzero temperature sampling could materially change the study outcome.",
+    "Replace any remaining heavy artifact inventory sentences with conventional scholarly comparisons to nearest related work (avoid listing many artifact paths inline).",
+    "If space permits, include a brief table summarizing: task bank composition, model-call accounting (initial vs repair), validator id/version, and the contingency table, so readers can quickly see why the confirmatory test was uninformative."
+  ],
+  "accept_for_finalisation": false
+}

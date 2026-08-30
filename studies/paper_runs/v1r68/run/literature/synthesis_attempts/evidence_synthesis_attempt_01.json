@@ -1,0 +1,194 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models (LLMs) commonly produce factual errors and hallucinations (confabulations) across domains, and methods for detecting or reducing such hallucinations have been proposed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "10.2139/ssrn.6619466",
+        "https://openalex.org/W4411523078"
+      ],
+      "evidence_type": "Empirical studies and surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Reported rates and failure modes vary by task and prompting; detection/mitigation methods are not universally proven for NetOps-specific tasks."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Researchers have applied LLMs to NetOps tasks (intent-to-configuration, automated config/code generation, and zero-touch configuration) and prototyped end-to-end pipelines translating natural-language intent into network configuration artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4400072049",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "Prototype/empirical application papers",
+      "confidence": 0.85,
+      "limitations": [
+        "Existing reports describe prototypes and experiments but do not establish broad production readiness or comprehensive failure-rate characterization in real networks."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Architectural patterns pairing generation with grounding/verification—e.g., retrieval-augmented generation (RAG) and generate–validate–repair loops, and use of external deterministic validators (e.g., Batfish) or connector-based verification—are proposed and used to improve factuality and safety of LLM outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4410125989",
+        "doi:10.36227/techrxiv.177004277.71795055"
+      ],
+      "evidence_type": "Method/architecture proposals and system descriptions",
+      "confidence": 0.85,
+      "limitations": [
+        "Integrations are described at prototype scale; effectiveness depends on validator coverage and the fidelity of the verification environment to production."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Tool-enabled and agentic LLM workflows increase the attack surface: adversarial injections, manipulated tool descriptions, and configuration-level deployment settings can materially alter safety outcomes.",
+      "evidence_record_ids": [
+        "10.21203/rs.3.rs-10646209/v1",
+        "10.2139/ssrn.7203631",
+        "https://openalex.org/W4415030290"
+      ],
+      "evidence_type": "Empirical audits and threat analyses",
+      "confidence": 0.9,
+      "limitations": [
+        "Most empirical exploit audits measure attack success in controlled experiments; exact mapping to complex NetOps toolchains requires further domain-specific testing."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "LLM outputs are sensitive to prompt formulation, system/configuration context, and non-determinism settings; prompt-engineering choices and model configuration materially change behavior and correctness.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402860127",
+        "10.21203/rs.3.rs-8759042/v1",
+        "10.2139/ssrn.6931398"
+      ],
+      "evidence_type": "Empirical studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Sensitivity patterns vary by model family and task; published studies demonstrate the phenomenon but do not enumerate all failure modes for NetOps-specific prompts."
+      ]
+    },
+    {
+      "claim_id": "E6",
+      "statement": "Bounded-autonomy and secure-by-default guardrail architectures (e.g., veto layers, role-based tool registries, runtime validation) have been proposed to limit LLM agents' ability to perform unsafe actions.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6834918",
+        "10.36227/techrxiv.177006109.97957916/v1",
+        "10.2139/ssrn.6874961"
+      ],
+      "evidence_type": "Design proposals and proofs-of-concept",
+      "confidence": 0.8,
+      "limitations": [
+        "Architectural proposals show promise in constrained testbeds; their operational effectiveness depends on correct implementation, validator completeness, and human-in-the-loop policies."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "What are realistic, quantitative failure rates (e.g., semantic/functional correctness, unsafe-change incidence) of LLM-generated network configurations when executed in representative production-like network environments?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4400072049"
+      ],
+      "evidence_type": "Gap identified from prototypes and evaluation papers",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing work demonstrates prototypes and benchmarks but does not provide comprehensive, production-scale failure-rate studies."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "To what extent do adversarial tool-description injections and cross-tool ambiguity attacks (demonstrated in general agent audits) translate into successful unsafe network changes in NetOps pipelines?",
+      "evidence_record_ids": [
+        "10.21203/rs.3.rs-10646209/v1",
+        "https://openalex.org/W4415030290",
+        "10.2139/ssrn.7203631"
+      ],
+      "evidence_type": "Threat analyses with domain-general experiments; applicability to NetOps is not fully measured",
+      "confidence": 0.45,
+      "limitations": [
+        "Empirical exploitation success is shown for tool-chaining contexts generally; explicit NetOps-targeted red-team experiments are not documented in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "How generalizable are NetOps LLM pipelines across model families and deployment settings (on‑prem vs cloud, different context-window limits), given prompt sensitivity and non-determinism?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4402860127",
+        "10.21203/rs.3.rs-8759042/v1",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "Synthesis of sensitivity/non-determinism findings and NetOps surveys",
+      "confidence": 0.5,
+      "limitations": [
+        "Surveys and non-determinism studies highlight variability; specific cross-model NetOps transferability is not measured in the provided corpus."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a lack of independent external validation and held-out external-evaluation studies for multi-agent and agentic NetOps systems.",
+      "evidence_record_ids": [
+        "10.31234/chemrxiv.15007866/v1",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "Meta-evaluation and survey evidence",
+      "confidence": 0.8,
+      "limitations": [
+        "The cited scoping review addresses multi-agent external-evaluation gaps generally; few NetOps-specific external-evaluations are reported in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Standard benchmarks and evaluation methodologies do not yet capture operational external validity for NetOps (e.g., emulator fidelity, real rollback/rollback safety, multi-vendor device behaviors).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4408226143",
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4399803256"
+      ],
+      "evidence_type": "Reviews and critiques of evaluation gaps",
+      "confidence": 0.8,
+      "limitations": [
+        "Multiple reviews document benchmark limitations broadly; concrete community-agreed NetOps operational benchmarks remain an open development area."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "There is a need for tighter integration and coverage between LLM generation and deterministic network validators/simulators (coverage gaps in verification or incomplete validator models can permit unsafe actions to pass checks).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4410125989",
+        "doi:10.36227/techrxiv.177004277.71795055",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "Architectural proposals and surveys",
+      "confidence": 0.75,
+      "limitations": [
+        "Proposals describe integration patterns; empirical measurement of validator coverage gaps in representative networks is not supplied."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Adversarial and configuration-level 'semantic brittleness' (safety behavior change under benign configuration changes) represents a practical risk vector for LLM-based NetOps agents that is under-explored in domain-specific empirical work.",
+      "evidence_record_ids": [
+        "10.2139/ssrn.7203631",
+        "10.21203/rs.3.rs-10646209/v1"
+      ],
+      "evidence_type": "Red-team and configuration-brittleness studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Evidence shows the phenomenon across models and tool settings; explicit NetOps-targeted measurement and mitigation studies are limited in the supplied corpus."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Any claim that LLM-based NetOps systems are production-ready for fully autonomous network-change execution without human approval (no supplied record demonstrates production-scale safety).",
+    "Claims of comprehensive multi-model superiority or universal correctness (no supplied record supports blanket superiority across model families in NetOps tasks).",
+    "Specific quantitative production performance claims (e.g., absolute outage-reduction percentages or end-to-end the-latency numbers in production) that are not reported and verified in the supplied records.",
+    "Novelty claims of being \"first\" to achieve autonomous NetOps with bounded guarantees (several design proposals and prototypes exist; no supplied record justifies a robust 'first' production claim)."
+  ]
+}

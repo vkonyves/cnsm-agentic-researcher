@@ -1,0 +1,26 @@
+{
+  "selected_candidate_id": "cand-gvr-effectiveness-02",
+  "selection_rationale": "cand-gvr-effectiveness-02 (GVR vs LLM-only) is the strongest choice for CNSM: it directly tests an operationally-relevant mitigation architecture (generate–validate–repair) with a paired, falsifiable design, high venue relevance, manageable estimated calls, and reviewer support—while avoiding the higher dual-use/ethical exposure of adversarial-red-team experiments and the very large-factor cost/risk of cross-model transferability studies.",
+  "runner_up_candidate_id": "cand-quant-failurerates-01",
+  "unresolved_uncertainties": [
+    "Validator coverage blind spots and the extent to which GVR overfits to validator rules (residual unsafe modes may remain).",
+    "External validity: emulator fidelity versus production networks (how emulator-detected failures map to real-world harm).",
+    "Possibility that GVR introduces new, unvalidated failure modes or config churn not captured by the primary validator.",
+    "Operational cost and hosted-model availability risks impacting planned repair iterations and sample size.",
+    "Statistical dependence structure in paired tasks and appropriate handling for multiple comparisons and subgroup analyses."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4410125989",
+    "doi:10.36227/techrxiv.177004277.71795055/v1",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4399803256"
+  ],
+  "required_repairs_before_preregistration": [
+    "Add validator-coverage diagnostics and include a secondary independent validator or randomized holdout checks to detect overfitting to validator rules.",
+    "Predefine and document detection/logging for newly introduced failure types and clear criteria for treating GVR as harmful (e.g., taxonomy + automated detectors).",
+    "Clarify and preregister full statistical analysis: exact McNemar implementation, handling of dependencies, multiple-comparison corrections, power/sample-size justification, and planned subgroup analyses.",
+    "Preregister repair-prompt templates, exact iteration-stopping rules (max 3), per-task model-call caps, and a runtime budget enforcement mechanism tied to cost/model-call limits.",
+    "Specify emulator fidelity targets and justify topology choices; document limits to external validity and a safe-publication/redaction policy for failure examples and traces."
+  ]
+}
