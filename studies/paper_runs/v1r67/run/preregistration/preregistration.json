@@ -1,0 +1,84 @@
+{
+  "study_id": "cnsmp2026-llm-verifier-predeployment-001",
+  "title": "Verifier-assisted vs. LLM-only pre-deployment network-change validation (provisional preregistration)",
+  "research_question": "Does integrating a formal verifier into an LLM-driven change-generation pipeline increase the fraction of network-change proposals that pass semantic pre-deployment validation without automated-flagging compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1: The verifier-assisted pipeline yields a higher proportion of final proposals passing the semantic verifier (no automated-flag) than LLM-only generation (paired test).",
+    "H2: The verifier-assisted pipeline requires fewer repair iterations on average to reach a verifier pass than the effective retry count needed when using LLM-only + post-hoc repair (paired median difference)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does effect size vary across intent complexity strata (low/medium/high)?",
+    "EQ2: What failure-mode taxonomy (reachability, ACL, syntax, other) is most responsible for differences between pipelines?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404240614",
+    "https://openalex.org/W4402040208",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4395106418",
+    "doi:10.1609/aaai.v40i40.40676",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4389519928"
+  ],
+  "benchmark_scope": [
+    "Synthetic public-topology suite derived from permissively-licensed router configs and small ISPs (released with experiment artifacts).",
+    "Intent types limited to routing-policy changes, ACL updates, and VLAN/interface updates."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 300,
+    "planned_episode_count": 600,
+    "maximum_model_calls": 600,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute paired difference in proportion of unflagged verifier passes between guarded and baseline conditions)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_success_rate_verifier_assisted",
+    "absolute_success_rate_llm_only",
+    "median_number_of_repairs_verifier_assisted",
+    "distribution_of_failure_modes_by_pipeline"
+  ],
+  "sampling_plan": "Two-stage plan. Pilot: 60 paired intents (20 per complexity stratum: low/medium/high) used only to estimate discordance and calibrate power; results from pilot are recorded and the main-run sample-size justification is frozen prior to main execution. Confirmatory main run: 300 paired intents (100 per complexity stratum). Each paired intent yields one baseline (LLM-only single-shot) and one guarded (verifier-assisted generate+validate+up-to-1-repair) episode executed under the registered adapter. Confirmatory analysis uses only the main 300 paired cases; pilot data used only for power calibration and sensitivity checks.",
+  "power_and_precision_plan": "Primary target: detect an absolute paired improvement of 0.10 (10 percentage points) in final unflagged verifier-pass rate (guarded minus baseline) with two-sided alpha=0.05 and power≈0.8. Pilot (n=60) estimates discordant-pair rates; paired McNemar-equivalent executor (paired_binary_analysis_v1) will compute exact CI and p-values. Pre-specified confirmatory N=300; exact minimal detectable effect numerics recomputed and frozen after pilot and logged with preregistration artifacts. Sensitivity analyses: recompute achieved power under observed pilot discordance and under failed-call-as-failure treatment.",
+  "exclusion_rules": [
+    "Exclude a pair from confirmatory analysis only if both pipeline calls for that pair fail due to provider/infrastructure outage; such exclusions are logged with reasons.",
+    "If only one pipeline call fails, follow the registered executor's 'complete_pair_primary' rule (pair retained per executor handling); sensitivity analysis will treat single-call failure as a failure (zero) where specified.",
+    "Reject individual pipeline outputs if structured parser fails to extract mandatory fields (device, interface, ACL id) — these count as failures for that pipeline within the pair."
+  ],
+  "missingness_plan": "Record per-call API/provider technical failures. Pairs with both calls failing due to outage are excluded from the confirmatory primary analysis and enumerated. If a single call fails, primary analysis uses the executor's 'complete_pair_primary' handling; a sensitivity analysis treats single-call failures as failures (zero). No manual imputation or human filling; all exclusions and reasons are published.",
+  "analysis_plan": "Primary confirmatory analysis uses the registered analysis executor paired_binary_analysis_v1 (primary_estimand_id: paired_success_rate_difference_guarded_minus_baseline). Implementation: paired binary (McNemar-equivalent) test producing absolute paired difference, 95% CI, and two-sided p-value. Primary analysis dataset: main-run 300 pairs after exclusion rules. Report raw contingency (both success, both failure, guarded only, baseline only), compute paired difference and inference. Sensitivity analyses: (a) include pilot descriptives but not in confirmatory test; (b) 'failure-as-zero' treatment using complete_pair_primary_with_failure_as_zero_sensitivity; (c) subgroup stratified paired tests by complexity (low/medium/high) with Benjamini–Hochberg FDR control across strata. All analysis code, seeds, and exact executor inputs frozen and published with artifacts.",
+  "multiplicity_plan": "Primary hypothesis H1 is the single pre-registered confirmatory test on main N=300 pairs. Secondary and subgroup tests are exploratory or multiplicity-corrected: apply Benjamini–Hochberg FDR at q=0.05 across stratum/subgroup tests. Failure-mode counts are descriptive; any inferential claims for subgroups are only after multiplicity correction and explicitly labeled exploratory when not corrected.",
+  "contamination_plan": "Benchmark artifacts: synthetic_topology_suite_v1 and intent_synthesis_v1 (documented generator). Risk factors: verifier coverage gaps; synthetic generator sampling bias; provider nondeterminism. Detection procedures: negative-control tests included per run (one intentionally-broken intent per complexity stratum), automated invariant checks comparing pre/post-change reachability matrices, and post-run anomaly detector flagging broad-permit ACLs or removal of mandatory denies. Item-flagging rules: automated-flag TRUE if (a) verifier fails, (b) change triggers forbidden-template modification (e.g., removal of required security ACL), or (c) verifier passes but negative-control unexpectedly passes. Flagged items are treated as failures for the primary estimand. All detection and flagging are deterministic code rules; flagged items logged and included in artifact release.",
+  "stopping_rule": "Confirmatory run continues until 300 analyzable paired cases (per exclusion rules) are obtained. If during the main run more than 20% of attempted pairs are excluded due to dual-call provider/infrastructure outages, halt execution and report; do not proceed to additional model calls beyond pre-specified budget without an autonomous amendment logged and justified.",
+  "planned_outputs": [
+    "IEEE two-column LaTeX manuscript (≤5 pages) including mandatory Disclosure Statement",
+    "Compiled PDF of manuscript (≤5 pages)",
+    "Complete preregistration and execution artifacts (prompts, model outputs, logs, hashes)",
+    "Experiment code, analysis scripts, and reproducible executor inputs",
+    "Synthetic benchmark release (synthetic_topology_suite_v1, intent_synthesis_v1) and transformation templates",
+    "Statistical-results file, failure-analysis record, evidence-to-claim table, and NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,35 @@
+{
+  "study_id": "cnsmp2026-llm-verifier-predeployment-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis on main-run N=300 paired intents (task_id 1..300) after preregistered exclusion rules. Use the paired_binary_analysis_v1 executor to compute the absolute paired success-rate difference (guarded minus baseline) where success = verifier pass AND automated_flag == FALSE. Report raw 2x2 contingency counts (both pass, both fail, guarded-only pass, baseline-only pass), absolute paired difference, 95% CI, and two-sided p-value using the executor's McNemar-equivalent exact method. Confirmatory claim limited to H1 as preregistered.",
+  "secondary_analyses": [
+    "Exploratory/secondary: compute absolute_success_rate_verifier_assisted (proportion of guarded episodes that are unflagged verifier passes) with 95% CI (Clopper–Pearson) — descriptive only.",
+    "Exploratory/secondary: compute absolute_success_rate_llm_only (proportion of baseline episodes that are unflagged verifier passes) with 95% CI (Clopper–Pearson) — descriptive only.",
+    "Exploratory/secondary: median_number_of_repairs_verifier_assisted (distribution and median of repair calls used per guarded episode; report median and IQR).",
+    "Exploratory/secondary: distribution_of_failure_modes_by_pipeline — tabulate counts and proportions of failure-mode taxonomy (reachability, ACL, syntax, other) separately for baseline and guarded pipelines (descriptive)."
+  ],
+  "sensitivity_analyses": [
+    "Pre-registered sensitivity A (primary): treat single-call technical failures per pair according to executor's default (complete_pair_primary) — primary confirmatory analysis uses this treatment.",
+    "Pre-registered sensitivity B: failure-as-zero sensitivity (identifier: complete_pair_primary_with_failure_as_zero_sensitivity) — rerun paired_binary_analysis_v1 treating any single-call failure within a pair as a failure (zero) for that pipeline; report paired difference, 95% CI, two-sided p-value.",
+    "Exploratory sensitivity: subgroup paired tests stratified by complexity (low/medium/high) using the same paired estimator; mark exploratory and apply multiplicity control per multiplicity_implementation.",
+    "Protocol sensitivity: include pilot (n=60) descriptives only; do not include pilot in confirmatory test per preregistration."
+  ],
+  "uncertainty_quantification": "All confirmatory uncertainty computed by paired_binary_analysis_v1: absolute paired difference with 95% confidence interval and two-sided p-value (exact/McNemar-equivalent). Secondary pipeline proportions reported with 95% Clopper–Pearson CIs; median/IQR for repairs. For subgroup tests, report CIs and p-values and apply multiplicity control as specified.",
+  "multiplicity_implementation": "Primary H1 is a single pre-registered confirmatory test (no multiplicity correction). For subgroup/strata inferential tests, apply Benjamini–Hochberg FDR control at q=0.05 across the set of stratum tests; all other analyses are exploratory and labeled as such per preregistration.",
+  "contamination_analysis": "Follow preregistered deterministic contamination checks: (1) negative-control intents (one per complexity stratum) are verified and flagged if unexpectedly passing; (2) automated invariant checks comparing pre/post-change reachability matrices; (3) automated-flag rules mark an episode flagged if verifier fails OR change triggers forbidden-template modifications OR negative-control passes. All flagged items treated as failures for the primary estimand. Produce a contamination report enumerating any negative-control anomalies, verifier-coverage notes, and any detected synthetic-generator sampling anomalies. All checks use frozen verifier/flagging code from transformation_manifest_path and execution artifacts (execution/raw_results.jsonl).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Sample summary — N pairs=300; counts per complexity stratum (low/medium/high), timestamps, and model_calls_used summary (from execution manifest).",
+    "Table 2 (Confirmatory contingency): 2x2 contingency counts: both pass, both fail, guarded-only pass, baseline-only pass (computed from execution/raw_results.jsonl) plus absolute paired difference, 95% CI, two-sided p-value (output of paired_binary_analysis_v1).",
+    "Table 3: Secondary metrics — guarded and baseline absolute success rates with 95% CIs; median number of repairs (guarded) with IQR.",
+    "Table 4: Failure-mode taxonomy counts and proportions by pipeline (reachability, ACL, syntax, other) and counts of automated_flag reasons and negative-control anomalies (derived deterministically from episode records).",
+    "Supplemental table: Exclusions and failures log (pairs excluded per preregistration exclusion rules; if none, report zero) with reasons and hashes (from execution/execution_log.jsonl)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of unflagged verifier-pass rates by pipeline (guarded vs baseline) with 95% CI error bars (derived from Table 2/secondary rates).",
+    "Figure 2: Stratified success-rate comparison: grouped bars for low/medium/high complexity showing guarded and baseline proportions with 95% CIs; annotate BH-adjusted p-values for stratum tests where applicable.",
+    "Figure 3: Repair-effort distribution (guarded): histogram or boxplot of number_of_repairs (0/1) and a small annotation of median/IQR; include count of episodes requiring the single allowed repair (derived from guarded_episode fields).",
+    "Figure 4 (failure analysis): stacked bar or heatmap of failure-mode taxonomy counts by pipeline (baseline vs guarded) to visualize dominant failure modes (derived from parser_extraction and verifier_result fields)."
+  ]
+}

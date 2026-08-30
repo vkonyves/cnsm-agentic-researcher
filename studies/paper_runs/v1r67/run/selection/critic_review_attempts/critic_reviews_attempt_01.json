@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "candidate-llm-verifier-predeployment-001",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier specification coverage may be incomplete allowing unsafe outputs to pass.",
+        "Synthetic/derived intent set may not reflect production diversity or edge cases.",
+        "Repair-prompt design and stopping rules can introduce bias confounding the verifier effect.",
+        "Definition and logging of the \"human-intervention\" flag is underspecified.",
+        "LLM nondeterminism may inflate variance despite paired design."
+      ],
+      "required_design_repairs": [
+        "Provide a formal, testable verifier specification (properties checked, completeness/limitations) and include negative-control checks.",
+        "Specify human-intervention criteria and independent logging procedure (who/when/why human flagged).",
+        "Broaden intent set provenance and document sampling to justify representativeness; include explicit complexity strata definitions.",
+        "Publish exact prompts, seeds, retry policy, and repair-prompt templates in the preregistration.",
+        "Include pilot variability estimates to confirm paired-power assumptions and predefine handling of model nondeterminism."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "candidate-semantic-benchmark-002",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.9,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Validator coverage may omit operationally-critical properties and bias scores upward.",
+        "Benchmark curation choices (topologies, intent types) can induce selection bias and be gamed by pipelines.",
+        "Maintenance and licensing of canonical topologies/validators needs attention for public release.",
+        "Risk of conflating syntactic proxies with semantic correctness if validators are too weak."
+      ],
+      "required_design_repairs": [
+        "Define a validator specification language and coverage matrix; include known-hard test cases and stress tests.",
+        "Document topology provenance, licensing, and representativeness criteria; include multiple topology families.",
+        "Provide baseline implementation and seed-controlled runs for all pipelines; publish harness, CI scripts, and dataset release plan.",
+        "Include adversarial examples and holdout tasks to reduce overfitting/gaming and report validator weaknesses."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "candidate-bounded-repair-iteration-003",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Selected iteration bound (e.g., 3) is arbitrary without justification and may bias results.",
+        "Unbounded repair policy truncation (wall-clock) can confound comparisons.",
+        "Injected fault corpus may not capture real-world fault diversity or correlated faults.",
+        "Validators may fail to detect semantic drift/latent harmful modifications."
+      ],
+      "required_design_repairs": [
+        "Justify bound selection via a small preregistered pilot or sensitivity sweep and predefine alternative bounds for robustness checks.",
+        "Specify and preregister exact stopping rules for the unbounded policy to avoid post-hoc truncation (e.g., max iterations or clear time-limit tied to calls).",
+        "Expand and document fault-injection taxonomy with provenance and ensure coverage of correlated/multi-class faults.",
+        "Add explicit metrics and automated checks for extraneous/harmful modifications and include qualitative examples in preregistration."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "candidate-tool-augmentation-comparison-004",
+      "novelty": 0.85,
+      "falsifiability": 0.8,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.45,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.98,
+      "major_concerns": [
+        "Tool-implementation differences (APIs, fidelity) can confound comparisons between orchestration paradigms.",
+        "Fixed model-call budget may advantage some strategies; fairness of budget allocation across paradigms is underspecified.",
+        "Ensemble and aggregation rules can bias results if not pre-specified.",
+        "Runtime/engineering details (timeouts, parallelism) may materially affect outcomes and are not fully defined."
+      ],
+      "required_design_repairs": [
+        "Define a canonical tool interface and provide reference implementations used by all strategies to minimize implementation confounds.",
+        "Preregister exact budget accounting rules and equitable allocation schemes (per-step vs. global) and include sensitivity analyses across budgets.",
+        "Specify aggregation/consensus rules for ensemble-validator in the preregistration and include robustness checks (e.g., different aggregation thresholds).",
+        "Define runtime constraints (parallelism, timeouts) and include logging of call-level metadata to permit reproducibility and post-hoc analysis."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

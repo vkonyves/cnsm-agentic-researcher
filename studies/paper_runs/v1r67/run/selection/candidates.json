@@ -1,0 +1,112 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "candidate-llm-verifier-predeployment-001",
+      "title": "Verifier-assisted vs. LLM-only pre-deployment network-change validation",
+      "research_question": "Does integrating a formal network verifier into an LLM-driven change-generation pipeline significantly increase the fraction of network-change proposals that pass semantic pre-deployment validation without manual intervention compared to LLM-only generation?",
+      "hypotheses": [
+        "Integrating a formal verifier with targeted repair prompts will yield a higher proportion of syntactically and semantically valid pre-deployment changes than LLM-only generation.",
+        "The verifier-assisted pipeline will require fewer human interventions per successful change than the LLM-only pipeline."
+      ],
+      "proposed_design": "Construct a paired evaluation set of 300 realistic network-change intents (public topologies and policies synthesized from repository configs). For each intent generate a candidate change with (A) LLM-only (single-shot prompt) and (B) LLM+verifier pipeline where a formal verifier (reachability/policy checks) evaluates output and, on failure, triggers a fixed-repair prompt; allow up to 3 repair iterations per case. Use the same LLM model family and identical random seeds where possible. Record verifier pass/fail, number of repair iterations, and whether final output would be auto-deployable (verifier pass and no human-flag). Freeze prompts, verifier rules, seeds, and retry policies before execution.",
+      "expected_data": "Per-case paired outcomes: initial syntactic validity, initial semantic verifier pass (binary), number of repair iterations, final verifier pass (binary), human-intervention flag (binary), and generated-change text. Aggregate counts and proportions for both pipelines and per-failure-mode logs.",
+      "primary_outcome": "Paired difference in final verifier-pass rate (proportion of cases passing semantic validation without human-flag) between verifier-assisted pipeline and LLM-only pipeline.",
+      "analysis_outline": "Compute paired proportions and 95% CIs; test paired difference using McNemar's test for binary pass/fail. Report absolute and relative improvement, number of repairs distribution (median, IQR). Perform subgroup analyses by intent complexity (low/medium/high) using stratified McNemar tests and report effect heterogeneity. Correct for multiple subgroup tests (Benjamini–Hochberg). Provide failure-mode qualitative coding (taxonomy counts).",
+      "novelty_evidence_ids": [
+        "U3",
+        "E3",
+        "G2"
+      ],
+      "feasibility_evidence_ids": [
+        "E2",
+        "E3",
+        "E1"
+      ],
+      "risks": [
+        "Verifier specification may be incomplete, allowing semantically unsafe outputs to pass; synthetic intent set may not represent production diversity; LLM nondeterminism could inflate paired variance; repairs may introduce unintended side-effects not captured by verifier checks."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "candidate-semantic-benchmark-002",
+      "title": "NetOps Semantic Correctness Benchmark: dataset and validator suite for LLM-generated configurations",
+      "research_question": "Can a standardized, public benchmark combining realistic network intents, canonical topologies, and executable semantic validators reliably discriminate between generation pipelines on semantic correctness beyond syntactic validity?",
+      "hypotheses": [
+        "A benchmark built from public topologies and explicit semantic validators (reachability, isolation, ACL policy compliance) will differentiate pipelines by meaningful effect sizes not explained by syntactic checks alone.",
+        "Validator-defined semantic metrics will show higher inter-pipeline variance than purely syntactic metrics, demonstrating utility for evaluation and tool comparison."
+      ],
+      "proposed_design": "Design and release a benchmark of 500 task instances across varying complexity, each with: input intent, reference constraints, canonical topology (from public datasets), and a validator suite (reachability queries, isolation assertions, ACL compliance tests). Implement evaluation harness and baseline pipelines (LLM single-shot, LLM+syntax validator, LLM+formal verifier with single repair). Run each baseline across the benchmark (fixed seeds), collect semantic and syntactic metrics, and measure metric discriminability and stability. Publish dataset, validators, harness, and evaluation scripts.",
+      "expected_data": "Per-instance results per pipeline: syntactic-pass (binary), semantic-pass (binary per validator), number and class of detected violations, computed benchmark-level metrics (semantic accuracy, precision/recall for intended properties), per-pipeline score distributions, and inter-run variance.",
+      "primary_outcome": "Benchmark discriminative validity measured as Cliff's Delta (or AUC) between pipelines on semantic accuracy; secondary outcome is the difference between semantic and syntactic metric variance across pipelines.",
+      "analysis_outline": "Compute per-pipeline semantic accuracy and 95% bootstrap CIs. Assess discriminability using Cliff's Delta and pairwise AUCs. Quantify metric stability via inter-run variance (multiple seeds). Evaluate correlation between syntactic and semantic metrics (Spearman rho). Report validator coverage statistics and failure taxonomy. Release reproducible analysis scripts.",
+      "novelty_evidence_ids": [
+        "G1",
+        "U2",
+        "E1"
+      ],
+      "feasibility_evidence_ids": [
+        "E3",
+        "E1",
+        "G1"
+      ],
+      "risks": [
+        "Public benchmark may omit rare but operationally critical properties; validators may be easier to satisfy than real-world requirements, yielding optimistic estimates; maintaining canonical topologies and validators requires careful curation to avoid bias."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "candidate-bounded-repair-iteration-003",
+      "title": "Effectiveness of bounded iterative repair vs. one-shot repair for LLM-based configuration fixes",
+      "research_question": "Does enforcing a bounded generate→validate→repair loop (fixed maximum iterations) reduce harmful hallucinations while improving final semantic correctness compared to one-shot LLM repair or unbounded repair on seeded configuration faults?",
+      "hypotheses": [
+        "A bounded iterative repair strategy (e.g., up to three iterations) will achieve higher final semantic-correctness rates than one-shot repair without increasing the rate of novel harmful changes.",
+        "Unbounded repair strategies will show diminishing returns or increased semantic drift compared to bounded repair, producing more non-required changes."
+      ],
+      "proposed_design": "Create a test corpus by injecting reproducible fault classes (syntax errors, missing ACL entries, incorrect route redistribution) into 400 baseline configs derived from public repositories. Compare three repair strategies under identical LLM and validator settings: (A) one-shot LLM repair; (B) bounded iterative repair (max 3 iterations with validator feedback); (C) unbounded iterative repair (stop only on verifier pass or 15-minute wall-clock). Measure semantic correctness against oracle intended behavior and count extraneous modifications. Freeze injection rules, validators, and stopping rules before runs.",
+      "expected_data": "Per-case: initial fault class, repaired config per iteration, iteration count, final semantic correctness (binary), number of extraneous modifications, and time-to-convergence. Aggregate repair precision, recall for fault correction, and extraneous-change rates.",
+      "primary_outcome": "Final semantic-correctness rate (proportion of cases correctly repaired without extraneous harmful modifications) for bounded iterative repair compared to one-shot and unbounded strategies.",
+      "analysis_outline": "Compare proportions using chi-squared tests and compute pairwise risk differences with 95% CIs. Analyze time-to-convergence with Kaplan–Meier curves and log-rank tests. Report extraneous-change rates and perform ANCOVA controlling for fault class and complexity. Provide qualitative examples of failure modes.",
+      "novelty_evidence_ids": [
+        "E5",
+        "E3",
+        "E4"
+      ],
+      "feasibility_evidence_ids": [
+        "E3",
+        "E5",
+        "G1"
+      ],
+      "risks": [
+        "Bound selection (e.g., 3 iterations) may be suboptimal for some faults; unbounded repair policies may be truncated by wall-clock limits; validators might not detect certain semantic drifts leading to false positives; injected faults may not capture full production diversity."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "candidate-tool-augmentation-comparison-004",
+      "title": "Comparative study of planner-centric, ReAct, and ensemble-validator strategies on multi-step NetOps workflows",
+      "research_question": "Which tool-augmentation strategy—planner-centric orchestration, ReAct-style stepwise tool use, or ensemble-validator consensus—yields the best end-to-end task success rate on complex, multi-step NetOps workflows under a fixed model-call budget?",
+      "hypotheses": [
+        "Planner-centric orchestration will outperform ReAct and ensemble-validator approaches on end-to-end multi-step workflows by better coordinating dependent sub-tasks under a limited call budget.",
+        "Ensemble-validator consensus will reduce unsafe final proposals but will incur higher model-call costs and lower end-to-end success under strict call budgets."
+      ],
+      "proposed_design": "Define 200 multi-step NetOps workflows (e.g., VLAN creation + route updates + ACL adjustments + verification queries) with graded complexity. Implement three orchestration scaffolds using the same base LLM: (1) planner-centric that pre-plans steps and issues tool calls according to plan; (2) ReAct-style interleaved thinking and tool calls per step; (3) ensemble-validator where multiple independent LLM proposals are aggregated and checked by validator majority. Fix a model-call budget per workflow (e.g., 30 calls). Measure end-to-end success (all step verifiers pass), number of calls used, and types of failure.",
+      "expected_data": "Per-workflow: orchestration strategy, calls used, per-step verifier results, final end-to-end success (binary), intermediate correction counts, and wall-clock time. Aggregate success rates, call-efficiency (success per call), and failure-mode distributions per strategy.",
+      "primary_outcome": "End-to-end success rate under the fixed model-call budget for each orchestration strategy.",
+      "analysis_outline": "Compare success rates across strategies with chi-squared tests; compute call-efficiency and compare via Kruskal–Wallis tests. Perform pairwise post-hoc comparisons with Bonferroni correction. Report stratified results by workflow complexity and produce error-type contingency tables. Conduct sensitivity analysis varying model-call budgets (10, 30, 60) and report trends.",
+      "novelty_evidence_ids": [
+        "E2",
+        "G2",
+        "U2"
+      ],
+      "feasibility_evidence_ids": [
+        "E2",
+        "E3",
+        "G2"
+      ],
+      "risks": [
+        "Strategy performance may depend heavily on tool implementation details rather than the orchestration paradigm; fixed model-call budget may advantage certain strategies unfairly; simulated workflows may not capture operator constraints present in production."
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}

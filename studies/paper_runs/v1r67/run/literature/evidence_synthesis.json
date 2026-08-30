@@ -1,0 +1,199 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models (LLMs) are being actively applied to NetOps tasks including intent-to-configuration translation, configuration template synthesis, configuration translation between devices, automated protocol test-case generation, and zero-touch configuration workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406484968",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4415275309",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "empirical_and_survey_reports",
+      "confidence": 0.9,
+      "limitations": [
+        "Most reports are prototypes, experiments, or surveys rather than large-scale production deployments.",
+        "Task scopes vary across papers (different devices, topologies, and datasets)."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Tool-augmented and agentic LLM architectures (planner-centric frameworks, ReAct-style pipelines, and tool-use datasets/benchmarks) are proposed and developed to enable LLMs to call external validators/tools and coordinate multi-step NetOps workflows.",
+      "evidence_record_ids": [
+        "doi:10.1609/aaai.v40i40.40676",
+        "https://openalex.org/W4389518608",
+        "doi:10.2139/ssrn.7317098",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "evidence_type": "method_proposal_and_benchmarking",
+      "confidence": 0.85,
+      "limitations": [
+        "Demonstrations focus on general tool-use capabilities; direct NetOps end-to-end production evidence is limited.",
+        "Performance depends on tool design and environment integration specifics."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Integrating constraint-checkers, syntax checkers, or validators (a generate→validate→repair pattern) improves the correctness and reliability of LLM-generated network artifacts relative to unconstrained generation in published studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416927413",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4395106418"
+      ],
+      "evidence_type": "empirical_and_system_design_reports",
+      "confidence": 0.85,
+      "limitations": [
+        "Improvements reported are task- and dataset-dependent; absolute correctness rates vary.",
+        "Validator coverage (which properties are checked) determines semantic safety."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Hallucination and semantic/logical errors in LLM outputs are recognized as significant risks for high-stakes NetOps tasks, and multiple detection/mitigation approaches (entropy-based detectors, deterministic safety nets, retrieval augmentation, self-reflection) have been proposed in the literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4410343193",
+        "doi:10.2139/ssrn.6538460",
+        "https://openalex.org/W4410343193"
+      ],
+      "evidence_type": "method_and_evaluation_studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Most mitigation approaches are evaluated outside NetOps or on limited NetOps-like tasks; transferability to complex production networks is not fully demonstrated.",
+        "Detection/mitigation effectiveness depends on threat/task specifics."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Hybrid repair approaches that combine formal fault-localization/verification techniques with generative models are proposed for configuration and program repair, indicating potential but variable success.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4409346645",
+        "https://openalex.org/W4404240614",
+        "doi:10.2139/ssrn.7138608",
+        "https://openalex.org/W4402040208"
+      ],
+      "evidence_type": "empirical_and_method_proposals",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported success rates vary by benchmark and fault class; not all repair classes are well-covered.",
+        "Integration complexity between symbolic verification and LLM-driven repair remains an open engineering challenge."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "Whether LLM-generated network artifacts (e.g., configs, NIDS rules) are broadly deployable without extensive human review remains unresolved; user studies show syntactic correctness but practitioner skepticism about deployability and specificity.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7167855398",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "user_study_and_evaluation",
+      "confidence": 0.8,
+      "limitations": [
+        "User studies are limited in scale (small expert panels) and task scope.",
+        "Deployability depends on operator risk tolerance, validation tooling, and domain specifics."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "How to standardize evaluation metrics and benchmarks that separate model capability from framework/scaffold effects in agentic NetOps evaluations is an open question.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162818065",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "framework_and_survey_reports",
+      "confidence": 0.75,
+      "limitations": [
+        "Framework proposals exist but community adoption and agreed-upon NetOps-specific benchmarks are not yet established.",
+        "Scaffold/environment variance is empirically shown to affect outcomes but disentangling requires more standardized cross-workbench studies."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "The comparative effectiveness of verifier-assisted LLM pipelines versus established formal network verification tools (e.g., for pre-deployment change validation) across realistic network scales remains insufficiently evaluated in the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404240614",
+        "https://openalex.org/W4402040208",
+        "https://openalex.org/W4411015066"
+      ],
+      "evidence_type": "method_and_system_reports",
+      "confidence": 0.6,
+      "limitations": [
+        "Some works propose hybrid or symbolic methods, but head-to-head, large-scale comparative evaluations with production verifiers are not present in the supplied set.",
+        "Differences in task definitions and datasets complicate comparisons."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "The long-run reliability and epistemic risk from LLM-generated artifacts re-entering training data (hallucination propagation) and its impact on NetOps tooling ecosystems is discussed in broader LLM literature but not empirically resolved for NetOps in these records.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6794439",
+        "https://openalex.org/W4399803256"
+      ],
+      "evidence_type": "theoretical_and_detection_studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Theoretical models predict risk, but domain-specific longitudinal empirical studies for NetOps are absent in the supplied records.",
+        "Mitigation strategies are proposed but not validated at NetOps scale here."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a gap in standardized, public NetOps benchmarks that capture semantic correctness (reachability, policy compliance, safety) rather than only syntactic validity for LLM-generated configurations and repairs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "survey_and_method_papers",
+      "confidence": 0.7,
+      "limitations": [
+        "Several task-specific datasets and benchmarks exist (e.g., NeTestLLM) but broader community standards encompassing semantic validators are not evident in the supplied set.",
+        "Some works propose evaluation frameworks but adoption is incomplete."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical, large-scale comparisons of different tool-augmentation strategies (planner-centric, ReAct, depth-first/decision-tree search, ensemble validators) specifically on NetOps tasks are lacking in the supplied records.",
+      "evidence_record_ids": [
+        "doi:10.1609/aaai.v40i40.40676",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4389519928"
+      ],
+      "evidence_type": "benchmark_and_method_reports",
+      "confidence": 0.65,
+      "limitations": [
+        "Benchmarks and tool-use datasets exist but cross-strategy NetOps-focused evaluations at scale are not shown in this record set.",
+        "Performance may be sensitive to tool implementation and environment realism."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Operational workflows and CI/CD/GitOps integration patterns for safe automated deployment of LLM-generated network changes are discussed but lack reproducible, community-shared pipelines and artifacts in the provided records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4404240614"
+      ],
+      "evidence_type": "system_and_survey_reports",
+      "confidence": 0.6,
+      "limitations": [
+        "Papers discuss opportunities and architectures (e.g., zero-touch workflows) but do not supply widely reused, production-grade, reproducible deployment pipelines within the supplied set.",
+        "Industry case studies may exist outside the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already production-ready to autonomously manage NetOps without human oversight (no supplied record provides production-scale evidence).",
+    "Any claim that LLMs achieve perfect or near-100% semantic correctness in network configuration generation or repair (not supported by supplied empirical results).",
+    "Assertions that verifier-assisted LLM pipelines have been proven superior to established formal-network-verification tools across realistic, large-scale networks (no head-to-head large-scale comparisons in supplied records).",
+    "Claims of novel experimental results or autonomous experiments produced by this run (no experiment artifacts from this run are supplied in the record set)."
+  ]
+}

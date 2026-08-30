@@ -1,0 +1,157 @@
+{
+  "selected_candidate_id": "candidate-llm-verifier-predeployment-001",
+  "title": "Verifier-assisted vs. LLM-only pre-deployment network-change validation (repaired preregistration)",
+  "research_question": "Does integrating a formal verifier into an LLM-driven change-generation pipeline increase the fraction of network-change proposals that pass semantic pre-deployment validation without automated-flagging compared to LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1: The verifier-assisted pipeline yields a higher proportion of final proposals passing the semantic verifier (no automated-flag) than LLM-only generation (paired test).",
+    "H2: The verifier-assisted pipeline requires fewer repair iterations on average to reach a verifier pass than the effective retry count needed when using LLM-only + post-hoc repair (paired median difference)."
+  ],
+  "exploratory_questions": [
+    "EQ1: How does effect size vary across intent complexity strata (low/medium/high)?",
+    "EQ2: What failure-mode taxonomy (reachability, ACL, syntax, other) is most responsible for differences between pipelines?"
+  ],
+  "benchmark_scope": [
+    "Synthetic public-topology suite derived from permissively-licensed router configs and small ISPs (released with experiment artifacts).",
+    "Intent types: configuration-change intents limited to routing policy changes, ACL updates, and VLAN/interface updates."
+  ],
+  "model_scope": [
+    "Single hosted LLM API (one model family chosen at execution time from available hosted providers); sampling parameters frozen at execution: temperature=0.0, top_p=1.0, deterministic decoding where provider permits. Exact model identifier will be recorded in execution artifacts.",
+    "Same LLM model family used for both pipelines for each paired case."
+  ],
+  "transformation_scope": [
+    "Prompt templates (initial-generation and repair templates) fixed and published in preregistration.",
+    "Syntactic parsing and device-template mapping (deterministic template filler) to extract structured change fields for the verifier."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_success_rate_verifier_assisted",
+    "absolute_success_rate_llm_only",
+    "median_number_of_repairs_verifier_assisted",
+    "distribution_of_failure_modes_by_pipeline"
+  ],
+  "sampling_plan": "Two-stage preregistered plan: (A) Pilot: 60 paired intents (20 per complexity stratum: low/medium/high) to estimate paired variability and repair-rate distribution. (B) Confirmatory main run: 300 paired intents (100 per complexity stratum). Each intent yields one paired comparison: (A) LLM-only single-shot generation; (B) verifier-assisted pipeline (initial generation + deterministic verifier + up to 3 automated repair iterations). Total planned processed intents = pilot 60 + main 300 = 360. Confirmatory analysis uses only main-run 300 pairs; pilot used for power calibration and sensitivity bound selection only.",
+  "analysis_plan": "Primary analysis: paired binary comparison of final verifier-pass (pass AND no automated-flag) between verifier-assisted and LLM-only using a paired_binary_analysis_v1 executor (estimator: paired_success_rate_difference_guarded_minus_baseline). Implementation: McNemar-style paired test equivalent implemented by the registered executor. Report absolute paired difference, 95% CI, and two-sided p-value. Failed/aborted model calls: primary treatment = 'complete_pair_primary' (exclude pair only if both pipeline runs for that pair fail due to infrastructure/provider outage); sensitivity analysis will include 'complete_pair_primary_with_failure_as_zero_sensitivity' treating failed model call as failure. Subgroup (stratum) analyses by complexity use stratified paired tests with Benjamini–Hochberg FDR control across strata. All analysis code and exact executor inputs are frozen and published with preregistration.",
+  "multiplicity_plan": "Primary hypothesis H1 is single pre-registered confirmatory test on main N=300 pairs. Secondary and subgroup tests are explicitly exploratory or multiplicity-corrected: FDR (Benjamini–Hochberg) at q=0.05 applied across stratum/subgroup tests. Failure-mode counts are descriptive; any significance claims for subgroups are reported after multiplicity correction.",
+  "missingness_plan": "API/provider technical failures recorded per-call. If both pipeline calls for a pair fail due to provider/infrastructure outage, the pair is excluded from confirmatory analysis and logged. If only one pipeline call fails, primary analysis follows the registered executor's 'complete_pair_primary' handling; sensitivity analysis will treat the failed call as a failure (zero) per predefined sensitivity pathway. No manual imputation or human filling is permitted. All exclusion counts and reasons are published.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic_topology_suite_v1 (public-license derived configs)",
+      "intent_synthesis_v1 (documented generator)"
+    ],
+    "risk_factors": [
+      "Verifier coverage gaps may allow unsafe semantics to pass (false negatives).",
+      "Synthetic intent generator may not capture production edge cases (sampling bias).",
+      "Model nondeterminism could inflate paired variance if deterministic decoding is not fully enforced by provider."
+    ],
+    "detection_procedures": [
+      "Negative-control tests included in each run: intentionally-broken intents that should fail specific verifier checks (one per complexity stratum).",
+      "Automated invariant checks comparing pre/post-change topology reachability matrices for unintended reachability changes.",
+      "Post-run anomaly detector: flag changes that introduce broad-permit ACLs or remove mandatory deny rules."
+    ],
+    "item_flagging_rules": [
+      "Automated-flag TRUE if (a) final verifier fails, or (b) final change triggers forbidden-template modification (e.g., removal of required security ACL), or (c) verifier passes but negative-control tests unexpectedly pass (test-failure signal).",
+      "Automated-flag recorded deterministically by code; flagged items count as failures for primary estimand (deployable=no)."
+    ],
+    "analysis_treatment": "Primary estimand counts only unflagged verifier passes as successes. Flagged items are treated as failures in primary analysis. Sensitivity analyses will report results under alternative treatments (e.g., include flagged-but-verified as successes) but these are explicitly labeled exploratory.",
+    "residual_uncertainty": [
+      "Verifier false negatives where semantic problems are outside formalized checks.",
+      "Synthetic-to-production representativeness of intents.",
+      "Provider-level nondeterminism not controllable when deterministic decoding unsupported."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario-recommended-full",
+      "description": "Pilot (60 pairs) + Confirmatory main (300 pairs). Conservative per-case LLM-call budgeting (verifier-assisted up to 1 initial + 3 repair calls per pair); LLM-only single-shot. Deterministic sampling settings frozen. Recommend for confirmatory claims.",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted LLM API (single family used for both pipelines; temperature=0.0, top_p=1.0; exact model identifier recorded at runtime)"
+      ],
+      "transformations": [
+        "initial_generation_prompt_v1",
+        "repair_prompt_template_v1 (up to 3 iterations)",
+        "structured-syntax-parser_v1",
+        "device-template-mapping_v1"
+      ],
+      "discovery_items": 60,
+      "confirmatory_items": 300,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Planned model calls detailed below: Pilot 60 pairs: LLM-only = 60 calls; verifier-assisted worst-case = 60*4 = 240 calls → pilot total 300. Main 300 pairs: LLM-only = 300 calls; verifier-assisted worst-case = 300*4 = 1200 calls → main total 1500. Combined total = 300 + 1500 = 1800. Verifier runs are CPU-local deterministic checks (no hosted-model calls). This matches the candidate's original estimate (1800) and fits the capability manifest maximum_planned_model_calls=10000."
+    },
+    {
+      "scenario_id": "scenario-reduced",
+      "description": "Lower-budget confirmatory run for constrained compute: Pilot (30 pairs) + Confirmatory main (150 pairs). Same pipelines and parameters; smaller N for exploratory/limited claims.",
+      "planned_model_calls": 900,
+      "models": [
+        "hosted LLM API (same frozen sampling settings)"
+      ],
+      "transformations": [
+        "initial_generation_prompt_v1",
+        "repair_prompt_template_v1",
+        "structured-syntax-parser_v1"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 150,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Model calls: Pilot 30 pairs: LLM-only 30 + verifier-assisted worst-case 30*4=120 => 150. Main 150 pairs: LLM-only 150 + verifier-assisted worst-case 150*4=600 => 750. Combined total = 150 + 750 = 900. This is within capability manifest limits but yields lower power; recommended only if resource/time constraints require it."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute paired improvement of 0.10 (10 percentage points) in final verifier-pass rate (verifier-assisted minus LLM-only) with two-sided alpha=0.05 and power=0.8 in confirmatory main run.",
+    "clustering_unit": "intent (paired LLM-only vs verifier-assisted)",
+    "calculation_method": "Pilot-derived paired discordance rates used to parameterize a paired-proportions (McNemar-equivalent) power calculation implemented in the paired_binary_analysis_v1 executor. Pilot (n=60) will estimate discordant-pair rates; main N=300 is chosen to detect ~10ppt absolute paired difference under plausible discordance rates (e.g., if proportion of discordant pairs ~0.20). Final sample-size justification (numerical) will be recorded after pilot and frozen before main run; recommended scenario uses N=300 as pre-specified conservative confirmatory sample.",
+    "assumptions": [
+      "Baseline LLM-only final pass rate ~0.6 (pilot to verify).",
+      "Paired design reduces variance relative to independent samples; discordant-pair proportion expected 0.15–0.30.",
+      "Deterministic sampling (temperature=0) will reduce within-case sampling variability where provider permits."
+    ],
+    "recommended_scenario_id": "scenario-recommended-full",
+    "minimum_detectable_effect_notes": "With N=300 pairs and expected discordant proportion ~0.20, detectable absolute paired rate difference ~0.08–0.12 at 80% power (approximate; exact bound computed after pilot and frozen).",
+    "sensitivity_analyses": [
+      "Recompute achieved power under observed pilot discordance rates and report adjusted minimal detectable effect.",
+      "Sensitivity to failed-call treatment: recompute primary estimand under 'failure-as-zero' treatment (sensitivity path per analysis_contract)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "initial_generation_prompt_v1",
+      "repair_prompt_template_v1",
+      "structured-syntax-parser_v1",
+      "device-template-mapping_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated post-repair semantic-diff comparing (a) intended intent spec and (b) structured extracted change to ensure intent preservation (field-level equality or documented permitted modifications).",
+      "Automated check that repair iterations do not add or remove disallowed configuration sections (forbidden-prefix checks)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject output if structured parser fails to extract mandatory fields (device, interface, ACL id) — counted as failure.",
+      "Reject output if post-application reachability invariants show new unintended reachability (automated matrix comparison).",
+      "Reject output if repair introduces wildcarded 'permit any' ACL entries in previously-limited ACLs."
+    ],
+    "audit_sample_policy": "Automated deterministic audit of 5% random sample of final unflagged successes per run; audits are code-driven invariant checks (no human review). Audit results are logged and included in evidence.",
+    "mapping_validation": "Device-template-mapping validated with synthetic unit tests (negative and positive control cases) included in preregistration artifacts; negative controls intentionally violate template constraints and must fail deterministic checks.",
+    "residual_risks": [
+      "Transformation parser may not capture vendor-specific idiosyncrasies outside the released template family.",
+      "Semantic-equivalence heuristics may miss complex intent-preserving rewrites that alter semantics in subtle ways."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Representativeness of synthetic intent generator versus real operator change requests (external validity); documented and bounded to synthetic benchmark scope.",
+    "Verifier coverage: verifier checks are comprehensive for reachability and ACL semantics defined here but do not cover device-state-dependent temporal properties (residual uncertainty).",
+    "Provider-level deterministic decoding constraints: if the chosen hosted API does not fully support deterministic seeds, residual nondeterminism may increase variance; handled via pilot and sensitivity analyses but remains a noncritical experimental limitation.",
+    "Generalisability of observed gains to production-scale heterogeneous verifiers and large topologies (outside declared benchmark scope)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404240614",
+    "https://openalex.org/W4402040208",
+    "https://openalex.org/W4411015066",
+    "https://openalex.org/W4416927413",
+    "https://openalex.org/W4395106418",
+    "doi:10.1609/aaai.v40i40.40676",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4389519928"
+  ]
+}

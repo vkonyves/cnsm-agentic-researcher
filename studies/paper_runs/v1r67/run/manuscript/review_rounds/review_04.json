@@ -1,0 +1,23 @@
+{
+  "summary": "Careful, well‑documented preregistered paired study comparing a verifier‑assisted vs. LLM‑only pre‑deployment workflow. Execution and analysis artifacts are archived and consistent with the reported results: baseline 299/300 unflagged passes, guarded 300/300, paired difference 0.00333, exact McNemar two‑sided p=1.0. The manuscript appropriately discusses limitations (ceiling effect, single model/validator, synthetic suite) and includes the required Disclosure Statement. Required clarifications remain before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Manuscript does not include a concise human‑readable excerpt of the archived low‑level repair transcript or an explicit pointer (artifact path + short excerpt) sufficient for readers to assess the single automated repair that yielded the lone discordant rescue.",
+    "The reported inferential result (exact McNemar two‑sided p = 1.0) is counterintuitive; the manuscript needs a brief, explicit explanation of the exact test used and why p=1.0 follows from the observed discordant counts (n10=1,n01=0) so readers are not misled about interpretation.",
+    "Although discussed, the conditional nature of the shared_initial estimand (one shared LLM candidate per pair) should be stated more prominently in Methods (first paragraph) and in the Abstract as a limitation so readers correctly interpret the scope of inference."
+  ],
+  "required_revisions": [
+    "Insert into the manuscript a concise, human‑readable excerpt of the archived low‑level repair provider trace for the single guarded rescue (or an explicit artifact path plus a short verbatim/redacted excerpt no longer than a few sentences) so reviewers/readers can verify the semantic nature of the repair; this change can be satisfied from existing archived artifacts referenced in the execution manifest.",
+    "Add a short clarification (Methods or Results) explaining the exact two‑sided McNemar/equivalent test implementation used by paired_binary_analysis_v1 and explicitly state why with discordant counts n10=1,n01=0 the two‑sided p returns 1.0 and how this affects interpretability of the confirmatory test.",
+    "Prominently (Methods and Abstract) state that the primary estimand is conditional on a single shared_initial LLM generation per pair (shared_initial protocol) and explicitly note how this conditioning affects external interpretation (i.e., this measures verifier+repair effect conditional on an identical candidate, not end‑to‑end independent draws)."
+  ],
+  "optional_revisions": [
+    "Consider including a 1–2 sentence concrete example (task id and short intent) illustrating how the validator's workflow policy triggered the repair to aid reader intuition (can be drawn from archived task_manifest entries).",
+    "Condense provenance bookkeeping sentences where possible to free space and improve narrative flow (while keeping full disclosure intact).",
+    "Explicitly state the exact artifact paths and hashes for the archived repair trace in Results or an appendix note to ease artifact inspection by reviewers/readers."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,23 @@
+{
+  "summary": "Careful, well‑documented preregistered paired study comparing a verifier‑assisted LLM pipeline to LLM‑only single‑shot generation on a synthetic NetOps intent→configuration task suite. Execution and analysis artifacts are archived and reconciled; results show near‑ceiling baseline performance (baseline 299/300, guarded 300/300), producing a negligible paired improvement (0.00333), non‑significant by the preregistered exact paired test. The manuscript is reproducible and candid about limitations, but several presentation and interpretation clarifications are required before finalisation.",
+  "novelty_score": 3,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Manuscript omits a short, concrete example (from the archived artifacts) of the single discordant/‘rescued’ case (shared_initial output, repair prompt, validator trace). The claim that the verifier ‘rescued’ a case must be supported by a brief in‑paper example (not just an artifact pointer).",
+    "The paper uses a shared_initial (single shared LLM generation per pair) design that materially affects the estimand (it compares verifier+repair applied to the same initial candidate vs accepting that same candidate). The manuscript must explicitly justify this design choice, describe its implications for interpretation (e.g., it does not measure variance from independent LLM generations per condition), and state how this design choice limits generalisability of the paired estimand.",
+    "The authors claim a contribution relative to prior work but do not include a concise nearest‑work comparison summary in the paper body; the submission must present a short (≤1 paragraph) matrix/summary that ties the archived nearest‑work artifacts to the paper’s specific novelty claims (preregistration, shared‑generation paired design, artifact release)."
+  ],
+  "required_revisions": [
+    "Insert a brief concrete worked example in Methods or Results (≤1 paragraph plus one short listing) drawn from the archived artifacts showing the discordant task: include the intent/task id, the shared_initial text, the repair prompt (if any), and the validator trace/outcome to substantiate the ‘rescued’ claim. Reference archived artifact paths and hashes already present in the bundle.",
+    "Add an explicit paragraph in Methods (or the end of Methodology) justifying the shared_initial generation protocol (preregistered choice), and state clearly how that design affects the causal interpretation of the paired estimand and external generalisability (i.e., it measures verifier+repair effect conditional on a single LLM candidate rather than on independent draws per condition).",
+    "Add a concise nearest‑work comparison paragraph (≤1 paragraph) in Related Work or Discussion that summarizes differences vs the closest prior studies (architectural difference, evaluation protocol, preregistration, artifact release) using the archived nearest‑work matrix; explicitly withdraw any wording that could be read as claiming broader ‘first’ or production claims unsupported by the artifacts."
+  ],
+  "optional_revisions": [
+    "Replace a small fraction of provenance‑heavy inline artifact references with a short evidence‑to‑claim table or one‑sentence linking claims to artifact locations to improve narrative flow (artifacts already archived; do not add new artifacts).",
+    "Expand Discussion with brief numbers on per‑pair model‑call cost/latency (if available in the execution log) to help practitioners assess operational tradeoffs (optional and resolvable from provided logs).",
+    "Consider shortening some provenance listing in the main text and moving fuller provenance details to the artifact bundle reference paragraph to make the paper read less like an artifact inventory and more like a conference paper."
+  ],
+  "accept_for_finalisation": false
+}

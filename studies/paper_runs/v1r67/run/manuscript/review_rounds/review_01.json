@@ -1,0 +1,25 @@
+{
+  "summary": "Well-executed preregistered paired study comparing a verifier-assisted LLM pipeline to LLM-only single-shot generation on a synthetic NetOps intent→configuration task suite. Execution and artifact archival are comprehensive. Main result: baseline single-shot already nearly perfect (299/300), guarded 300/300, paired difference 0.00333, exact McNemar two‑sided p=1.0; preregistered target effect (10 percentage points) not supported. Revisions required to resolve a few clarity and documentation gaps needed for a final conference submission.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Manuscript ambiguously describes the preregistered pilot: the preregistration specified a pilot (n=60) to recalibrate sample size but the manuscript does not state whether the pilot was executed, what pilot-derived discordance estimate (if any) was used, or where pilot artifacts are archived. This must be clarified.",
+    "The paper claims stratified sampling by complexity (low/medium/high; 100 pairs per stratum) but does not report per‑stratum counts or success rates. Without these breakdowns it is difficult to assess whether the observed ceiling effect is uniform or concentrated in one or more strata.",
+    "Potential coupling between the deterministic task generator and the deterministic validator (semantic rules) could create an easy benchmark (generator and validator sharing rule semantics). The manuscript does not explicitly demonstrate independence or summarize the contamination checks; this threatens construct validity unless documented.",
+    "The Methods description of the shared_initial protocol is terse and could be misread: it must state unambiguously that the baseline condition used the same single-shot LLM generation (shared_initial) as the starting point and that guarded differed only by verifier+up-to-one-repair, with exact artifact paths cited."
+  ],
+  "required_revisions": [
+    "Explicitly state whether the preregistered pilot (n=60) was executed prior to the main run. If it was executed, report pilot results (discordant counts or estimated paired variance), cite the pilot artifact paths (execution logs/results), and show the sample‑size recomputation that led to N=300. If the pilot was not executed, explicitly disclose this as a deviation from the preregistration and state that N=300 was used as pre‑specified; cite the preregistration artifact (preregistration SHA) and execution manifest entries to support the claim. (Resolvable from supplied artifacts: execution/execution_log.jsonl, execution/raw_results.jsonl, preregistration SHA.)",
+    "Add concise per‑complexity‑stratum counts and outcome rates (low/medium/high: number of pairs and verifier‑pass counts for baseline and guarded) in Methods or Results. Cite the task manifest and analysis condition summary CSV paths supporting these numbers. (Resolvable from supplied artifacts: execution/task_manifest.jsonl and analysis/condition_summary.csv and paired_contingency_table.csv.)",
+    "Add an explicit paragraph documenting contamination checks and generator/validator independence: report that contamination_summary.csv is empty, explain how the task generator semantics differ from the validator rules, and cite the contamination and task‑generator artifacts (execution/task_manifest.jsonl, analysis/contamination_summary.csv). If any coupling exists, disclose it and describe its likely effect on results. (Resolvable from supplied artifacts: analysis/contamination_summary.csv, execution/task_manifest.jsonl.)",
+    "Clarify in Methods the shared_initial design in one unambiguous sentence and cite representative artifact paths showing a shared_initial response used for both conditions for a sample pair (e.g., execution/responses/task-000001-shared-initial.txt and corresponding baseline/guarded files). Ensure the baseline definition states explicitly that it is the single-shot LLM output accepted without verifier-driven repair. (Resolvable from supplied artifacts: execution/responses/* and representative task artifacts listed.)"
+  ],
+  "optional_revisions": [
+    "Include a small table (1 row per complexity stratum) summarizing difficulty metrics available in the task manifest (required_command_count, changed_interface_count) to help readers judge task hardness.",
+    "Provide one or two representative failed-case excerpts (raw_response and validator trace) in a short supplement paragraph to illustrate the type of generation that required the single repair.",
+    "Tighten wording in Introduction/Related Work to reduce provenance/inventory-style language and focus on scientific positioning; move long provenance lists to the Disclosure Statement or artifact appendix if space is needed."
+  ],
+  "accept_for_finalisation": false
+}
