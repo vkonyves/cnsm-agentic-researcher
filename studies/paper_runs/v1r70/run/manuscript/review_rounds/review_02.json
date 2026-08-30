@@ -1,0 +1,25 @@
+{
+  "summary": "Well-designed, preregistered confirmatory experiment testing template-based input sanitization and deterministic verifier-gating in an LLM-driven NetOps pipeline. Execution artifacts and paired analysis are archived; primary paired McNemar test (n=141 pairs) reports a small but statistically detectable change in validator-accepted configurations (guarded − baseline ≈ +0.0426, p=0.03125). Key limitations: synthetic task bank, single model and validator, and an acknowledged preregistration language ambiguity (natural-language H1 vs. formal estimand).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Mandatory Disclosure Statement contains execution-log–level detail (per-file paths, many SHA‑256 hashes, verbatim counts) and reads like an artifact manifest rather than a concise disclosure; this duplicates archived provenance and violates the track’s requirement for a concise Disclosure Statement that does not duplicate run logs.",
+    "Citation semantics and bibliography presentation are not shown in machine-verified IEEE numbered form in the manuscript evidence bundle; the reviewer must verify that each numbered citation in the paper maps to a single verified bibliographic entry that actually supports the proximate claim.",
+    "The manuscript’s operational claim-space must be tightened: although the preregistration ambiguity is acknowledged, the paper must make explicit and prominent that the executed formal estimand measured validator acceptance-for-deployment (validator-valid = success), not a direct reduction in unsafe/attacker-success outcomes, and must avoid any wording that could be read as having tested the originally stated natural-language H1 without having executed its intended confirmatory analysis."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement to a concise track-compliant form that (a) lists LLM(s) and model identifiers used, orchestration framework, master-prompt reference (SHA allowed), role boundaries (human Research Director selection vs. post-lock autonomous work), preregistration id and SHA, and an explicit statement that no human edited the manuscript after the autonomy lock; remove per-file paths, per-artifact SHA‑256 manifests, and execution-log verbatim content from the manuscript body (these may remain archived in the evidence bundle).",
+    "Replace any raw-URL/DOI-style in-text citation markers in the paper’s reference section and prose with standard IEEE numbered citations and ensure the manuscript’s numbered citations map exactly to the archived, verified bibliographic records; add a one-page (or supplementary machine-readable) citation-to-archive mapping file if necessary to make the mapping explicit.",
+    "Add an explicit, concise statement in Methods and Results (not only in Disclosure) that: (1) the formal binary outcome equals deterministic-validator acceptance-for-deployment, (2) the shared_initial_candidate generation semantics were used and therefore baseline and guarded conditions did not receive different first-pass sampled candidates when the shared_initial stage applied, and (3) the observed discordant pairs (n10=6) arose because sanitizer/repair activity changed the pipeline outcome post-generation — reference the archived paired_contingency_table.csv and the representative per-episode traces that illustrate this mechanism.",
+    "Include a short, self-contained sensitivity-summary paragraph (and numeric table row) in Results reporting the preregistered missingness-handling sensitivity analysis (i.e., the analysis treating missing generative outputs as failures and its effect on the point estimate, CI, and p-value). The numerical results are available in the archived analysis artifacts and must be summarized in the main paper rather than only in the archive.",
+    "Remove or rephrase any remaining prose that could be read as claiming confirmation of the preregistered natural-language H1 (reduction of unsafe/attacker-success) unless a confirmatory analysis targeting that formal unsafe-acceptance estimand is present; ensure conclusions are strictly bounded to the executed formal estimand and archived evidence."
+  ],
+  "optional_revisions": [
+    "Round numeric displays in prose to sensible precision (e.g., report percentages to two decimal places) while keeping exact figures in tables/archival artifacts.",
+    "Add one short (≤2 paragraph) exemplar discordant-case vignette in Results (drawn from archived traces) to illustrate how sanitization/repair corrected a baseline rejection into a guarded acceptance — include only the minimal anonymized configuration snippet and a reference to the archived trace hash (not full artifact content).",
+    "If space permits, include a very small table listing the top-level verified bibliographic metadata (author, year, venue) for the 3–5 closest works to improve reader navigation (use numbered references as required)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,155 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs can produce draft network configurations from high-level intent but produce syntax, topology, and semantic errors when used alone; combining LLM generation with deterministic verifiers and localized feedback substantially reduces errors and yields verified configurations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "empirical/experimental",
+      "confidence": 0.85,
+      "limitations": [
+        "Experiments are limited in scope (few use cases/protocols).",
+        "Human-in-the-loop input remained required in reported studies.",
+        "Model versions and prompt details vary across studies, limiting direct comparability."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Deterministic network-verification tools (e.g., Header Space Analysis, NetPlumber, VeriFlow) can check network state and configuration changes rapidly and are suitable validators to detect correctness/failure modes of generated configurations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344",
+        "https://openalex.org/W2122695394"
+      ],
+      "evidence_type": "tool/method literature",
+      "confidence": 0.9,
+      "limitations": [
+        "Verification effectiveness depends on precise formal specifications; not all higher-level intent properties are directly expressible.",
+        "Scalability and semantic coverage depend on tool and network complexity."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "LLMs and LLM-integrated systems exhibit documented failure modes relevant to NetOps, including hallucinations, incorrect/safety-critical outputs, and vulnerability to prompt-injection or indirect prompt attacks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4407163436",
+        "doi:10.36227/techrxiv.175416873.36395198/v1"
+      ],
+      "evidence_type": "empirical/analytical",
+      "confidence": 0.9,
+      "limitations": [
+        "Security/attack studies are general to LLM-integrated applications; NetOps-specific exploit demonstrations are limited in the supplied records.",
+        "Defensive efficacy evaluations are often on synthetic or constrained datasets."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Generate–validate–repair (tool-assisted) architectures — i.e., LLMs taught or orchestrated to call verifiers/tools and then repair based on feedback — are a promising mitigation and have been demonstrated to improve outcomes in prototype studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4388629193"
+      ],
+      "evidence_type": "methodological/experimental",
+      "confidence": 0.85,
+      "limitations": [
+        "Demonstrations are prototype-scale and do not establish full automation without human oversight.",
+        "Effectiveness depends on quality of verifier feedback and specification granularity."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Surveys and domain reviews report growing research activity on applying LLMs to NetOps/AIOps/telecommunications and identify fragmented evaluation practices and a need for more operationally meaningful benchmarks and metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4383605161"
+      ],
+      "evidence_type": "survey/review",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize existing literature but do not provide unified empirical benchmarks themselves.",
+        "Rapid field evolution may outpace survey coverage."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "Whether LLM-based NetOps systems (generate+verify+repair) achieve production-ready reliability and safety across diverse, large-scale, multi-vendor operational networks remains unresolved.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "limited/prototype evidence",
+      "confidence": 0.3,
+      "limitations": [
+        "Available records describe prototypes, proposals, or limited-scale experiments rather than validated production deployments.",
+        "Claims of feasibility in preprints are not equivalent to rigorous production evaluation."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent LLM+verifier approaches generalize quantitatively across many vendors, protocols (BGP, MPLS, vendor-specific CLIs), and large topologies is not established by the supplied records.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "empirical (limited)",
+      "confidence": 0.35,
+      "limitations": [
+        "Reported experiments target specific tasks/use-cases; broader generalization requires larger, diverse benchmarks and evaluations."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A gap exists for standardized, operationally grounded benchmarks and metrics that measure configuration correctness, safety, and deployability (not just syntactic or reference-match accuracy) for LLM-driven NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4383605161"
+      ],
+      "evidence_type": "literature synthesis / benchmark proposal",
+      "confidence": 0.8,
+      "limitations": [
+        "Some benchmark proposals exist (e.g., NetConfEval) but broader community adoption and operational validity remain open."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Scalable, low-human-overhead methods for closing the loop (automated localized repair guided by verifiers) that retain safety guarantees under diverse network semantics are underexplored.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4320165837"
+      ],
+      "evidence_type": "experimental/proposal",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing demonstrations show benefit but are prototype-level and rely on human verification for critical steps."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Research gap: defenses and robust architectures specifically addressing prompt-injection and indirect prompt attacks in NetOps contexts (where maliciously crafted inputs could cause unsafe configurations) need focused study and rigorous mitigation evaluation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.36227/techrxiv.175416873.36395198/v1"
+      ],
+      "evidence_type": "security/attack literature",
+      "confidence": 0.85,
+      "limitations": [
+        "Attack analyses are general to LLM-integrated apps; NetOps-specific threat models and mitigations require targeted research."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are currently production-ready for fully autonomous, unsupervised NetOps in diverse, real-world networks (unsupported by the supplied records).",
+    "This record set provides evidence that any single LLM is universally superior for NetOps tasks across vendors and protocols (no supplied multi-model, multi-vendor superiority evidence).",
+    "Pre-lock development artifacts or rehearsals constitute empirical evidence for final autonomous-run outcomes (excluded per the supplied records and constraints)."
+  ]
+}

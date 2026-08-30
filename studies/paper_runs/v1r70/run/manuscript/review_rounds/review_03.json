@@ -1,0 +1,24 @@
+{
+  "summary": "This preregistered paired confirmatory study (study_id cand-2026-03) evaluated template-based input sanitization plus deterministic verifier-gating (with limited automated repair) versus an unguarded LLM baseline (gpt-5-mini) on synthetic adversarial NetOps intents. Of 150 planned adversarial intents (300 episodes) the analysis used 141 complete pairs. Baseline validator-accepted 135/141 (95.74%); Guarded accepted 141/141 (100%); paired difference = 0.04255; exact two-sided McNemar p = 0.03125; 95% bootstrap CI [0.01418, 0.07801]. Archived artifacts, logs, and hashes are provided. The manuscript correctly discloses the unexecuted benign-control and reconciles a preregistration wording ambiguity by reporting only against the registered formal estimand (validator-accepted = success).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Runtime sampling semantics are not stated literally in the manuscript. The archived model_configuration.json shows \"temperature\": null; the paper must explicitly report the runtime sampling setting and state that null/unset does not imply deterministic (temperature=0).",
+    "The manuscript asserts shared_initial_candidate semantics but does not link that claim to the provider-call audit counts in the archive. The provider_call_audit shows 150 shared_initial_generation calls and only 6 guarded-stage provider calls (repairs). The paper must explicitly report these counts in Methods/Execution and state that Guarded did not perform independent first-pass generation for most pairs (only repair calls were made), so between-condition differences cannot arise from different initial-sampling.",
+    "The preregistered benign-control and false-positive-blocking secondary estimand were not executed. Although disclosed, the manuscript must place this omission prominently in Methods and Results (not only in Conclusions/Disclosure) and explicitly state that confirmatory inferences do not include those planned analyses."
+  ],
+  "required_revisions": [
+    "Explicitly report literal runtime sampling configuration from execution/model_configuration.json (e.g., declared_model_version, temperature=null) in Methods and Disclosure, and state the practical implication (null != evidence of deterministic sampling); if provider defaults could affect reproducibility, note them and reference the archived model_configuration.json SHA-256.",
+    "In Methods (Execution/Instrumentation) add a short paragraph mapping provider_call_audit stage and condition counts from the archive (shared_initial_generation=150, repair=6; condition_counts: shared=150, guarded=6) and state that Guarded reused the shared_initial_candidate in paired comparisons and only invoked separate model calls when repair was triggered (provide the archived paths/hashes cited in the manuscript).",
+    "Prominently and explicitly state in Methods and Results that the preregistered benign-control (M=50) and the false-positive-blocking secondary estimand were not executed, describe how that omission affects interpretation of false-positive/blocking claims, and ensure no results or language imply those analyses were run.",
+    "Add a concise post-hoc power/precision statement using the archived analyzed N (complete_pairs=141) that quantifies achieved power or sensitivity compared to the planned N=150 (use archived observed rates/discordant counts). This may be a single paragraph or sentence in Results or Threats to Validity and must be computed from archived numbers (no new model calls)."
+  ],
+  "optional_revisions": [
+    "Add a brief practical-importance discussion noting the ceiling/high baseline acceptance (≈95.7%) and what a ≈4.25 percentage-point absolute increase implies operationally (e.g., expected number of additional accepted intents per 1000), to help readers judge practical significance.",
+    "Provide a small table in Methods tying the key archival artifact paths and SHA-256 hashes (e.g., model_configuration.json, execution/raw_results.jsonl, analysis/paired_contingency_table.csv) to the claims they support (this may be terse and need not duplicate full manifest already archived).",
+    "Clarify in Related Work exactly which cited sources support specific methodological claims (use IEEE numeric citations inline) and ensure the bibliography entries correspond to the verified primary sources in the archive."
+  ],
+  "accept_for_finalisation": false
+}

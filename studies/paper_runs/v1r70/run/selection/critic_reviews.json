@@ -1,0 +1,120 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-01",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Verifier specifications may not capture intent-level properties (false negatives/positives).",
+        "Simulated vendor CLIs may not reflect real vendor quirks, limiting external validity.",
+        "Prompt sensitivity and repair policy details could dominate measured effects.",
+        "Power/sample-size justification and error-modeling not specified."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier(s), versions, and formalized safety properties to be checked.",
+        "Provide precise CLI simulation fidelity documentation (grammar, deviations from real vendors).",
+        "Preregister prompt templates, repair-prompt scaffolds, stopping criteria, seeds, and retry policy.",
+        "Define deployability checks and parser/acceptance thresholds in machine-readable form.",
+        "Add power analysis or sample-size justification and paired-randomization procedure."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-02",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.55,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "'Minimal edit' definition is underspecified and subjective.",
+        "Task selection biased toward 'failure-prone' cases may overstate differences.",
+        "Binary human-intervention proxy is coarse and may not reflect real reviewer burden.",
+        "Edit-counting and semantic-category annotation procedures are not defined."
+      ],
+      "required_design_repairs": [
+        "Formally define 'minimal/localized edit' (line/AST/diff semantics) and measurement protocol.",
+        "Preregister task selection criteria and provide a held-out control set representative of typical intents.",
+        "Specify human-intervention proxy operationalization or recruit/validate human-reviewer timing; include inter-rater reliability plan.",
+        "Define automated edit-counting heuristics and semantic-category mapping with examples."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-03",
+      "novelty": 0.92,
+      "falsifiability": 0.95,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.75,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.92,
+      "venue_relevance": 0.98,
+      "major_concerns": [
+        "Ethical/dual-use risk from generating adversarial intents; dataset handling and disclosure need strict controls.",
+        "Adversarial generation may be hard to reproduce unless heuristics, seeds, and templates are fully specified.",
+        "Threat model and severity definitions are underspecified; sanitization implementations are vague.",
+        "Potential operational false positives (blocking benign tasks) need careful measurement."
+      ],
+      "required_design_repairs": [
+        "Provide a detailed adversarial-generation algorithm with seeds, mutation heuristics, and scripts; lock and embargo any dangerous artifact.",
+        "Include an ethics/oversight statement and safeguards (non-public dataset, restricted access); document IRB/ethics checks if required.",
+        "Preregister precise threat model, adversary capabilities, and success criteria; define input-sanitization implementation and parameters.",
+        "Include a matched benign-intent control set and false-positive measurement plan; specify metrics and acceptance thresholds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-04",
+      "novelty": 0.78,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.95,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Human-review time labeling is potentially infeasible or noisy; reliance on simulated reviewers risks construct validity.",
+        "Metric weighting/normalization choices are underspecified and may bias results.",
+        "Blinding and independence of human reviewers (or simulator validation) not described.",
+        "Ground-truth intervention labels and their collection protocol are unclear."
+      ],
+      "required_design_repairs": [
+        "Provide exact mathematical definitions and formulas for each metric and normalization strategy.",
+        "Specify human-review labeling procedure or validated simulator (with validation evidence) and inter-rater reliability measures.",
+        "Preregister blinding, sampling, and how reviewers will be recruited or how simulator parameters were chosen.",
+        "Plan sensitivity analyses for metric weighting and report alternative normalizations."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-05",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.55,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Very large topology simulations (100–200 nodes) may exceed verifier/tool scalability and available wall-clock budget.",
+        "LLM context/token limits confound topology-scaling effects unless partitioning is specified.",
+        "Partitioning/aggregation strategies to handle large configs are not preregistered and may alter causal interpretation.",
+        "Compute/time/resource estimates and fallback procedures are not provided."
+      ],
+      "required_design_repairs": [
+        "Specify verifier/tools (and scaling limits) and perform small-scale scalability benchmarks; provide fallback verifier configurations.",
+        "Preregister configuration partitioning and composition strategy to mitigate LLM context limits, including how cross-device dependencies are handled.",
+        "Provide concrete resource/time estimates, scheduling plan within the 7-day wall-clock limit, and contingency procedures for tool timeouts.",
+        "Define topology-generation algorithm, sampling balance, and seeds; include checks to separate topology-size effects from context-window effects."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

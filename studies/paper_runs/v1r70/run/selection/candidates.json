@@ -1,0 +1,141 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-01",
+      "title": "Quantifying the benefit of generate–verify–repair loops vs LLM-only NetOps configuration generation across vendor CLIs and protocols",
+      "research_question": "Does a generate–verify–repair architecture (LLM generation + deterministic verifier feedback + automated repair) produce a higher proportion of verifier-accepted, safely deployable network configurations than LLM-only generation across multi-vendor CLIs and protocols (BGP, OSPF) on moderate-sized topologies?",
+      "hypotheses": [
+        "A generate–verify–repair pipeline will produce a significantly higher verifier-accepted configuration rate than LLM-only generation on the same tasks."
+      ],
+      "proposed_design": "Controlled, paired experiment. Create a task bank of 120 intent-to-configuration tasks spanning two vendor CLIs (vendor-A, vendor-B simulated syntaxes) and two protocols (BGP, OSPF) on 10 topologies (5–50 nodes). For each task: (a) prompt an LLM to generate a device configuration (LLM-only arm); (b) run a generate–verify–repair pipeline where the LLM generates, a deterministic verifier (Header Space Analysis / NetPlumber style) checks correctness, returns structured error feedback, and the LLM issues repairs up to 5 iterations or until verifier-accept; (c) record verifier acceptance, number of repair iterations, syntactic parse errors, and semantic failures. Use fixed prompts, seeds, and a preregistered retry policy. Paired design: same random seed/tasks for both arms. Infrastructure: CLI simulators and verifier tools instrumented to accept configs and emit machine-readable diagnostics.",
+      "expected_data": "Per-task records: verifier-accepted (bool), number of repair iterations, parse errors count, specific verifier-detected fault types, time-to-accept, final configuration text, and whether configuration meets deployability checks (no policy violations). Aggregate tables by vendor, protocol, and topology size.",
+      "primary_outcome": "Difference in verifier-accepted configuration rate between generate–verify–repair and LLM-only (paired proportion difference).",
+      "analysis_outline": "Compute paired proportions and McNemar’s test for verifier acceptance; report absolute and relative improvements with 95% CIs. Secondary analyses: stratified acceptance rates by vendor/protocol/topology size (chi-squared or Fisher exact as appropriate), median repair iterations (Wilcoxon signed-rank), and regression modeling of acceptance probability vs topology size and protocol. Report effect sizes and exact p-values; correct for multiple comparisons in secondary analyses using Benjamini–Hochberg FDR.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344"
+      ],
+      "risks": [
+        "Verifier specifications may not capture all intent-level properties leading to false negatives/positives.",
+        "LLM prompt sensitivity could dominate observed differences if not carefully controlled.",
+        "Simulated vendor CLIs may not perfectly reflect production vendor quirks, limiting external validity."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "cand-2026-02",
+      "title": "Automated localized repair budget: measuring human-overhead reduction and repair convergence for verifier-guided LLM repairs",
+      "research_question": "Can an automated, verifier-guided localized-repair policy (limit edits to minimal device-scoped patches) reduce required human interventions while achieving verifier acceptance within a bounded repair budget compared to unconstrained iterative repair?",
+      "hypotheses": [
+        "A localized minimal-edit repair policy will reach verifier acceptance with fewer total configuration edits and fewer tasks requiring human intervention than an unconstrained iterative repair policy given the same maximum iterations.",
+        "A strictly bounded repair budget (e.g., ≤3 repair iterations) will yield a measurable trade-off point where human intervention frequency rises sharply."
+      ],
+      "proposed_design": "Design two automated repair policies: (A) localized minimal-edit repair that restricts suggested changes to device-scoped diffs and prefers smallest syntactic edits; (B) unconstrained iterative repair where the LLM can rewrite multi-device sections. Use a curated set of 200 failure-prone tasks derived from intent ambiguities and policy conflicts on mid-sized topologies (10–30 nodes). For each task, run initial generation, then apply each policy up to 5 iterations; if verifier still fails, record as requiring human intervention. Measure total edits, human-intervention flag, and time. Preregister definitions for 'edit', 'human intervention', and stopping rules.",
+      "expected_data": "Per-task: policy type, number of iterations, total edit count (lines changed), verifier acceptance (bool), human-intervention required (bool), edit semantic categories (routing, ACL, interface), and final verdict. Aggregated counts of interventions and edit distributions across policies.",
+      "primary_outcome": "Proportion of tasks requiring human intervention under localized policy vs unconstrained policy within the same iteration budget.",
+      "analysis_outline": "Compare proportions requiring human intervention using two-proportion z-test or exact test; compare median edit counts with Wilcoxon tests. Fit logistic regression predicting human-intervention requirement from policy, task complexity, and topology size. Identify repair-budget threshold where intervention rate increases nonlinearly (change-point analysis). Report confidence intervals and sensitivity to edit-definition choices.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4320165837",
+        "https://openalex.org/W4388629193"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344"
+      ],
+      "risks": [
+        "Defining and measuring 'minimal edit' may be ambiguous and influence results.",
+        "LLM behavior may be highly prompt-sensitive causing variability across seeds.",
+        "Human-intervention proxy (binary) is coarse and may miss low-effort human review burden."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "cand-2026-03",
+      "title": "Robustness of LLM-driven NetOps pipelines to adversarial/malicious intents and prompt-injection: effectiveness of verifier-gating and input sanitization",
+      "research_question": "How effective are verifier-gating and input-sanitization defenses at preventing adversarial or prompt-injection crafted intents from causing unsafe or policy-violating network configurations in LLM-driven NetOps pipelines?",
+      "hypotheses": [
+        "Verifier-gating (rejecting any config failing deterministic safety checks) will prevent the majority of adversarially induced unsafe configurations from being accepted for deployment.",
+        "Input-sanitization (structured intent templates + intent validation) combined with verifier-gating will reduce the rate of adversarial successful attacks relative to no defenses more than either defense alone."
+      ],
+      "proposed_design": "Adversarial robustness study. Construct a set of 150 adversarial intents crafted to induce unsafe configurations (e.g., open ACLs, route leaks, unauthorized BGP advertisements) using automated mutation heuristics and manual seeding. Implement four pipeline variants: (1) baseline LLM-only, (2) LLM + verifier-gating (block on safety check fail), (3) LLM + input-sanitization (template enforcement + validation) without gating, (4) combined sanitization + verifier-gating. For each adversarial intent, run each variant and record whether the final configuration passes deployability/safety properties or would have been blocked. Use deterministic verifiers to label safety violations. Predefine adversarial generation procedure and threat model. Measure attack success rate per variant.",
+      "expected_data": "Per-intent, per-variant records: attack success (unsafe config accepted), verifier-detected violation types, whether input-sanitization altered intent or caused task rejection, false-positive blocking of benign intents (using a control benign set), and time-to-block.",
+      "primary_outcome": "Difference in adversarial attack success rate between combined defenses and baseline (absolute reduction).",
+      "analysis_outline": "Compute attack success rates and compare variants using McNemar’s or paired proportion tests; estimate relative risk reduction with 95% CIs. Evaluate false-positive blocking on a matched benign intent set to assess defense utility cost; report ROC-like trade-offs. Conduct subgroup analyses by attack class. Document representative adversarial examples and failure modes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.36227/techrxiv.175416873.36395198/v1",
+        "https://openalex.org/W4388629193"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W4320165837"
+      ],
+      "risks": [
+        "Adversarial intent generation may not cover real-world attack creativity, limiting external validity.",
+        "Defenses may produce operational false positives that are unacceptable in practice.",
+        "Ethical risk: creating adversarial examples requires careful safeguards to avoid misuse; must keep dataset controlled and non-public."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-2026-04",
+      "title": "Operational correctness metric suite: defining and validating deployability, safety, and repairability metrics for LLM-generated network configurations",
+      "research_question": "Can a compact, operationally grounded metric suite (deployability, safety, verifier-distance, and repairability) reliably discriminate between LLM-driven NetOps approaches and predict downstream human-review effort and deployment risk?",
+      "hypotheses": [
+        "A metric suite combining (a) deterministic verifier pass/fail (safety), (b) deployability score (syntactic+dependency checks), (c) verifier-distance (number/type of verifier faults), and (d) repairability (estimated minimal edits) will correlate with measured human-review time and intervention frequency and discriminate between pipelines.",
+        "The metric suite will show higher predictive power for human-review effort than simple syntactic-match metrics or BLEU-like text similarity measures."
+      ],
+      "proposed_design": "Design and formalize four metrics with machine-readable definitions: safety (binary verifier pass), deployability score (weighted checklist of syntactic correctness, interface consistency, dependency resolution), verifier-distance (count and severity-weighted faults), and repairability estimate (automated minimal-edit heuristic). Collect 300 configurations from varied pipelines (LLM-only, generate–verify–repair, constrained templates) across tasks and have a blinded set of network operators (or simulated human-review time model) provide human-review time labels using a standardized rubric or a validated simulator. Evaluate metric correlations with human-review time and intervention flags and compare predictive performance to baseline text-similarity metrics.",
+      "expected_data": "Per-configuration: metric values, human-review time label or simulated equivalent, intervention flag, pipeline source, topology/task metadata. Aggregated correlation matrices, AUC/ROC for intervention prediction, and error analyses.",
+      "primary_outcome": "Spearman correlation between aggregated metric suite score and human-review time; comparison of AUC for intervention prediction between metric suite and baseline text-similarity metrics.",
+      "analysis_outline": "Compute Spearman and Pearson correlations, fit linear and logistic regression models predicting human-review time and intervention from metrics, report R^2 and AUC with 95% bootstrap CIs. Perform ablation to measure contribution of each metric component. Test statistical significance of difference in predictive performance vs baseline using DeLong’s test for AUCs where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4383605161"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344"
+      ],
+      "risks": [
+        "Human-review time labels may be noisy; recruiting operators may be infeasible—requiring validated simulators that may imperfectly model reviewers.",
+        "Metric definitions may bias results if weighted poorly; requires sensitivity analysis.",
+        "Combining heterogeneous metric scales may require arbitrary normalization choices."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand-2026-05",
+      "title": "Generalization limits: how topology size and protocol diversity affect LLM+verifier pipeline performance",
+      "research_question": "How does the verifier-accepted rate and repair iteration count of an LLM+verifier pipeline scale as topology size increases and as protocol/vendor diversity grows, and is there a measurable topology/protocol threshold where performance degrades sharply?",
+      "hypotheses": [
+        "LLM+verifier acceptance probability will decrease as topology size increases, producing a measurable negative association.",
+        "There exists a topology-size and protocol-diversity region beyond which verifier-accept rate declines nonlinearly (threshold effect) given the same model and prompt set."
+      ],
+      "proposed_design": "Scaling study. Generate intent-to-configuration tasks across systematically varied topology sizes (small 5–10 nodes, medium 20–50, large 100–200 simulated nodes) and protocol mixes (single protocol vs mixed BGP+OSPF+MPLS) and across 3 simulated vendor CLIs. For each task run the same LLM+verifier pipeline with up to 5 automated repair iterations. Sample 50 tasks per topology/protocol/vendor cell (balanced design) giving ~1350 runs. Measure verifier acceptance, iterations, time, and types of faults. Preregister topology generation procedures, sampling, and seed policies.",
+      "expected_data": "Acceptance rates and median repair iterations by topology size, protocol diversity, and vendor count; per-task fault distributions; aggregate heatmaps of performance metrics across the design grid.",
+      "primary_outcome": "Association between topology size (continuous) and verifier acceptance probability; identification of any nonlinearity/change-point in acceptance vs size.",
+      "analysis_outline": "Model acceptance probability with logistic regression including topology size, protocol diversity, vendor count, and interactions; perform generalized additive modeling (GAM) to detect nonlinear trends and change-point analysis to identify thresholds. Report estimated probability curves with 95% CIs and compute sample-size adjusted effect estimates. Secondary: survival analysis for iterations-to-accept.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W1882012874",
+        "https://openalex.org/W158224344"
+      ],
+      "risks": [
+        "Simulating very large topologies may strain verifier tools or require approximations affecting validity.",
+        "LLM token/context limits may confound topology-scaling effects unless configuration partitioning strategies are employed.",
+        "Results may depend heavily on the chosen simulated vendor syntaxes and not generalize to real vendor diversity."
+      ],
+      "estimated_model_calls": 3000
+    }
+  ]
+}

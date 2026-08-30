@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, preregistered confirmatory study of template-based input sanitization + deterministic verifier-gating (with limited automated repair) on synthetic adversarial NetOps intents. Artifacts and analysis are archived; primary paired McNemar test (n=141 pairs, n10=6, n01=0) yields a small but statistically detectable absolute increase in validator-accepted configurations (≈0.0426, p=0.03125, 95% bootstrap CI excludes zero). Study limitations (synthetic tasks, single model/validator, unexecuted benign-control) are acknowledged.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Mandatory Disclosure Statement currently contains execution-level artifacts (several SHA‑256 values and detailed accounting) and reads partially like an execution log; per track rules the Disclosure must be concise and must not duplicate run-internal log detail in prose.",
+    "Manuscript must explicitly and prominently state in Methods (and, concisely, at the end of Introduction) that the study used shared_initial_candidate semantics and therefore paired-condition differences arise solely from post-generation sanitization/repair and validator gating rather than differing first-pass sampled generations. The current manuscript discusses this, but the explicit statement must appear in the Methods subsection that defines the estimand so readers cannot misread the paired comparison.",
+    "The preregistered benign-control and the false-positive-blocking secondary estimand were not executed. Although the omission is reported, the manuscript must place this fact more prominently in Methods and Results (not only in Limitations/Disclosure) and must remove or rephrase any language that could be read as implying results about benign-input blocking or attack-success beyond the archived formal estimand (validator-accepted-for-deployment)."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement to a concise summary that reports the required items (models, orchestration, master-prompt reference, preregistration reference, statement of autonomy boundary, and note that full run artifacts and hashes are archived). Remove non-required execution-log detail and per-file hashes from the in-manuscript Disclosure prose (those remain acceptable in the archived evidence bundle).",
+    "Add an explicit, unambiguous sentence in Methods (and repeat as a short clause at the end of the Introduction) stating: 'We used shared_initial_candidate generation semantics; the same initial sampled candidate was reused for paired Baseline and Guarded conditions, so any paired differences derive from post-generation sanitization, verifier-gating, or the permitted repair stage rather than from differing first-pass model samples.'",
+    "Prominently report the unexecuted preregistered benign-control (M=50) and false-positive-blocking analysis in Methods and Results (not only in Disclosure/Limitations). Remove any phrasing that could be interpreted as claiming reduced false-positive blocking or improved attacker-success without the executed analyses; keep all claims strictly bounded to the archived formal estimand (validator acceptance)."
+  ],
+  "optional_revisions": [
+    "Briefly expand the Results paragraph that describes the six discordant (n10) cases with a short, concrete example (archived trace reference and path/hash) to illustrate the repair/sanitization mechanism that enabled acceptance (no new experiments required).",
+    "Add a short discussion sentence about practical significance given the high baseline acceptance rate (ceiling effect) and the small absolute effect size, explicitly advising cautious operational interpretation.",
+    "Ensure all in-text citations use IEEE bracketed numbering and verify that reference numbers in the bibliography map to the archived verified records (this appears satisfied in the evidence bundle; include one-line verification in the revision log)."
+  ],
+  "accept_for_finalisation": false
+}

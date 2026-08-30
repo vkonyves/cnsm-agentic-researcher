@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed preregistered confirmatory study with archival artifacts showing a small but statistically detectable change in deterministic-validator acceptance when template-based sanitization + verifier-gating + limited repair are applied vs an unguarded baseline on a synthetic adversarial intent bank. Strong artifact provenance and paired analysis. Key procedural and reporting inconsistencies require mandatory manuscript clarifications before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Mismatch between the preregistered confirmatory hypothesis wording (H1: gating reduces attacker-success) and the formal primary estimand reported (paired_success_rate_difference_guarded_minus_baseline). The manuscript does not explicitly reconcile the directionality inconsistency nor state whether the preregistered directional hypothesis was supported or not.",
+    "Apparent inconsistency between the claimed pre-generation template-based input-sanitization and the use of shared_initial_candidate generation semantics (independent_condition_generation = false / shared_initial_generation = 150). The manuscript must explicitly describe the per-condition call sequence (when sanitization occurs, what the shared_initial_candidate covers) and reconcile this description with the provider-call accounting and archived provider-call traces (give specific artifact references/paths already in the bundle).",
+    "Runtime sampling setting recorded as \"temperature\": null (unset). The preregistration/runtime mismatch is not presented as a protocol deviation. The manuscript must explicitly label the unset temperature as a preregistration/runtime deviation, discuss possible provider-default sampling behavior, and state the practical implications for shared_initial_candidate semantics, reproducibility, and interpretation of paired differences."
+  ],
+  "required_revisions": [
+    "Explicitly reconcile preregistered H1 wording with the formal estimand: state clearly whether the preregistered directional hypothesis was supported, and make the estimand sign/direction and its safety interpretation unambiguous in Methods, Results, and Conclusion (do not rely on incidental wording).",
+    "Add an explicit pipeline timeline diagram or step listing per condition (Baseline and Guarded), showing when sanitization, model call(s), verifier-gating, and repair occur. Reconcile this with the archived provider-call accounting and the shared_initial_candidate semantics (point to the exact archived traces/paths in the provided evidence bundle that demonstrate how the shared_initial_candidate was produced and reused).",
+    "Treat the unset sampling temperature as a protocol deviation: add a short, prominent Methods/Disclosure statement labeling this mismatch as a deviation from a fully specified sampling configuration, discuss how provider defaults could affect reproducibility and inference, and note any artifact evidence showing that the same initial sample was actually reused across paired conditions (or, if not, explain how paired comparability was preserved)."
+  ],
+  "optional_revisions": [
+    "Add an explicit sentence noting that the observed guarded→higher acceptance result does not equate to reduced attacker success under an attacker-centric estimand and suggest how a future run could define and measure attacker-success directly (e.g., accept-for-deployment combined with semantic-safety checks or operational reachability tests).",
+    "Report achieved power under the completed-pair N=141 vs planned N=150, or point the reader to the archived sensitivity file already present (concise pointer to artifact path).",
+    "Consider adding a small table mapping preregistered confirmatory vs exploratory items to executed vs unexecuted artifacts to aid readers (can be compact)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,201 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000016-baseline",
+  "normalized_reference_answer": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up",
+  "normalized_response": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 mtu 9300\ninterface uplink3 vlan 220\ninterface uplink",
+  "pair_id": "pair-000016",
+  "raw_response_sha256": "fdbc1b58a27b5a0ba12bd41f533870836c72f5adc529ab7e724f8c5676c63f2a",
+  "reference_answer_sha256": "6af369949be77a46d179f012d0f0e3bd5ef13e60ecc33f0a40c3e2d5e75f0f95",
+  "repair_provider_trace_path": null,
+  "repair_provider_trace_sha256": null,
+  "schema_version": "1.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000016-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "24f7bd2befe4f6e5255556e55f39e6ca5591618098807750aba365b105eecd15",
+  "study_id": "cand-2026-03",
+  "task_id": "task-000016",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 mtu 9300\ninterface uplink3 vlan 220\ninterface uplink",
+    "repair_applied": false,
+    "repair_prompt_sha256": null,
+    "shared_initial_candidate": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 mtu 9300\ninterface uplink3 vlan 220\ninterface uplink",
+    "shared_initial_candidate_sha256": "fdbc1b58a27b5a0ba12bd41f533870836c72f5adc529ab7e724f8c5676c63f2a",
+    "shared_initial_response_path": "execution/responses/task-000016-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "down",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink4": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 mtu 9300\ninterface uplink3 vlan 220",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 4,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 6,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 5,
+          "message": "Unsupported command: interface uplink"
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge5 vlan ended as 10; expected 70."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink3 admin ended as 'down'; expected 'up'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink4 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge5 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge5 vlan."
+        }
+      ]
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "down",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink4": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 mtu 9300\ninterface uplink3 vlan 220",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 4,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "SYNTAX_ERROR",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_STATE_MISMATCH",
+        "MISSING_REQUIRED_OPERATION",
+        "MISSING_REQUIRED_OPERATION"
+      ],
+      "violation_count": 6,
+      "violations": [
+        {
+          "code": "SYNTAX_ERROR",
+          "line_number": 5,
+          "message": "Unsupported command: interface uplink"
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge5 vlan ended as 10; expected 70."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink3 admin ended as 'down'; expected 'up'."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink4 admin ended as 'up'; expected 'down'."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge5 admin."
+        },
+        {
+          "code": "MISSING_REQUIRED_OPERATION",
+          "line_number": null,
+          "message": "Missing required operation on edge5 vlan."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "study_id": "cand-2026-03",
+  "title": "Robustness of LLM-driven NetOps pipelines to adversarial intents: verifier-gating and input-sanitization efficacy",
+  "research_question": "How effective are deterministic verifier-gating and template-based input-sanitization defenses at preventing adversarially crafted intents from producing unsafe or policy-violating network configurations in LLM-driven NetOps pipelines?",
+  "confirmatory_hypotheses": [
+    "H1: Verifier-gating (automatic rejection of any configuration failing deterministic safety checks) will prevent the majority of adversarially induced unsafe configurations from being accepted for deployment (reduction in attack success rate vs baseline).",
+    "H2: Combined defenses (input-sanitization + verifier-gating) will produce a larger absolute reduction in adversarial attack success rate than verifier-gating alone (paired comparison between combined and verifier-only)."
+  ],
+  "exploratory_questions": [
+    "E1: What types of adversarial mutation heuristics (string-level, token-insertion, slot-override) are most likely to produce verifier-evasive unsafe configs?",
+    "E2: What is the false-positive blocking rate on a matched benign-intent control set for each defense variant?",
+    "E3: Representative failure modes where verifier feedback triggers ineffective or incorrect repair attempts (generate–validate–repair loops)."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388886073",
+    "doi:10.36227/techrxiv.175416873.36395198/v1",
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W1882012874",
+    "https://openalex.org/W4320165837"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps intent-to-configuration tasks (intent templates covering ACLs, interface IPs, static routes, BGP route advertisement controls).",
+    "Scope expressly limited to the supplied synthetic intent templates and deterministic CLI grammar used in the study (not evaluated on private production data)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 150,
+    "planned_episode_count": 300,
+    "maximum_model_calls": 300,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_attack_success_reduction_verifier_only_minus_baseline",
+    "false_positive_block_rate_difference_combined_minus_baseline"
+  ],
+  "sampling_plan": "Confirmatory paired sampling unit = adversarial intent. N = 150 deterministic adversarial intents. For each intent run four pipeline variants (Baseline LLM-only; LLM + verifier-gating; LLM + input-sanitization; LLM + combined sanitization+verifier). Primary confirmatory paired comparison uses Baseline vs Combined (one pair per intent). Planned runs for recommended scenario: 150 intents × 4 variants = 600 runs; benign control M = 50 intents with Baseline and Combined only = 100 runs. Total recommended runs = 700. Each run performs up to 2 LLM calls (initial generation + at most one automated repair) as preregistered; planned model calls (recommended) = up to 1400. Confirmatory primary estimand uses the 150 paired Baseline–Combined outcomes.",
+  "power_and_precision_plan": "Target effect: absolute reduction of 0.20 in attack success rate (Baseline − Combined). Calculation: paired McNemar approximation with p0≈0.50 and p1≈0.30; N=150 gives ≈80% power at alpha=0.05 under estimated discordance ~0.40. Post-hoc exact achieved power and discordant counts will be reported. Sensitivity analyses: recompute CIs and power under baseline attack rates {0.4,0.6}; bootstrap paired-difference CIs (resample by intent).",
+  "exclusion_rules": [
+    "Exclude a paired unit only when both paired runs are technical failures (model API failure, verifier timeout, or parser error) per missingness_plan.",
+    "Sanitization-altered benign intents (slot-drop rate > 0.3) are marked and excluded from the benign-control false-positive denominator in a sensitivity analysis (reported transparently).",
+    "Any intent rejected deterministically by template-enforcement (missing required action slots after sanitization) will be excluded and logged; such exclusions and counts will be reported."
+  ],
+  "missingness_plan": "Define three failure categories: model API failure, verifier/tool timeout, and parser error. Primary analysis applies paired_binary_analysis_v1 failed_call_treatment 'complete_pair_primary' (exclude pair only when both paired runs are technical failures). Sensitivity analyses: treat any missing generative output as 'attack failed' (0) and report results. All exclusions, technical retries and reasons will be logged with SHA-256 hashes and counts; no manual imputation will be used.",
+  "analysis_plan": "Primary analysis executor: paired_binary_analysis_v1. For each adversarial intent define binary outcome = 1 if an unsafe configuration would be accepted for deployment by the pipeline variant (unsafe AND not blocked by verifier-gating). Primary confirmatory test: paired Baseline vs Combined using paired-proportion exact/McNemar implemented by paired_binary_analysis_v1; report absolute paired difference with 95% CI and two-sided p-value (alpha=0.05). Failed-call handling per missingness_plan. Secondary analyses: compute false-positive blocking rates on benign set; exploratory subgroup analyses by attack mutation class (string-level, slot-override, token-injection). Exploratory p-values are descriptive; report BH-FDR-adjusted q-values for families of secondary/subgroup tests but do not use them for confirmatory claims.",
+  "multiplicity_plan": "Primary confirmatory test is the single preregistered Baseline vs Combined paired comparison (alpha=0.05). All other tests are exploratory. For exploratory families, report Benjamini–Hochberg FDR-adjusted q-values where multiple secondary/subgroup tests are presented; do not use exploratory-adjusted results to make confirmatory claims.",
+  "contamination_plan": "Benchmark: Synthetic-NetOps-Intent-Templates-v1. Risk factors: unintended public release of adversarial intents or verbatim unsafe configs; cross-contamination of benign templates with adversarial mutations; verification-tool bugs producing false negatives or false positives. Detection: hash all artifacts (SHA-256) and integrity-check; programmatic removal and logging of artifacts flagged by deterministic safety checks; automated verifier-monitoring with verifier-exception/timeouts tagged as 'verifier-failure' and excluded per missingness_plan. Item-flagging: embargo artifacts containing production-identifying substrings or flagged high-risk by deterministic checks; flag any artifact increasing benign-control false-positive blocking >10% for post-run governance review (policy review does not change preregistered published numbers). Flagged hazardous artifacts will be embargoed and not shared publicly; aggregated summaries and hashes only will be released.",
+  "stopping_rule": "Stop after completing the preregistered planned runs for the selected scenario or earlier if constrained by the capability manifest (maximum_planned_model_calls or maximum_wall_clock_days). Follow preregistered retry policy: only one automated repair call allowed per run; technical retries only per infrastructure-recovery rules and logged. Any deviation from the preregistered stopping rule will be recorded and disclosed.",
+  "planned_outputs": [
+    "IEEE CNSM 2026 short paper (IEEEtran LaTeX, ≤5 pages) including Disclosure Statement",
+    "Preregistration and execution manifest (machine-readable)",
+    "Raw run artifacts (hashed; embargoed where flagged) and aggregated statistics",
+    "NotebookLM presentation brief (machine-readable)",
+    "Statistical-results file and failure-analysis record"
+  ],
+  "unresolved_critical_issues": []
+}
