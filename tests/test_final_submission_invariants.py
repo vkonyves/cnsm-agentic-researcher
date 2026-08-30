@@ -51,3 +51,35 @@ def test_publication_hygiene_removes_non_bmp_unicode_for_pdflatex():
     ).read_text(encoding="utf-8")
 
     assert r'[\U00010000-\U0010FFFF]' in source
+
+
+def test_adapter_does_not_claim_deterministic_model_sampling():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/"
+        "hosted_netops_adapter.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"guarantees_deterministic_model_sampling": False' in source
+    assert '"generation_semantics": (' in source
+    assert '"shared_initial_candidate"' in source
+
+
+def test_preregistration_rejects_unsupported_sampling_determinism():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "deterministic_sampling_claims = (" in source
+    assert '"temperature=0"' in source
+    assert '"guarantees_deterministic_model_sampling"' in source
+    assert "shared_initial_candidate" in source
+
+
+def test_preregistration_rejects_unfrozen_holdout_seed_claim():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"holdout" in prereg_text' in source
+    assert '"fixed seed" in prereg_text' in source
+    assert 'adapter_contract.get("holdout_selection_seed") is None' in source

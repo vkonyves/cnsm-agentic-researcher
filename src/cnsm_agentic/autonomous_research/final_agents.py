@@ -21,8 +21,20 @@ PREREGISTRATION_AGENT = Agent(
         "question, hypotheses, estimands, evidence scope, sampling "
         "logic, missingness plan, multiplicity plan, contamination "
         "plan, and stopping rule. Treat the frozen capability "
-        "manifest as a hard constraint and do not introduce "
-        "unavailable execution dependencies."
+        "manifest and registered adapter contract as hard constraints "
+        "and do not introduce unavailable execution dependencies. "
+        "Never equate shared_initial_candidate pairing with deterministic "
+        "LLM sampling. Do not claim temperature=0, fixed-temperature "
+        "sampling, deterministic model generation, deterministic initial "
+        "LLM output, eliminated sampling variance, or any other sampling "
+        "guarantee unless the registered adapter contract explicitly "
+        "guarantees that property. When model sampling is not guaranteed "
+        "deterministic, preregister one initial model generation per task "
+        "shared unchanged across paired conditions and state that runtime "
+        "sampling parameters are recorded during execution. Likewise, do "
+        "not claim a fixed random seed for any holdout, subgroup, task "
+        "selection, or randomization unless that seed is concretely "
+        "represented in the supplied machine-readable execution contract."
     ),
 )
 
@@ -399,6 +411,19 @@ PEER_REVIEWER = Agent(
         Do not keep the manuscript blocked merely to request redundant raw
         artifact paths, filenames, hashes, or repeated copies of the same
         disclosure when those conditions are satisfied.
+
+        Runtime sampling semantics must be described literally from the
+        archived model configuration. A null/unset temperature is not evidence
+        of temperature=0 or deterministic model sampling. The
+        shared_initial_candidate design means that the same sampled initial
+        candidate is reused across paired conditions; therefore initial-sample
+        variation cannot create a between-condition difference within that
+        pair, but model sampling variance is not globally eliminated.
+        Deterministic validator, task-generation, transformation, and
+        accounting checks must not be presented as evidence of deterministic
+        hosted-model sampling. A preregistration/runtime mismatch in sampling
+        settings must be disclosed as a protocol deviation rather than
+        silently reconciled.
 
         For publication-style closure, treat citation/reference formatting,
         artifact-path cleanup, hash cleanup, and Disclosure Statement

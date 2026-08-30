@@ -67,6 +67,13 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
         "generation_semantics": (
             "shared_initial_candidate"
         ),
+        # Pairing semantics are deterministic, but the registered adapter
+        # does not guarantee deterministic model sampling at preregistration
+        # time. Runtime sampling parameters are recorded separately.
+        "guarantees_deterministic_model_sampling": False,
+        "sampling_parameter_policy": (
+            "runtime_value_recorded_in_model_configuration"
+        ),
         "independent_condition_generation": False,
         "initial_generation_calls_per_task": 1,
         "maximum_repair_calls_per_task": 1,

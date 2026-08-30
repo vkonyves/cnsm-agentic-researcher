@@ -1868,6 +1868,59 @@ def preregistration_execution_contract_issues(
         ]
     ).lower()
 
+    # The paired adapter guarantees reuse of one initial candidate across
+    # conditions. That does not imply deterministic sampling by the hosted
+    # model. Preregistration must not invent stronger sampling guarantees
+    # than the registered adapter provides.
+    deterministic_sampling_claims = (
+        "temperature=0",
+        "temperature = 0",
+        "temperature of 0",
+        "zero temperature",
+        "deterministic initial llm output",
+        "deterministic initial model output",
+        "deterministic llm generation",
+        "deterministic model generation",
+        "deterministic initial generation",
+        "sampling variance eliminated",
+        "eliminate sampling variance",
+    )
+
+    if (
+        not adapter_contract.get(
+            "guarantees_deterministic_model_sampling",
+            False,
+        )
+        and any(
+            phrase in prereg_text
+            for phrase in deterministic_sampling_claims
+        )
+    ):
+        issues.append(
+            "Preregistration claims deterministic hosted-model sampling "
+            "(for example temperature=0 or deterministic initial model "
+            "generation), but the selected adapter contract guarantees "
+            "only shared_initial_candidate pairing and does not guarantee "
+            "deterministic model sampling. Preregister one initial model "
+            "generation per task shared unchanged across conditions and "
+            "report the runtime sampling parameters after execution."
+        )
+
+    # A textual promise of a fixed randomized holdout seed is invalid unless
+    # that seed is actually represented by the registered execution contract.
+    if (
+        "holdout" in prereg_text
+        and "fixed seed" in prereg_text
+        and adapter_contract.get("holdout_selection_seed") is None
+    ):
+        issues.append(
+            "Preregistration claims a fixed holdout-selection seed, but "
+            "the selected adapter contract contains no machine-readable "
+            "holdout_selection_seed. Remove the unsupported fixed-seed "
+            "claim or use an execution contract that explicitly freezes "
+            "and records that seed."
+        )
+
     if (
         adapter_contract.get("supports_multi_model_consensus", False) is False
         and any(phrase in prereg_text for phrase in (
