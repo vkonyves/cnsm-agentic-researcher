@@ -415,3 +415,24 @@ def test_final_closure_preserves_mandatory_master_prompt_reference():
     assert "provenance/master_prompt.txt" in source
     assert "exactly one full SHA-256" in source
     assert "do not reject or" in source
+
+
+
+def test_post_hygiene_recovery_has_sufficient_bounded_attempts():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "maximum_post_hygiene_underfill_attempts = 12" in source
+
+
+def test_post_hygiene_recovery_demands_substantive_cumulative_expansion():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "MULTIPLE cumulative" in source
+    assert "substantive additions" in source
+    assert "difficulty-stratified or workflow-pattern" in source
+    assert "failure-mode analysis grounded in archived" in source
+    assert "do not invent measurements" in source

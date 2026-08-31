@@ -98,9 +98,9 @@ def test_underfill_recovery_rerenders_before_final_audits():
     assert recovery < rerender_marker < final_audit_comment
 
 
-def test_underfill_recovery_is_bounded_to_five_attempts():
+def test_underfill_recovery_is_bounded():
     assert (
-        "maximum_post_hygiene_underfill_attempts = 8"
+        "maximum_post_hygiene_underfill_attempts = 12"
         in SOURCE
     )
     assert (
