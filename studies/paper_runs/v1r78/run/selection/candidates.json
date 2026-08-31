@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-001-hfcg",
+      "title": "Evaluating CFG-constrained Decoding for Semantic Correctness in Multi-vendor Network CLI Generation",
+      "research_question": "Does CFG-/grammar-constrained decoding applied to LLMs reduce semantic misconfiguration rates (inter-command and vendor-specific semantics) compared to unconstrained generation across heterogeneous vendor CLI tasks?",
+      "hypotheses": [
+        "Applying CFG-constrained decoding to LLM outputs will produce a lower semantic misconfiguration rate on multi-vendor CLI generation tasks than unconstrained LLM generation."
+      ],
+      "proposed_design": "Create an emulated testbed of representative multi-vendor devices (Cisco IOS, Juniper Junos, Arista EOS) and a corpus of operator intents. Implement: (1) baseline LLM prompting producing raw CLI; (2) same LLM with CFG-constrained decoding enforcing vendor grammars; (3) a verifier-only pipeline (LLM → validator). For each intent, collect generated configurations and run them in the emulator to detect semantic violations (reachability, ACL semantics, BGP neighbor mismatches). Preregister grammar definitions, decoder settings, model temperature, and inclusion/exclusion rules. Use paired sampling: each intent receives outputs from all three pipelines with fixed seeds.",
+      "expected_data": "Per-intent outputs from three pipelines; binary labels per output for semantic misconfiguration types (routing policy violation, ACL semantic error, neighbor misbind); counts of syntactic parse failures; execution traces from emulated devices; per-output generation metadata (tokens, decoder constraints used).",
+      "primary_outcome": "Difference in semantic misconfiguration rate (proportion of outputs causing at least one semantic violation) between CFG-constrained decoding and unconstrained generation across the intent set.",
+      "analysis_outline": "Compute per-intent paired proportions of semantic failure for each pipeline. Use McNemar's test or paired proportion test to compare CFG-constrained vs unconstrained. Report absolute and relative risk reductions with 95% CI. Secondary analyses: compare syntactic parse-failure rates, and stratify by vendor and intent complexity. Report false-negative rate of the semantic validator where ground truth available.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7163598066",
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W4416033842"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163598066",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4416033842"
+      ],
+      "risks": [
+        "Vendor grammar incompleteness leading to false constraints and functional regression.",
+        "Emulator mismatch with real device semantics causing misestimation of semantic errors.",
+        "CFG constraints producing over-constrained (incomplete) outputs that break intended intent.",
+        "Decoder implementation bugs or tokenization mismatches across vendors."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-002-gvrp",
+      "title": "End-to-end Efficacy of Generate–Verify–Repair Pipelines for Preventing Misconfigurations",
+      "research_question": "To what extent does a generate–verify–repair pipeline (LLM → structured validator → automated repair loop) reduce net operationally relevant misconfigurations compared to LLM-only and LLM+validator-without-repair baselines in emulated NetOps scenarios?",
+      "hypotheses": [
+        "A generate–verify–repair pipeline will yield a lower final operational misconfiguration rate after repair iterations than either LLM-only generation or LLM followed by a non-automated validator (no automated repair)."
+      ],
+      "proposed_design": "Using an emulated topology corpus (diverse intents), implement three arms: (A) LLM-only generation and direct emulation; (B) LLM→validator that flags but does not modify outputs (human-in-loop simulated accept/reject via fixed policy); (C) LLM→validator→automated repair loop where the validator returns structured error signals and the LLM performs constrained repair iterations up to N attempts. Freeze validator logic, repair prompt templates, maximum repair attempts, and acceptance thresholds before execution. Record outcomes per attempt and final emulation results.",
+      "expected_data": "Per-intent sequences of generated configs, validator error labels, repair iterations and deltas, final emulation pass/fail for operational checks, time/iteration counts, and instances where repairs introduced new semantic errors.",
+      "primary_outcome": "Final operational misconfiguration rate (proportion of intents whose final applied config fails operational checks) for the generate–verify–repair pipeline versus the two baselines.",
+      "analysis_outline": "Compare final misconfiguration proportions across arms using chi-square or Fisher's exact test; compute number-needed-to-repair (average repair iterations to achieve pass) and repair-induced regression rate. Time-to-resolution distributions compared with nonparametric tests. Sensitivity analyses by intent class and validator error types. Report per-intent paired comparisons where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4414170000",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4414170000",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7204209332"
+      ],
+      "risks": [
+        "Automated repairs may introduce novel semantic errors (repair regressions).",
+        "Validator coverage gaps may leave critical errors undetected.",
+        "Simulated human-in-loop policy may not reflect real operator decision rules, biasing comparisons.",
+        "Repeated model calls could exploit LLM memorization producing degenerate repairs."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-003-transfer",
+      "title": "Transferability of Emulation-derived Failure Modes to Noisy, Production-like NetOps Environments",
+      "research_question": "How well do failure modes and misconfiguration rates observed in emulation-based benchmarks transfer to production-like conditions with noisy telemetry, partial topology visibility, and legacy device behaviors?",
+      "hypotheses": [
+        "Failure-mode distributions (types and frequencies) observed in emulated benchmark runs will differ significantly from those measured under production-like noise, reduced visibility, and legacy-device behavior simulations.",
+        "Certain classes of failures (e.g., planning/specification adherence) will be stable across environments, while low-level syntax errors will be less predictive of production risk."
+      ],
+      "proposed_design": "Select a representative set of intents and device types. Run identical LLM-based pipelines in: (1) clean emulator (benchmark baseline), (2) emulator augmented with telemetry noise and partial topology views, and (3) emulator augmented with legacy device command subtleties and rate-limiting behaviors. Measure and label failures by class (syntax, semantic inter-command, planning/specification mismatch, execution-time error). Predefine noise models, visibility masks, and legacy behavior injection rules. Compare distributions and per-intent concordance.",
+      "expected_data": "Per-environment failure labels for each output, counts and proportions by failure class, per-intent concordance matrices, and examples of mismatched failure outcomes with execution traces and telemetry samples.",
+      "primary_outcome": "Concordance (e.g., Cohen’s kappa or balanced agreement metric) between failure-mode labels from baseline emulation and production-like noisy/legacy conditions; and differences in failure-class proportions across environments.",
+      "analysis_outline": "Compute per-intent and aggregated agreement metrics between baseline and each production-like environment. Use bootstrap CIs for concordance and proportion differences. Conduct subgroup analyses by intent complexity and vendor. Identify failure classes with highest and lowest transferability and quantify prediction error when using benchmark-derived models to forecast production failures.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4413267864",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4413267864",
+        "https://openalex.org/W7118532765"
+      ],
+      "risks": [
+        "Injected noise models may not capture real-world operator processes, limiting external validity.",
+        "Legacy-device behavior emulation may be incomplete, producing false negatives/positives.",
+        "Data labeling for semantically subtle failures may be subjective without rigorous annotation protocol.",
+        "Results may overfit the chosen noise/legacy models and not generalize to other operator sites."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-004-threats",
+      "title": "Empirical Evaluation of RAG- and Tool-Poisoning Threats and Defenses in Agentic NetOps Pipelines",
+      "research_question": "What are the measurable impacts of retrieval-augmentation (RAG) poisoning and tool-interface poisoning on LLM-driven NetOps pipelines, and which pragmatic mitigations (source vetting, validator hardening, constrained tool interfaces) measurably reduce attack success rates?",
+      "hypotheses": [
+        "RAG-poisoning and malicious tool outputs can increase operational misconfiguration rates relative to clean pipelines.",
+        "Combining source vetting for retrieval, strict validator hardening, and constrained tool interfaces will significantly reduce attack success rates compared to any single mitigation alone."
+      ],
+      "proposed_design": "Construct an instrumented agentic NetOps pipeline with retrieval, tool execution (simulated config snippets), and validator. Define attack scenarios: (A) poisoned retrieval documents that alter intent semantics; (B) malicious tool responses that inject unsafe commands; (C) combined attacks. Define mitigations: provenance-based retrieval vetting, validator rule hardening, and minimal-capability tool sandboxes. Execute the pipeline under clean and attacked conditions with and without mitigations. Predefine attack payloads and detection thresholds. Measure attack success as resulting operational misconfiguration in emulation.",
+      "expected_data": "Per-scenario attack success counts, types of misconfigurations induced, provenance/vetting flags, validator alerts, false-positive mitigation costs (blocked benign outputs), and time-to-detection metrics.",
+      "primary_outcome": "Reduction in attack success rate (proportion of attacked runs resulting in operational misconfiguration) when using the combined mitigations versus unmitigated baseline.",
+      "analysis_outline": "Compare attack success proportions across attack types and mitigation configurations using proportion tests. Estimate mitigation-induced operational cost via false-block rate and human-review workload proxies. Perform ablation to measure marginal benefit of each mitigation. Report detection latency distributions and cases of mitigation failure with qualitative failure analysis.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7118532765",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W7161354925"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4414170000"
+      ],
+      "risks": [
+        "Simulated poisoning attacks may not capture adversary creativity in real deployments.",
+        "Mitigation strategies may incur high operational false-positive rates, degrading operator trust.",
+        "Ethical/security handling of attack payloads must avoid misuse — experiments must remain in closed emulation.",
+        "Mitigations evaluated in emulation may not scale or integrate with real retrieval/tool ecosystems."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

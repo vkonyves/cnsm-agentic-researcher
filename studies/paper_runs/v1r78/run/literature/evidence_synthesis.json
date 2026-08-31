@@ -1,0 +1,208 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models (LLMs) and agentic LLM systems exhibit hallucination and prompt-injection vulnerabilities that pose concrete risks when applied to operational tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118532765",
+        "https://openalex.org/W4411203672",
+        "doi:10.2139/ssrn.6956641",
+        "https://openalex.org/W4409576412"
+      ],
+      "evidence_type": "Literature survey and empirical vulnerability studies",
+      "confidence": 0.9,
+      "limitations": [
+        "Most evidence is from surveys, controlled experiments, and security analyses rather than large-scale production incident datasets.",
+        "Severity and frequency of failures depend on deployment architecture (e.g., RAG, tool access) which varies across studies."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Augmenting LLMs with tool interfaces, retrieval, validators, and human-in-the-loop gates is a recurring architectural pattern that improves operational safety and auditability in NetOps/AIOps contexts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4416711841",
+        "https://openalex.org/W7161354925",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "evidence_type": "System papers and framework descriptions",
+      "confidence": 0.85,
+      "limitations": [
+        "Reported improvements are architectural and qualitative in many papers; quantitative safety gains vary by implementation and are not yet standardized.",
+        "Production-readiness claims (e.g., long-term stability) are limited to specific deployments and may not generalize."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Constrained decoding and formal constraint-enforcement techniques (CFG-based, integer-programming or grammar-constrained) are viable mitigations to reduce syntactic and constraint violations in model-generated structured outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163598066",
+        "doi:10.20944/preprints202606.1011.v1",
+        "10.2139/ssrn.6116106",
+        "https://openalex.org/W4416033842"
+      ],
+      "evidence_type": "Method papers and decoding technique studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Evidence demonstrates feasibility on code/DSL and benchmark tasks; direct evaluations on multi-vendor network configuration DSLs are limited in the supplied records.",
+        "Strict constraints can interact poorly with model internal reasoning and may require cascaded or dual-phase designs to preserve semantics."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Executable, emulation-grounded benchmarks and closed-loop evaluation (e.g., NetConfArena, OpsEval) reveal that LLM-agent failures in network configuration tasks extend beyond simple command syntax errors and include planning, specification adherence, and execution failures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4413267864",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Benchmark and evaluation papers",
+      "confidence": 0.82,
+      "limitations": [
+        "Benchmarks are relatively recent and cover limited task suites; external validity to diverse production topologies and vendor mixes remains to be established.",
+        "Different benchmarks use different metrics and hidden tests, complicating direct comparison."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "Knowledge-graph and graph-based validators can detect inter-command dependency violations and improve validation accuracy compared to unstructured LLM outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4414170000"
+      ],
+      "evidence_type": "System/prototype paper (ConfigChecker)",
+      "confidence": 0.75,
+      "limitations": [
+        "Evaluation results are promising but confined to the datasets and extractors used by the paper; generalization to broader vendor command sets is not shown in the supplied record.",
+        "Performance depends on quality of the structured-extraction models and knowledge-graph coverage."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "How effectively do constrained-decoding and cascaded neuro-symbolic approaches reduce semantic (not only syntactic) misconfigurations across heterogeneous, multi-vendor network DSLs in realistic production topologies?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163598066",
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W4416033842"
+      ],
+      "evidence_type": "Method proposals with limited domain application",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing work demonstrates promise on code/DSL benchmarks but lacks direct empirical evaluation on diverse network-device configurations in the supplied records.",
+        "Semantic correctness requires deep vendor-specific semantics and cross-command reasoning that current constrained decoders may not fully capture."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What is the end-to-end empirical efficacy of generate–verify–repair pipelines (LLM → validator → automated repair loop) in preventing operational outages at scale?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4414170000",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Benchmark and prototype system reports",
+      "confidence": 0.45,
+      "limitations": [
+        "Supplied records include closed-loop benchmarks and prototypes but do not provide large-scale longitudinal production outage avoidance studies.",
+        "Repair efficacy likely depends on validator expressiveness and repair heuristics not standardized in current literature."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "How transferable are benchmark-derived failure modes (from emulated NetConfArena-like evaluations) to real operator environments with proprietary topologies, noisy telemetry, and human workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4413267864"
+      ],
+      "evidence_type": "Executable benchmark studies",
+      "confidence": 0.5,
+      "limitations": [
+        "Benchmarks simulate realistic tasks but necessarily abstract certain aspects of production environments (telemetry noise, operator processes, legacy interactions).",
+        "Empirical transferability studies are not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "What operational thresholds and human-in-the-loop gating policies optimally balance safety and operator efficiency when allowing LLM-agent proposals to actuate network changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416711841",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "System descriptions noting HITL design choices",
+      "confidence": 0.4,
+      "limitations": [
+        "Framework papers discuss HITL gating but do not supply controlled experiments establishing optimal trade-offs.",
+        "Optimal thresholds depend on site-specific risk tolerances and are not yet standardized."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Standardized, domain-specific evaluation metrics and benchmark suites for RAG/LLM-in-the-loop NetOps (covering semantic correctness, safety, rollbackability, and traceability) are insufficiently developed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4413267864",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "Survey and benchmark papers noting evaluation shortfalls",
+      "confidence": 0.82,
+      "limitations": [
+        "Some benchmarks (NetConfArena, OpsEval) exist but are recent and do not yet constitute a broadly accepted standard.",
+        "Cross-benchmark metric harmonization is not yet addressed in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Application of grammar-/CFG-constrained or integer-programming constrained decoding specifically tailored to network-device configuration languages (multi-vendor CLI DSLs) remains an under-explored engineering gap.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163598066",
+        "10.2139/ssrn.6116106",
+        "doi:10.20944/preprints202606.1011.v1"
+      ],
+      "evidence_type": "Decoding-method papers and general DSL studies",
+      "confidence": 0.7,
+      "limitations": [
+        "Decoding techniques have been demonstrated on code/DSL benchmarks; direct application and evaluation on full vendor CLI grammars are not reported in the supplied records.",
+        "Building complete grammars for vendor DSLs is engineering-intensive and may require proprietary specifications."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Reproducible, openly shared emulation-backed corpora of realistic operator intents, topologies, and failure-injection scenarios for NetOps LLM evaluation are still limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4413267864",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "Benchmark and survey literature",
+      "confidence": 0.78,
+      "limitations": [
+        "NetConfArena is a step forward but represents a single effort; broader collections and community curation are necessary for coverage across domains and vendors.",
+        "Public sharing may be constrained by operator privacy and proprietary topology concerns."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Operational threat models for agentic NetOps (including RAG poisoning, tool-poisoning, and registry-level selection biases) require more empirical study and standardized mitigations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7118532765",
+        "doi:10.2139/ssrn.6607420",
+        "https://openalex.org/W7161354925"
+      ],
+      "evidence_type": "Security surveys and registry/agent analyses",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing work documents attack vectors and marketplace design issues, but empirical attack/defense evaluations specifically on NetOps agent pipelines are limited in the supplied records.",
+        "Mitigation effectiveness often depends on end-to-end architecture and operational controls."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Any claim that Batfish or VeriFlow (network-version) was directly used to validate LLM-generated configurations in the supplied records (no supplied record documents Batfish-based LLM validation).",
+    "Claims of specific firsts or production-readiness for agentic NetOps beyond the scoped systems described (e.g., blanket statements that any cited framework is production-ready at Internet scale) — such broad production claims are not supported by the supplied records.",
+    "Specific numeric failure-rate claims for LLMs on closed-loop NetOps tasks (e.g., exact percent misconfiguration rates across vendor fleets) unless reported explicitly by the referenced benchmark papers (such granular production-wide numbers are not present among the supplied records).",
+    "Statements asserting that constrained decoding or CFG methods eliminate semantic misconfigurations entirely — the literature shows reduction in syntactic/constraint violations but not guaranteed semantic correctness."
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "selected_candidate_id": "cand-004-threats",
+  "title": "Empirical Evaluation of RAG- and Tool-Poisoning Threats and Defenses in Agentic NetOps Pipelines (Preregistered)",
+  "research_question": "What is the measurable reduction in attack success rate (operational misconfiguration) provided by a combined mitigation (retrieval-source vetting + validator hardening + constrained tool interface) versus an unmitigated baseline when a retrieval-augmented agentic NetOps pipeline is subjected to RAG-poisoning, tool-poisoning, and combined attacks in closed emulation?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): Under a predefined combined attack (RAG + malicious tool response), the combined mitigation reduces the proportion of attacked runs that produce an operational misconfiguration compared to the unmitigated baseline (paired design).",
+    "H2 (secondary): The combined mitigation's reduction in attack success rate is larger than any single mitigation (source vetting only, validator hardening only, sandboxed tool only) in the same emulation and threat-strength conditions."
+  ],
+  "exploratory_questions": [
+    "E1: How do attack success rates and mitigation effectiveness vary across attack types (A: RAG-only, B: tool-only, C: combined) when evaluated on a small exploratory sample?",
+    "E2: What operational cost (false-block rate measured as proportion of benign runs blocked) is induced by each mitigation and by the combined mitigation?",
+    "E3: What are common failure modes where the combined mitigation fails (e.g., validator coverage gaps, provenance evasion patterns)?"
+  ],
+  "benchmark_scope": [
+    "Closed-emulation NetOps tasks derived from public emulation benchmarks (NetConfArena-like scenarios), limited to synthetic topologies and vendor CLI DSL subsets included in the public benchmark artifacts referenced in evidence_record_ids.",
+    "Threat scenarios are synthetic and confined to the emulation; no real network or live devices are used."
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) available under the capability manifest (hosted_model_api_available). Exact model identifier(s) will be recorded and disclosed in the final manuscript execution manifest.",
+    "No local GPU models are required or assumed."
+  ],
+  "transformation_scope": [
+    "Parsing and canonicalization of LLM outputs into device-CLI snippets using deterministic parsers and grammar-based extractors constructed from public vendor CLI subsets.",
+    "Deterministic provenance scoring for retrieved documents (similarity + source allowlist) and deterministic validator rule-evaluation producing binary alerts."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_attack_success_rate_guarded",
+    "absolute_attack_success_rate_baseline",
+    "difference_in_false_block_rate_guarded_minus_baseline",
+    "marginal_benefit_single_mitigation_vs_baseline (exploratory)"
+  ],
+  "sampling_plan": "Confirmatory sample: n = 100 paired episodes (tasks) for the primary confirmatory comparison (attack scenario C: combined attack). Each paired episode runs the identical task under the same random seed twice: (1) unmitigated baseline pipeline and (2) combined-mitigation pipeline. Runs per paired episode = 2; total confirmatory runs = 100 * 2 = 200 runs. Average planned model calls per run = 6 (LLM generation(s) + retrieval call(s) + validator call(s) + tool-simulation call(s) + logging/metadata call(s)), therefore planned_model_calls_confirmatory = 200 * 6 = 1,200. Exploratory samples (ablation and attack-type sensitivity) are recorded as optional extensions and will be executed only under the low-budget scenario or if additional API budget is available; they are explicitly labeled exploratory and excluded from the primary confirmatory analysis unless preregistered budget is increased and the preregistration is updated before execution.",
+  "analysis_plan": "Primary confirmatory analysis will be executed by the registered 'paired_binary_analysis_v1' executor. Estimand: paired_success_rate_difference_guarded_minus_baseline on the n = 100 paired episodes (attack C). Primary failed-call treatment: 'complete_pair_primary' (pairs with any technical execution failure are excluded from the primary analysis); a sensitivity analysis using 'complete_pair_primary_with_failure_as_zero_sensitivity' (treating a failed guarded run as an attack success) will be reported. Exact tests: two-sided paired-proportion test (McNemar-approximation implemented by the registered executor) with alpha = 0.05; 95% confidence intervals for the paired difference will be reported. Exploratory analyses (ablation, other attack types) will use the same executor and report unadjusted descriptive statistics with corrections for multiple comparisons (see multiplicity_plan) and full disclosure of sample counts.",
+  "multiplicity_plan": "One primary confirmatory hypothesis only (H1). All other comparisons (H2 and exploratory analyses) are explicitly exploratory; where multiple exploratory hypothesis tests are reported on the same metric we will control the familywise error using Benjamini-Hochberg FDR at 0.05 or report raw p-values with explicit labeling as exploratory. No multiplicity correction will be applied to the single registered primary test.",
+  "missingness_plan": "Technical failures (API errors, timeouts, emulator crashes) are logged and classified. Primary analysis uses 'complete pair' treatment (exclude incomplete pairs). Sensitivity analysis will treat guarded-run failures as attack-success (conservative). All excluded pairs and their causes will be supplied in the execution manifest. No human adjudication is required; exclusion is deterministic based on execution logs.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "NetConfArena-like closed-emulation scenarios (public benchmark artifacts referenced in evidence_record_ids)"
+    ],
+    "risk_factors": [
+      "RAG poisoning via malicious retrieved documents that modify intent semantics",
+      "Tool-interface poisoning through malicious tool responses that inject unsafe CLI fragments",
+      "Combined, staged attacks that use retrieval to prime model and then malicious tool outputs to finalize commands"
+    ],
+    "detection_procedures": [
+      "Deterministic provenance scoring per retrieved document (vector-similarity + explicit source allowlist). Documents with provenance score below threshold T_prov are flagged automatically.",
+      "Deterministic content-anomaly detection on retrieved documents using rule-based heuristics (e.g., presence of tokens/phrases indicative of instruction injection patterns).",
+      "Validator alerting: deterministic rule-evaluation that produces binary 'critical' flags for outputs violating safety or cross-command invariants."
+    ],
+    "item_flagging_rules": [
+      "If provenance_score < T_prov OR content_anomaly=True then mark retrieval-flagged and exclude from main confirmatory stratum (treated as contaminated) and analyze separately.",
+      "If validator produces a 'critical' alert for generated configuration, the run is recorded as validator-detected; for primary estimand the resulting operational misconfiguration is assessed via emulator state (no human adjudication)."
+    ],
+    "analysis_treatment": "Flagged/contaminated runs are excluded from the primary confirmatory stratum (which measures mitigation effect on unflagged retrievals) and analyzed in a separate contamination-stratum report. Sensitivity analyses report results with flagged runs included and with flagged runs treated as attack successes. All treatments are deterministic and automated.",
+    "residual_uncertainty": [
+      "Automated provenance scoring may not detect sophisticated evasion; residual contamination risk remains and is reported in the limitations.",
+      "Emulator-only experiments may not capture production retrieval diversity; external validity is limited to the benchmark scope."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "rec-100",
+      "description": "Recommended confirmatory scenario focused on the primary preregistered comparison only (combined mitigation vs baseline on combined attack C).",
+      "planned_model_calls": 1200,
+      "models": [
+        "hosted-llm-api (identifier recorded in execution manifest)",
+        "retrieval-service (hosted)",
+        "deterministic-validator-service (CPU execution)",
+        "tool-simulator (CPU execution)"
+      ],
+      "transformations": [
+        "deterministic_CLI_parser_and_canonicalizer",
+        "provenance_scoring",
+        "validator_rule_evaluation"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "100 paired episodes require 200 runs. At an average of 6 model/API calls per run the planned_model_calls = 200 * 6 = 1,200 which matches the candidate's original estimated_model_calls and is within the capability_manifest limit (max 10,000). This scenario focuses budget on the registered primary hypothesis to ensure sufficient power and reproducibility."
+    },
+    {
+      "scenario_id": "low-40_with_exploratory",
+      "description": "Low-cost scenario that includes a small exploratory ablation budget (balanced confirmatory + exploratory).",
+      "planned_model_calls": 720,
+      "models": [
+        "hosted-llm-api (identifier recorded in execution manifest)",
+        "retrieval-service (hosted)",
+        "deterministic-validator-service (CPU execution)",
+        "tool-simulator (CPU execution)"
+      ],
+      "transformations": [
+        "deterministic_CLI_parser_and_canonicalizer",
+        "provenance_scoring",
+        "validator_rule_evaluation"
+      ],
+      "discovery_items": 30,
+      "confirmatory_items": 40,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Confirmatory: 40 pairs -> 80 runs. Exploratory: 30 additional runs allocated for ablation/attack-type checks -> total runs = 110. At 6 model calls/run => 110 * 6 = 660 planned_model_calls; rounded to 720 to include retries and logging API calls while remaining within hosted-model budget constraints."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "detect an absolute paired reduction in attack success rate of 20 percentage points (e.g., baseline 0.50 -> guarded 0.30) with 80% power at alpha=0.05",
+    "clustering_unit": "paired episode (same task seed under baseline and guarded conditions)",
+    "calculation_method": "Normal-approximation paired-proportion calculation (McNemar-style reasoning) using conservative assumption on discordant pairs. For target effect 0.20, two-sided alpha 0.05, power 0.8, recommended n ≈ 85 pairs; we preregister n = 100 pairs (rec-100) to allow margin for exclusions.",
+    "assumptions": [
+      "Baseline attack success rate under combined attack C ≈ 0.50 (plausible from literature vulnerability ranges E1/E4).",
+      "Guarded success rate under combined mitigation ≈ 0.30 (20pp absolute reduction target).",
+      "Discordant-pair proportion consistent with above rates and independence across paired episodes.",
+      "Exclusions (technical failures) expected < 10% and are handled by primary 'complete-pair' rule with sensitivity analysis."
+    ],
+    "recommended_scenario_id": "rec-100",
+    "minimum_detectable_effect_notes": "With n=100 pairs and the above assumptions, the minimum detectable absolute paired difference is approximately 16–22 percentage points (approximate range depending on discordance). Exact MDE will be reported from the same calculation routine used by the paired_binary_analysis_v1 executor.",
+    "sensitivity_analyses": [
+      "Sensitivity analysis treating failed guarded runs as attack successes (conservative) using the executor's 'failure_as_zero' mode.",
+      "Bootstrap CIs for paired differences to check normal-approximation robustness."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "CLI_parsing_and_canonicalization",
+      "provenance_scoring_and_vetting",
+      "validator_rule_evaluation",
+      "tool-simulator_input_sanitization"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic round-trip check: source intent -> LLM output -> parser -> canonical form; canonical form fed to a deterministic emulator-checker that confirms intended semantic properties (reachability, policy invariants) on a held-out oracle subset.",
+      "Automated diff between parser-extracted configuration and a small gold-config oracle subset (oracle subset derived from public benchmark tasks)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any parser extraction that fails deterministic grammar parse or yields missing required fields (automatic exclusion of that run from primary stratum).",
+      "Reject retrieved documents with provenance_score < T_prov (flagged as contaminated) and analyze in a separate contamination stratum.",
+      "Reject any generated CLI where validator produces 'critical' violation status from the deterministic rule set; record as validator-detected event."
+    ],
+    "audit_sample_policy": "Automated deterministic audit: every 10th successful guarded-run is re-executed with an alternate stricter validator/checker configuration and recorded for divergence analysis. Audit is automated (re-execution and comparison) and deterministic; no human audit is required.",
+    "mapping_validation": "Unit tests mapping public intent templates to expected canonicalized CLI fragments will be run prior to execution; these unit tests are deterministic CPU-run suites and their passing/failure is recorded in the preregistration manifest.",
+    "residual_risks": [
+      "Parser/grammar gaps for vendor DSLs (public-scope grammars may be incomplete); residual semantic errors may pass syntactic checks.",
+      "Gold-config oracle subset is limited and may not cover all semantics; semantic-equivalence checks are therefore partial."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity versus proprietary production device semantics may limit external validity (acknowledged and bounded to emulation scope).",
+    "Synthetic adversary models may not capture all real-world attacker strategies (mitigated by reporting a range of threat strengths but still a noncritical external-validity limitation).",
+    "Provenance scoring threshold choice (T_prov) may affect contamination-stratum sizes; threshold is preregistered but alternative thresholds will be reported in sensitivity analyses."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7118532765",
+    "doi:10.2139/ssrn.6607420",
+    "https://openalex.org/W7161354925",
+    "https://openalex.org/W4413757586",
+    "https://openalex.org/W4414170000"
+  ]
+}

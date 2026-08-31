@@ -1,0 +1,95 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-001-hfcg",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Vendor grammar completeness and provenance (incomplete grammars could bias results).",
+        "Emulator fidelity vs real device semantics may misestimate semantic error rates.",
+        "Validation ground truth for semantic failures may be ambiguous without a proven oracle.",
+        "Tokenization/decoder integration across vendors may introduce engineering artefacts."
+      ],
+      "required_design_repairs": [
+        "Specify precise sources and coverage tests for each vendor grammar; publish grammar artifacts.  ",
+        "Include a validated semantic-oracle (or gold-config set) for a subset of intents to estimate validator false-negatives/positives.  ",
+        "Define tokenization and decoder-integration tests to rule out engineering-induced parse errors.  ",
+        "Predefine emulator-to-device semantic-mismatch checks and sensitivity analyses (e.g., cross-validate on a limited set of physical device logs if available)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-002-gvrp",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulated human-in-the-loop policy may not reflect operator behavior and will bias arm B comparisons.",
+        "Automated repairs may introduce regressions that are hard to attribute without per-iteration logging.",
+        "Validator coverage and formal specification must be frozen and justified; gaps will invalidate conclusions.",
+        "Risk of iterative model calls producing degenerate/overfit repair behaviors if not constrained."
+      ],
+      "required_design_repairs": [
+        "Preregister and publish the simulated HITL decision policy and justify it; include sensitivity analysis to alternate policies.  ",
+        "Define and freeze validator formal specification, error-code taxonomy, and unit tests before execution.  ",
+        "Limit and preregister maximum repair attempts, stopping rules, and randomness control; instrument per-iteration diffs and causal logs.  ",
+        "Include metrics for repair-induced regressions and a procedure to adjudicate ambiguous repair outcomes (e.g., oracle subset)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-003-transfer",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Realism of injected telemetry noise, visibility masks, and legacy behavior models is subjective and may drive results. ",
+        "Failure-labeling for semantically subtle errors may be subjective without annotation protocol and inter-annotator checks. ",
+        "Choice of intents/topologies could dominate transfer estimates if not sufficiently diverse."
+      ],
+      "required_design_repairs": [
+        "Formalize noise and legacy-model definitions with references and parameter ranges; publish generators.  ",
+        "Establish labeling protocol with blinded annotators, inter-annotator agreement targets, and adjudication rules; preregister annotator counts.  ",
+        "Ensure a pre-specified diverse topology and vendor stratification; if possible, include multiple independent intent corpora and sensitivity analyses.  ",
+        "Preregister concordance metrics and bootstrap procedures used for inference."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-004-threats",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical and dual-use risk from publishing attack payloads or exploit patterns.",
+        "Simulated adversary models may not capture real attacker creativity or scale.  ",
+        "Mitigations' operational cost (false positives, blocked benign ops) must be measured and reported.  ",
+        "Scaling and integration assumptions for mitigations may not hold in real retrieval/tool ecosystems."
+      ],
+      "required_design_repairs": [
+        "Add an explicit ethical-safety plan: keep all attack payloads and experiments confined to closed emulation; redact actionable payloads in public artifacts; include safe-disclosure notes.  ",
+        "Preregister adversary models and justify their threat realism; include a range of adversary strengths.  ",
+        "Define and preregister mitigation cost metrics (false-block rate, human-review workload proxies) and thresholds for acceptable operational impact.  ",
+        "Include ablation and scalability analyses for mitigations and instrument provenance/forensics signals for reproducibility."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
