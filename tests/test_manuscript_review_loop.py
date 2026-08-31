@@ -911,7 +911,10 @@ def test_preregistration_repair_prompt_forbids_unsupported_stages():
     assert "consensus stages, ensembles, multi-model " in source
     assert "voting, simulated-human gates, prompt-family strata" in source
     assert "and task strata that the selected adapter actually executes " in source
-    assert "and records. Set task_count exactly to " in source
+    assert "and records. Treat every field of the supplied executable " in source
+    assert "adapter contract as authoritative. In particular, when " in source
+    assert "retrieval_augmented_generation is false, do not describe " in source
+    assert "Set task_count exactly to " in source
 
 
 def test_underfill_prompts_require_structural_additions():

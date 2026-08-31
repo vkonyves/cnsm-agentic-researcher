@@ -3831,7 +3831,15 @@ class FinalAutonomousResearchPipeline:
                         "adapter contract. Scientific prose, hypotheses, estimands, "
                         "sampling plans, and analysis plans must describe only stages "
                         "and task strata that the selected adapter actually executes "
-                        "and records. Set task_count exactly to "
+                        "and records. Treat every field of the supplied executable "
+                        "adapter contract as authoritative. In particular, when "
+                        "retrieval_augmented_generation is false, do not describe "
+                        "retrieval-augmented generation, RAG, retrieval augmentation, "
+                        "or a retrieval stage as part of the registered experiment, "
+                        "intervention, hypothesis, estimand, sampling plan, or analysis "
+                        "plan. Such methods may exist in the literature, but they are "
+                        "not executed by this experiment unless the adapter contract "
+                        "explicitly enables them. Set task_count exactly to "
                         "required_confirmatory_task_count. "
                         "If previous_contract_issues is nonempty, "
                         "return a complete replacement "
@@ -3869,6 +3877,20 @@ class FinalAutonomousResearchPipeline:
                         available_analysis_contracts
                     ),
                 )
+            )
+
+            # Persist the exact fully canonical preregistration object
+            # that is about to be evaluated by the blocking execution-contract
+            # gate. This makes every bounded preregistration rejection
+            # reproducible from archived run artifacts.
+            write_json(
+                run_dir
+                / "preregistration"
+                / (
+                    "preregistration_canonical_attempt_"
+                    f"{prereg_attempt:02d}.json"
+                ),
+                preregistration.model_dump(mode="json"),
             )
 
             preregistration_contract_issues = (

@@ -427,3 +427,53 @@ def test_canonicalization_does_not_hide_rag_prose_mismatch():
         in issue
         for issue in issues
     )
+
+def test_canonical_preregistration_serialization_preserves_contract_verdict():
+    """Canonical preregistration data must reproduce its gate verdict."""
+    import copy
+
+    prereg = _preregistration(
+        research_question=(
+            "Does RAG + deterministic validation "
+            "improve configuration correctness?"
+        ),
+    )
+
+    canonical = canonicalize_preregistration_execution_contract(
+        prereg,
+        planning_contracts=CONTRACTS,
+        available_execution_models=[
+            "gpt-5-mini"
+        ],
+        required_task_count=160,
+    )
+
+    before = preregistration_execution_contract_issues(
+        canonical,
+        planning_contracts=CONTRACTS,
+        available_execution_models=[
+            "gpt-5-mini"
+        ],
+        required_task_count=160,
+    )
+
+    # The unit-test fixture is a SimpleNamespace rather than the production
+    # Pydantic PreregistrationDocument. A deep copy still verifies that the
+    # canonicalized data itself, rather than object identity or transient
+    # mutation state, determines the contract verdict.
+    reloaded = copy.deepcopy(canonical)
+
+    after = preregistration_execution_contract_issues(
+        reloaded,
+        planning_contracts=CONTRACTS,
+        available_execution_models=[
+            "gpt-5-mini"
+        ],
+        required_task_count=160,
+    )
+
+    assert before == after
+    assert any(
+        "retrieval-augmented generation" in issue
+        for issue in after
+    )
