@@ -114,3 +114,37 @@ async def test_candidate_generation_retry_receives_validation_feedback(
         / "attempts"
         / "candidate_generation_attempt_02_status.json"
     ).exists()
+
+def test_candidate_rejects_r79_style_embedded_fields_in_hypotheses():
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(
+        ValidationError,
+        match="Hypothesis contains embedded candidate fields",
+    ):
+        AutonomousCandidate(
+            candidate_id="candidate_test",
+            title="Test candidate",
+            research_question=(
+                "Does guarded validation improve configuration correctness?"
+            ),
+            hypotheses=[
+                "Guarded validation improves correctness.",
+                '"proposed_design":"N/A","expected_data":"N/A",'
+                '"primary_outcome":"N/A","analysis_outline":"N/A"',
+            ],
+            proposed_design="Paired experiment.",
+            expected_data="Paired binary outcomes.",
+            primary_outcome="Success-rate difference.",
+            analysis_outline="Paired analysis.",
+            novelty_evidence_ids=[
+                "https://openalex.org/W4288028074"
+            ],
+            feasibility_evidence_ids=[
+                "https://openalex.org/W4288028074"
+            ],
+            risks=["Model variance."],
+            estimated_model_calls=1,
+        )
+

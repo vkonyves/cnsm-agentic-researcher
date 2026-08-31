@@ -152,15 +152,24 @@ async def _generate_candidate_set_with_repair(
                     previous_error
                 ),
                 "repair_instruction": (
-                    "Return a complete replacement CandidateSet. "
-                    "Preserve autonomous scientific freedom, but repair "
-                    "the structural/schema failure. Return 3 to 6 complete "
-                    "candidates. Do not emit commentary, fragments, "
-                    "placeholders, duplicate candidate fields, empty "
-                    "required fields, embedded candidate fields inside "
-                    "hypotheses, missing evidence-ID lists, or nonpositive "
-                    "estimated_model_calls. Every candidate must satisfy "
-                    "the declared CandidateSet schema independently."
+                    "Return a complete replacement CandidateSet generated "
+                    "from scratch; do not continue, splice, patch, or append "
+                    "to the malformed structured output. Preserve autonomous "
+                    "scientific freedom, but repair only the structural/schema "
+                    "failure. Return 3 to 6 complete candidates. Each candidate "
+                    "is one structured object and all declared candidate fields "
+                    "are sibling fields. hypotheses must be a list of plain "
+                    "natural-language hypothesis strings only. Never place JSON "
+                    "syntax, field names, candidate fragments, or content for "
+                    "proposed_design, expected_data, primary_outcome, "
+                    "analysis_outline, novelty_evidence_ids, "
+                    "feasibility_evidence_ids, risks, or estimated_model_calls "
+                    "inside hypotheses. Populate those values only in their "
+                    "declared sibling fields. Do not emit commentary, fragments, "
+                    "placeholders, duplicate candidate fields, empty required "
+                    "fields, missing evidence-ID lists, or nonpositive "
+                    "estimated_model_calls. Every candidate must satisfy the "
+                    "declared CandidateSet schema independently."
                 ),
             }
 
