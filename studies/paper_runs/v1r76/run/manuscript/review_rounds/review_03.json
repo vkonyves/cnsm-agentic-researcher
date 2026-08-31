@@ -1,0 +1,25 @@
+{
+  "summary": "Well‑executed preregistered paired experiment evaluating a generate–verify–repair (GVR) pipeline (gpt-5-mini + deterministic validator + ≤1 automated repair) on intent→vendor‑CLI tasks. Execution artifacts are comprehensively archived and the manuscript honestly reports that the preregistered primary inferential test (exact McNemar) did not reach α=0.05 (p=0.0625) despite a positive paired point estimate and bootstrap CI. The paper transparently documents shared_initial_candidate semantics, missingness, and limitations.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered secondary/confirmatory hypothesis H2 (median repair iterations per task and median end‑to‑end latency ≤ 60 s) is not reported in the manuscript analysis results. The preregistration defined H2 as confirmatory; the submitted analysis artifacts show only H1. The manuscript must either (A) include the archived results for H2 (median repair iterations and latencies) derived from the frozen artifacts, or (B) explicitly state that H2 was not executed/archived, describe why, and explain the consequence for confirmatory inference.",
+    "References are presented as identifier lists (DOIs) in the evidence bundle; the manuscript must provide a conventional IEEE numbered References section with full bibliographic metadata (authors, title, venue, year, DOI/arXiv id). In‑text citations must use IEEE numeric markers. Do not present bare DOI/identifier entries when full metadata is available.",
+    "The Disclosure Statement duplicates substantial Methods material and is overly long. Condense the Disclosure into a concise paragraph that preserves all mandatory items (including the single required immutable master_prompt locator and its exact SHA‑256) and avoids repeating methodological details that are already in Methods/Execution. Keep the Disclosure within the five‑page manuscript and avoid audit‑log level detail in prose."
+  ],
+  "required_revisions": [
+    "Add or state the outcome for preregistered confirmatory hypothesis H2 (median repair iterations and median end‑to‑end latency). If these secondary/confirmatory analyses were computed from archived artifacts, report the numeric results and the preregistered inferential conclusion. If they were not executed, prominently disclose that fact in Methods and Results and state the consequences for confirmatory inference.",
+    "Replace the current identifier-only citation listing with a conventional IEEE numbered References section containing full bibliographic entries for every cited work. Ensure each in-text citation uses IEEE numeric markers and confirm each cited record supports the proximate scholarly claim (fix any mismatches).",
+    "Condense the Disclosure Statement to a concise form that includes all mandatory items (LLM(s) used and identifiers, orchestration/adapter, preregistration SHA‑256, the single immutable master_prompt path and SHA‑256, human role before/after autonomy lock, and statement about archived artifacts and nondeterminism). Remove or relocate detailed execution logs, per-episode hashes, and analysis bookkeeping from the Disclosure into the archived evidence bundle; reference the archived manifest instead.",
+    "Explicitly state in Methods/Results that the experiment used shared_initial_candidate semantics (both arms reused the same initial sampled candidate) and therefore the measured estimand is the validator‑triggered repair benefit rather than any independent effect of alternative first‑pass generation strategies. (The manuscript already states this in places—make the constraint explicit and unambiguous where contributions and conclusions are claimed.)",
+    "Clarify contamination reporting: the preregistration included contamination-detection procedures. The manuscript should explicitly report contamination findings from the archived contamination_summary.csv (even if empty) and explain how flagged/duplicate items were treated in the confirmatory analysis."
+  ],
+  "optional_revisions": [
+    "Report the median and distributional repair‑invocation latency and number of repair iterations (even if rare) as supplementary table entries or short paragraph, using archived artifacts for transparency.",
+    "Briefly explain the relationship between the bootstrap CI (which excludes zero) and the exact McNemar two‑sided p (which does not reach 0.05) in the Results to help readers reconcile the inferential discrepancy; the manuscript already hints at this but could be clarified in a single concise paragraph.",
+    "If space permits, add a short table listing which archived artifact files contain the raw inputs needed to reproduce the secondary estimand calculations (e.g., raw_results.jsonl paths), to ease reproducibility checks without dumping hashes into the manuscript prose."
+  ],
+  "accept_for_finalisation": false
+}

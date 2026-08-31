@@ -1,0 +1,24 @@
+{
+  "summary": "This is a careful, preregistered paired evaluation of a generate–verify–repair (GVR) pipeline (gpt-5-mini + deterministic validator + ≤1 automated repair) on intent→vendor‑CLI tasks. Execution and analysis artifacts are archived and largely consistent with the preregistration. The confirmatory primary test (exact McNemar) does not reach α=0.05 (p=0.0625) on the 266 complete pairs; a paired bootstrap CI narrowly excludes zero. Missingness (34 both‑arm infrastructure failures) reduced the analysed pairs from the planned N=300. The manuscript transparently reports limitations (shared_initial_candidate estimand, validator coverage, low repair invocation rate, and unrecorded latency). Overall the study is reproducible and thoughtfully presented but requires several manuscript corrections before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "References and in‑text citation semantics are not rendered as a conventional IEEE numbered bibliography (manuscript metadata shows DOI identifiers in cited_record_ids). The paper must present a standard IEEE numbered References section and ensure each cited record actually supports the proximate claim.",
+    "The mandatory Disclosure Statement currently repeats run‑internal artifact bookkeeping (file paths and multiple hashes). Per the track rules, the Disclosure must be concise and must include exactly one immutable initial master‑prompt locator + its SHA‑256; it must not duplicate execution logs, provider‑call accounting, or per‑file hash manifests in ordinary manuscript prose.",
+    "Although the manuscript declares shared_initial_candidate semantics, it must unambiguously and explicitly state (in Abstract and Methods/Design) that the baseline outcome is the single initial sampled candidate's pass/fail (single‑shot validity) and that the guarded outcome is the final pass/fail after deterministic verification and any automated repair (final guarded‑pipeline validity). The text must not imply that the two arms used independent first‑pass model generations."
+  ],
+  "required_revisions": [
+    "Replace DOI/identifier‑style citation entries with a conventional IEEE numbered References list and update in‑text citations to IEEE numeric markers; verify and ensure each cited reference supports the specific claim where it is cited (use the archived verified bibliographic metadata available in the evidence bundle).",
+    "Condense the Disclosure Statement to a concise form that (a) lists the declared model(s) and orchestration/validator identifiers, (b) gives the preregistration identifier and its SHA‑256, and (c) includes exactly one immutable initial master_prompt locator and its SHA‑256. Remove run‑internal file paths, per‑file hash manifests, provider‑call counts, and other execution‑log‑level bookkeeping from the Disclosure (these remain fine in the archived evidence bundle).",
+    "Add an explicit, unambiguous sentence in the Abstract and in Methods stating: for each pair the same single sampled initial model candidate was shared across both arms (shared_initial_candidate); the baseline measured the initial single‑shot candidate's deterministic‑validator pass/fail, while the guarded condition reports the final pass/fail after deterministic verification and at most one automated repair. Ensure no phrasing elsewhere implies independent initial generations across arms.",
+    "Explicitly state (Methods) that the archived model_configuration.json records temperature = null and include the sentence: 'An unset/null temperature value in the archived configuration is not evidence of deterministic (temperature=0) sampling; nondeterministic sampling cannot be excluded because no deterministic sampling seed is archived.'"
+  ],
+  "optional_revisions": [
+    "Add a brief, formal appendix paragraph (or a short Methods paragraph) explaining the observed discrepancy between the two‑sided exact McNemar p‑value and the paired bootstrap CI in this small‑discordant‑count setting, referencing the archived contingency counts and bootstrap parameters.",
+    "Include 2–3 short illustrative examples (task IDs and minimal anonymised snippets) of cases where repair was invoked and what the repair changed (derive from archived representative task artifacts); this can help readers interpret the low repair invocation rate without requiring new experiments.",
+    "In the Discussion, explicitly recommend adding per‑episode latency recording to the archived manifest for future runs and describe how latency would be instrumented (so readers can reproduce H2(b) in follow‑on work)."
+  ],
+  "accept_for_finalisation": false
+}

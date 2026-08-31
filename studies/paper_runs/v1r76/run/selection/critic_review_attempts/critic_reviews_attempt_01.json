@@ -1,0 +1,93 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cnsms2026-001-gvr-batfish",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier false negatives and oracle incompleteness could bias measured improvements.",
+        "Public datasets may underrepresent vendor-specific constructs, limiting external validity.",
+        "Repair-loop prompt sensitivity and oscillation risk not fully bounded in design.",
+        "Latency budget and operational plausibility need concrete numerical targets."
+      ],
+      "required_design_repairs": [
+        "Specify an external oracle or multi-verifier strategy (e.g., Batfish + secondary checks) to estimate verifier false negatives.",
+        "Define precise dataset construction rules and vendor-coverage statistics; publish CLI grammar/transform artifacts used.",
+        "Preregister numeric latency/iteration budgets and operational thresholds (e.g., max median latency allowed).",
+        "Add prompt-robustness checks (prompt perturbation sensitivity analysis) and seed/version the prompts and LLM model identifier used."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsms2026-002-verifier-latency-tradeoff",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "False-negative estimates depend on the oracle/simulator completeness — risk of biased trade-off curves.",
+        "Synthetic high-throughput workload may not reflect real request correlations or worst-case topologies.",
+        "Caching/incremental strategies introduce statefulness that complicates reproducibility and comparison."
+      ],
+      "required_design_repairs": [
+        "Define and validate the oracle/simulator used to detect false negatives, and report its coverage/limitations.",
+        "Specify workload generator, correlation structure, topology suites, and make them public for reproducibility.",
+        "Preregister exact verifier modes (check lists) and caching/incremental algorithms with deterministic replayability.",
+        "Include resource-budget constraints and measurement methodology (CPU/time, parallelism) to ensure feasibility claims are reproducible."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsms2026-003-constrained-decoding-cli",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Constructing accurate vendor CLI grammars from public sources is error-prone and may block valid configs (false positives).",
+        "Tokenization/decoder integration details (model tokenizer compatibility) are underspecified.",
+        "Fairness of comparison vs RAG+verifier depends on retrieval freshness and verifier coverage."
+      ],
+      "required_design_repairs": [
+        "Provide provenance for CLI grammars and publish grammar artifacts; define fallback for incomplete grammars.",
+        "Specify decoder integration details (tokenizer alignment, how constraints are enforced at token-level) and open-source or reproducible implementation.",
+        "Preregister evaluation parity controls (same prompts, same datasets, same verifier where applied) and include qualitative failure exemplars.",
+        "Measure and report blocked-valid-config rate (false blocks) in addition to prevented violations."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cnsms2026-004-automated-acceptance-thresholds",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulated policy environment may not reflect real operational costs or human escalation behavior.",
+        "Model confidence calibration methods and their operational stability need stronger specification.",
+        "Ground-truth labeling noise and oracle error will materially affect Pareto-front estimates."
+      ],
+      "required_design_repairs": [
+        "Specify the ground-truth labeling process and quantify label noise; include sensitivity analyses under label-noise scenarios.",
+        "Prespecify calibration procedures (e.g., temperature-scaling protocol, held-out calibration sets) and quantify calibration quality (Brier score, ECE).",
+        "Define the operational cost function used to trade off coverage vs false-accepts and justify weight choices or present multiple weighting regimes.",
+        "Include experiments showing robustness of selected thresholds under perturbations (model update, verifier blind spots)."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

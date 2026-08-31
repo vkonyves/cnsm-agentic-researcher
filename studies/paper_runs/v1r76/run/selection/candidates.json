@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cnsms2026-001-gvr-batfish",
+      "title": "Effectiveness of Generate–Verify–Repair (GVR) with Batfish for LLM-generated vendor CLI configurations",
+      "research_question": "Does a generate–verify–repair pipeline that uses an LLM for config generation, Batfish as a deterministic verifier, and an automated repair loop measurably reduce semantic/safety verification failures compared to plain LLM generation for vendor-specific network configuration tasks?",
+      "hypotheses": [
+        "A GVR pipeline that interposes Batfish between generation and application will produce a lower rate of verifier-detected semantic/safety failures than direct LLM outputs.",
+        "The GVR pipeline will require a bounded number of automated repair iterations for the majority of tasks (<5 iterations median) while keeping overall end-to-end latency within an operationally plausible bound compared to manual workflows."
+      ],
+      "proposed_design": "Controlled paired experiment using a public NetOps task set (derived from NetConfEval-like tasks and vendor CLI snippets). For each intent: (1) generate configuration using an LLM baseline; (2) run Batfish verifier on the generated config; (3) if verifier fails, invoke an automated repair procedure (LLM prompted with verifier counterexample + constraints) up to a fixed retry budget. Record verifier outcomes, repair iterations, and latencies. Run across multiple vendor CLIs (Cisco-like, Juniper-like) using open datasets and synthetic topologies. Use fixed seeds and frozen prompts; preregister retry budget and stopping rules.",
+      "expected_data": "Per-task records: initial LLM output, Batfish pass/fail, repair iteration count, final Batfish pass/fail, time per step, generated config diffs, and classification of failure modes (syntax, policy violation, reachability). Aggregate counts of initial failures, final failures after repair, median repair iterations, and latency distributions.",
+      "primary_outcome": "Relative reduction in verifier-detected failures: proportion of tasks passing Batfish after GVR versus passing on initial LLM output (paired proportion difference).",
+      "analysis_outline": "Compute paired proportions of verifier pass before vs after GVR; test with McNemar's or paired proportion test and report 95% CIs. Report median and IQR of repair iterations and end-to-end latency; compare latency distributions with Wilcoxon signed-rank test. Perform failure-mode stratified analyses (syntax vs semantic vs reachability). Report effect sizes and bootstrapped CIs. Predefine significance threshold and adjust for multiple comparisons if testing across vendors.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.177004277.71795055/v1"
+      ],
+      "risks": [
+        "Batfish or verifier may have false negatives (miss real violations) producing false safety signals.",
+        "Repair loop may oscillate or fail to converge for certain intents increasing latency beyond acceptable bounds.",
+        "Vendor-specific constructs may be underrepresented in public datasets, reducing generalizability.",
+        "LLM prompt sensitivity could drive brittle outcomes if prompts are not robustly validated."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cnsms2026-002-verifier-latency-tradeoff",
+      "title": "Quantifying verifier coverage versus latency and throughput trade-offs when integrating Batfish into high-throughput LLM NetOps agent loops",
+      "research_question": "What are the empirical trade-offs between verifier strictness/coverage, false-negative acceptance, and end-to-end throughput/latency when integrating Batfish-style verification into a high-throughput LLM-driven NetOps agent pipeline?",
+      "hypotheses": [
+        "Increasing verifier strictness (more checks, deeper path analyses) will reduce accepted incorrect configurations but will increase per-task verification latency and reduce throughput.",
+        "Caching and incremental verification strategies will recover a portion of throughput loss while maintaining most of the verifier's reduction in false-accepts compared to naïve always-on deep verification."
+      ],
+      "proposed_design": "Instrumented throughput experiment: generate a high-volume stream of NetOps intents synthesized from public topologies and NetConfEval-like tasks. Configure multiple verifier modes (light, medium, deep) representing increasing check sets and depth. For each mode, measure: verifier latency, end-to-end throughput (intents/sec), false-negative acceptance rate (cases where final applied config violates ground-truth property despite verifier pass) using an external oracle/simulator, and cost (CPU-time). Evaluate caching/incremental verification variants. All runs use deterministic seeds and frozen prompts; preregister workload size and oracle definitions.",
+      "expected_data": "Per-mode records: verifier latency distribution, throughput (intents/sec), false-negative rate against oracle, CPU cost, cache hit rates for incremental modes, and distribution of verification times over tasks.",
+      "primary_outcome": "Trade-off curve (Pareto frontier) mapping false-negative acceptance rate against end-to-end throughput and median latency for each verifier mode and caching strategy.",
+      "analysis_outline": "Estimate and visualize false-negative rate versus throughput for each verifier mode. Use regression to quantify the effect of verifier depth on latency and false-negative rate. Use bootstrapped CIs for rates. Perform pairwise comparisons of caching vs non-caching using paired tests on throughput and false-negative rates. Report cost per avoided false accept (CPU-time per unit reduction in false-negative rate).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4412722283",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Oracle/simulator used to label false negatives may be incomplete, biasing false-negative estimates.",
+        "Synthetic high-throughput workload may not capture real-world request correlations or worst-case topologies.",
+        "Verifier resource consumption could be prohibitive at scale, limiting the experimental envelope.",
+        "Caching/incremental strategies may introduce statefulness that complicates reproducibility."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cnsms2026-003-constrained-decoding-cli",
+      "title": "Effectiveness of constrained-decoding techniques to prevent semantic constraint violations in vendor-specific network configuration generation",
+      "research_question": "How effective are constrained-decoding techniques (grammar- or token-constraint enforcement) at preventing semantic and policy constraint violations in LLM-generated vendor-specific CLI configurations compared to unconstrained generation and RAG+verifier pipelines?",
+      "hypotheses": [
+        "Constrained decoding will reduce the rate of semantic constraint violations (e.g., invalid CLI sequences, interface mismatches) relative to unconstrained LLM outputs.",
+        "Constrained decoding will trade off flexibility, producing fewer creative solutions and potentially yielding more syntax-level rejections or reduced applicability in edge-case intents compared to RAG+verifier approaches."
+      ],
+      "proposed_design": "Implement constrained-decoding options: (A) grammar-based token constraint enforcement derived from vendor CLI grammars, and (B) token-whitelisting with dynamic slot filling. Compare three pipelines on the same public intent set: unconstrained LLM generation, constrained decoding, and RAG+verifier (LLM with retrieval + Batfish). Measure semantic violations, syntactic parse errors, functional applicability, and generation coverage. Use frozen prompts and grammar artifacts; preregister metrics and exclusion rules.",
+      "expected_data": "Per-task outcomes: whether output conforms to grammar, whether verifier (when applied) reports semantic violations, coverage (fraction of tasks with usable config), generation success/failure codes, and example-level diagnostics showing trade-offs.",
+      "primary_outcome": "Percent reduction in semantic constraint violations (as judged by verifier or grammar-based checker) for constrained decoding versus unconstrained baseline.",
+      "analysis_outline": "Compare violation rates across methods with paired proportion tests; report coverage differences with McNemar's test. Analyze cases of reduced applicability qualitatively and quantify increases in parse/syntax failures. Use subgroup analyses per vendor CLI complexity and intent type. Report calibration of constrained decoder (false blocks vs true prevention).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4383346782",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4409100563"
+      ],
+      "risks": [
+        "Constructing accurate vendor grammars from public data may be incomplete, causing false-positive blocking of valid configs.",
+        "Constrained decoding could reduce coverage for novel valid configurations, lowering practical utility.",
+        "Implementation complexity for token-level constraints may limit real-time applicability.",
+        "Comparisons to RAG+verifier may favor one approach depending on retrieval/index freshness and verifier coverage."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cnsms2026-004-automated-acceptance-thresholds",
+      "title": "Optimizing automated acceptance thresholds combining model confidence and verifier signals to minimize false-accepts under an automated-apply policy",
+      "research_question": "Given available signals (LLM confidence/calibration, verifier pass/fail, repair history), what automated-apply acceptance thresholds achieve the best trade-off between operational coverage (fraction of intents auto-applied) and false-accept risk (ratio of incorrectly accepted configs) in a simulated operational policy environment?",
+      "hypotheses": [
+        "Policies that require both a verifier pass and a calibrated high model confidence will yield a lower false-accept rate for a given auto-apply coverage than policies that rely on model confidence alone.",
+        "Inclusion of repair-history signals (e.g., number of repair iterations, presence of counterexamples) will further reduce false-accepts at modest cost to auto-apply coverage.",
+        "Well-calibrated confidence improves threshold reliability; poor calibration substantially degrades policy performance."
+      ],
+      "proposed_design": "Simulated policy sweep experiment using a labeled dataset of intents with ground-truth correctness. Define simulated automated-apply policies parameterized by thresholds on model confidence, verifier pass requirement, and maximum allowed repair iterations. For each policy, compute auto-apply coverage and false-accept rate against ground truth. Evaluate impact of confidence calibration (apply temperature scaling vs uncalibrated). Use deterministic seeds and preregister cost function (trade-off) for selecting operational thresholds.",
+      "expected_data": "For each policy threshold: auto-apply coverage, false-accept rate, confusion matrices, distribution of repair iterations among auto-applied cases, and calibrated vs uncalibrated performance comparisons. Pareto frontiers across policy families.",
+      "primary_outcome": "Pareto frontier expressing minimal false-accept rate achievable at each level of auto-apply coverage for sets of policies (confidence-only, verifier+confidence, verifier+confidence+repair-history).",
+      "analysis_outline": "Compute ROC-like curves mapping coverage to false-accept rate for each policy family. Use bootstrapped CIs for rates. Quantify calibration impact by comparing Brier score and threshold stability before/after temperature scaling. Identify policy thresholds minimizing a preregistered loss (weighted sum of false-accept rate and unreached auto-apply coverage). Perform sensitivity analyses to oracle labeling noise.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4409100563"
+      ],
+      "risks": [
+        "Simulated policy and oracle may not reflect human decision-making or real operational costs, limiting external validity.",
+        "Model confidence may be poorly calibrated in practice, making real-world thresholds brittle.",
+        "Verifier blind spots can make verifier pass a noisy signal, producing overconfident auto-apply decisions.",
+        "Cost weighting in threshold selection may be organization-specific and require domain tuning."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

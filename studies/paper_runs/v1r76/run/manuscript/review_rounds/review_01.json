@@ -1,0 +1,30 @@
+{
+  "summary": "Well‑executed, preregistered paired study of a generate–verify–repair (GVR) pipeline for LLM→vendor‑CLI NetOps tasks with archived artifacts. Execution, validator traces, preregistration, and hashes are present. Primary paired test (McNemar) did not reach α=0.05 (p=0.0625); bootstrap CI for the paired difference is positive. Manuscript is largely reproducible and methodologically careful, but several formal and reporting defects must be corrected before finalisation.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Manuscript uses raw DOI identifiers in prose instead of numbered IEEE citation markers; References section appears DOI/identifier‑only rather than a conventional IEEE bibliography with full metadata — this violates the submission/instruction rule and prevents verification that cited records support specific claims.",
+    "Disclosure Statement exceeds the concise disclosure requirement and duplicates execution/log bookkeeping; it must be condensed while preserving the single required master_prompt locator and SHA‑256 digest.",
+    "Runtime sampling parameters are not explicitly reported in the paper (model_configuration shows temperature=null). A null/unset temperature is not evidence of deterministic sampling; the manuscript must state the actual recorded sampling settings and disclose any preregistration/runtime mismatches.",
+    "The paper reports a paired McNemar exact p=0.0625 and separately reports a bootstrap 95% CI that lies entirely above zero; the manuscript must clearly state the preregistered primary decision rule (exact McNemar at α=0.05), avoid implying significance from the bootstrap CI, and explicitly discuss why the different inferential procedures diverge given the very small discordant pair counts (n10=5, n01=0).",
+    "The preregistered missingness sensitivity plan (treating failed calls as failures) is mentioned as archived but its result is not presented. The manuscript must either (a) report the preregistered sensitivity analysis result (available in the archived artifacts) or (b) explicitly state that the sensitivity analysis was not executed and describe the inferential consequences per the preregistration (i.e., make clear which confirmatory inferences were actually performed).",
+    "In‑text citation semantics must be verified: every numbered citation must be checked to ensure the cited record actually supports the specific scholarly claim near which it is used. The submitted manuscript currently uses identifier tokens in prose which preclude this verification."
+  ],
+  "required_revisions": [
+    "Replace all in‑text DOI/identifier citations with IEEE numbered citation markers and include a conventional IEEE‑format References section containing full bibliographic metadata for each cited work (authors, title, venue, year, DOI/URL). Ensure each reference genuinely supports the proximate claim (use the archived verification records to populate metadata).",
+    "Condense the Disclosure Statement to a concise paragraph (within pages 1–5) that preserves exactly one immutable master_prompt locator and its SHA‑256, states the LLM(s) and orchestration used, the autonomy lock boundary, and the absence of post‑lock human editing; move detailed execution/log bookkeeping to the archived manifest (do not duplicate manifest-level listings in the paper).",
+    "Add an explicit, short Methods paragraph (or sentence) reporting the recorded runtime sampling parameters (temperature, top_p, seed/deterministic flag, or equivalent) taken from execution/model_configuration.json and state whether sampling was nondeterministic; if these differ from preregistered sampling declarations, disclose this as a protocol deviation (resolvable from archived model_configuration.json).",
+    "Clarify inferential reporting: explicitly state that the preregistered primary decision rule is the exact McNemar two‑sided test at α=0.05, present that result (p=0.0625) as the confirmatory outcome, and add a brief explanation of why the paired bootstrap CI can be positive while the exact test is not significant given the very small number of discordant pairs. Remove or reword any language that could be interpreted as claiming confirmatory significance based on the bootstrap CI alone.",
+    "Explicitly report the preregistered missingness sensitivity analysis (treating failed episodes/pairs as failures) results or explicitly state that the sensitivity analysis was not executed; if executed, include the numbers and resulting paired test or descriptive outcome (these values must match archived artifacts).",
+    "Verify and fix all citation semantics: for each in‑text citation, confirm (using the archived verification metadata) that the cited work supports the specific proximate claim; where it does not, replace or remove the citation or rephrase the claim to match the evidence. Provide a short evidence‑to‑claim note (1–2 lines) for any nonobvious or pivotal citation in Methods/Related Work to aid reviewers in verifying semantics."
+  ],
+  "optional_revisions": [
+    "Shorten and focus the Related Work section to prioritize the closest prior GVR/validator‑integration NetOps works and move broader survey commentary into a single compressed paragraph to save space.",
+    "Include a one‑paragraph illustrative example showing a single failed baseline case corrected by the automated repair (excerpt from archived validator/repair traces) to aid reader intuition — ensure the example is traceable by artifact hash but keep it succinct.",
+    "Add a brief table summarizing preregistration vs executed sample sizes and outcomes (planned N=300, completed pairs 266, failed episodes 34) if space permits.",
+    "Condense figure captions and combine small tables/figures to improve information density and ensure strict five‑page compliance."
+  ],
+  "accept_for_finalisation": false
+}

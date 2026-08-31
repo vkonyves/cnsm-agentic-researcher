@@ -1,0 +1,34 @@
+{
+  "study_id": "cnsms2026-001-gvr-batfish-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis executed by paired_binary_analysis_v1 using execution/raw_results.jsonl and execution/result_schema.json (result_schema_id paired_binary_episode_v1 v1.0). Denominator: use completed paired episodes only (completed_episode_count 532 → 266 paired units). Exclude pairs flagged as 'duplicate_public' per preregistered contamination_plan before primary test. Apply the executor's exact paired-proportion/McNemar procedure to estimate paired_success_rate_difference_guarded_minus_baseline, report point estimate, exact (exact/binomial) two-sided p-value, and 95% confidence interval. Implement failed-call primary treatment = complete_pair_primary (pairs with infrastructure/model-call exclusions removed per preregistration).",
+  "secondary_analyses": [
+    "Median_repair_iterations_per_task: compute per-pair repair-iteration counts from raw_results, report median and IQR; test paired difference (guarded vs baseline where applicable) using Wilcoxon signed-rank (two-sided).",
+    "Median_end_to_end_latency_seconds: compute end-to-end latency per episode, pair latencies and report paired median and IQR; Wilcoxon signed-rank test for paired differences.",
+    "Failure_mode_specific_paired_success_rate_differences: stratify verifier outcomes into syntax/semantic/reachability buckets from verifier logs and compute paired pass-rate differences per mode (paired-proportion tests), reporting point estimates and 95% CIs; stratify by vendor cluster (Cisco-like vs Juniper-like)."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: treat exhausted/retry-failed model calls as failures (zero) and rerun primary paired test to produce conservative bounds.",
+    "Contamination_inclusion_sensitivity: include items flagged 'likely_overlap' and report primary estimand with and without those items; separately report results including exact-public-duplicates (exploratory only).",
+    "Prompt_perturbation_sensitivity (exploratory): using recorded prompt-variant artifacts in raw_results, recompute paired estimand on available perturbation replicates to report prompt-sensitivity ranges."
+  ],
+  "uncertainty_quantification": "Primary: exact paired-proportion/McNemar two-sided p-value and two-sided 95% CI for paired difference as produced by paired_binary_analysis_v1. Secondary medians: bootstrap 95% CIs (B=10,000) and Wilcoxon test p-values. Report discordant-pair counts and exact binomial CIs for paired proportions. Report achieved sample size (N=266 pairs) and sensitivity power analysis per preregistered bootstrap plan.",
+  "multiplicity_implementation": "Primary estimand tested at α=0.05 (confirmatory). Up to three formal secondary tests receive Bonferroni correction: α_adjusted = 0.05 / 3 ≈ 0.0167 for formal secondary hypothesis tests. All other analyses labeled exploratory and not used to support primary claim.",
+  "contamination_analysis": "Follow preregistered contamination_plan applied to provenance flags in paired_binary_episode_v1: (1) detect exact-public-duplicates by exact-string match against indexed corpora → exclude from primary confirmatory set; (2) flag 'likely_overlap' via preregistered fuzzy/ n-gram thresholds and report sensitivity subgroup analyses including these items; (3) report per-item provenance flags from result schema and produce contamination audit (counts and examples). Residual uncertainty statement included per preregistration.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Execution manifest summary (planned_episode_count 600, completed_episode_count 532, failed_episode_count 68, model_calls_used 306, completed_pairs=266) with preregistration SHA256 and artifact hash count.",
+    "Table 2: Paired contingency matrix (baseline pass / guarded final pass) with concordant/discordant counts, paired difference point estimate, exact p-value, and 95% CI (primary confirmatory table).",
+    "Table 3: Secondary metrics — median repair iterations and median end-to-end latency (median, IQR, bootstrap CIs) with Wilcoxon test statistics and Bonferroni-adjusted p-values where applicable.",
+    "Table 4: Stratified results by vendor cluster (Cisco-like vs Juniper-like) and by failure-mode (syntax, semantic, reachability): paired pass-rate differences, counts, and CIs.",
+    "Table 5: Contamination audit: counts of 'duplicate_public' and 'likely_overlap' flags, treatment in primary vs sensitivity analyses, and examples (hashed identifiers only)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of pass rates (%) by condition (baseline initial pass vs GVR final pass) with 95% CI error bars (based on paired proportions).",
+    "Figure 2: Stacked bar breakdown of failure-mode counts (syntax / semantic / reachability) for baseline and guarded conditions.",
+    "Figure 3: Boxplots of end-to-end latency (s) by condition; overlay median and IQR; annotate median and bootstrap CI.",
+    "Figure 4: Histogram of repair-iteration counts (0,1,2,...) for guarded condition and cumulative proportion reaching pass by iteration (annotate median).",
+    "Figure 5 (exploratory): Scatter or heatmap of prompt-perturbation sensitivity showing paired difference variation across recorded prompt variants (only if prompt-variant artifacts present in raw_results)."
+  ]
+}

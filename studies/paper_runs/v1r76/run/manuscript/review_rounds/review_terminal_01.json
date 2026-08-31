@@ -1,0 +1,22 @@
+{
+  "summary": "The manuscript reports a preregistered paired experiment (Nplanned=300 pairs; Ncomplete_pairs=266) that evaluated a generate–verify–repair (GVR) pipeline using gpt-5-mini + a deterministic Batfish‑style validator + ≤1 automated LLM repair under shared_initial_candidate semantics. Observed contingency: n11=260, n10=5, n01=0, n00=1; guarded − baseline = 0.01880. Exact two‑sided McNemar p=0.0625 (did not meet preregistered α=0.05). A paired bootstrap (B=10,000) CI = [0.00376, 0.03759] was also reported and discussed. The run archived extensive artifacts, hashes, and the required initial-master-prompt locator. The manuscript correctly documents the shared_initial_candidate design and limitations, discloses nondeterministic sampling, and provides reproducibility artifacts.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript reports a paired bootstrap 95% CI that excludes zero while the preregistered primary inferential decision (exact two‑sided McNemar at α=0.05) did not reject. This is scientifically acceptable only if the CI is explicitly described as a supplementary/descriptive summary and not used to claim a preregistered positive result. The paper needs an explicit, prominent statement (Methods and Abstract) that the McNemar test is the preregistered primary decision rule and that the bootstrap CI is a secondary/descriptive measure.",
+    "The provider/stage accounting labels (e.g., execution/provider_call_audit showing condition_counts and stage_counts) are potentially confusing to readers: the manuscript must explicitly clarify that 'shared' refers to the single initial sampled candidate used for both arms and that 'guarded' model‑call counts reflect repair calls only (i.e., guarded final outcomes were produced by rescore of the shared initial candidate unless a repair call was invoked). Without that explicit clarification readers may misinterpret stage/condition tallies as indicating independent full‑generation calls per arm, which would contradict the shared_initial_candidate estimand."
+  ],
+  "required_revisions": [
+    "In Methods (and duplicate succinctly in the Abstract): explicitly state that the exact two‑sided McNemar test is the preregistered primary hypothesis test and decision procedure; state that the paired bootstrap CI is a supplementary/descriptive interval estimator (not the primary decision) and must not be used to overturn the preregistered hypothesis test. Cite the preregistration manifest SHA‑256 when making this procedural claim (artifact already archived).",
+    "Add a short explicit paragraph in Methods/Execution Accounting clarifying provider/stage accounting semantics: (a) define 'shared_initial_generation' as the single sampled candidate used to evaluate both baseline and guarded outcomes under shared_initial_candidate semantics; (b) define 'repair' and its recorded count as the number of additional model calls invoked only when the shared initial candidate failed; (c) clarify that 'condition_counts' in provider accounting refer to model‑call stage counts, not episode counts per independent-generation arm. Use the archived provider_call_audit and deterministic_reconciliation artifacts to support these statements.",
+    "In Results or Methods add a clear, one‑sentence note explaining how the preregistered missingness rule ('complete_pair_primary') was applied (i.e., 34 both‑arm episodes excluded) and state that this exclusion was preregistered and is reflected in the deterministic_reconciliation.json (provide the manifest SHA shown in the evidence bundle)."
+  ],
+  "optional_revisions": [
+    "Report the exact mid‑p or one‑sided McNemar result as a robustness check (label as ancillary/post‑hoc) and report its value in an Appendix or footnote using archived contingency counts (do not use it to change the preregistered claim).",
+    "Provide a small supplementary table (or one paragraph) that enumerates the 6 repair invocations with short diagnostics (task id, failure code, repair changed lines, final validity) pulled from the archived validator traces to help readers understand typical repair yields (these artifacts are already archived).",
+    "Compute and report an uncertainty interval for the derived NNT (1/ARR) using the archived bootstrap resamples (label as descriptive), and explicitly caution about interpretation given high baseline pass rate and small discordant count."
+  ],
+  "accept_for_finalisation": false
+}
