@@ -958,6 +958,9 @@ def audit_manuscript_publication_sanity(
         "significant_overfull_count": 0,
         "maximum_overfull_pt": 0.0,
         "full_sha256_count": 0,
+        "bibliography_environment_count": 0,
+        "prebibliography_references_heading_count": 0,
+        "duplicate_bibliography_doi_count": 0,
         "inline_doi_label_count": 0,
         "raw_command_count": 0,
         "artifact_path_count": 0,
@@ -1046,16 +1049,118 @@ def audit_manuscript_publication_sanity(
 
     metrics["full_sha256_count"] = len(full_hashes)
 
-    if len(full_hashes) > 1:
+    expected_master_prompt_sha256 = (
+        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba"
+    )
+
+    if len(full_hashes) != 1:
         issues.append(
-            "Final manuscript contains "
-            f"{len(full_hashes)} full 64-character SHA-256 "
-            "digests; at most the mandatory immutable "
-            "master-prompt disclosure digest is permitted."
+            "Final manuscript must contain exactly one full 64-character "
+            "SHA-256 digest: the immutable master-prompt disclosure digest; "
+            f"found {len(full_hashes)}."
+        )
+    elif full_hashes[0].lower() != expected_master_prompt_sha256:
+        issues.append(
+            "The sole full SHA-256 in the final manuscript does not match "
+            "the immutable master-prompt disclosure digest."
         )
 
     # ---------------------------------------------------------
-    # C. DOI labels dumped into prose.
+    # C. Bibliography uniqueness and duplicate-reference hygiene.
+    # ---------------------------------------------------------
+    bibliography_environment_count = len(
+        re.findall(
+            r"\\begin\{thebibliography\}",
+            tex,
+        )
+    )
+    metrics["bibliography_environment_count"] = (
+        bibliography_environment_count
+    )
+
+    if bibliography_environment_count != 1:
+        issues.append(
+            "Final manuscript must contain exactly one "
+            "thebibliography environment; found "
+            f"{bibliography_environment_count}."
+        )
+
+    body_before_bibliography = tex.split(
+        r"\begin{thebibliography}",
+        1,
+    )[0]
+
+    # Detect a second author-generated References section/heading before
+    # the renderer's canonical bibliography. This catches the r80 failure
+    # mode where manuscript prose already contained its own References
+    # block and the renderer subsequently emitted another bibliography.
+    references_heading_pattern = re.compile(
+        r"(?im)^\s*(?:"
+        r"\\(?:section|section\*|subsection|subsection\*)"
+        r"\{\s*references\s*\}"
+        r"|references"
+        r")\s*$"
+    )
+
+    prebibliography_references_headings = (
+        references_heading_pattern.findall(
+            body_before_bibliography
+        )
+    )
+
+    metrics["prebibliography_references_heading_count"] = len(
+        prebibliography_references_headings
+    )
+
+    if prebibliography_references_headings:
+        issues.append(
+            "Final manuscript contains a separate References heading "
+            "before the canonical bibliography; references must appear "
+            "exactly once."
+        )
+
+    bibliography_text = ""
+    if bibliography_environment_count >= 1:
+        bibliography_text = tex.split(
+            r"\begin{thebibliography}",
+            1,
+        )[1].split(
+            r"\end{thebibliography}",
+            1,
+        )[0]
+
+    # DOI detection is intentionally confined to bibliography material.
+    # Normalize case and common TeX/punctuation wrappers before counting.
+    doi_matches = re.findall(
+        r"(?i)\b10\.\d{4,9}/[^\s{}]+",
+        bibliography_text,
+    )
+
+    normalized_dois = [
+        doi.lower().rstrip(".,;:)]}")
+        for doi in doi_matches
+    ]
+
+    duplicate_dois = sorted(
+        {
+            doi
+            for doi in normalized_dois
+            if normalized_dois.count(doi) > 1
+        }
+    )
+
+    metrics["duplicate_bibliography_doi_count"] = len(
+        duplicate_dois
+    )
+
+    if duplicate_dois:
+        issues.append(
+            "Final bibliography contains duplicate DOI entries: "
+            + ", ".join(duplicate_dois)
+        )
+
+    # ---------------------------------------------------------
+    # D. DOI labels dumped into prose.
     #
     # DOI bibliography fields are fine; literal 'DOI:' labels
     # in manuscript prose are publication metadata pollution.
