@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from itertools import product
 from datetime import datetime, timezone
 from pathlib import Path
@@ -74,6 +75,216 @@ from .publication_renderer import (
 
 
 T = TypeVar("T")
+
+
+def _positive_capability_claim(
+    text: str,
+    patterns: tuple[str, ...],
+) -> bool:
+    """
+    Detect a positive experimental capability requirement while avoiding
+    obvious explicit negations such as 'no RAG', 'RAG is disabled', or
+    'without independent generation'.
+
+    This is deliberately applied only to execution-defining scientific
+    fields, never to literature/background text.
+    """
+    for pattern in patterns:
+        for match in re.finditer(
+            pattern,
+            text,
+            flags=re.IGNORECASE,
+        ):
+            left = text[
+                max(0, match.start() - 100):
+                match.start()
+            ]
+            right = text[
+                match.end():
+                min(len(text), match.end() + 100)
+            ]
+
+            negated_before = re.search(
+                r"\b(?:no|without|never|not|disable(?:d)?|"
+                r"exclude(?:d)?|omit(?:ted)?)\b"
+                r".{0,60}$",
+                left,
+                flags=re.IGNORECASE,
+            )
+
+            negated_after = re.search(
+                r"^\s*.{0,60}\b(?:is|are|was|were|be)?\s*"
+                r"(?:not used|not enabled|disabled|excluded|omitted|"
+                r"unavailable)\b",
+                right,
+                flags=re.IGNORECASE,
+            )
+
+            if not negated_before and not negated_after:
+                return True
+
+    return False
+
+
+def repaired_design_adapter_capability_issues(
+    design: dict[str, Any],
+    *,
+    available_adapter_contracts: dict[str, dict[str, Any]],
+) -> list[str]:
+    """
+    Reject a scientific design before preregistration when it positively
+    requires an execution capability that no registered adapter provides.
+
+    This gate protects scientific/execution consistency without selecting
+    a preferred hypothesis or reacting to observed outcomes.
+    """
+
+    # Only fields that define the experiment itself are scanned. In
+    # particular, literature/evidence/background material is not included.
+    scientific_fields = (
+        "research_question",
+        "confirmatory_hypotheses",
+        "primary_estimand",
+        "secondary_estimands",
+        "sampling_plan",
+        "analysis_plan",
+        "transformation_scope",
+    )
+
+    parts: list[str] = []
+
+    def add(value: Any) -> None:
+        if isinstance(value, str):
+            parts.append(value)
+        elif isinstance(value, list):
+            for item in value:
+                add(item)
+        elif isinstance(value, dict):
+            for item in value.values():
+                add(item)
+
+    for field in scientific_fields:
+        add(design.get(field))
+
+    science_text = "\n".join(parts)
+
+    contracts = list(
+        available_adapter_contracts.values()
+    )
+
+    def any_adapter_supports(
+        field: str,
+        *,
+        default: bool = False,
+    ) -> bool:
+        return any(
+            bool(contract.get(field, default))
+            for contract in contracts
+        )
+
+    issues: list[str] = []
+
+    if (
+        _positive_capability_claim(
+            science_text,
+            (
+                r"\bretrieval[- ]augmented generation\b",
+                r"\bRAG\b",
+                r"\bretrieval poisoning\b",
+                r"\bpoison(?:ed|ing)? retrieval\b",
+            ),
+        )
+        and not any_adapter_supports(
+            "retrieval_augmented_generation"
+        )
+    ):
+        issues.append(
+            "Scientific design requires retrieval-augmented generation "
+            "or retrieval poisoning, but no registered execution adapter "
+            "enables retrieval_augmented_generation."
+        )
+
+    if (
+        _positive_capability_claim(
+            science_text,
+            (
+                r"\bindependent(?:ly)? generated\b",
+                r"\bindependent (?:condition|arm) generation\b",
+                r"\bseparate(?:ly)? generated\b",
+                r"\bper-condition independent sampling\b",
+                r"\bindependent per-condition sampling\b",
+            ),
+        )
+        and not any_adapter_supports(
+            "independent_condition_generation"
+        )
+    ):
+        issues.append(
+            "Scientific design requires independent per-condition "
+            "generation, but no registered execution adapter enables "
+            "independent_condition_generation."
+        )
+
+    if (
+        _positive_capability_claim(
+            science_text,
+            (
+                r"\bmulti[- ]model consensus\b",
+                r"\bmodel ensemble\b",
+                r"\bmulti[- ]model ensemble\b",
+                r"\bmajority vot(?:e|ing) across models\b",
+                r"\bthree[- ]model consensus\b",
+                r"\b3[- ]model consensus\b",
+            ),
+        )
+        and not any_adapter_supports(
+            "supports_multi_model_consensus"
+        )
+    ):
+        issues.append(
+            "Scientific design requires multi-model consensus or an "
+            "ensemble, but no registered execution adapter supports it."
+        )
+
+    if (
+        _positive_capability_claim(
+            science_text,
+            (
+                r"\bsimulated human gate\b",
+                r"\bsimulated human review\b",
+                r"\bhuman-in-the-loop gate\b",
+                r"\bhuman gate\b",
+            ),
+        )
+        and not any_adapter_supports(
+            "supports_simulated_human_gate"
+        )
+    ):
+        issues.append(
+            "Scientific design requires a simulated-human/human gate, "
+            "but no registered execution adapter supports it."
+        )
+
+    if (
+        all(
+            term in science_text.lower()
+            for term in (
+                "benign",
+                "ambiguous",
+                "adversarial",
+            )
+        )
+        and not any_adapter_supports(
+            "supports_prompt_family_stratification"
+        )
+    ):
+        issues.append(
+            "Scientific design requires benign/ambiguous/adversarial "
+            "prompt-family stratification, but no registered execution "
+            "adapter supports it."
+        )
+
+    return sorted(set(issues))
 
 
 
@@ -3449,6 +3660,12 @@ class FinalAutonomousResearchPipeline:
             "available_analysis_contracts": (
                 available_analysis_contracts
             ),
+            "available_adapter_families": (
+                registered_adapter_families()
+            ),
+            "available_adapter_contracts": (
+                registered_adapter_planning_contracts()
+            ),
         }
 
         repaired_design = (
@@ -3665,17 +3882,52 @@ class FinalAutonomousResearchPipeline:
         # 4. Deterministic feasibility of repaired design
         # -------------------------------------------------
 
+        available_adapter_contracts = (
+            registered_adapter_planning_contracts()
+        )
+
+        repaired_design_dict = (
+            repaired_design.model_dump()
+        )
+
         repaired_design_feasibility = (
             feasibility_report(
                 design=(
-                    repaired_design
-                    .model_dump()
+                    repaired_design_dict
                 ),
                 capability_manifest=(
                     capability_manifest
                 ),
             )
         )
+
+        adapter_scientific_issues = (
+            repaired_design_adapter_capability_issues(
+                repaired_design_dict,
+                available_adapter_contracts=(
+                    available_adapter_contracts
+                ),
+            )
+        )
+
+        if adapter_scientific_issues:
+            combined_issues = sorted(
+                set(
+                    list(
+                        repaired_design_feasibility.get(
+                            "issues",
+                            [],
+                        )
+                    )
+                    + adapter_scientific_issues
+                )
+            )
+
+            repaired_design_feasibility = {
+                "status": "failed",
+                "issue_count": len(combined_issues),
+                "issues": combined_issues,
+            }
 
         write_json(
             design_dir
