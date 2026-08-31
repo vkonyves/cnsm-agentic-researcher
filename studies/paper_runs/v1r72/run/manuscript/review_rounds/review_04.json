@@ -1,0 +1,24 @@
+{
+  "summary": "Well-executed, preregistered paired confirmatory trial that archived artifacts and analysis reliably; primary outcome is a null/marginal effect (baseline 149/150 → guarded 150/150) driven by a ceiling effect. Study is reproducible and transparently disclosed, but several manuscript clarifications are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Ambiguity between preregistered hypothesis labels and the executed primary contrast: the preregistration lists H1 (constrained vs baseline) and H2 (guarded vs constrained) but the registered primary_estimand and confirmatory analysis are guarded vs baseline (C vs A). The manuscript must explicitly reconcile the preregistered hypothesis labels with the actual tested contrast and make clear which preregistered confirmatory inferences were executed or omitted.",
+    "Potential for reader misinterpretation of the paired comparison due to shared_initial_candidate semantics: although the paper mentions shared_initial_candidate, it does not prominently and unambiguously state (in the Abstract and opening of Results/Methods) that baseline and guarded used the same sampled initial model output, so the reported baseline rate measures initial-candidate validity rather than the effect of independent per-condition model sampling. This distinction must be stated clearly where the main numeric claims appear.",
+    "Preregistered condition B (constrained-only) was not executed. While the manuscript discloses this, the Methods and Results must more prominently (not only footnote-like) report that condition B was omitted and that no inference about constrained-alone performance is available.",
+    "Minor inconsistency in labeling of the confirmatory result artifact: the analysis bundle assigns hypothesis_id = 'H1' to the guarded-minus-baseline estimand even though preregistration text names H1 differently. This indexing/labeling mismatch must be corrected or explained in the manuscript and in the artifact-level README so labels are not misleading."
+  ],
+  "required_revisions": [
+    "In Methods and Abstract, add a short explicit statement that baseline and guarded conditions shared the same initial sampled candidate per intent (shared_initial_candidate), and therefore the primary contrast measures the marginal effect of the single allowed repair call given a common initial generation rather than the effect of independent per-condition model sampling. Cite the exact execution manifest/artifact path or preregistration field that documents the shared_initial_candidate semantics (no new experiments required).",
+    "In Methods or a prominently placed paragraph in Results, explicitly reconcile preregistration hypothesis labels (H1, H2) with the actually tested primary_estimand (paired_success_rate_difference_guarded_minus_baseline), and clearly state that preregistered constrained-only condition B was not executed and thus no confirmatory inference about B is reported. Update any mention of 'H1' in results/figures/tables to match the executed contrast labels.",
+    "Fix the labeling mismatch in the archived analysis artifacts (or add a short README note in the manuscript/Artifact bundle) explaining that the analysis file's hypothesis_id mapping (e.g., 'H1'→ guarded vs baseline) differs from the preregistered textual ordering, so automated auditors and readers can trace which preregistered hypothesis corresponds to which archived result. This is a documentation edit only and can be resolved using supplied artifacts."
+  ],
+  "optional_revisions": [
+    "Briefly expand the Discussion to note that the extremely high baseline rate undermined the preregistered power assumptions (ceiling effect) and recommend that future confirmatory runs include a small pilot baseline calibration step (cite the preregistration power text and the observed contingency table).",
+    "Consider moving the short note about 'temperature = null' and its sampling implication from model-configuration metadata into Methods/Threats to Validity to avoid reader confusion about determinism claims.",
+    "If space permits, add one-line clarification in the Disclosure Statement that only the two SHA references shown (master prompt and preregistration) are enumerated in-text and that the full hash manifest is available only in the archived artifact bundle (to satisfy the track's disclosure concision guidance)."
+  ],
+  "accept_for_finalisation": false
+}

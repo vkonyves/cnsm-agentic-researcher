@@ -1,0 +1,30 @@
+{
+  "study_id": "study_cand_2026_b2_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired binary analysis (C vs A) implemented by paired_binary_analysis_v1. Outcome: deterministic verifier pass/fail per condition. Test: McNemar-style paired-proportion comparison (exact two-sided p-value) with bootstrap (10,000 resamples) for 95% confidence intervals. Report absolute percentage-point difference (guarded minus baseline), odds ratio, exact two-sided p-value, and 95% bootstrap CI. Missing/incomplete pairs treated per preregistration primary policy: complete_pair_primary (exclude incomplete pairs).",
+  "secondary_analyses": [
+    "Paired contrast B vs A (constrained vs baseline) using same paired_binary_analysis_v1 procedure; Bonferroni-adjusted α per preregistration.",
+    "Paired contrast C vs B (guarded vs constrained) using same paired_binary_analysis_v1 procedure; Bonferroni-adjusted α per preregistration.",
+    "Descriptive estimator: median and IQR of revision iterations in condition C (reported as secondary estimand median_revision_iterations_condition_C)."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call sensitivity: complete_pair_primary_with_failure_as_zero_sensitivity (treat failed/missing guarded outputs as failures=0 and recompute primary estimand).",
+    "Report sensitivity to exclusion counts by reintroducing excluded items where feasible via documented reduced-invariant mappings (exploratory; counts and deterministic transformations published)."
+  ],
+  "uncertainty_quantification": "Bootstrap 10,000 resamples for 95% CIs on paired difference and odds ratio; exact two-sided p-values for paired test; report numerator/denominator counts, discordant-pair counts, and bootstrap distribution diagnostics. Analysis-side PRNG seeds and resample hashes published.",
+  "multiplicity_implementation": "Primary confirmatory test: single primary contrast (C vs A) at α=0.05 two-sided. Two secondary confirmatory contrasts (B vs A and C vs B) corrected via Bonferroni (each α=0.025 two-sided) as preregistered. All other analyses labeled exploratory.",
+  "contamination_analysis": "Follow preregistered contamination_plan: enforce session isolation per model call; run deterministic unit-tests for mapping/verifier before batch; apply rule-based ambiguity detection prior to model calls and exclude ambiguous intents from confirmatory set; log and report parse_failure and unsupported-feature exclusions. Produce counts and deterministic reason codes (ambiguous, parse_failure, unsupported_feature). Confirmatory analysis uses only items that pass parser, ambiguity, and verifier-coverage checks; all flagged/excluded items and hashes published.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Confirmatory 2x2 paired contingency (baseline vs guarded): counts (both pass, baseline-only, guarded-only, both fail), percent success per condition, discordant-pair counts, absolute percentage-point difference, odds ratio, exact two-sided p-value, 95% bootstrap CI (10,000 resamples). Source: execution/raw_results.jsonl; result schema paired_binary_episode_v1.",
+    "Table 2: Secondary contrasts (B vs A, C vs B): counts, differences, Bonferroni-adjusted p-values, and 95% bootstrap CIs. Source: execution/raw_results.jsonl.",
+    "Table 3: Exclusions and contamination audit: counts and deterministic reason codes (ambiguous, parse_failure, unsupported_feature), per-exclusion hashes and brief deterministic explanation. Source: execution/execution_log.jsonl and task_manifest.jsonl.",
+    "Table 4 (supplementary machine-readable): Per-task excerpt (intent ID, topology seed, shared initial candidate hash, baseline verifier verdict, guarded repair call presence, final verdict, model_call_ids, artifact hashes). Full raw_results.jsonl published alongside manuscript."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of semantic-success rates by condition (baseline, constrained if available, guarded) with 95% bootstrap CIs (10,000 resamples). Data from execution/raw_results.jsonl.",
+    "Figure 2: Distribution (boxplot + jitter) of revision iterations for guarded episodes (condition C); report median and IQR. Data from paired_binary_episode_v1 revision-iteration field.",
+    "Figure 3: Flow diagram (programmatic) of episode semantics under shared_initial_candidate: initial generation → verifier pass/fail → optional single guarded repair call → final verifier verdict. Constructed from transformation_manifest.json and execution/execution_log.jsonl."
+  ]
+}

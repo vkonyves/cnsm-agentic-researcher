@@ -1,0 +1,23 @@
+{
+  "summary": "Carefully executed, preregistered paired trial testing constrained prompting plus deterministic verifier-guided single-repair (guarded) vs baseline for NL→configuration translation on a synthetic corpus (N=150 paired tasks). Execution artifacts are complete and consistent. Observed near-ceiling baseline (149/150) left only one guarded-only improvement (150/150); paired difference = 0.0067 (0.67 pp), exact McNemar two-sided p = 1.0, 95% bootstrap CI = [0.00,0.02]. Manuscript documents preregistration, shared_initial_candidate semantics, artifacts, and limitations. Main scientific contribution is methodological (calibration/preregistration lesson and bounding benefit of single-repair guarded pipelines on an easy synthetic corpus).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "The preregistration described three conceptual conditions (A: baseline, B: constrained-only, C: constrained+verifier) but the executed confirmatory analysis and reported results include only the paired baseline vs guarded (A vs C) episodes under the adapter’s shared_initial_candidate semantics. The manuscript must explicitly state that condition B (constrained-only) was not executed and that secondary contrasts involving B were therefore not performed.",
+    "The model configuration records temperature=null. The manuscript must explicitly state the literal runtime sampling semantics (i.e., that temperature was recorded as null/unset in the archived model configuration and that this does not imply temperature=0 or deterministic sampling), per the preregistration/runtime-semantics requirements.",
+    "The Disclosure Statement in the current manuscript repeats provenance and execution accounting that are already archived; it should be condensed to a concise Disclosure in the paper (including model identifiers, immutable references to the initial master prompt and preregistration SHA-256, and a short autonomy boundary summary) and avoid duplicating execution-log-level artifact paths or detailed run bookkeeping in the main text."
+  ],
+  "required_revisions": [
+    "Add a clear, explicit statement in Methods (and repeat succinctly in Results) that the constrained-only condition (preregistered condition B) was not executed by the adapter and therefore secondary contrasts involving B are not reported; update any text that implies three executed first-pass generations to avoid conflating conceptual vs executed conditions. This clarification must be resolvable from the archived execution manifest and task manifests.",
+    "Add an explicit runtime-sampling disclosure: quote the archived model_configuration.json value (temperature = null), state literally that sampling parameters were recorded, and assert that null/unset temperature is not evidence of deterministic sampling (do not claim determinism). This can be resolved from execution/model_configuration.json.",
+    "Condense the Disclosure Statement in the manuscript to a concise paragraph that (a) names models and tools used, (b) provides immutable references (SHA-256) to the initial master prompt and the preregistration, (c) states the autonomy boundary and that no human edited technical content post-lock, and (d) references the archived execution bundle for full provenance. Move run-level bookkeeping (per-file paths, counts, or long hash lists) to the supplementary artifact bundle and remove such details from the main Disclosure text."
+  ],
+  "optional_revisions": [
+    "Consider adding a one-paragraph worked example (one representative task) in the Results or Appendix to illustrate the single repaired case and the shared_initial_candidate flow; artifacts permit inclusion of an anonymized example without new experiments.",
+    "Expand Discussion to more fully quantify the consequences of the preregistration power-misalignment (e.g., recompute minimal detectable difference given observed baseline) using archived analysis artifacts; this is optional but would strengthen the methodological lesson.",
+    "Add a brief sentence clarifying why the McNemar exact two-sided p-value is 1.0 in the observed discordant counts (n10=1, n01=0), to help readers interpret the statistical outcome; the archived contingency table is available as evidence."
+  ],
+  "accept_for_finalisation": false
+}

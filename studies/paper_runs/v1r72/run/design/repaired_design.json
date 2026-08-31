@@ -1,0 +1,172 @@
+{
+  "selected_candidate_id": "cand_2026_b2",
+  "title": "Improving NL→Formal-Spec Semantic Correctness via Constrained Prompting plus Verifier Feedback (Preregistered, Repair)",
+  "research_question": "Does combining constrained prompting with deterministic verifier-guided iterative feedback materially increase the semantic-correctness rate of translating operator natural-language intents into formal network specifications compared to baseline prompting?",
+  "confirmatory_hypotheses": [
+    "H1: Constrained prompting (structured templates + explicit semantic slots) increases NL→formal-spec semantic-correctness versus unconstrained baseline prompting.",
+    "H2: Adding deterministic verifier-guided iterative feedback (generate→verify→repair) further increases semantic-correctness versus constrained prompting alone."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which intent types (reachability, isolation, ACL, QoS) benefit most from verifier feedback and how do revision counts vary by type?",
+    "EQ2: What common syntactic or semantic failure modes remain after verifier-feedback repair?"
+  ],
+  "benchmark_scope": [
+    "Synthetic, programmatically generated operator intents covering four intent families: reachability, isolation, ACL-change, QoS constraint.",
+    "Topology sizes restricted to verifier-capable toy-to-small topologies (4–32 nodes) generated deterministically by the preregistered topology generator.",
+    "Confirmatory claims are strictly about performance on the sampled synthetic intent corpus and verifier-harness; no claim of production-network generalization is made."
+  ],
+  "model_scope": [
+    "A single hosted LLM API (identifier recorded at execution) called under fixed-seed / fixed-session isolation per intent-condition.",
+    "Deterministic prompting templates and fixed generation sampling parameters (temperature set to nominal low value per preregistration).",
+    "No human-in-the-loop scoring, annotation, or manual adjudication will be used."
+  ],
+  "transformation_scope": [
+    "Templates that map NL intents to a canonical formal-spec surface (formal language compatible with the preregistered verifier).",
+    "Deterministic translator wrappers that produce verifier input (no manual mapping).",
+    "Automated mapping code (published) that transforms model outputs to verifier input; ambiguous/parse-failure outputs are handled automatically per the ambiguity rules below."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_success_rate_difference_constrained_minus_baseline",
+    "paired_success_rate_difference_guarded_minus_constrained",
+    "median_revision_iterations_condition_C"
+  ],
+  "sampling_plan": "Confirmatory sample: N=150 distinct synthetic intents programmatically generated (50 per intent-family target balance post-ambiguity-filter). For each intent, run three translation conditions (A: baseline free-text prompt, B: constrained template prompt, C: constrained prompt + verifier-feedback loop). Inclusion rule: intents that trigger deterministic ambiguity-detection (see ambiguity rules) are excluded from confirmatory set and routed to exploratory corpus. Exclusion is deterministic, code-published, and applied prior to any model call. Each intent-condition pair is executed in an isolated model session with fixed seed/state reset. Max verifier-feedback iterations per intent in condition C: 3 model calls (initial + up to 2 repairs); average-expected iterations assumed 2 for budgeting. Randomization: none required (paired within-intent design). All intent IDs and topology seeds are published.",
+  "analysis_plan": "Primary analysis: paired binary comparison of semantic-correctness (verifier pass/fail) between Condition C (guarded) and Condition A (baseline) using the supplied paired_binary_analysis_v1 executor (McNemar-style paired-proportion test with bootstrap CIs). Secondary analyses: paired tests B vs A and C vs B with Bonferroni correction across these two secondary contrasts. Report absolute percentage-point differences, odds ratios, exact two-sided p-values, and 95% bootstrap CIs (10,000 bootstrap resamples). For condition C report median and IQR of revision iterations. Missing/incomplete pairs: primary treatment is 'complete_pair_primary' (exclude incomplete pairs for primary analysis); sensitivity analysis will run 'complete_pair_primary_with_failure_as_zero_sensitivity' treating failed/missing guarded outputs as failures (zero) to bound effects. All analysis code, seeds, and raw verifier verdicts are published.",
+  "multiplicity_plan": "Primary confirmatory test: single primary contrast (C vs A) at alpha=0.05 (two-sided). Secondary confirmatory contrasts (B vs A and C vs B): familywise alpha adjusted via Bonferroni for these two tests (each at alpha=0.025 two-sided). Exploratory contrasts (subgroups, error taxonomy) are explicitly labeled exploratory and not used for confirmatory claims.",
+  "missingness_plan": "Model/API timeouts or parsing failures are logged and trigger deterministic retry policy: one automatic retry after fixed backoff; if still failing, mark the model-call as failed. For the primary analysis incomplete intent-condition pairs are removed (complete_pair_primary). Sensitivity analysis treats failed guarded outputs as failures (zero) and reports results. All failed-call counts, causes, and hashes are published.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Preregistered synthetic NL→formal-spec corpus v1 (this study)",
+      "Programmatic topology generator v1"
+    ],
+    "risk_factors": [
+      "Prompt-history or session-state leakage across runs",
+      "Model nondeterminism in hosted API responses",
+      "Verifier parser/translation bugs that could mis-evaluate semantic correctness",
+      "Ambiguous intents that legitimately permit multiple correct formalizations"
+    ],
+    "detection_procedures": [
+      "Session isolation enforced by fresh API session/token per intent-condition; automated session-hash verification to detect leakage.",
+      "Duplicate-response and response-entropy checks; if identical outputs repeated across seeds suspicious runs are flagged automatically.",
+      "Deterministic unit-tests for mapping code and verifier-input transformations run before batch evaluation; failing unit-tests cause automated abort of the run.",
+      "Ambiguity detection: rule-based parser (published) that flags underspecified intents prior to model calling."
+    ],
+    "item_flagging_rules": [
+      "If verifier-input mapping fails to parse, automatically mark the item as 'parse_failure' and exclude from confirmatory set.",
+      "If ambiguity-detection returns true, classify intent as 'ambiguous' and place into exploratory corpus (excluded from confirmatory analysis).",
+      "If verifier reports 'unsupported-feature' for an intent, exclude that intent from confirmatory set and record as excluded with deterministic reason code."
+    ],
+    "analysis_treatment": "All flagged/ excluded items are reported with counts and deterministic reasons. Confirmatory analysis uses only items that pass parser, ambiguity, and verifier-coverage checks. Sensitivity analyses reintroduce excluded items where feasible by mapping them to reduced invariants (documented transformation).",
+    "residual_uncertainty": [
+      "Verifier coverage gaps for production-scale invariants (addressed by exclusion but residuals reported).",
+      "Model API nondeterminism affecting variance estimates (quantified via repeated-seed exploratory runs)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended",
+      "description": "Primary recommend: N=150 confirmatory intents, exploratory corpus 50 intents. Average verifier-feedback calls per C assumed = 2 (initial + 1 repair). One model call per intent for A and B. 10% overhead budgeted for retries/logging.",
+      "planned_model_calls": 660,
+      "models": [
+        "hosted_LLM_API_primary"
+      ],
+      "transformations": [
+        "deterministic_prompt_templates_v1",
+        "mapping_code_to_verifier_inputs_v1"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 150,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Model-call budget (660) is well below capability manifest limit (max 10000); CPU and docker resources suffice for verifier and mapping code execution; all datasets are synthetic/programmatic so no human annotation is required."
+    },
+    {
+      "scenario_id": "low_budget",
+      "description": "Reduced budget confirmatory run: N=80 confirmatory intents to conserve API spend; exploratory corpus 40 intents. Same per-intent call assumptions and 10% retry overhead.",
+      "planned_model_calls": 352,
+      "models": [
+        "hosted_LLM_API_primary"
+      ],
+      "transformations": [
+        "deterministic_prompt_templates_v1",
+        "mapping_code_to_verifier_inputs_v1"
+      ],
+      "discovery_items": 40,
+      "confirmatory_items": 80,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Smaller confirmatory set reduces power but remains executable under compute limits and is useful as a pilot; all exclusions and deterministic pre-filters remain identical."
+    },
+    {
+      "scenario_id": "scale_up_optional",
+      "description": "Scale-up confirmatory run (optional if additional budget available): N=300 confirmatory intents; exploratory 100 intents; same per-intent assumptions; 10% overhead.",
+      "planned_model_calls": 1320,
+      "models": [
+        "hosted_LLM_API_primary"
+      ],
+      "transformations": [
+        "deterministic_prompt_templates_v1",
+        "mapping_code_to_verifier_inputs_v1"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 300,
+      "task_cluster_count": 4,
+      "feasibility_rationale": "Still below manifest model-call cap; useful for tighter CIs if budget permits."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect absolute increase of 15 percentage points (e.g., baseline 35% → guarded 50%) with 80% power at alpha=0.05 for primary contrast (C vs A).",
+    "clustering_unit": "intent (paired within-intent across conditions)",
+    "calculation_method": "Approximate paired-proportion (McNemar-style) power calculation using conservative discordant-pair proportion assumption (discordant rate ≈ 0.30). Analytical calculation indicates N≈132; rounded up to N=150 for buffer; sensitivity via bootstrap simulation under varying baseline (25–45%) and discordant rates (0.20–0.40).",
+    "assumptions": [
+      "Baseline semantic-correctness rate ≈ 35% (literature-based conservative estimate).",
+      "Discordant-pair proportion (cases where conditions differ) ≈ 0.30.",
+      "Two-sided alpha=0.05 for primary contrast; secondary contrasts Bonferroni-adjusted.",
+      "Guarded condition mean iterations per item ≈ 2 for budgeting."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With N=150 the design has ≈80% power to detect ~15 percentage-point absolute difference under stated assumptions; smaller effects (e.g., 8–10 pp) would be underpowered; sensitivity analyses report MDE across assumed baseline rates.",
+    "sensitivity_analyses": [
+      "Recompute power/numeric CIs under baseline rates 25%, 35%, 45%.",
+      "Bootstrap power simulation varying discordant-pair rates 0.20–0.40 (report contour plot).",
+      "Secondary analysis: treat failed/missing guarded outputs as failures (sensitivity lower bound)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Structured prompt templates (slot-filling) with deterministic token positions",
+      "Automated mapping code from LLM output to verifier input (parser + sanitizer)",
+      "Topology and intent-to-scenario generator"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic verifier harness (NetKAT/KATch family referenced in evidence) executes concrete scenario tests constructed from the intent generator; pass/fail verdicts are deterministic given mapping inputs.",
+      "Unit tests validating mapping transformations against 100 deterministic seed cases (published).",
+      "End-to-end smoke tests for each topology size and intent family recorded with hashes."
+    ],
+    "automatic_rejection_rules": [
+      "Parser failure: automatic exclusion from confirmatory set and record as 'parse_failure'.",
+      "Ambiguity-detection true: automatic exclusion to exploratory set with deterministic reason code.",
+      "Unsupported verifier feature: automatic exclusion or fallback to reduced invariant mapping (documented transformation)."
+    ],
+    "audit_sample_policy": "Publish an automated audit sample of 20% of confirmatory items (random deterministic seed) containing model outputs, mapping inputs, and verifier logs for external reproducibility checks (no human adjudication).",
+    "mapping_validation": "Mapping code includes deterministic grammar-based parser with unit-test coverage >95% on preregistered seed set; failing cases abort run and are reported.",
+    "residual_risks": [
+      "Verifier expressiveness may not cover some real-world invariants; such intents are excluded deterministically.",
+      "Mapping code bugs could systematically alter semantics; mitigated by unit-tests and pre-run acceptance checks but residual implementation risk remains."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: results are limited to the synthetic programmatic corpus and verifier-harness; production-network heterogeneity and scale remain untested.",
+    "Choice of a single hosted LLM API means observed effect sizes may not generalize across models; sensitivity analysis on seeds and prompt variants will be reported but multi-model generality is not claimed.",
+    "Verifier-family selection (NetKAT/KATch) favors invariants expressible in that formalism; other invariants may require alternate verifiers and are out of scope.",
+    "Hosted API nondeterminism contributes to variance estimates; repeated exploratory runs quantify this but cannot remove it entirely."
+  ],
+  "evidence_record_ids": [
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W7203715746",
+    "https://openalex.org/W7124141852",
+    "https://openalex.org/W4394661176"
+  ]
+}

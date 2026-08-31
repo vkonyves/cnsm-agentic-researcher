@@ -1,0 +1,97 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand_2026_a1",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Unclear exact verifier(s) and their fidelity to production (oracle mismatch may bias safety rates).",
+        "Verifier runtime on large topologies may make the preregistered sample infeasible within wall-clock / model-call budget.",
+        "No predefined operational latency bound value supplied (threshold is mentioned but not numerically fixed).",
+        "Potential overreliance on a single LLM; nondeterminism and variance handling are underspecified."
+      ],
+      "required_design_repairs": [
+        "Specify concrete deterministic verifier(s) (open-source references, versions) and justify their coverage for the chosen invariants.",
+        "Define the numeric operational latency bound used to declare the pipeline impractical and include a power/sample-size analysis tied to that bound.",
+        "Provide a concrete topology-generation procedure (code/config) and publish topology artifacts for reproducibility.",
+        "Add a detailed retry policy, seed control, and variance-reduction plan; predefine how verifier timeouts are handled (censoring policy).",
+        "Clarify whether multiple LLMs or model seeds will be used for sensitivity analysis or justify single-model choice."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_2026_b2",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "'Semantic-correctness' depends critically on the verifier test-harness scope; harness design could bias results.",
+        "Operator intents may be legitimately underspecified; measurement may conflate ambiguity with model error.",
+        "Ground-truth formal specs are not described (who authors them; are they audited?)."
+      ],
+      "required_design_repairs": [
+        "Provide a precise, auditable specification of the verifier test-harness (cases per intent, coverage criteria) and publish harness code/data.",
+        "Require expert-authored ground-truth formal specs with inter-annotator agreement measurement and document the annotation protocol.",
+        "Predefine ambiguity-handling rules: when an intent is underspecified, how will translations be judged (reject / ask clarification / mark ambiguous).",
+        "Include a sample-size/power calculation for expected effect sizes and ensure model-call budget allocation aligns with it.",
+        "Specify verifier tools and versions and include contingency if verifier test-harness cannot fully express intent semantics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_2026_c3",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial corpus construction needs careful ethical and methodological controls (risk of creating harmful payloads).",
+        "Sandbox fidelity to real NetOps tool interfaces is unspecified and may over-/under-estimate exploitability.",
+        "Tool-call gating policies risk being overfitted to the test corpus; external validity is unclear."
+      ],
+      "required_design_repairs": [
+        "Document adversarial-corpus generation methodology, include safety/mitigation safeguards, and obtain/record ethical oversight (or justify exemption).",
+        "Specify sandbox fidelity and map sandbox interfaces to real tool APIs; describe limitations explicitly.",
+        "Define gating policy taxonomy and provide deterministic, versioned policy code; preregister gate decision thresholds and logging format.",
+        "Include a protocol to evaluate gate false-positive impact on benign operator workflows and measure utility loss quantitatively.",
+        "Publish attack payloads, prompts, and full logs (with redaction where necessary) for reproducibility and external audit."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand_2026_d4",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "How verifier constraints are encoded into prompts is underspecified — poorly formed constraints could harm planning quality.",
+        "Risk of contamination between paired conditions if prompt-history or context leaks are not isolated.",
+        "Quantitative thresholds for 'fewer iterations' and meaningful runtime savings are not predefined."
+      ],
+      "required_design_repairs": [
+        "Provide exact constraint-encoding templates, with examples and versions; publish prompt files as machine-readable artifacts.",
+        "Enforce strict isolation between workflows (fresh session/seeding rules) and document cross-contamination safeguards.",
+        "Predefine the minimum effect-size of practical interest (iterations/runtime) and include a power/sample-size calculation tied to that effect.",
+        "Specify verifier(s), their expected input formats, and minimal transformation code used to derive constraints from verifier outputs.",
+        "Add procedural checks to ensure constraint verbosity does not leak verifier internals or create unfair advantage vs. baseline."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

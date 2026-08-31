@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, artifact-backed preregistered paired trial comparing baseline single-shot prompting vs a constrained+verifier guarded pipeline under shared_initial_candidate semantics. Execution artifacts and deterministic verifier logs support the reported near-ceiling baseline (149/150) and guarded outcome (150/150). Major strengths: rigorous preregistration, complete provenance, explicit shared_initial_candidate semantics, archived analysis artifacts, and honest reporting of a ceiling effect that invalidated preregistered power assumptions. Remaining issues are clarificatory and manuscript-labeling mismatches rather than unrecoverable scientific defects.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Preregistered hypothesis wording (H1/H2) and the preregistered conceptual three-condition design (A: baseline, B: constrained, C: guarded) are notstringently mapped to the executed contrasts in the manuscript: the run and primary estimand are guarded (C) vs baseline (A) under shared_initial_candidate semantics, while the preregistration text lists H1 as constrained vs baseline and H2 as guarded vs constrained. This mismatch must be made explicit in Methods with an unambiguous mapping from preregistered hypothesis labels to the actually tested contrast.",
+    "The manuscript occasionally reads as if independent per-condition first-pass sampling was possible; given the shared_initial_candidate execution semantics the paper must explicitly (and in one place only) state that baseline and guarded comparisons used the identical sampled initial candidate for each intent, and that the guarded pipeline was permitted at most one repair invocation (repair counts: 1). Any sentence implying different first-pass samples across conditions should be corrected.",
+    "Although the paper reports preregistered secondary contrasts (constrained vs baseline, guarded vs constrained) in prose, no secondary-results artifacts are provided. The manuscript must explicitly state that these secondary contrasts were not executed as independent-condition comparisons under the adapter’s enforced semantics (and therefore are not supported by the archived confirmatory artifacts)."
+  ],
+  "required_revisions": [
+    "In Methods (and briefly in the Disclosure Statement) add one concise paragraph that maps the preregistered hypothesis labels (H1/H2) and the conceptual three-condition design (A/B/C) to the experiment actually executed and archived: clarify that the primary estimand is guarded (C) vs baseline (A) under shared_initial_candidate semantics; explicitly state that constrained-only (B) was not executed as an independent first-pass condition in this run and therefore no B-vs-A or C-vs-B confirmatory contrasts are reported in the archived analysis.",
+    "Edit any sentence that could be read as implying independent per-condition first-pass sampling so that it strictly states the shared_initial_candidate semantics (the same initial sampled candidate was reused across conditions for each intent) and that the guarded pipeline was allowed at most one repair call (repair-stage invocations = 1). Point readers to the execution manifest/provider accounting (model_calls_used = 151; shared_initial_generation = 150; repair = 1) for auditable evidence.",
+    "Add one short, explicit sentence to Methods or Results stating that the preregistered power target (detect +15 pp) was invalidated by the observed near-ceiling baseline (≈99.33%), summarize the inferential consequence (very low discordant-pair information; McNemar p not informative here), and confirm that no post-lock changes to the confirmatory analysis were performed (the observed analyses follow the preregistered paired_binary_analysis_v1)."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement slightly (one short paragraph) to improve readability while preserving all mandatory facts and archival hashes; retain full execution logs and hashes in the artifact bundle but keep the in-paper Disclosure concise.",
+    "Add a small clarifying table or one-line mapping (preregistration label → executed contrast) to the supplementary/Methods paragraph to help readers unfamiliar with shared_initial_candidate semantics.",
+    "Briefly note in Results that the single discordant pair (n_10 = 1, n_01 = 0) corresponds to pair-000069 (terminal_factual_accounting discordant_pairs) and that representative validator traces for that pair are archived—this aids reproducibility and pointed audit without exposing low-level paths/hashes in the paper body."
+  ],
+  "accept_for_finalisation": false
+}

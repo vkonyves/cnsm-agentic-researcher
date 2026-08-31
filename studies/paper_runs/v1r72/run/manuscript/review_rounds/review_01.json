@@ -1,0 +1,22 @@
+{
+  "summary": "Careful, well-documented preregistered paired experiment testing constrained prompting + verifier-guided single-repair vs unconstrained baseline on a synthetic intent→configuration corpus. Execution artifacts and analysis are complete and internally consistent; main finding is a null/practically negligible paired improvement (149/150 → 150/150) with a ceiling effect. Reproducibility evidence and preregistration fidelity are strong. Manuscript is publishable after three targeted, resolvable manuscript clarifications.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Disclosure Statement in the current manuscript duplicates run-internal provenance (paths and full hashes) in the main text rather than providing a concise disclosure and referencing the archived execution manifest/supplementary artifact bundle; this conflicts with the track guidance to keep provenance-heavy bookkeeping out of ordinary prose.",
+    "The manuscript must more explicitly and prominently distinguish (in Methods and Results) initial single-shot candidate validity from final guarded-pipeline validity given the preregistered shared_initial_candidate semantics. Although the run log records that the same initial generation was reused and only one guarded repair call occurred, the paper's current phrasing does not unambiguously label baseline = initial-candidate outcome and guarded = final-pipeline outcome for every reader.",
+    "The manuscript must explicitly confirm IEEE-style numbered in-text citation usage and ensure no raw DOI/URL identifiers appear inline where bracketed citation markers are required. (Referenced records appear verified, but the paper must meet the track's citation-format requirement in the main text.)"
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement in the main manuscript to a concise statement that lists models, validator, adapter family, that the preregistration was frozen (include SHA-256), the autonomy boundary, and where full provenance and full hash manifest are archived (cite the execution_manifest.json or supplement). Move run-internal paths and full artifact hashes out of the main prose into the supplementary artifact bundle and cite that bundle from the Disclosure Statement.",
+    "Add an explicit, unambiguous sentence in Methods and in Results clarifying shared_initial_candidate semantics: state that the same initial model generation was used for baseline and guarded for each pair, that baseline success counts refer to that initial candidate's verifier pass/fail, and that guarded success counts reflect the final (post-repair if invoked) outcome; include the exact repair-stage invocation count (1/150) next to the contingency table and in the Results text.",
+    "Ensure the manuscript uses IEEE numbered in-text citations (e.g., [1], [2]) everywhere and remove any inline raw DOI/URL identifiers from running prose. If any reference in the bibliography is used to support a proximate factual claim, add a one-line page/section justification in the reference-verification supplement confirming that the cited record supports that claim (the execution bundle already contains verified records; link this confirmation in the manuscript)."
+  ],
+  "optional_revisions": [
+    "Add one brief sentence in Results noting that the exact-McNemar p-value degeneracy (discordant n=1) limits inferential power here and that the bootstrap CI and the observed ceiling effect are the more informative diagnostics for this dataset.",
+    "In Discussion, briefly note that alternative generation semantics (independent initial samples per condition) or larger repair budgets could produce different outcomes and that these are natural future-work directions (no new experiments requested)."
+  ],
+  "accept_for_finalisation": false
+}

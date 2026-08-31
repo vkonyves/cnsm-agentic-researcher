@@ -1,0 +1,175 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "E1",
+      "statement": "Large language models can generate network-configuration templates or intent-derived configurations but frequently produce errors, omissions, or hallucinated/unsafe outputs that require downstream correction or validation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411015066",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "empirical studies and surveys",
+      "confidence": 0.9,
+      "limitations": [
+        "Evidence is from prototypes, benchmarks, and surveys rather than broad production deployments.",
+        "Task formulations and evaluation criteria differ across studies, limiting direct quantitative aggregation."
+      ]
+    },
+    {
+      "claim_id": "E2",
+      "statement": "Work that integrates generation with deterministic/verifier feedback and iterative repair (generate→verify→repair) improves correctness for infrastructure-as-code and configuration-repair tasks compared to single-pass LLM outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7162044828",
+        "https://openalex.org/W4416927413"
+      ],
+      "evidence_type": "method papers and evaluations",
+      "confidence": 0.88,
+      "limitations": [
+        "Reported improvements are on curated datasets and benchmarks; real-world scaling and heterogeneity effects remain incompletely evaluated.",
+        "Different verifier designs and feedback mechanisms yield varying gains; not all pairings were compared."
+      ]
+    },
+    {
+      "claim_id": "E3",
+      "statement": "Agentic or tool-augmented LLM pipelines can convert false textual claims into concrete harmful actions and are vulnerable to prompt-injection and related adversarial attacks.",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4405183113"
+      ],
+      "evidence_type": "empirical attack studies and analyses",
+      "confidence": 0.92,
+      "limitations": [
+        "Attack experiments were sandboxed and are payload- and system-dependent; absolute exploit rates vary with setup.",
+        "Defensive mitigations were evaluated only in limited settings; broad effectiveness is unsettled."
+      ]
+    },
+    {
+      "claim_id": "E4",
+      "statement": "Runtime monitoring and verifier-based enforcement reduce unsafe agent actions but do not by themselves guarantee task-level safety; specification-translation errors and alternative unsafe paths remain important failure modes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "systematic review and deployment report",
+      "confidence": 0.85,
+      "limitations": [
+        "Quantified reductions come from controlled evaluations; deployment effectiveness depends on verifier coverage and specification quality.",
+        "Some verifier/monitoring systems are domain-specific and may not generalize to all LLM-agent pipelines without integration work."
+      ]
+    },
+    {
+      "claim_id": "E5",
+      "statement": "There exists a mature ecosystem of formal network-verification tools (e.g., NetKAT/KATch, Hoyan, ACORN/ShapeShifter, MEV) that can serve as deterministic oracles for reachability, isolation, and policy checks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4413756540",
+        "https://openalex.org/W4281650352",
+        "https://openalex.org/W4416655698"
+      ],
+      "evidence_type": "tool/system papers",
+      "confidence": 0.93,
+      "limitations": [
+        "Tools vary in supported protocols, scale, and abstraction; integration with LLM-agent workflows requires engineering effort.",
+        "Many tools are optimized for design-time verification rather than low-latency runtime agent checks."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "Can end-to-end LLM→verifier→repair workflows scale to large, heterogeneous production networks (e.g., WANs) while preserving safety and availability without human intervention?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W4413756540"
+      ],
+      "evidence_type": "benchmark findings and deployment report",
+      "confidence": 0.65,
+      "limitations": [
+        "The benchmark (Cornetto) documents performance degradation at scale; industrial verifiers (e.g., Hoyan) demonstrate large-scale verification but not integrated, fully autonomous LLM-driven change pipelines."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How reliably can natural-language intents be translated into formal specifications or invariants with semantic correctness sufficient for sound automated verification?",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "method evaluation and systematic review",
+      "confidence": 0.6,
+      "limitations": [
+        "Systematic reviews report low NL→formal semantic-correctness rates (e.g., ≈24–35%), indicating this remains an open technical challenge.",
+        "Evaluation metrics and task formulations vary across studies."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What defensive architectures reliably prevent adversarial prompt-injection and claim-to-action exploitation in multi-tool LLM agents for NetOps while preserving necessary automation utility?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405183113",
+        "https://openalex.org/W4388886073",
+        "doi:10.21203/rs.3.rs-10646557/v1"
+      ],
+      "evidence_type": "attack and defense analyses",
+      "confidence": 0.68,
+      "limitations": [
+        "Existing defenses were evaluated in narrow contexts; trade-offs between strict blocking and task completion remain unresolved.",
+        "Attack effectiveness and defensive success are strongly system- and phrasing-dependent."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A standardized, scalable benchmark that directly links LLM-generated configuration changes to full-stack network-functional validation (using production-scale topologies and verifiers) is still needed.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7124141852"
+      ],
+      "evidence_type": "existing benchmark and method papers indicating partial progress",
+      "confidence": 0.78,
+      "limitations": [
+        "Cornetto is an important first effort (231 problems) but limited in size and diversity.",
+        "TerraFormer advances IaC verifier-guided training but does not provide end-to-end production-scale network validation."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Robust pipelines for translating natural-language operator intents into formal specifications with high semantic correctness (suitable for sound automated verification) are under-developed.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "method evaluation and survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing proposals (fine-tuning, in-context examples) show promise but reported semantic-correctness remains low across reviews.",
+        "Task heterogeneity and lack of standardized evaluation hamper comparison."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Defensive primitives specifically evaluated for LLM-agent NetOps (e.g., prompt-hardening, verifier-aware planning, auditable tool-call gating) are immature and lack standard evaluation protocols.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405183113",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W7203715746"
+      ],
+      "evidence_type": "security/attack studies and analyses",
+      "confidence": 0.8,
+      "limitations": [
+        "Attack studies demonstrate vulnerabilities; proposed mitigations are tested narrowly and no consensus best-practices or benchmarks exist for NetOps-specific agent defenses.",
+        "Evaluation focuses on text-level or sandboxed tool invocation outcomes rather than deployed NetOps workflows."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based agents are production-ready for fully autonomous, human-free NetOps changes (no supplied record demonstrates proven production deployments without human approval).",
+    "Any single verifier or defensive layer guarantees complete safety for agentic NetOps workflows (surveys and analyses report reductions in unsafe actions but not guarantees).",
+    "LLMs achieve consistently high (>95%) semantic-correctness in translating natural-language intents into formal network specifications (systematic reviews report much lower rates).",
+    "Prompt-injection and claim-to-action vulnerabilities are purely theoretical with no empirical exploitability evidence (contradicted by multiple empirical attack studies in the supplied records)."
+  ]
+}

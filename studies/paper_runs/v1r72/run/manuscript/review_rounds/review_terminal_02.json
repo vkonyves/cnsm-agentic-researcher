@@ -1,0 +1,23 @@
+{
+  "summary": "Closure review: artifacts and manuscript substantively address the preregistered paired trial and archive the execution/analysis record. Execution shows near-ceiling baseline (149/150) and a single guarded repair conversion (150/150). Remaining required clarifications concern precise mapping between the preregistration’s conceptual three-condition hypotheses and the actually executed paired contrast under shared_initial_candidate semantics, explicit correction of any language that could imply independent per-condition first-pass sampling, and an explicit statement that the preregistered power target was invalidated by the observed baseline and that no post-lock changes to the confirmatory analysis were performed.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript does not explicitly map the preregistration hypothesis labels (H1/H2) and the conceptual three-condition design (A: baseline, B: constrained, C: guarded) to the single executed and archived primary contrast (guarded C vs baseline A) under shared_initial_candidate semantics; this mapping must appear unambiguously in Methods and in the Disclosure Statement.",
+    "Some sentences still risk implying independent per-condition first-pass sampling. Given the adapter-enforced shared_initial_candidate semantics (one initial generation reused across conditions per intent) and a one-repair budget, the paper must correct any wording that could be read as describing independent first-pass draws across conditions.",
+    "Although the manuscript discusses the ceiling effect, it must add one explicit sentence in Methods or Results stating that the preregistered power target (+15 pp) was invalidated by the observed ~99.33% baseline (therefore low discordant-pair information), and explicitly confirm that no post-preregistration/ post-lock changes to the confirmatory analysis were performed (the archived analysis follows the registered paired_binary_analysis_v1)."
+  ],
+  "required_revisions": [
+    "In Methods (and briefly repeated in the Disclosure Statement) add a concise paragraph that maps preregistered labels to the executed contrast: state that preregistered H1/H2 referenced a conceptual three-arm A/B/C design but that the archived run enforced shared_initial_candidate semantics and therefore the preregistered primary estimand evaluated guarded (C) vs baseline (A); explicitly state that constrained-only (B) was not executed as an independent first-pass condition in this run and that no B-vs-A or C-vs-B confirmatory contrasts are reported from the archived artifacts.",
+    "Search the manuscript and replace or reword any sentence that could be interpreted as implying independent per-condition first-pass sampling so that it plainly states: for each intent the same initial sampled candidate was reused across conditions (shared_initial_candidate), and the guarded pipeline was permitted at most one repair (repair-stage invocations = 1). Point readers to the execution manifest/provider accounting (model_calls_used = 151; shared_initial_generation = 150; repair = 1) for auditable evidence.",
+    "Add one short explicit sentence in Methods or Results noting that the preregistered power target (detecting +15 percentage points) was invalidated by the observed near-ceiling baseline (~99.33%), explain the inferential consequence (very low discordant-pair information limiting McNemar power), and explicitly confirm that no post-lock modifications to the preregistered confirmatory analysis were made and that reported analyses follow the archived paired_binary_analysis_v1. Ensure this statement appears prominently (Methods or Results) rather than only in the Disclosure or appendix."
+  ],
+  "optional_revisions": [
+    "Condense the in-paper Disclosure Statement to a shorter single paragraph while preserving all mandatory facts and referencing the archived provenance bundle for full hashes/logs.",
+    "Add a one-line mapping table or boxed note in Methods mapping preregistration labels (A/B/C, H1/H2) to the executed contrast to aid readers unfamiliar with shared_initial_candidate semantics.",
+    "Optionally mention that the single discordant pair corresponds to pair-000069 (terminal_factual_accounting discordant_pairs) and state that representative validator traces for that pair are archived—this helps targeted auditability without including low-level paths or hashes in the manuscript body."
+  ],
+  "accept_for_finalisation": false
+}

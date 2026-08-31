@@ -1,0 +1,20 @@
+{
+  "summary": "Well-executed preregistered paired trial with complete artifactization and transparent reporting; main scientific limitation is a ceiling-effect baseline that rendered the preregistered power target uninformative. Artifacts and analysis appear internally consistent and reproducible. One manuscript-level clarification is required about runtime sampling semantics (temperature unset) to comply with the stated preregistration/runtime-parameter reporting rules.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "The manuscript does not explicitly state the literal runtime sampling semantics: execution/model_configuration.json records temperature = null but the paper does not explicitly state that sampling was nondeterministic (no temperature fixed) and that null does not imply temperature=0/deterministic sampling. Per the preregistration/runtime-reporting rules, this must be described literally."
+  ],
+  "required_revisions": [
+    "Add a clear, prominent statement in Methods and the Disclosure Statement that the archived model configuration records temperature = null (unset), that no deterministic sampling or fixed-seed sampling was enforced, and therefore model outputs may be nondeterministic; point readers to the archived model_configuration.json for the exact recorded runtime sampling metadata.",
+    "In Methods or Results, add one sentence explicitly linking the shared_initial_candidate execution semantics to the interpretation of the baseline rate (i.e., baseline measures the single initial sampled candidate and the guarded condition isolated the marginal effect of at most one repair). Although this is already discussed, ensure the precise wording appears in Methods (not only in artifact notes) so readers cannot misinterpret that different first-pass generations were used across conditions."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement within the five-page manuscript so it is more concise and avoids repeating execution-log style details already preserved in the artifact bundle (keep counts and the SHA-256 preregistration fingerprint but omit per-file paths/hashes in the prose).",
+    "Add a brief remark in Discussion contrasting the observed outcome under shared_initial_candidate semantics with the likely outcome under independent per-condition sampling and/or larger repair budgets to help readers generalize the methodological lesson.",
+    "Where space permits, add a short aside explaining why the synthetic task bank yielded a near-ceiling baseline (task difficulty calibration) and include a one-sentence plan for the recommended pilot baseline-calibration procedure."
+  ],
+  "accept_for_finalisation": false
+}

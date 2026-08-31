@@ -1,0 +1,118 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand_2026_a1",
+      "title": "Scaling Limits of Generate→Verify→Repair for WAN-Scale NetOps Changes",
+      "research_question": "Can a generate→verify→repair pipeline for LLM-driven NetOps safely scale to increasingly large and heterogeneous topologies while maintaining an acceptably low unsafe-change rate and practical throughput?",
+      "hypotheses": [
+        "A generate→verify→repair pipeline reduces the proportion of unsafe configuration changes compared to single-pass LLM outputs across varying topology sizes.",
+        "Verification latency and total pipeline turnaround time will increase superlinearly with topology size, producing a practical scale threshold beyond which autonomous repair cannot meet operational latency constraints."
+      ],
+      "proposed_design": "Create parameterized network topologies (small/medium/large corresponding to ~8, 64, 256 forwarding nodes and diverse policy sets). For each topology size: (1) sample a set of operator intents (reachability, isolation, path-preference changes) and request LLM-generated configuration changes; (2) run three conditions per intent — single-pass LLM output, LLM with post-hoc deterministic verifier, and LLM with iterative generate→verify→repair loop until verifier passes or max iterations reached; (3) use an established network verifier as oracle for reachability/isolation checks; (4) measure unsafe-change incidence, verifier runtime, repair iterations, and end-to-end latency. Fix seeds and retry policy; record all raw artifacts and calls.",
+      "expected_data": "Per-intent records including condition label, topology size, whether change passed verifier (binary), number of repair iterations, verifier runtime (ms), end-to-end latency (ms), and whether the change would violate safety invariants (binary). Aggregate unsafe-change rate, median verifier/runtime, distribution of repair iterations by topology size and condition.",
+      "primary_outcome": "Difference in unsafe-change rate between single-pass LLM outputs and generate→verify→repair at each topology size, and the topology-size threshold where pipeline latency or repair iterations render autonomous execution impractical (predefined operational latency bound).",
+      "analysis_outline": "Compute unsafe-change rates and 95% Wilson CIs per condition and topology size; test paired differences using McNemar's test (when intents are paired) or chi-squared test otherwise. Model verifier runtime and repair iterations versus topology size using generalized linear models (e.g., negative binomial for iterations). Estimate the scale threshold by identifying topology size where median end-to-end latency exceeds the predefined bound; report effect sizes and uncertainty via bootstrap. Perform failure-mode breakdown (types of safety violations) and sensitivity analysis to verifier coverage.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4413756540"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4394661176",
+        "https://openalex.org/W4416927413"
+      ],
+      "risks": [
+        "Simulator/verifier abstractions may omit production implementation details leading to optimistic safety estimates.",
+        "Verifier runtime on large topologies may be too slow to execute the full preregistered sample within compute/time budget.",
+        "LLM nondeterminism could increase variance; repeated runs may be needed, consuming model-call budget."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand_2026_b2",
+      "title": "Improving NL→Formal-Spec Semantic Correctness via Constrained Prompting plus Verifier Feedback",
+      "research_question": "Does combining constrained prompting with verifier-guided iterative feedback materially increase the semantic correctness rate of translating operator natural-language intents into formal network specifications compared to baseline prompting?",
+      "hypotheses": [
+        "Constrained prompting (structured templates + explicit semantic slots) increases NL→formal-spec semantic-correctness versus unconstrained baseline prompting.",
+        "Adding verifier-guided iterative feedback (generate→verify→repair of the formal spec) further increases semantic-correctness beyond constrained prompting alone."
+      ],
+      "proposed_design": "Assemble a held-out test set of operator intents (diverse intents: reachability, isolation, ACL changes, QoS constraints) drawn or synthesized to reflect operational ambiguity. For each intent, collect three translation conditions: (A) baseline free-text prompting, (B) constrained template prompting, (C) constrained prompting plus verifier-feedback loop where the verifier returns counterexamples and the LLM revises the formal spec up to N iterations. Use deterministic verifier semantics to assess semantic equivalence (pass/fail) between generated spec and intent via concrete scenario tests. Record translation outputs, verifier verdicts, and iteration counts. Predefine semantic-correctness as verifier pass on a comprehensive test harness derived from intent semantics.",
+      "expected_data": "Per-intent per-condition binary semantic-correctness labels, number of revision iterations, time-to-correct (if corrected), and qualitative error categories for incorrect translations. Aggregate semantic-correctness rates and iteration distributions for conditions A/B/C.",
+      "primary_outcome": "Absolute increase in semantic-correctness rate (percentage points) from baseline (A) to constrained prompting (B) and from B to verifier-feedback (C); statistical significance and confidence intervals for those differences.",
+      "analysis_outline": "Compute semantic-correctness proportions with 95% CIs for each condition. Use paired-proportion tests (McNemar) across conditions since each intent is translated under all conditions. Estimate odds ratios and bootstrap CIs. Report median and IQR of revision iterations for condition C. Conduct subgroup analyses by intent type and complexity, and report qualitative taxonomy of remaining failure modes.",
+      "novelty_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7203715746",
+        "https://openalex.org/W7124141852"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4394661176"
+      ],
+      "risks": [
+        "Operational intents may be underspecified, causing legitimate semantic ambiguity that reduces measured correctness independent of method.",
+        "Defining a comprehensive verifier test harness that fully captures intent semantics is challenging and may bias correctness measurement.",
+        "Model budget may limit iterations per intent, constraining verifier-feedback efficacy within the preregistered plan."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand_2026_c3",
+      "title": "Defense Trade-offs: Prompt-Hardening and Tool-Call Gating for Preventing Prompt-Injection in NetOps Agents",
+      "research_question": "How effectively do prompt-hardening and auditable tool-call gating reduce successful prompt-injection (claim-to-action) exploits in LLM-driven NetOps agents, and what is the impact on task completion and false-blocking?",
+      "hypotheses": [
+        "Prompt-hardening (input sanitization, strict instruction framing) significantly reduces successful prompt-injection attack rate compared to unmodified prompts.",
+        "Auditable tool-call gating (policy checks before tool invocation) further reduces successful exploitation but introduces measurable reductions in task completion rate and increases false-positive blocks for benign requests."
+      ],
+      "proposed_design": "Construct an adversarial corpus of prompt-injection attempts targeting NetOps workflows (craft adversarial payloads that try to subvert agent reasoning or induce unsafe tool calls) plus matched benign operator intents. Implement three agent configurations: (1) baseline agent, (2) agent with prompt-hardening, (3) agent with prompt-hardening plus tool-call gating (policy gate that audibly logs and enforces preconditions). For each configuration and input, execute the agent in a sandboxed environment connected to a verifier and simulated tools; measure whether an adversarial intent results in an unsafe tool invocation or policy violation, whether benign tasks complete successfully, and false-positive gating events. Maintain exact prompts and attack payloads for reproducibility.",
+      "expected_data": "Per-input outcomes: attack success (binary), unsafe tool invocation instances, task completion (binary for benign cases), gate-trigger events (binary), and associated logs. Aggregate attack-success rates, task-completion rates, and false-positive rates per configuration; record time overhead of gating.",
+      "primary_outcome": "Trade-off curve quantifying reduction in attack-success rate versus decrease in benign task completion (or increase in false-positive blocking) between baseline, hardened, and gated configurations; statistically compare attack-success reductions and completion-rate losses.",
+      "analysis_outline": "Compute attack-success proportions and benign task completion proportions with 95% CIs. Use McNemar's test or paired proportion tests for within-input comparisons across configurations. Report receiver-operating characteristics for gate sensitivity (attack detection vs false-positive rate). Model time overhead via paired t-tests or Wilcoxon signed-rank if non-normal. Produce qualitative analysis of residual attack types that bypass defenses.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405183113",
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W7203715746"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.21203/rs.3.rs-10646557/v1",
+        "https://openalex.org/W4413756540",
+        "https://openalex.org/W4405183113"
+      ],
+      "risks": [
+        "Adversarial corpus may not cover novel real-world injection strategies, leaving residual blind spots.",
+        "Tool-call gating policies might be overfitted to the test corpus and either over-block or under-protect in deployment scenarios.",
+        "Sandbox limitations could under- or overstate real-world exploitability depending on fidelity to real tool interfaces."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand_2026_d4",
+      "title": "Verifier-Aware Planning: Reducing Specification-Translation Errors by Embedding Verifier Constraints into LLM Planning",
+      "research_question": "Does embedding verifier-derived constraints into the LLM planning prompt (verifier-aware planning) reduce the number of required repair iterations and final specification-translation errors compared to a post-hoc verification workflow?",
+      "hypotheses": [
+        "Embedding explicit verifier constraints into planning prompts will reduce final specification-translation error rates relative to a post-hoc verification workflow.",
+        "Verifier-aware planning will require fewer repair iterations and produce lower cumulative verification runtime than iterative post-hoc repair, holding other factors constant."
+      ],
+      "proposed_design": "Define a set of intents and for each run two workflows: (A) standard LLM planning producing formal specs followed by verifier and iterative repair, (B) verifier-aware planning where the prompt includes explicit, machine-checkable verifier constraints and example-guided templates, followed by the same verifier and optional minimal repair. Measure final verifier pass/fail, number of repair iterations, verifier runtime, and total planning time. Use paired design so each intent is subjected to both workflows; preregister maximum iterations and stopping criteria.",
+      "expected_data": "Per-intent paired measurements: final verifier pass/fail, number of repair iterations, verifier runtime, total planning time, and qualitative error class if failed. Aggregated metrics comparing workflows A and B across intents.",
+      "primary_outcome": "Reduction in repair iterations and final verifier-failure rate for verifier-aware planning versus post-hoc repair, with statistical significance and effect-size estimates.",
+      "analysis_outline": "Use paired Wilcoxon signed-rank test (or paired t-test if normal) to compare repair iterations and runtimes between workflows. Use McNemar's test for paired pass/fail differences. Provide bootstrap CIs for median iteration reductions and runtime savings. Conduct subgroup analysis by intent complexity and report examples of remaining failure modes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4413756540",
+        "https://openalex.org/W4405183113"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4394661176"
+      ],
+      "risks": [
+        "Crafting verifier constraints that are both informative to the LLM and not overly restrictive is nontrivial; poorly formed constraints may degrade planning quality.",
+        "Paired design assumes comparable prompt-conditioning effects; cross-contamination between workflows could bias results if not carefully isolated.",
+        "Model-call budget constraints may limit the number of repair iterations observable under the preregistered plan."
+      ],
+      "estimated_model_calls": 1800
+    }
+  ]
+}
