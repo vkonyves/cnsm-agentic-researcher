@@ -1,0 +1,23 @@
+{
+  "summary": "Closure review: the revised manuscript preserves the preregistered paired shared_initial_candidate experiment and archival artifacts, but the three previously required revisions remain unresolved. Specifically: (1) the Disclosure Statement still enumerates run‑level file paths and artifact hashes instead of being condensed to the single required master_prompt locator+SHA‑256 and a concise summary; (2) at least one Related‑Work claim (that generate→validate→repair pipelines have been shown empirically to improve safety/repairability) is not supported by the verified bibliographic records in the evidence bundle and must be corrected or weakened; and (3) Methods still lacks the explicit sentence clarifying that temperature=null (recorded in execution/model_configuration.json) is not evidence of deterministic model sampling and that the adapter produced exactly one sampled generation per pair reused under shared_initial_candidate semantics. Because these required manuscript fixes remain, the paper is not acceptable for finalisation until they are addressed.",
+  "novelty_score": 5,
+  "technical_depth_score": 4,
+  "soundness_score": 4,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Disclosure Statement contains prohibited run‑level provenance (enumerated file paths, per‑file hashes, provider‑call filenames) rather than the single required master_prompt locator+SHA‑256 and a concise summary of models/adapters/validator/preregistration/autonomy boundary.",
+    "A Related‑Work claim (that generate→validate→repair pipelines have been shown empirically to improve safety/repairability) is not supported by the supplied verified bibliographic records; in‑text citations must accurately support the adjacent claim.",
+    "Methods does not include an explicit sentence stating (i) the run used temperature=null as recorded in execution/model_configuration.json, (ii) null/unset temperature is not evidence of deterministic model sampling (i.e., it does not imply temperature=0), and (iii) the adapter produced exactly one sampled generation per pair that was reused under shared_initial_candidate semantics."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement to include exactly one immutable master_prompt locator and its SHA‑256 digest (provenance/master_prompt.txt + SHA‑256) verbatim, plus a concise prose summary naming the LLM (gpt‑5‑mini), adapter (hosted_netops_gvr_v1), deterministic validator (deterministic_netops_validator_v5), preregistration id (autocand_A1_prereg_v1), and the autonomy boundary; remove all enumerated execution file paths, per‑file hashes, provider‑call filenames, and run‑internal log listings from the Disclosure prose while preserving archival availability of the full bundle.",
+    "For each substantive claim in Related Work (notably the claim that generate→validate→repair pipelines empirically improve safety/repairability), verify that the cited record in the supplied terminal_bibliographic_records actually supports that claim. If a cited record does not support the claim, either (a) replace the citation with an accurate IEEE‑style reference drawn only from verified records present in the evidence bundle that does support the claim, or (b) weaken/rephrase the claim to match what the verified citations actually support. Document bibliographic corrections in the autonomous revision log.",
+    "Add one explicit sentence in Methods stating: (i) the run used temperature=null as recorded in execution/model_configuration.json, (ii) null/unset temperature is not evidence of deterministic model sampling (it does not imply temperature=0), and (iii) the adapter produced exactly one sampled generation per pair that was reused under shared_initial_candidate semantics; reiterate that no claim of deterministic model sampling is being made."
+  ],
+  "optional_revisions": [
+    "Optionally report observed difficulty label counts (extreme: 40, very_hard: 160) in one short sentence or a one‑line table in Methods with a reference to the archived task_manifest.jsonl to orient readers.",
+    "Optionally add 1–2 concise sentences in Discussion proposing a concrete follow‑up preregistered design (e.g., independent two‑call per‑pair regime with approximate model_call budget) to guide readers aiming to avoid the ceiling effect while keeping within five pages.",
+    "Optionally remove long representative JSON excerpts from main prose (rely on archived artifact bundle) to improve information density and readability."
+  ],
+  "accept_for_finalisation": false
+}

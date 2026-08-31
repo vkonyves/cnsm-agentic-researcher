@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "autocand_A1",
+  "title": "Paired evaluation of LLM-alone, LLM+deterministic-validator, and LLM+validator+deterministic-gate pipelines for intent-to-configuration NetOps changes (repaired)",
+  "research_question": "Compared to LLM-alone generation, does coupling an LLM with a domain-specific deterministic verifier and a deterministic gate (automated accept/reject policy) reduce unsafe network-change proposals (reachability/policy violations) on a paired intent-to-configuration task suite?",
+  "confirmatory_hypotheses": [
+    "H1: The LLM+validator pipeline produces fewer unsafe configurations (any reachability or policy violation) than LLM-alone on identical intents (paired test).",
+    "H2: Replacing a human-in-the-loop gate with a deterministic automated gate (strict accept/reject with bounded automated repairs) further reduces unsafe proposals relative to LLM+validator alone.",
+    "H3: Differences in unsafe-output rates between pipeline pairs (A vs B, B vs C) are detectable using the registered paired binary analysis (paired_success_rate_difference_guarded_minus_baseline) with the preregistered sample."
+  ],
+  "exploratory_questions": [
+    "E1: How do latency tradeoffs (end-to-end generation+validation+repair time) vary by pipeline and intent complexity?",
+    "E2: What fraction of unsafe proposals are repaired successfully by a single automated repair attempt?",
+    "E3: How sensitive are primary results to baseline unsafe-rate assumptions (25%–35%)?"
+  ],
+  "benchmark_scope": [
+    "Public and synthetic intent-to-configuration tasks (routing, ACL, BGP-policy) derived from public topology/config sources and synthesized variants.",
+    "Sandboxed emulation using deterministic Batfish-style checks (reachability, ACL policy, BGP consistency) on canonical topologies included with this study."
+  ],
+  "model_scope": [
+    "Hosted public LLM (generation and repair) via hosted model API (model_id: gpt-4o-mini).",
+    "Deterministic verifier running in docker (Batfish v2023.10 image)."
+  ],
+  "transformation_scope": [
+    "Canonicalization: whitespace/ordering normalization, canonical interface naming, stable ASN rewriting rules.",
+    "Semantic-preserving normalization of ACL entries to canonical AST form used by verifier."
+  ],
+  "primary_estimand": "Paired absolute difference in unsafe-proposal rate (proportion of intents producing any reachability or policy violation) between LLM-alone (baseline) and LLM+validator (condition B); and between LLM+validator and LLM+validator+deterministic-gate (condition C). Estimand name: paired_success_rate_difference_guarded_minus_baseline.",
+  "secondary_estimands": [
+    "Absolute and relative risk reduction (with 95% Wilson CIs) in unsafe proposals for A vs B and B vs C.",
+    "Paired difference in median end-to-end latency (ms) between pipeline pairs.",
+    "Proportion of intents for which automated repair succeeded (per-condition)."
+  ],
+  "sampling_plan": "200 paired intents total, stratified by complexity: low=80, medium=80, high=40. Inclusion: intents express a single network-change goal (routing, ACL, or BGP policy) and map to <=5 devices in a canonical topology. Exclusion: intents requiring proprietary vendor features not supported by verifier, intents lacking a deterministic mapping to configs. Each intent yields three paired proposals (A: LLM-alone, B: LLM+validator+1 auto-repair attempt, C: LLM+validator+deterministic-gate with up to 2 auto-repair attempts). Random seed for intent sampling/synthetic mutator: 42.",
+  "analysis_plan": "Confirmatory analysis uses the registered analysis executor 'paired_binary_analysis_v1' (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary test: paired binary comparison (McNemar-equivalent via executor) between A vs B and B vs C on binary unsafe flag (any reachability/policy violation). Report absolute and relative reductions with 95% CIs and exact p-values. Latency comparisons: paired Wilcoxon signed-rank test (reported descriptively) if non-normal. Pre-specified subgroup analyses by intent complexity (low/med/high) are exploratory and multiplicity-corrected (Benjamini–Hochberg) for false-discovery control. All tests two-sided, alpha=0.05. Failed-call treatment: follow contract-compatible options ['complete_pair_primary','complete_pair_primary_with_failure_as_zero_sensitivity'] as implemented by the executor.",
+  "multiplicity_plan": "Primary confirmatory family: two paired comparisons (A vs B, B vs C). Alpha allocation: nominal alpha=0.05 applied separately to each confirmatory pair (both treated as primary co-primary comparisons). Exploratory subgroup tests use Benjamini–Hochberg correction across reported exploratory p-values.",
+  "missingness_plan": "If a pipeline condition fails on an intent due to provider/infrastructure error, the pair is handled per the analysis contract failed_call_treatment: (1) attempt deterministic re-execution once per preregistered retry policy; (2) if still failing, follow 'complete_pair_primary' (drop entire intent-pair from primary analysis) and report sensitivity using 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing condition as unsafe) in supplementary results. All failures, retries, and hashes logged.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "intent-to-config canonical corpus (public+synthetic)",
+      "canonical topology pack (public router topologies + synthetic variants)"
+    ],
+    "risk_factors": [
+      "Poisoned or adversarial retrieval/context not applicable (no retrieval-augmented generation used).",
+      "Maliciously crafted synthetic intents producing out-of-scope configs.",
+      "Verifier-rule gaps leading to missed violations (construct-validity contamination)."
+    ],
+    "detection_procedures": [
+      "Provenance checks on all synthetic-intent generator runs (seed 42) and checksums for canonical artifacts.",
+      "Deterministic signature-based filtering for intents outside allowed scope (reject if AST size or vendor-feature token out-of-scope).",
+      "Unit tests for verifier coverage that assert detection of seeded violation templates (reachability, ACL bypass, BGP-export mismatch)."
+    ],
+    "item_flagging_rules": [
+      "Flag and exclude any intent whose generated config (baseline or repaired) uses vendor features outside verified feature-list.",
+      "Flag intents whose verifier unit-tests fail on seeded known-violation cases for the topology class."
+    ],
+    "analysis_treatment": "Flagged items excluded from primary confirmatory analysis; exclusions and counts reported. Sensitivity analyses include excluded items treated as unsafe. All detector/flagging logic deterministic and preregistered.",
+    "residual_uncertainty": [
+      "Verifier coverage may not capture every real-world invariant (residual construct-validity uncertainty).",
+      "Automated deterministic gate simulates operator gate but is not equivalent to real-world contextual HITL behavior."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "expected_case",
+      "description": "Expected-case budget assuming baseline unsafe-rate 30%, automated repair success profile: first repair succeeds 50% of unsafe cases, second repair succeeds remaining 50% of unsafe cases (on average 1.5 repairs per unsafe intent).",
+      "planned_model_calls": 750,
+      "models": [
+        "gpt-4o-mini"
+      ],
+      "transformations": [
+        "canonicalization (per-intent AST normalization)",
+        "repair-prompting (one or two additional generation calls as needed)"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Total expected model calls = sum over pipelines: A=200*1=200; B=200*(1 + 0.30*1)=260; C=200*(1 + 0.30*1.5)=290; overall=200+260+290=750. 750 < capability manifest max_planned_model_calls (10000). Docker-based verifier and CPU execution suffice for deterministic checks."
+    },
+    {
+      "scenario_id": "conservative_worst_case",
+      "description": "Conservative worst-case where every intent requires the maximum allowed repairs in B (1) and C (2).",
+      "planned_model_calls": 1200,
+      "models": [
+        "gpt-4o-mini"
+      ],
+      "transformations": [
+        "canonicalization",
+        "repair-prompting (worst-case attempts)"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Worst-case model calls: A=200; B=200*(1+1)=400; C=200*(1+2)=600; total=200+400+600=1200. 1200 < 10000 allowed calls and is executable within 7 wall-clock days given hosted model API and docker verifier."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction of 10 percentage points in unsafe-proposal rate (e.g., from baseline 30% to 20%)",
+    "clustering_unit": "intent (paired across three pipeline conditions)",
+    "calculation_method": "McNemar-style paired binary analysis approximation implemented by 'paired_binary_analysis_v1' executor. Power statements based on baseline unsafe-rate assumptions and assumed discordant-pair structure.",
+    "assumptions": [
+      "Baseline unsafe-proposal rate ~ 30% (literature-motivated conservative central estimate).",
+      "Discordant-pair structure consistent with 10pp absolute reduction mapping to expected discordant proportion enabling detection at n=200.",
+      "Two-sided alpha=0.05 for each co-primary paired comparison."
+    ],
+    "recommended_scenario_id": "expected_case",
+    "minimum_detectable_effect_notes": "With n=200 paired intents and baseline 30% unsafe rate, we estimate >80% power to detect ~10pp absolute reduction under plausible discordant-pair assumptions used by the paired_binary_analysis_v1 executor. Sensitivity analyses will report power under baseline rates 25% and 35%; expected power range approximately 72%–86% depending on discordant composition.",
+    "sensitivity_analyses": [
+      "Recompute primary p-values under assumed baseline unsafe rates 25% and 35%.",
+      "Report results treating failed/excluded pairs as unsafe (conservative sensitivity)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Normalization (whitespace and ordering)",
+      "Interface/name canonicalization",
+      "ACL canonical AST transformation",
+      "BGP attribute canonicalizer"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated AST diffs: a transformation is accepted if semantic AST equivalence holds for reachability-irrelevant reorderings.",
+      "End-to-end simulation check: transformed baseline config must produce identical reachability matrix on verifier for verified topologies (unit tests)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject transformation if AST-level semantic-preserving predicates fail (e.g., reordering changes permit new reachability).",
+      "Reject if canonicalization introduces vendor-feature tokens outside verified feature-list."
+    ],
+    "audit_sample_policy": "Random 10% sample of transformed configs (seed 42) undergo full end-to-end verification and are included in public CI artifacts alongside unit-test hashes.",
+    "mapping_validation": "Unit tests (dockerized) assert that seeded config variants map to expected canonical ASTs and that verifier assertions (reachability/policy checks) produce expected outcomes.",
+    "residual_risks": [
+      "Edge cases in canonicalization (vendor-specific semantics) may not be fully captured by automated checks.",
+      "Semantic-equivalence heuristics may miss subtle operational semantics not represented in verifier models."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "R1: Verifier coverage is bounded to the declared rule set and canonical topologies; real-world production topologies may include invariants outside the verifier scope (external-validity limit).",
+    "R2: The deterministic automated gate simulates a constrained HITL behavior but does not capture human contextual judgments (behavioral-generalization limit).",
+    "R3: Power estimates depend on baseline unsafe-rate and discordant-pair structure; results include sensitivity analyses but exact power may vary in other populations."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7165534746",
+    "https://openalex.org/W7125810855",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W4392780998",
+    "doi:10.1609/aaai.v40i33.40030",
+    "https://openalex.org/W4400377739"
+  ]
+}

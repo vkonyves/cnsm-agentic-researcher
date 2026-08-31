@@ -1,0 +1,33 @@
+{
+  "study_id": "autocand_A1_prereg_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired binary analysis executed by paired_binary_analysis_v1 on binary unsafe_flag (any reachability/policy violation). Primary test: McNemar-equivalent paired comparison (two-sided alpha=0.05) reporting absolute paired difference (guarded minus baseline), 95% Wilson confidence interval for proportions, exact two-sided p-value, discordant-pair counts, and sample size (n=200 paired intents; completed episodes = 400). Failed-call treatment: complete_pair_primary (drop entire intent pair on persistent provider/infrastructure failure per preregistration). All inputs are taken from execution/raw_results.jsonl and associated manifests; artifact hash preregistration_sha256 included.",
+  "secondary_analyses": [
+    "Absolute and relative risk reduction (baseline vs guarded) with 95% Wilson CIs computed from paired outcomes (report counts and CIs).",
+    "Paired comparison of end-to-end latency: report per-intent medians (ms) per condition, Hodges–Lehmann paired median estimate and 95% CI where available, and Wilcoxon signed-rank two-sided p-value (descriptive).",
+    "Guarded-condition repair effectiveness: proportion of intents for which the single automated repair attempt succeeded (count, 95% Wilson CI), plus distribution of repair attempt outcomes and verifier-log summaries."
+  ],
+  "sensitivity_analyses": [
+    "Failed-call alternative: re-run primary estimand treating failed condition calls as unsafe using contract option complete_pair_primary_with_failure_as_zero_sensitivity and report impact on point estimate, CI, and p-value.",
+    "Baseline-rate sensitivity: recompute power-interpretation and report detected-effect sensitivity under assumed baseline unsafe rates 25% and 35% (per preregistration power_and_precision_plan), and report how observed discordant counts map to those assumptions.",
+    "Contamination/flagged-item sensitivity: include flagged/excluded items back into analysis and treat them as unsafe (per preregistration) and report changes to primary estimand."
+  ],
+  "uncertainty_quantification": "Primary proportions: 95% Wilson confidence intervals. Primary test: exact two-sided p-value from paired_binary_analysis_v1 (McNemar-equivalent) with discordant-pair counts reported. Latency: Wilcoxon signed-rank p-value with Hodges–Lehmann paired-median estimate and 95% CI where supported. Repair proportions: 95% Wilson CIs. Report sample sizes used in each calculation (preregistered n=200 paired intents; execution completed pairs = 200, completed_episode_count=400).",
+  "multiplicity_implementation": "Primary confirmatory family = single co-primary paired comparison (paired_success_rate_difference_guarded_minus_baseline) with alpha=0.05. All exploratory and subgroup p-values are reported with Benjamini–Hochberg correction across the set of exploratory tests as prespecified.",
+  "contamination_analysis": "Apply preregistered contamination detection (provenance checks on synthetic-intent generator, deterministic out-of-scope filters, and verifier unit-test coverage for seeded violation templates). Items flagged by these deterministic checks would be excluded from primary confirmatory analysis and included only in sensitivity runs treated as unsafe. Execution manifest contains no warnings and failed_episode_count=0; artifact_hashes_total_count=1406 and preregistration_sha256=76bbc57d7815212e99f567257d7fc9ace3fee457b5a6b7f9effcbbc0ccb18d62. All detection logs and checks are available in execution/transformation_manifest.json and execution/execution_log.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Paired 2x2 contingency: counts (both safe, baseline unsafe only, guarded unsafe only, both unsafe), discordant-pair counts, absolute paired difference (guarded minus baseline) with 95% CI, exact two-sided p-value (paired_binary_analysis_v1). Source: execution/raw_results.jsonl.",
+    "Table 2 — Risk reduction summary: baseline unsafe rate, guarded unsafe rate, absolute and relative risk reduction with 95% Wilson CIs and sample-size notes. Source: paired outcomes in raw_results.jsonl.",
+    "Table 3 — Latency summary: per-condition median latency (ms), interquartile range, paired median difference (Hodges–Lehmann estimate) and Wilcoxon p-value; include per-batch summaries. Source: latency_ms fields in paired_binary_episode_v1 records.",
+    "Table 4 — Repair outcomes: number of verifier failures in guarded condition, number of repair attempts invoked, repairs succeeding on single attempt, success fraction with 95% Wilson CI, and verifier-log failure-mode breakdown. Source: repair_attempt_log and verifier_logs in raw results.",
+    "Table 5 — Execution manifest summary: completed_episode_count, completed_episode_count/planned_episode_count, model_calls_used, maximum_model_calls, artifact_hashes_total_count, preregistration_sha256, and failure/retry counts. Source: execution/execution_manifest.json"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart: unsafe-proposal rate (%) baseline vs guarded with 95% Wilson CIs (paired sample bars); source: binary unsafe_flag aggregated from raw_results.jsonl.",
+    "Figure 2 — Paired-dot plot: per-intent connected points showing baseline vs guarded unsafe outcome (0/1) to visualize discordant pairs; source: per-intent records in raw_results.jsonl.",
+    "Figure 3 — Repair-effectiveness bar: fraction of guarded intents repaired successfully on single attempt with 95% CI and stacked breakdown of repair outcomes; source: repair_attempt_log and verifier_logs.",
+    "Figure 4 — Latency boxplots: per-condition latency distributions (baseline vs guarded) with median and IQR; include inset of paired differences distribution; source: latency_ms fields in paired_binary_episode_v1 records."
+  ]
+}

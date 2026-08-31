@@ -1,0 +1,23 @@
+{
+  "summary": "Closure review: the revised manuscript preserves a transparent preregistered paired shared_initial_candidate experiment with complete archival artifacts, but the three previously required revisions remain unaddressed. Specifically: (1) the Disclosure Statement still enumerates run‑level file paths and artifact hashes instead of including only the single required master_prompt locator+SHA‑256 plus a concise summary; (2) at least one Related‑Work claim (generate→validate→repair empirical improvements) is not supported by the supplied verified citations and must be corrected or the claim weakened; and (3) Methods does not include the explicit sentence clarifying that temperature=null ( recorded in execution/model_configuration.json) is not evidence of deterministic model sampling and that the adapter does not guarantee deterministic sampling. Because these required fixes remain, accept_for_finalisation = false.",
+  "novelty_score": 5,
+  "technical_depth_score": 4,
+  "soundness_score": 4,
+  "clarity_score": 3,
+  "critical_issues": [
+    "Disclosure Statement contains prohibited run‑level provenance (enumerated file paths, per‑file hashes, provider‑call filenames); it must be condensed to the single immutable master_prompt locator+SHA‑256 and a concise summary of models/adapters/validator/preregistration and autonomy boundary.",
+    "Related Work includes a methodological/empirical claim about generate→validate→repair improvements that is not substantiated by the verified bibliographic records in the evidence bundle; each such in‑text citation must accurately support the adjacent claim (replace or reword to match verified records).",
+    "Methods lacks the explicit, literal sentence that (a) the run used temperature=null as recorded in execution/model_configuration.json, (b) null/unset temperature is not evidence of deterministic model sampling, and (c) the adapter produced exactly one sampled generation per pair reused under shared_initial_candidate semantics; this clarification must appear in Methods."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement so it (a) includes exactly one immutable master_prompt locator and its SHA‑256 digest (provenance/master_prompt.txt + SHA‑256) as required, (b) provides a concise summary of the LLM (gpt‑5‑mini), adapter (hosted_netops_gvr_v1), deterministic validator, preregistration id, and the autonomy boundary, and (c) states that the full execution/artifact bundle is archived; remove all enumerated file paths, per‑file hashes, provider‑call filenames, and run‑internal log listings from the Disclosure prose while preserving the single required master_prompt locator+SHA‑256 verbatim.",
+    "For each substantive claim in Related Work (notably the claim that generate→validate→repair pipelines have been shown empirically to improve safety/repairability), verify that the cited record in the supplied terminal_bibliographic_records actually supports that claim. If a cited record does not, either (a) replace the citation with an accurate IEEE‑style reference drawn only from verified records present in the evidence bundle that does support the claim, or (b) weaken/rephrase the claim to match what the verified citations actually support. Document bibliographic corrections in the revision log.",
+    "Add exactly one explicit sentence in Methods stating: (i) the run used temperature=null as recorded in execution/model_configuration.json, (ii) null/unset temperature is not evidence of deterministic model sampling (i.e., it does not imply temperature=0), and (iii) the adapter produced exactly one sampled generation per pair that was reused under shared_initial_candidate semantics; reiterate that no claim of deterministic model sampling is being made."
+  ],
+  "optional_revisions": [
+    "Optionally report the observed difficulty label counts (extreme: 40, very_hard: 160) in one short sentence or a one‑line table in Methods with a reference to the archived task_manifest.jsonl to orient readers.",
+    "Optionally add 1–2 concise sentences in Discussion proposing a concrete follow‑up preregistered design (e.g., independent two‑call per‑pair regime, example sample size and model_call budget) to guide readers aiming to avoid the ceiling effect (keep within five pages).",
+    "Optionally move long representative JSON excerpts or per‑episode raw snippets out of main prose into a compact appendix or remove them entirely to improve information density; rely on the archived artifact bundle as authoritative."
+  ],
+  "accept_for_finalisation": false
+}

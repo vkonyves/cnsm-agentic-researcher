@@ -1,0 +1,76 @@
+{
+  "study_id": "autocand_A1_prereg_v1",
+  "title": "Paired evaluation of LLM-alone vs guarded verifier+gate pipelines for intent-to-configuration NetOps changes",
+  "research_question": "Compared to LLM-alone generation, does coupling an LLM with a domain-specific deterministic verifier and a deterministic gate (automated accept/reject policy) reduce unsafe network-change proposals (reachability/policy violations) on a paired intent-to-configuration task suite?",
+  "confirmatory_hypotheses": [
+    "H1: The guarded pipeline (LLM + deterministic verifier + deterministic gate with bounded automated repairs) produces fewer unsafe configurations (any reachability or policy violation) than LLM-alone on identical intents (paired test).",
+    "H2: Differences in unsafe-output rates between baseline and guarded conditions are detectable using the registered paired binary analysis executor (paired_success_rate_difference_guarded_minus_baseline) with the preregistered sample and analysis procedures."
+  ],
+  "exploratory_questions": [
+    "E1: How do latency tradeoffs (end-to-end generation+validation+repair time) vary by pipeline and intent complexity within the adapter-supported task-index profile?",
+    "E2: What fraction of unsafe proposals are repaired successfully by a single automated repair attempt (as executed under the adapter's maximum_repair_calls_per_task = 1)?",
+    "E3: How sensitive are primary results to baseline unsafe-rate assumptions (25%–35%) and to treatment of failed calls (per registered failed_call_treatment options)?",
+    "E4: (Exploratory substitution) The originally proposed intermediate pipeline (LLM+validator without deterministic gate) cannot be executed as a separate confirmatory condition under the selected registered adapter; exploratory analysis will inspect intermediate validator outcomes recorded within the guarded condition (e.g., validator fail/repair counts) to approximate validator-only behavior where feasible."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7165534746",
+    "https://openalex.org/W7125810855",
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W4392780998",
+    "doi:10.1609/aaai.v40i33.40030",
+    "https://openalex.org/W4400377739"
+  ],
+  "benchmark_scope": [
+    "Public and synthetic intent-to-configuration tasks (routing, ACL, BGP-policy) derived from public topology/config sources and synthesized variants.",
+    "Sandboxed emulation using a dockerized deterministic verifier (Batfish-style checks) on canonical topologies included with this study."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired absolute difference in unsafe-proposal rate (proportion of intents producing any reachability or policy violation) between baseline (LLM-alone) and guarded (LLM+deterministic-validator+deterministic-gate) conditions. Estimand name: paired_success_rate_difference_guarded_minus_baseline.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute and relative risk reduction (with 95% Wilson CIs) in unsafe proposals for baseline vs guarded.",
+    "Paired difference in median end-to-end latency (ms) between baseline and guarded.",
+    "Proportion of intents for which automated repair succeeded (per guarded condition)."
+  ],
+  "sampling_plan": "task_count = 200 confirmatory items exactly. Task selection follows the registered adapter's deterministic task_index_profile (challenging_workflow_stress_v1) and the adapter-prescribed index_rule: for zero-based ordinal j from 0 to 199 set cycle=j//5, offset=[4,5,6,7,8][j%5], and task_index=8*cycle+offset. Selection is fixed prior to model calls and is outcome-independent. Because the selected adapter prescribes this deterministic index profile, the originally proposed low/medium/high stratification is not executable as a separate selection mechanism; exploratory comparisons will map adapter difficulty labels to intent complexity where available. Note: the preregistration records the sampling selection method; runtime sampling parameters and any model-call sampling parameters will be recorded during execution. No claim of deterministic LLM sampling is made; shared_initial_candidate semantics indicate that one initial generation is shared across paired conditions per the adapter, but the adapter does not guarantee deterministic model sampling.",
+  "power_and_precision_plan": "Confirmatory estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute reduction of 10 percentage points (e.g., 30% to 20%). Planned n=200 paired intents. Power approximations follow the paired_binary_analysis_v1 executor assumptions documented in the capability manifest; sensitivity analyses will recompute under baseline unsafe rates 25% and 35%. Report estimated detectable effect and approximate power ranges alongside observed discordant-pair counts. Two-sided alpha=0.05 applied to the co-primary paired comparison (baseline vs guarded) per preregistration.",
+  "exclusion_rules": [
+    "Exclude any intent that (a) requires vendor features outside the verified feature list, (b) is flagged by deterministic out-of-scope filters (AST size or vendor token checks), or (c) triggers verifier unit-test failures for seeded known-violation templates. Exclusions are deterministic and preregistered and will be reported with counts and identifiers."
+  ],
+  "missingness_plan": "If a pipeline condition fails on an intent due to provider/infrastructure error, follow the registered analysis contract failed_call_treatment: (1) attempt deterministic re-execution once per preregistered retry policy; (2) if still failing, primary analysis uses 'complete_pair_primary' (drop entire intent pair from primary analysis). Sensitivity analysis will run 'complete_pair_primary_with_failure_as_zero_sensitivity' treating missing condition as unsafe. All failures, retries, and cryptographic hashes of artifacts are logged.",
+  "analysis_plan": "Confirmatory analysis uses the registered analysis executor 'paired_binary_analysis_v1' (estimand = paired_success_rate_difference_guarded_minus_baseline). Primary test: paired binary comparison (McNemar-equivalent implemented by the executor) on binary unsafe flag (any reachability/policy violation) between baseline and guarded. Report absolute and relative reductions with 95% CIs and exact p-values. Latency comparisons: paired Wilcoxon signed-rank test (reported descriptively) if non-normal. Exploratory subgroup analyses map adapter difficulty labels (very_hard/extreme) into complexity strata and use Benjamini–Hochberg correction for multiple exploratory p-values. All tests two-sided, alpha=0.05. Failed-call treatment: per 'paired_binary_analysis_v1' contract options ['complete_pair_primary','complete_pair_primary_with_failure_as_zero_sensitivity']; primary uses 'complete_pair_primary' and sensitivity reports the alternative. Runtime model sampling parameters and prompt artifacts are recorded and archived; no claim of deterministic generation is made.",
+  "multiplicity_plan": "Primary confirmatory family: single co-primary paired comparison (baseline vs guarded) aligned to the analysis contract's estimand. Alpha=0.05 applies to this primary comparison. Exploratory subgroup and secondary analyses use Benjamini–Hochberg correction across reported exploratory p-values.",
+  "contamination_plan": "Benchmark names: intent-to-config canonical corpus (public+synthetic) and canonical topology pack. Risk factors: no retrieval-augmented generation (so poisoned retrieval not applicable); malicious synthetic intents; verifier-rule gaps. Detection: provenance checks on synthetic intent generator runs and checksums (adapter selection and deterministic generation logged), deterministic signature-based out-of-scope filtering, and unit tests asserting verifier coverage for seeded violation templates. Item-flagging rules: exclude intents that use vendor features outside verified list or whose verifier unit-tests fail. Analysis treatment: flagged items excluded from primary confirmatory analysis; sensitivity analyses include flagged items treated as unsafe. All detection logic is deterministic and preregistered.",
+  "stopping_rule": "Fixed-sample confirmatory run (n=200 paired intents). No interim looks or optional stopping for the confirmatory family. Technical re-execution allowed only per preregistered retry policy for provider/infrastructure errors; such re-executions are logged. No adaptive changes to sample size or analysis procedures after data collection.",
+  "planned_outputs": [
+    "Raw model generations and repair artifacts (per-task), verifier logs, deterministic decision traces for gate outcomes, execution manifest, analysis-statistics file (paired_binary executor output), figures/tables for manuscript, reproducible LaTeX source, BibTeX, and NotebookLM presentation brief."
+  ],
+  "unresolved_critical_issues": []
+}

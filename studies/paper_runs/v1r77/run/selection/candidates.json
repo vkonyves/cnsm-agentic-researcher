@@ -1,0 +1,124 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand_A1",
+      "title": "Paired evaluation of LLM-alone, LLM+deterministic-validator, and human-in-the-loop pipelines for intent-to-configuration NetOps changes",
+      "research_question": "Compared to LLM-alone generation, does coupling an LLM with a domain-specific deterministic verifier and an explicit human-in-the-loop (HITL) gate reduce unsafe network-change proposals (as measured by reachability/policy violations and rollback necessity) on a paired intent-to-config task suite?",
+      "hypotheses": [
+        "An LLM+validator pipeline will produce fewer unsafe configurations (reachability or policy violations) than LLM-alone on identical intents.",
+        "Adding an explicit HITL gate after validator feedback will further reduce unsafe proposals relative to LLM+validator alone, at measurable cost in latency and operator interventions.",
+        "Differences in unsafe-output rates between conditions will be statistically significant under a paired experimental design across intents of varying complexity."
+      ],
+      "proposed_design": "Create a paired dataset of 200 intent-to-configuration tasks (mixture of routing, ACL, and BGP policy intents) derived from public examples and synthetic variants. For each intent, generate a configuration using: (A) LLM-alone (prompted to output device configs), (B) LLM+deterministic verifier (Batfish-style reachability/policy checks with a single automated repair iteration), and (C) LLM+validator+HITL (validator presents failures and LLM proposes repairs; human operator accepts/rejects). Execute deterministic checks on each final proposal in a sandbox emulator; record reachability and policy violations, rollback necessity, and latency. Use fixed prompts, model seeds, and frozen verifier rules (preregistration).",
+      "expected_data": "For each of 200 intents and three pipeline conditions: binary unsafe flag (reachability/policy violation), counts of violated invariants, whether automated repair succeeded, whether HITL accepted proposal, end-to-end latency (ms), and operator-intervention count. Paired records linking outputs per intent across conditions.",
+      "primary_outcome": "Paired difference in unsafe-proposal rate (proportion of intents producing any reachability/policy violation) between LLM-alone and LLM+validator, and between LLM+validator and LLM+validator+HITL.",
+      "analysis_outline": "Compute paired proportions and McNemar's test for binary unsafe flags between pipeline pairs. Report absolute and relative risk reductions with 95% Wilson CIs. Analyze latency and operator-intervention tradeoffs with paired t-tests or Wilcoxon signed-rank tests depending on normality. Conduct subgroup analyses by intent complexity (low/medium/high) with multiplicity-corrected exploratory tests (Benjamini–Hochberg). Report effect sizes and exact p-values; preregister sample size (200) to achieve >80% power to detect a 10 percentage-point reduction assuming baseline 30% unsafe rate.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7165534746",
+        "https://openalex.org/W7125810855",
+        "https://openalex.org/W7161165783"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4392780998",
+        "doi:10.1609/aaai.v40i33.40030",
+        "https://openalex.org/W4400377739"
+      ],
+      "risks": [
+        "Sandbox verifier may not capture all real-world invariants, causing construct-validity gaps.",
+        "Human-in-the-loop simulation (operators) may not reflect production operator behavior and bias intervention rates.",
+        "Model-provider API rate limits or outages could force partial reruns; retry policy must be followed and logged."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "autocand_B2",
+      "title": "NetOps Validator-Coupled Benchmark (NetValBench): a public intent-to-config dataset with deterministic validators and safety scoring",
+      "research_question": "Can a publicly released benchmark that couples intent-to-configuration tasks with deterministic validators and a standardized safety scoring rubric produce differentiated, reproducible measurements of operational safety for LLM-based NetOps systems?",
+      "hypotheses": [
+        "A validator-coupled benchmark will expose variation between LLM methods on operational-safety metrics not visible in conventional NLP/QA metrics.",
+        "Standardized safety scoring (reachability preservation, isolation, rollbackability) will correlate poorly with generic language-model accuracy metrics, showing construct gaps in existing benchmarks.",
+        "Baseline LLM configurations will show nontrivial unsafe rates on NetValBench, motivating validator-aware evaluation practices."
+      ],
+      "proposed_design": "Design and release NetValBench: 300 intent statements with canonical device topologies, intended invariants, and deterministic validator scripts (reachability, ACL, routing-policy checks) plus a safety scoring rubric (binary unsafe, severity score, rollbackability, canary-compatibility). Provide a baseline evaluation harness and runners to test any LLM method. Populate benchmark with public topology templates and synthetic variations to ensure reproducibility. Run baseline LLMs (open and accessible models per feasibility constraints) under fixed prompts to produce baseline results and report metrics.",
+      "expected_data": "Public benchmark package: intents, topologies, validator code, scoring rubric, and baseline result CSVs containing per-task outputs, validator pass/fail, severity scores, and standard NLP metrics (BLEU/ROUGE) for comparison. Aggregate summaries across models showing safety metric distributions.",
+      "primary_outcome": "Release of NetValBench plus baseline empirical evidence that safety metrics diverge from standard language-model metrics; quantified by correlation coefficients between safety severity and BLEU/ROUGE and by between-model ranking changes.",
+      "analysis_outline": "Compute Spearman and Pearson correlations between safety severity scores and standard NLP metrics. Rank models by safety and by NLP metrics and quantify rank-order differences (Kendall tau). Provide descriptive statistics of unsafe-rate, severity distribution, and per-task failure modes. Validate reproducibility by running two independent baseline runs and reporting test–retest stability (ICC).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400377739",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4392780998"
+      ],
+      "risks": [
+        "Public release may enable adversarial actors to craft targeted poisoning or prompt attacks against models using the benchmark (mitigate with careful dataset release notes).",
+        "Validator scripts may be overfitted to synthetic topologies; external contributors may request extensions, complicating maintenance.",
+        "Baseline model selection constrained by public-access models; results may not generalize to closed commercial models."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "autocand_C3",
+      "title": "Scaling study of generate–validate–repair pipelines for time-sensitive NetOps remediation",
+      "research_question": "How do generate–validate–repair pipelines scale in latency, cost, and success rate under constrained remediation time budgets (e.g., 500ms, 1s, 5s, 30s) for automated NetOps interventions?",
+      "hypotheses": [
+        "Pipeline success rate (validator-passed repaired config within budget) decreases monotonically as the remediation time budget tightens.",
+        "Most failures under tight budgets are due to insufficient iterative repair attempts or retrieval latency, not model hallucinations alone.",
+        "There exists a diminishing-returns point where additional repair iterations yield negligible safety improvement relative to latency cost."
+      ],
+      "proposed_design": "Implement a generate–validate–repair pipeline with configurable iteration limits and controlled retrieval/validator latencies. Use a corpus of 150 remediation intents (common fast-remediation scenarios). For each task, run pipeline across time-budget settings (simulate slowed/speeded retrieval and verifier runtimes) and iteration caps (0,1,3,5). Measure success (validator pass), number of iterations used, total latency, and cost. Preregister latency simulation parameters, iteration policies, and success definitions.",
+      "expected_data": "Per-task, per-budget records: validator-pass flag, iterations used, end-to-end latency, API cost estimate, reason for failure (timeout, verifier fail, model no-repair). Aggregated success-rate curves across budgets and iteration caps, and per-component latency breakdowns.",
+      "primary_outcome": "Success-rate vs. time-budget curve and identification of the budget threshold where success falls below an operationally unacceptable level (predefined threshold, e.g., 90% success).",
+      "analysis_outline": "Fit logistic regression of success probability vs. log(time budget) and iteration cap, reporting odds ratios and 95% CIs. Use survival-analysis-style curves for time-to-success. Decompose failures by cause and compute attributable fractions. Perform sensitivity analysis across retrieval latency and verifier runtime scenarios. Report cost-per-success estimates.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7165534746",
+        "https://openalex.org/W7125810855",
+        "https://openalex.org/W4400377739"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7165534746",
+        "https://openalex.org/W7125810855",
+        "https://openalex.org/W4392780998"
+      ],
+      "risks": [
+        "Simulated latency conditions may not perfectly match production variability, limiting external validity.",
+        "API rate limits could constrain exhaustive budget sweeps; preregistered retry policy required.",
+        "Mitigations (e.g., caching) may alter real-world cost tradeoffs and must be clearly reported."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "autocand_D4",
+      "title": "Adapting data-poisoning experiments to retrieval-augmented NetOps: impact of poisoned retrieval indices on LLM-generated configurations",
+      "research_question": "Does controlled poisoning of retrieval indices used by retrieval-augmented generation (RAG) increase the rate of unsafe or malicious network-configuration outputs from LLMs, and to what extent do deterministic validators detect and block such poisoned-induced unsafe outputs?",
+      "hypotheses": [
+        "Injecting poisoned documents into the RAG index that contain incorrect but authoritative-looking configuration snippets will increase the rate of unsafe LLM outputs compared to clean indices.",
+        "A strong deterministic validator will detect a majority but not all poisoned-induced unsafe outputs; residual unsafe outputs will be measurable and statistically greater than baseline.",
+        "Mitigations that filter retrieval provenance or apply strict contract templates before synthesis will reduce but not eliminate poisoning-induced unsafe outputs."
+      ],
+      "proposed_design": "Construct a RAG setup using a public LLM and a retrieval index built from benign NetOps documents. Create poisoned documents (plausible but incorrect configs/policies) and insert them at controlled contamination levels (0%, 1%, 5%, 10%). For a set of 120 intents targeting configuration changes, run generation with each contamination level and with three mitigation strategies: no mitigation, validator-only, and validator+provenance-filter. Use deterministic validators to assess unsafe outputs. Log retrieval passages and provenance. Preregister poisoning construction method and contamination protocol.",
+      "expected_data": "Per-intent and per-contamination-level: retrieval passages used, contamination fraction, generated config, validator pass/fail, type of violation, whether provenance filter blocked retrieval, and per-condition unsafe rates. Comparative metrics across mitigation strategies.",
+      "primary_outcome": "Dose–response curve: unsafe-output rate as a function of retrieval contamination percentage, and reduction in unsafe rate attributable to validators and provenance filters.",
+      "analysis_outline": "Estimate contamination effect using logistic regression (unsafe ~ contamination_fraction + mitigation + intent_covariates). Compute attributable risk and test for trend (Cochran–Armitage). Analyze retrieval provenance to estimate likelihood that poisoned passages were used in unsafe outputs (exact matching and semantic-similarity measures). Report detection sensitivity/specificity of validators for poisoned-induced faults.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406152291",
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W4401857375"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406152291",
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W4392780998"
+      ],
+      "risks": [
+        "Creating poisoned artefacts risks enabling adversarial knowledge; dataset release must redact poisoning methods or include safe-mode variants.",
+        "Ethical concerns around simulated attacks require careful documentation and adherence to responsible-disclosure practices.",
+        "Validators may overfit to the poison artifacts used; external generalization should be limited and stated."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

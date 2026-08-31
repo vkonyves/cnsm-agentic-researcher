@@ -1,0 +1,23 @@
+{
+  "summary": "This paper presents a fully preregistered paired experiment (n=200 pairs) that uses shared_initial_candidate semantics to compare observing a single LLM-generated network-change candidate (gpt-5-mini) with observing that identical candidate after a deterministic NetOps validator+gate (plus at most one automated repair). Execution artifacts and analysis are archived. All 200 paired initial candidates were judged valid by the deterministic validator, producing n11=200, n10=0, n01=0, n00=0 and a paired difference of 0.0 (p=1.0, 95% CI [0.0,0.0]). The manuscript explicitly acknowledges that, because of shared_initial_candidate semantics, the confirmatory estimand measures only validator/gate effects on identical first‑pass generations and does not test guarded‑conditioned regeneration or prompt‑engineering effects.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Confirmatory estimand and execution used shared_initial_candidate semantics that reused the same sampled initial generation for both arms; as a result, the experiment could not detect any verifier benefit that operates by altering or regenerating model outputs. While this is explicitly acknowledged in the manuscript, the experimental design choice fundamentally constrains the estimand and should be emphasized prominently (title/abstract/Introduction already note it, but see Required Revision 1).",
+    "The manuscript does not present a concise summary (within the paper body) of the task-difficulty distribution and aggregate task-bank characteristics (e.g., counts by declared difficulty level: easy/medium/very_hard/extreme). Given the observed ceiling (all pairs valid), readers need this summary to assess whether the task bank exposed nontrivial baseline unsafe rates or whether the sample was overly easy/artifactually aligned to the validator.",
+    "The validator's rule set and coverage are not summarized succinctly in the manuscript. The artifacts indicate validator and generator alignment (likely contributing to the null result), but the paper must include a brief validator-coverage summary and unit-test outcome description so readers can evaluate possible ceiling effects attributable to validator–generator coupling."
+  ],
+  "required_revisions": [
+    "Add a short, explicit paragraph (Methods or Results) reporting the task-bank difficulty distribution (counts and percentages by declared difficulty labels) and any other aggregate task‑bank statistics (e.g., required_command_count distribution). Use the archived task_manifest and include artifact hashes or a brief pointer to the archived manifest entry already cited.",
+    "Add a concise validator-coverage summary in Methods: describe the validator rule classes (reachability, sequencing/workflow, protected interfaces, vendor-feature exclusions), report results of the preregistered validator unit tests and seeded-violation checks, and explicitly state whether the validator rules closely mirror the task-generator constraints (and provide evidence pointers/hashes).",
+    "In the Discussion or Limitations, more plainly emphasize that the confirmatory contrast tests only validator/gate effects on the same sampled candidate (i.e., no inference about guarded-conditioned regeneration, prompt-engineering, multi-sample variability, or multi-model generality). If any wording in Title, Abstract, Research Question, Contributions, Discussion, or Conclusion could be read as implying measurement of those other effects, edit to remove ambiguity. (This must be resolved from the archived manuscript sources/artifacts; the run already documents the shared_initial_candidate semantics but the paper must ensure no residual broader claims remain.)"
+  ],
+  "optional_revisions": [
+    "Ensure the References section is a conventional IEEE numbered bibliography (authors, title, venue, year) rather than bare DOI/arXiv/identifier entries; although the evidence bundle shows verified records, confirm formatting in the final manuscript PDF.",
+    "Condense the Disclosure Statement if it duplicates execution-accounting details in the main manuscript; keep the mandatory master_prompt locator and preregistration SHA‑256 but avoid repeating per-episode logs in prose (artifact bundle already contains them).",
+    "Add a short table or figure (one panel) that visualizes the task-difficulty distribution and a small exemplar of validator/unit-test outputs to help readers gauge task complexity and validator strictness."
+  ],
+  "accept_for_finalisation": false
+}

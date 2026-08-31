@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand_A1",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Deterministic verifier choice and rule-coverage unspecified (construct-validity risk).",
+        "HITL is underspecified (operator selection/simulation, acceptance criteria).",
+        "Power/sample-size assumptions require clearer baseline unsafe-rate justification and multiplicity control."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier implementation (e.g., Batfish version, rule set) and provide validator unit tests.",
+        "Define operator/HITL protocol (real operators vs simulated agents), acceptance criteria, and recruitment/simulation details.",
+        "Provide precise prompts, model identifiers (public models), seeds, retry policy, and max-call budget enforcement.",
+        "Supply canonical topology/config sources, canonicalization rules, and dataset licensing provenance.",
+        "Pre-register exact statistical tests, multiplicity corrections, and confirm power calculation assumptions (baseline unsafe rate)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_B2",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Public release may enable adversarial exploitation (poisoning/prompt attacks) if not mitigated.",
+        "Validator scripts and scoring rubric are described at high level but need precise, executable definitions for reproducibility.",
+        "Baseline model selection and reproducibility procedures (test–retest, ICC) need tightening to avoid misleading stability claims."
+      ],
+      "required_design_repairs": [
+        "Include an adversarial-safety release plan (redaction/safe-mode variants) and disclosure policy for benchmark artifacts.",
+        "Provide complete, versioned validator code (deterministic checks), canonical topologies, and example runs as reproducible CI artifacts.",
+        "Define numeric scoring rubric (exact formulas for severity, rollbackability, canary-compatibility) and thresholds used for binary unsafe flag.",
+        "Document baseline model list (public-access models with versions), prompt templates, seeds, and evaluation harness with reproducible scripts.",
+        "Add governance notes: licensing for topology sources, contributor workflow, and issue/extension process.",
+        "Provide recommended mitigation guidance for downstream users to avoid misuse (e.g., no-poison-release options)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_C3",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Simulated latency and retrieval models may not reflect production variance (external-validity risk).",
+        "Definition of 'success' and the operational threshold (e.g., 90%) needs justification tied to operator requirements.",
+        "Caching, retries, and realistic pipeline engineering (e.g., warm-starts) are not fully modeled and may change conclusions."
+      ],
+      "required_design_repairs": [
+        "Specify exact latency-simulation model, random seeds, and deterministic retrieval/validator emulators for reproducibility.",
+        "Pre-register success threshold and justify operational choice; include sensitivity analyses for alternate thresholds.",
+        "Document caching and retry policies; include experiments with/without caching to bound real-world variance.",
+        "Provide concrete remediation-intent corpus provenance and stratification rules (how low/med/high complexity defined).",
+        "Clarify cost-estimation methodology and include concrete API-cost assumptions and their sensitivity. "
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand_D4",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Serious ethical/security risks from constructing and (even partially) releasing poisoned artifacts.",
+        "Risk that validators are tuned to the specific poison artifacts, limiting generalization of detection claims.",
+        "Need stronger provenance and logging to causally link poisoned retrievals to unsafe outputs."
+      ],
+      "required_design_repairs": [
+        "Obtain and document ethical review and include a controlled responsible-disclosure plan; implement safe-mode dataset variants for public release.",
+        "Redact or abstract poisoning construction details in any public artifacts; provide reproducible-safe alternatives (simulated poison templates) instead of real attack recipes.",
+        "Prespecify provenance-logging and matching methodology (exact vs semantic-match thresholds) to support causal attribution.",
+        "Include guarded storage/access controls for poisoned indices and limit experiment participants; detail access governance.",
+        "Provide validator-blind evaluation (holdout validators) to avoid overfitting detection claims and report detection sensitivity/specificity transparently.",
+        "Document mitigation strategies and test them (provenance filters, contract templates) with exact parameter settings and code. "
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

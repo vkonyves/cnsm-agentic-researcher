@@ -1,0 +1,23 @@
+{
+  "summary": "Well‑executed preregistered paired study with complete artifact archive; the shared_initial_candidate design and archived logs support the reported degenerate null result. Major strengths: transparent preregistration, full execution/analysis artifacts, and careful interpretation of the ceiling effect. Main deficiencies are editorial/reproducibility-policy mismatches in the Disclosure Statement and one or more reference–claim mismatches in Related Work that must be corrected before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Disclosure Statement includes per-file artifact listings and paths/hashes (execution/raw_results.jsonl, execution/task_manifest.jsonl, analysis/results.json, etc.). Per the venue's disclosure rules this duplicates run-level provenance and audit logs; only the single immutable master_prompt locator+SHA‑256 must appear in the manuscript Disclosure. Remove per-file/run‑level artifact listings from the Disclosure prose.",
+    "Several prose claims in Related Work (e.g., that generate–validate–repair pipelines have been shown to improve safety/repairability in program‑repair/DevOps tasks and the nearby citations [6],[7]) do not clearly map to the verified bibliographic records supplied in the evidence bundle. Each citation must accurately support the immediately adjacent scholarly claim (verify and correct the cited records or weaken the claim).",
+    "The manuscript should explicitly state, within Methods (not only in the preregistration manifest), that temperature=null in execution/model_configuration.json does not imply sampling determinism (temperature=0) and that the adapter does not guarantee deterministic model sampling. Although the paper reports shared_initial_candidate semantics correctly, an explicit literal statement about null/unset temperature and sampling nondeterminism must appear in Methods to match runtime semantics guidance."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement so it contains (a) the single mandatory immutable master_prompt locator and its SHA‑256 digest, (b) a concise description of models/adapters/validator/preregistration and the autonomy boundary, and (c) a brief statement that the full execution/artifact bundle is archived (do not enumerate file paths, per-file hashes, or internal execution logs in the Disclosure prose). Preserve the single required master_prompt path+SHA‑256 verbatim.",
+    "Verify each in-text citation: update the Related Work bibliography entries so that every referenced record actually supports the specific claim adjacent to it (replace or relabel citations where necessary). In particular, correct or remove the citations cited as [6],[7] if they do not document generate→validate→repair empirical improvements for program‑repair/DevOps-style tasks; use accurate IEEE‑style references with full metadata. Document the exact bibliographic corrections in the revision log.",
+    "Add one explicit sentence in Methods stating that temperature=null was used (as recorded in execution/model_configuration.json), that null/unset temperature is not evidence of deterministic sampling, and that the adapter produced a single sampled generation per pair which was reused (shared_initial_candidate); reiterate that no claim of deterministic model sampling is being made."
+  ],
+  "optional_revisions": [
+    "Add a short one‑line table in Methods listing the observed difficulty label counts (extreme:40, very_hard:160) and reference the archived task_manifest path for replay—this aids reader orientation though the manifest remains the authoritative archive.",
+    "Briefly expand the Discussion to suggest a concrete preregistered follow‑up design (e.g., independent two‑call per‑pair regime with specified sample size and anticipated model_call budget) and provide an example power calculation under an assumed baseline unsafe rate to guide readers who wish to reproduce the proposed nondegenerate regime.",
+    "Move representative JSON snippets (small excerpts) from the main text into a compact Appendix/figure and keep the main prose focused on interpretation to improve density under the five‑page limit."
+  ],
+  "accept_for_finalisation": false
+}
