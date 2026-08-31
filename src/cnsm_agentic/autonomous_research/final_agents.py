@@ -23,6 +23,10 @@ PREREGISTRATION_AGENT = Agent(
         "plan, and stopping rule. Treat the frozen capability "
         "manifest and registered adapter contract as hard constraints "
         "and do not introduce unavailable execution dependencies. "
+        "If there are no unresolved critical issues, set "
+        "unresolved_critical_issues to the empty JSON list []. Never place "
+        "'None', 'None.', 'No issues', or explanatory no-issue text in that "
+        "list; every non-empty item is structurally a real blocker. "
         "Never equate shared_initial_candidate pairing with deterministic "
         "LLM sampling. Do not claim temperature=0, fixed-temperature "
         "sampling, deterministic model generation, deterministic initial "
@@ -281,12 +285,44 @@ MANUSCRIPT_AUTHOR = Agent(
         with concise evidence-grounded scientific prose rather than deleting
         substantive content or inserting generic filler.
 
+                Related Work must not state that generate-validate-repair,
+
+                verification, repair, or adjacent tool-assisted pipelines empirically
+
+                improve safety, correctness, or repairability unless a supplied
+
+                verified bibliographic record directly establishes that empirical
+
+                result. If the verified record supports only proposal, advocacy,
+
+                application, demonstration, or adjacent-domain use, weaken the claim
+
+                to that supported level. Do not extrapolate an effectiveness result
+
+                and do not add unverified external citations.
+
+
         Related-work text must synthesize the supplied verified literature into
         normal scholarly prose with citations. Explain what prior work found,
         how approaches differ, what limitations remain, and how the present
         study relates to that literature. Do not reproduce bibliographic
         metadata, DOI labels, database fields, search-result fragments, or
         reference-record metadata as narrative text.
+
+                If the archived model configuration records temperature=null,
+
+                Methods must state explicitly that temperature was null/unset, that
+
+                null/unset is not evidence of deterministic hosted-model sampling and
+
+                does not imply temperature=0, and that exactly one sampled initial
+
+                generation per pair was reused by baseline and guarded under
+
+                shared_initial_candidate semantics. Do not claim deterministic model
+
+                sampling.
+
 
         When the registered generation semantics are
         shared_initial_candidate, the baseline and guarded conditions begin
@@ -438,6 +474,19 @@ PEER_REVIEWER = Agent(
         bibliographic metadata such as authors, title, venue, and year is
         available. Do not require invented metadata that is absent from the
         verified records.
+
+        For sampling semantics, require Methods to state explicitly when the
+        archived model configuration records temperature=null: null/unset is
+        not evidence of deterministic sampling and does not imply
+        temperature=0; exactly one sampled initial generation per pair was
+        reused by both arms under shared_initial_candidate semantics.
+
+        For Related Work, reject an empirical-effectiveness claim only when it
+        exceeds the supplied verified bibliographic evidence. A correctly
+        weakened claim that prior work proposed, advocated, demonstrated, or
+        applied an approach is acceptable when that is all the verified record
+        supports; do not require the manuscript to assert an unsupported
+        stronger empirical benefit.
 
         Verify that the mandatory Disclosure Statement is concise and does not
         duplicate execution logs, result accounting, provider-call or stage
@@ -684,12 +733,44 @@ MANUSCRIPT_REVISER = Agent(
         with concise evidence-grounded scientific prose rather than deleting
         substantive content or inserting generic filler.
 
+                Related Work must not state that generate-validate-repair,
+
+                verification, repair, or adjacent tool-assisted pipelines empirically
+
+                improve safety, correctness, or repairability unless a supplied
+
+                verified bibliographic record directly establishes that empirical
+
+                result. If the verified record supports only proposal, advocacy,
+
+                application, demonstration, or adjacent-domain use, weaken the claim
+
+                to that supported level. Do not extrapolate an effectiveness result
+
+                and do not add unverified external citations.
+
+
         Related-work text must synthesize the supplied verified literature into
         normal scholarly prose with citations. Explain what prior work found,
         how approaches differ, what limitations remain, and how the present
         study relates to that literature. Do not reproduce bibliographic
         metadata, DOI labels, database fields, search-result fragments, or
         reference-record metadata as narrative text.
+
+                If the archived model configuration records temperature=null,
+
+                Methods must state explicitly that temperature was null/unset, that
+
+                null/unset is not evidence of deterministic hosted-model sampling and
+
+                does not imply temperature=0, and that exactly one sampled initial
+
+                generation per pair was reused by baseline and guarded under
+
+                shared_initial_candidate semantics. Do not claim deterministic model
+
+                sampling.
+
 
         When the registered generation semantics are
         shared_initial_candidate, the baseline and guarded conditions begin
