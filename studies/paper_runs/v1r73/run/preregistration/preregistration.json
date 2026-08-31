@@ -1,0 +1,81 @@
+{
+  "study_id": "study-cand-2026-LLM-verifier-sim2real-v1",
+  "title": "LLM-to-Config with Deterministic Verifier: sim-to-real and vendor-heterogeneity evaluation (repaired preregistration)",
+  "research_question": "When the same natural-language intent is realized by an LLM-generated configuration and checked by a deterministic verifier, how large is the paired difference in verifier-confirmed intent-satisfaction between emulated/synthetic topologies and production-like, vendor-heterogeneous topologies?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): The paired intent-satisfaction rate (verifier-confirmed) will be at least 15 percentage points lower on production-like vendor-heterogeneous topologies than on emulated/synthetic topologies.",
+    "H2 (confirmatory, instrumentation): Deterministic verifier checks will detect >90% of syntactic and straightforward semantic errors on the emulation partition under the preregistered verifier encodings."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do violation-type mixes (syntax vs local-policy vs vendor-specific semantic) differ across vendor strata (IOS, JunOS, FRRouting)?",
+    "EQ2: How sensitive are paired differences to the predefined small set of prompt variants (sensitivity analysis)?",
+    "EQ3: How often do automated repair iterations (preregistered templates) convert verifier-fails into verifier-passes, stratified by partition?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404131920",
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4386385177",
+    "doi:10.1177/22104968261431521"
+  ],
+  "benchmark_scope": [
+    "Emulation partition: synthetic topologies generated deterministically from public topology generators (provenance recorded).",
+    "Community partition (exploratory): community-contributed medium-scale topologies assembled from public corpora referenced in evidence_record_ids.",
+    "Production-like partition: topologies/configs synthesized from public configuration corpora and deterministic extraction rules (provenance and filtering applied)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 250,
+    "planned_episode_count": 500,
+    "maximum_model_calls": 500,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-vendor paired success-rate differences (IOS, JunOS, FRR)",
+    "fraction of violations by class (syntax/local-policy/vendor-specific) per partition",
+    "repair-conversion rate (proportion of failed→passed after automated repairs)"
+  ],
+  "sampling_plan": "Confirmatory paired design with N_intents = 250 intents (pairs). For each intent a single initial model generation is produced and shared across the paired conditions (generation_semantics: shared_initial_candidate; independent_condition_generation=false). Each intent produces two episodes (emulation partition and production-like partition) recorded by the executor. Per registered-adapter limits, up to one automated repair call is permitted per episode (initial + up to 1 repair; maximum_model_calls = task_count * 2 = 500). Prompt texts and all runtime sampling parameters (e.g., temperature, top-p) will be recorded in execution metadata; no claim of deterministic LLM sampling is made. Exploratory discovery items described in the repaired design (community partition trials) are acknowledged but the confirmatory execution contract herein is limited to the registered adapter confirmatory task_count = 250. All per-task topology and vendor assignments are deterministic and precomputed; randomization (if used for ordering) will be derived from a contract-anchored hash function recorded pre-execution (no free-form random seed claim).",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target absolute effect = 15 percentage points. Power calculation (two-sided alpha=0.05, power≈0.80) used approximate paired-proportion methods under assumptions: baseline emulation pass rate ≈ 0.90, independence across intent-pairs. Calculation script is preserved in preregistration artifacts. Recommended confirmatory N_pairs = 250 (task_count = 250) to exceed the minimum N≈230. Sensitivity analyses: (1) treat incomplete pairs as failures and rerun primary estimator; (2) rerun primary estimator across preregistered prompt variants and report variation; (3) rerun with contamination-flag treatments (see contamination_plan).",
+  "exclusion_rules": [
+    "Exclude any generated config that fails vendor-parser (syntax) deterministically from primary analysis only where parser failure prevents deterministic verification.",
+    "Exclude any generated config that contains credential-like tokens, private-address blocks not deterministically anonymized, or denylisted copyrighted fragments identified via exact-hash matching.",
+    "Exclude any trial where verifier execution raises a runtime error; all such exclusions logged with deterministic reasons."
+  ],
+  "missingness_plan": "Automated handling only. On LLM API call failure (error/timeout) perform one immediate retry. If retry fails, follow the registered analysis contract's primary failed_call_treatment: primary analysis uses 'complete_pair_primary' (exclude incomplete pairs). A sensitivity analysis will treat incomplete pairs as failures ('complete_pair_primary_with_failure_as_zero_sensitivity'). If verifier execution fails, flag and exclude from primary confirmatory analysis; a sensitivity analysis treats excluded trials as failures. All failures, retries, and deterministic reasons are logged and disclosed.",
+  "analysis_plan": "Primary analysis executor: paired_binary_analysis_v1 (registered analysis contract). Primary estimator: paired_success_rate_difference_guarded_minus_baseline (exact primary_estimand_id above). Primary test: two-sided McNemar / paired-proportion procedure implemented by paired_binary_analysis_v1 with 95% confidence intervals; report exact paired-test p-value, absolute difference in percentage points with 95% CI, and effect-size. Secondary analyses: stratified per-vendor paired comparisons and violation-type proportions (descriptive with CIs). Sensitivity analyses per the missingness_plan and power_and_precision_plan. Analysis inputs, code, and raw outputs will be preserved and hashed. No post-hoc exclusions of confirmatory pairs except per preregistered exclusion rules.",
+  "multiplicity_plan": "One primary confirmatory comparison (emulation vs production-like). Report p-values for secondary analyses as exploratory; if any secondary is elevated to confirmatory claim, apply Bonferroni correction for up to m ≤ 5 secondaries.",
+  "contamination_plan": "Detection and mitigation automated. Items are provenance-tagged and subject to regex/token-pattern detectors for embedded instructions, credential-like tokens, private IPs, and denylist-hash checks. Flagging rules: (a) exclude synthesized configs containing credential-like tokens, private-address blocks not anonymized, or exact-hash denylist matches; (b) flag and exclude outputs containing instruction-like embedded tokens (prompt-injection patterns). Deterministic provenance checks attach source-record identifiers and fingerprints; items failing provenance checks are excluded. Verifier-consistency checks: run each verified property under a primary and alternate encoding; deterministic disagreements are flagged. Analysis treatment: flagged items excluded from primary analysis; two sensitivity treatments preregistered — (A) treat flagged items as failures and rerun primary analysis; (B) remove flagged items (primary). All flagging decisions and counts logged. Residual uncertainty: detectors are imperfect; quantified in contamination report.",
+  "stopping_rule": "No interim efficacy or futility stopping for the confirmatory N=250 paired intents. Execution proceeds until all preregistered tasks complete successfully or are deterministically excluded per exclusion and contamination rules. Execution may stop early only for deterministic technical failure conditions (infrastructure outage beyond retries) documented in the execution manifest; such a stop will be logged and reported with counts and deterministic reasons.",
+  "planned_outputs": [
+    "Preregistered experiment plan and machine-readable execution manifest",
+    "Execution raw artifacts (LLM outputs, verifier logs, transformation logs, provenance fingerprints)",
+    "Analysis code and results (paired_binary_analysis_v1 inputs and outputs)",
+    "Automated contamination and transformation reports",
+    "Five-page IEEE-format short paper and Disclosure Statement",
+    "NotebookLM presentation brief (machine-readable summary)"
+  ],
+  "unresolved_critical_issues": []
+}

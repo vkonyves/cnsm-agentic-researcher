@@ -1,0 +1,28 @@
+{
+  "summary": "Careful, well‑executed paired study with strong artifact preservation and transparent execution; however, important preregistration/estimand and reference-format issues must be fixed before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Apparent mismatch between the preregistration research question (sim‑to‑real emulation vs production-like contrast) and the executed/analysed primary estimand (guarded vs baseline under shared_initial_candidate). The manuscript does not clearly document whether a preregistration amendment/reparation occurred, when, and how it changes the confirmatory estimand.",
+    "The manuscript must more explicitly and prominently state shared_initial_candidate semantics (single initial sampled candidate reused across paired episodes) and must ensure no wording anywhere implies independent first-pass generations per condition. Any claim about prompt templates, constrained prompting, or prompt-engineering effects must be removed or explicitly limited because both conditions reused the same initial candidate.",
+    "Reference formatting and citation semantics are inadequate: manuscript metadata lists DOIs/arXiv identifiers but the References section must present conventional IEEE‑style numbered bibliographic entries (authors, title, venue, year) and in-text citations must use IEEE numeric markers. Each cited record must be checked in the bibliography to ensure it directly supports the associated claim.",
+    "Provider/model-call accounting fields in the execution manifest (e.g., provider_call_audit.condition_counts, stage_counts) are ambiguous and risk misinterpretation. The manuscript's brief note about these fields is insufficient; readers need a concise explanation mapping stage_count/condition_count entries to the shared_candidate execution semantics.",
+    "Power/interpretation mismatch: the preregistered power calculation targeted a different substantive effect (sim‑to‑real 15 percentage points). The manuscript must explicitly reconcile the preregistered power assumptions with the actually executed estimand and observed baseline pass rate, and clearly state consequences for confirmatory inference and interpretability."
+  ],
+  "required_revisions": [
+    "Add a concise, explicit Methods/Preregistration paragraph that (a) shows the exact preregistration artifact used (SHA256 already provided), (b) states whether any preregistration amendment or \"repaired preregistration\" occurred before execution (with timestamped artifact and SHA if present), and (c) reconciles the preregistered research question/H1 with the actual primary_estimand that was executed and analysed (paired_success_rate_difference_guarded_minus_baseline). If an amendment was made, state it plainly and include the amendment artifact SHA (no new experiments required).",
+    "Prominently and unambiguously state shared_initial_candidate semantics in Methods and in the Abstract/Introduction where claims about the paired contrast are made. Remove or qualify any text that could be read to imply that baseline and guarded received independent first‑pass generations or that prompt variants created between‑condition sampling variation.",
+    "Replace the current cited_record_ids list with a conventional IEEE numbered References section containing full bibliographic metadata for each cited work. Update in‑text citations to IEEE numeric markers and verify each reference actually supports the proximate claim; adjust citation placement if any cited item does not support the asserted point.",
+    "Clarify provider/model‑call accounting in Methods or an appendix paragraph: define the manifest fields (stage_counts, condition_counts, cache_hit/miss, shared_initial_generation, repair) and explicitly explain why model_calls_used=251 despite two episodes per pair (confirm that this follows shared_initial_candidate semantics). Ensure no provenance or audit fields are left ambiguous for readers.",
+    "Add an explicit paragraph reconciling the preregistered power analysis with the executed design and observed rates: state that the original power calculation assumed a different effect and/or contrast, explain how the observed high baseline pass rate affects detectable effect sizes, and add a short, explicit limitation statement about what confirmatory inference these results do and do not support."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement (keep required items and artifact SHAs) to a shorter block; move detailed manifest pointers to the archived evidence bundle and reference them by path/SHA in the Disclosure.",
+    "Add a brief worked example (one task pair) in the paper or supplementary note to illustrate shared_initial_candidate flow, validator trace, and the single repair that converted the discordant pair.",
+    "If available in archived artifacts, include a compact per‑vendor exploratory table (not claimed as confirmatory) or explicitly state that vendor strata were not present in the confirmatory partition.",
+    "Add a short paragraph acknowledging adversarial/prompt‑injection limitations and noting these as explicit next steps (already present but can be made crisper)."
+  ],
+  "accept_for_finalisation": false
+}

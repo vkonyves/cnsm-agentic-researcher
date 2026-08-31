@@ -1,0 +1,113 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-2026-LLM-verifier-sim2real",
+      "title": "LLM-to-Config with Deterministic Verifier: sim-to-real and vendor-heterogeneity evaluation",
+      "research_question": "How well does an LLM-generated network-configuration pipeline coupled with a deterministic verifier (e.g., Batfish) maintain intent-correctness and safety when moving from emulated/synthetic topologies to diverse, vendor-heterogeneous production-like topologies?",
+      "hypotheses": [
+        "Pairing LLM-generated configurations with a deterministic verifier will detect >90% of syntactic and straightforward semantic errors in emulation but will detect significantly fewer violations under sim-to-real domain shift in vendor-specific features.",
+        "Sim-to-real domain shift and vendor heterogeneity will produce a measurable drop (≥15 percentage points) in intent-satisfaction measured by verifier-ground-truth compared to emulation baselines."
+      ],
+      "proposed_design": "Build paired experimental pipelines: (1) generate configurations from operator intents using a modern hosted LLM API; (2) run deterministic verification (Batfish or equivalent) to assert reachability/policy properties; (3) evaluate on three dataset partitions: synthetic/emulated topologies, community-contributed medium-scale topologies (multi-vendor IOS/JunOS/FRR synthetics), and a held-out production-like topology set synthesized from public config corpora. Use fixed prompts and seeds; freeze prompts and verifier checks in a preregistration. Collect per-task: verifier pass/fail, specific violated properties, semantic mismatches, and required manual repair steps. Include a paired baseline of human-authored reference configs where available.",
+      "expected_data": "Per-task records (intent id, topology id, vendor, LLM output config, verifier result booleans for each property, list of violated properties, number of automated repair iterations if attempted), aggregate intent-satisfaction rates per partition, and error-class confusion matrices showing syntactic vs semantic vs vendor-specific violations.",
+      "primary_outcome": "Difference in intent-satisfaction rate (verifier-confirmed) between emulation partition and production-like partition (absolute percentage points).",
+      "analysis_outline": "Compute per-partition intent-satisfaction proportions with 95% CIs; perform paired comparisons (McNemar or paired-proportion z-test where appropriate) between emulation and production-like partitions; stratify by vendor and property type; report effect sizes and secondary analyses on violation types. Conduct sensitivity analysis for prompt variants (small predefined set) and report required sample sizes and power calculations in preregistration.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4404131920",
+        "https://openalex.org/W4388629193"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "doi:10.1177/22104968261431521"
+      ],
+      "risks": [
+        "Public topology synthesis may not fully capture proprietary vendor idiosyncrasies, limiting external validity.",
+        "Hosted-model API rate limits or latency could constrain throughput; retries may bias results if not strictly preregistered.",
+        "Deterministic verifiers may not model certain protocol behaviors, causing false positives/negatives in verifier-ground-truth."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-2026-adaptive-prompt-injection-netops",
+      "title": "Adaptive prompt-injection resilience in NetOps retrieval-assisted pipelines",
+      "research_question": "How robust are retrieval-augmented NetOps pipelines (intent→retrieve→LLM→config) and simple defensive filters against adaptive prompt-injection attacks that embed malicious configuration fragments within retrieved artifacts?",
+      "hypotheses": [
+        "Adaptive prompt-injection attacks that inject NetOps-specific malicious fragments into retrieved context will significantly increase unsafe or policy-violating configuration generation absent retrieval-filtering defenses.",
+        "A lightweight retrieval-filter + verifier gate will reduce successful attack rate by at least 50% relative to an unprotected retrieval-augmented pipeline in controlled adaptive attack scenarios."
+      ],
+      "proposed_design": "Construct a retrieval-augmented generation pipeline using public operational artifacts as retrieval corpus. Design a suite of adaptive injection attack techniques that embed malicious route/policy fragments into retrieved documents (obfuscated, contextually plausible). Evaluate three pipeline conditions on the same intent set: (A) no retrieval, (B) retrieval without defenses, (C) retrieval with defenses (retrieval content filters + classifier + verifier gate). Use deterministic verifier checks to label generated configs as unsafe/safe. Predefine attack grammar and defense heuristics in preregistration; measure attack success rate and false-positive defense rates.",
+      "expected_data": "Per-intent trial logs with retrieval hits, injected artifact presence, generated config text, verifier safety labels, defense classifier outputs, and binary attack success indicators. Aggregated attack success rates, false-positive/negative rates of defenses, and latency/resource costs.",
+      "primary_outcome": "Relative reduction in attack success rate (percent) comparing condition C (defended) to B (undefended) under adaptive-injection attacks.",
+      "analysis_outline": "Estimate attack success proportions with 95% CIs per condition; use two-proportion z-tests to compare B vs C; report defense precision/recall; stratify by injection technique; analyze trade-offs in false-positive blocking and operational latency. Report robustness under attacker adaptivity by incremental attacker sophistication levels.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6956641"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4391399751",
+        "https://openalex.org/W4401671778"
+      ],
+      "risks": [
+        "Creating realistic adaptive injections without access to private corpora may under- or over-estimate real-world attacker success.",
+        "Defensive classifiers may overblock benign retrievals, harming utility; measuring this requires carefully chosen benign corpora.",
+        "Ethical risk: synthetic attack artifacts must be clearly labeled and not copy-published as usable attack recipes."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-2026-verifiable-dataset-intent-topology-vendor",
+      "title": "Public verifiable dataset: paired intents, topologies, vendor configs, and verifier-ground-truth",
+      "research_question": "Can a publicly releasable dataset that pairs operator natural-language intents with diverse topologies, vendor-specific configuration templates, and deterministic verifier-ground-truth be constructed at modest scale and serve as a reproducible benchmark that exposes current LLM shortcomings?",
+      "hypotheses": [
+        "A curated dataset pairing intents, multi-vendor configs, and verifier-checked ground truth will reveal systematic failure modes of LLM generators not visible in existing heterogeneous benchmarks.",
+        "Baseline LLMs will achieve substantially lower verifier-confirmed intent-satisfaction on vendor-specific tasks in this dataset than reported on prior, less-structured NetOps benchmarks (drop ≥10 percentage points)."
+      ],
+      "proposed_design": "Curate a dataset of ~300 intent-topology-vendor tasks using only public/topology/config sources. For each task: define operator intent (natural language), synthesize or extract topology (node/link/vendor labels), produce a reference config (human-constructed or reproducible script), and run deterministic verifier to produce verifier-ground-truth labels (reachability/policy pass/fail). Publish dataset schema, sample generator scripts, and verifier checks. Evaluate baseline hosted LLMs using fixed prompts to generate configs and report verifier-confirmed intent-satisfaction. Freeze collection protocols and annotation rules in preregistration.",
+      "expected_data": "Dataset artifacts: intent texts, topology files, vendor labels, reference configs, verifier property definitions and outputs. Evaluation results: LLM-generated configs with verifier labels, per-task success/failure, and aggregate baseline metrics.",
+      "primary_outcome": "Public dataset release plus baseline aggregate verifier-confirmed intent-satisfaction for specified LLM(s); measurable baseline performance (percentage) reported as primary benchmark number.",
+      "analysis_outline": "Describe dataset composition statistics (vendors, topology sizes, property types). Compute baseline LLM intent-satisfaction proportion with 95% CI; compare to published numbers on prior benchmarks where metrics align using two-sample proportion tests. Provide qualitative failure taxonomy and examples. Release dataset and evaluation scripts for reproducibility.",
+      "novelty_evidence_ids": [
+        "doi:10.31224/6662",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4405229682"
+      ],
+      "risks": [
+        "Public dataset may inadvertently include sensitive-patterns if source filtering is incomplete; thorough review is required.",
+        "Annotation and reference-config creation is time-consuming; resource limits may constrain dataset size.",
+        "Differences in verifier modelling assumptions may limit comparability across external studies."
+      ],
+      "estimated_model_calls": 500
+    },
+    {
+      "candidate_id": "cand-2026-iterative-gvr-cost-benefit",
+      "title": "Cost–benefit of iterative generate–verify–repair (GVR) vs single-shot + verifier for NetOps",
+      "research_question": "Does an iterative generate–verify–repair loop improve final verifier-confirmed correctness sufficiently to justify additional model calls and latency compared to a single-shot generation plus deterministic verification approach?",
+      "hypotheses": [
+        "Iterative GVR with bounded repair iterations will increase final verifier-confirmed correctness relative to single-shot generation by a statistically significant margin (>5 percentage points) for tasks with recoverable semantic errors.",
+        "The marginal improvement per additional repair iteration will exhibit diminishing returns such that beyond 2–3 iterations the incremental verifier-confirmed gain is <2 percentage points while model-call cost increases linearly.",
+        "When verifier feedback is noisy or incomplete, iterative GVR yields smaller or no practical benefit compared to single-shot plus human-in-the-loop review."
+      ],
+      "proposed_design": "Implement two pipeline variants on a shared task bank: (A) single-shot LLM generation followed by verifier; (B) iterative GVR where verifier feedback is converted into structured repair prompts and the model is allowed up to N bounded repair iterations (N preregistered, e.g., 3). Use the same LLM(s) and verifier. Measure verifier-confirmed correctness after each iteration, total model calls per task, latency, and instances where iteration introduces regressions. Include controlled noise in verifier feedback for an experimental subgroup to test hypothesis 3.",
+      "expected_data": "Per-task iteration traces: generated configs per iteration, verifier outputs per iteration, final correctness label, total model calls, and latency. Aggregated curves of correctness vs iterations and cost-benefit plots.",
+      "primary_outcome": "Difference in verifier-confirmed correctness between pipelines A and B and the correctness gain per additional iteration up to N.",
+      "analysis_outline": "Plot and statistically compare correctness proportions across A and B using paired tests (McNemar or paired proportion tests) and model-call-normalized improvements. Fit a diminishing-returns curve (e.g., logistic or exponential) to per-iteration gains and estimate the iteration at which marginal gain <2 percentage points. Analyze subgroups with noisy verifier feedback and report where iterative approach fails or regresses.",
+      "novelty_evidence_ids": [
+        "doi:10.1177/22104968261431521",
+        "https://openalex.org/W4401671778"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4402742293"
+      ],
+      "risks": [
+        "Iterative loops increase attack surface if adversarial inputs are present in context; must apply same safety filters across conditions.",
+        "Cloud model-call costs and rate limits may constrain iteration counts; preregistered budget must be respected.",
+        "Verifier noise modelling may be imperfect, affecting generalizability of the noisy-feedback subgroup."
+      ],
+      "estimated_model_calls": 1500
+    }
+  ]
+}

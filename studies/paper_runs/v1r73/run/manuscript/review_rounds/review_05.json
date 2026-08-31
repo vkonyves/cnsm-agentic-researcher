@@ -1,0 +1,19 @@
+{
+  "summary": "Carefully executed, preregistered paired study measuring the marginal effect of a deterministic validator plus one automated repair on identical LLM-generated configuration candidates (shared_initial_candidate). Execution artifacts and analysis are archived. Primary confirmatory result on the synthetic/emulation partition: baseline pass 249/250 (99.6%), guarded pass 250/250 (100%), paired difference +0.4 pp (95% CI [0.0,1.2 pp]), exact McNemar two-sided p = 1.0. Preregistration–execution deviation (sim‑to‑real contrast not executed) is explicitly disclosed.",
+  "novelty_score": 4,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [],
+  "required_revisions": [
+    "Replace placeholder/lettered citations (e.g., \"[A, B, C]\") and any DOI/arXiv tokens in main prose with standard IEEE numbered citation markers and include a conventional IEEE-style bibliography with full metadata for each cited work (authors, title, venue, year, DOI/arXiv id). Use the archived verified-bibliography artifacts to populate the references; do not leave bare DOI/arXiv entries in the References section.",
+    "In Methods (and where necessary in the Abstract/Introduction) add one clear, unambiguous sentence stating that under the preregistered shared_initial_candidate design exactly one initial generation call was produced per intent and that this same generated candidate was reused for both the baseline and guarded episodes (i.e., no independent first-pass generation per condition). Point the reader to the deterministic_reconciliation/provider_call_audit artifact (path and sha256) for provider-call accounting. This must remove any residual ambiguity about what the paired estimand measures (marginal validator+repair effect on the same candidate).",
+    "Clarify the brief provider-call accounting phrasing to explain the labeling observed in the archived provider_call_audit (e.g., why condition_counts shows {\"shared\":250,\"guarded\":1} while model_calls_used=251, and how stage_counts map to generation + repair calls). Cite the specific reconciliation artifact (deterministic_reconciliation.json) and its hash so the numerical reconciliation is transparent to the reader."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement to a more compact form that still includes the required items (models, prompt/hash, preregistration hash, autonomy boundary, tools, and high-level deviation disclosure) and move detailed run-log pointers to a single archive-reference sentence pointing to the evidence bundle and manifest hashes (the detailed logs and per-file hashes are preserved in the archive).",
+    "Add a short paragraph in Discussion explicitly noting that the observed much-higher-than-anticipated baseline pass rate (0.996 vs assumed 0.90) reduces power to detect small nonzero guarded effects and therefore motivates reporting the paired-bootstrap CI as the principal practical bound on possible improvement (the manuscript already includes this but a one-sentence emphasis would help readers).",
+    "If space permits within the five-page limit, add a one-paragraph note clarifying that this study measures only mechanically verifiable/validator-detectable correctness and does not assess broader runtime semantics, safety under adversary models, or production heterogeneity (this is present but could be slightly expanded for clarity)."
+  ],
+  "accept_for_finalisation": false
+}

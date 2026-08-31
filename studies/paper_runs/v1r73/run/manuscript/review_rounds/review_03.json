@@ -1,0 +1,24 @@
+{
+  "summary": "Carefully preregistered, artifact-backed paired study that evaluated a generate–verify–repair guardrail under explicit shared_initial_candidate semantics. Execution and archived artifacts appear internally consistent and reproducible; the primary confirmatory result is a near-null paired improvement (1/250 discordant pair). Main deficiencies are presentation/provenance clarity (reference formatting, a confusing provider-call accounting field, and an abstract/labeling mismatch about which preregistered partitions were actually executed). These can be corrected from the supplied artifacts without new experiments.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "References are not presented as a conventional IEEE numbered bibliography with full bibliographic metadata; manuscript currently records bare DOIs/arXiv/identifier-style entries. This violates the conference/reference requirements and prevents independent verification of in-text citation semantics.",
+    "A provider-call/accounting field in the archived manifest (provider_call_audit.condition_counts shows {'shared':250,'guarded':1}) is inconsistent with the reported paired episode accounting (completed_episode_count=500, complete_pair_count=250) and with the reported guarded_success_count=250. This discrepancy can confuse readers and reviewers into thinking conditions had independent first-pass generations; it must be reconciled or clearly explained in Methods using existing artifacts.",
+    "Abstract and some metadata/title wording risk implying a broader sim-to-real or vendor-heterogeneity confirmatory evaluation, while the preregistered confirmatory execution and the archived run applied only to the synthetic/emulation partition. The manuscript must clearly and unambiguously state in the Abstract (and any headings that reference the preregistration title) that the confirmatory run covered the emulation/synthetic partition only and that other partitions remained exploratory/unexecuted."
+  ],
+  "required_revisions": [
+    "Replace the References section with a conventional IEEE numbered bibliography (authors, title, venue, year, DOI/arXiv) derived from the archived/verifiable records; update all in-text citations to use those IEEE numeric markers and ensure each cited work actually supports the nearby claim (use the verified evidence records preserved in the archive to construct entries).",
+    "Add a short, explicit Methods clarification (can be a paragraph) that reconciles the provider_call_audit fields with the shared_initial_candidate execution semantics using the archived provider-call and stage-count artifacts. Specifically: explain that model_calls_used=251 consists of 250 shared_initial_generation calls plus 1 repair call; explain the meaning of provider_call_audit.condition_counts and confirm that the same sampled initial candidate was used for both baseline and guarded episodes per pair (no independent first-pass generation per condition). Point reviewers to the archived manifest paths/hashes for verification (do not paste logs).",
+    "Edit the Abstract to state unambiguously that the confirmatory experiment was executed on the synthetic/emulation partition only (as preregistered) and that community and production-like partitions in the preregistration were exploratory and not executed in this confirmatory run. Ensure the Introduction/Title do not imply a completed sim-to-real or production-like confirmatory contrast if those partitions were not executed."
+  ],
+  "optional_revisions": [
+    "In Results or Discussion, briefly note that the exact McNemar two-sided p-value of 1.0 arises from the very small count of discordant pairs (n10+n01=1) and so is uninformative for ruling out small effects; emphasize the paired CI and the preregistered power mismatch as the primary inferential constraints.",
+    "Condense the Disclosure Statement slightly to remove any text that duplicates archive inventory details (the preregistration SHA and master-prompt SHA are sufficient identifiers; refer to the archived evidence bundle for full manifests).",
+    "Correct or annotate any minor manifest-field naming inconsistencies (e.g., condition_counts vs stage_counts) so automated readers and auditors do not misinterpret fields; a one-sentence note in Methods is sufficient.",
+    "If space permits, add a one-line mapping table (in the manuscript or an evidence appendix) from numbered citations to the corresponding archived verification-record identifiers to strengthen reference-integrity transparency without reproducing logs."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,25 @@
+{
+  "summary": "Careful, preregistered paired study that measured the marginal effect of a deterministic validator plus one automated repair on identical LLM-generated NetOps candidates under explicit shared_initial_candidate semantics. Execution and analysis artifacts are well archived and numerically consistent (250 pairs; baseline 249/250 pass, guarded 250/250; n11=249,n10=1,n01=0,n00=0; paired diff = +0.4 pp; 95% CI [0.0,1.2 pp]; exact McNemar p=1.0). The manuscript is technically thorough and appropriately conservative in interpretation but requires a small set of manuscript clarifications and disclosure edits before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Disclosure Statement in the current manuscript duplicates low-level execution bookkeeping (per-file paths and many full artifact hashes) and exceeds the concise disclosure guidance required by the track; this must be condensed or relocated to the archived evidence bundle with a single manifest pointer in-text.",
+    "Provider-call / adapter accounting is presented with nonstandard labels (e.g., condition_counts: {\"shared\":250, \"guarded\":1}). This may be misread as implying only one guarded-generation call. The Methods must explicitly and unambiguously state the mapping between adapter/provider labels, stage_counts (shared_initial_generation vs repair), model_calls_used=251, and the fact that exactly one initial generation call was produced per intent and reused for both baseline and guarded episodes.",
+    "References and citation semantics: ensure the References section is a conventional IEEE numbered bibliography (authors, title, venue, year, DOI/URL when available). In-text citations must use IEEE numeric markers and every cited record must actually support the proximate claim. The manuscript currently lists identifier-style records in evidence bundles; the paper must present the formal IEEE bibliography.",
+    "Abstract/Front-matter omission: the preregistered sim-to-real (production-like) confirmatory contrast stated in the preregistration was not executed. That important deviation must be stated prominently in the Abstract (not only in Conclusions/Disclosure) so readers see the confirmatory scope immediately."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement in the main manuscript so it is concise and does not reproduce execution-log-level detail; instead reference the archived evidence bundle and provide a single manifest location/sha256 (one short pointer) in-text. Move per-file paths and the full hash manifest out of the paper body and into the archived bundle referenced by the manifest pointer.",
+    "Add a short, explicit paragraph in Methods (and one clear sentence in the Abstract) that unambiguously states: under the preregistered shared_initial_candidate semantics exactly one initial model-generation call was produced per intent and that identical generated candidate was reused for both baseline and guarded episodes; enumerate how model_calls_used=251 decomposes into 250 shared_initial_generation + 1 repair and explain the adapter labeling to avoid misinterpretation.",
+    "Replace identifier-only or DOI/url-style reference entries in the References section with fully formatted IEEE numbered bibliography entries (authors, title, venue, year, DOI/URL as appropriate). Verify and adjust in-text citation indices so each in-text citation [n] corresponds to the correct IEEE entry and that each cited work supports the specific claim for which it is cited.",
+    "Prominently state (Abstract and Methods) that the preregistered sim-to-real/production-like confirmatory contrast was not executed and that the reported confirmatory estimand and inference apply only to the synthetic/emulation partition executed in this run."
+  ],
+  "optional_revisions": [
+    "Shorten and focus Related Work to the most closely adjacent papers (e.g., Verified Prompt Programming, Batfish evolution, NetConfEval) and explicitly compare how this shared_initial_candidate paired design differs from prior generate–verify–repair evaluations.",
+    "Add one succinct explanatory sentence or small diagram in Methods that maps the adapter stage labels (shared vs guarded) to the pipeline stages (initial generation, validator check, repair attempt) to aid readers less familiar with the adapter audit fields.",
+    "Include a one-line note in Limitations reiterating that the high baseline pass-rate (0.996) departed from the preregistered power assumption (≈0.90) and that this reduces power to detect small absolute improvements (the manuscript already discusses this; a one-line explicit callout in Limitations helps readers)."
+  ],
+  "accept_for_finalisation": false
+}

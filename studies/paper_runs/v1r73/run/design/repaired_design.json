@@ -1,0 +1,170 @@
+{
+  "selected_candidate_id": "cand-2026-LLM-verifier-sim2real",
+  "title": "LLM-to-Config with Deterministic Verifier: sim-to-real and vendor-heterogeneity evaluation (repaired preregistration)",
+  "research_question": "When the same natural-language intent is realized by an LLM-generated configuration and checked by a deterministic verifier, how large is the paired difference in verifier-confirmed intent-satisfaction between emulated/synthetic topologies and production-like, vendor-heterogeneous topologies?",
+  "confirmatory_hypotheses": [
+    "H1 (primary, confirmatory): The paired intent-satisfaction rate (verifier-confirmed) will be at least 15 percentage points lower on production-like vendor-heterogeneous topologies than on emulated/synthetic topologies.",
+    "H2 (confirmatory, instrumentation): Deterministic verifier checks will detect >90% of syntactic and straightforward semantic errors on the emulation partition under the preregistered verifier encodings."
+  ],
+  "exploratory_questions": [
+    "EQ1: How do violation-type mixes (syntax vs local-policy vs vendor-specific semantic) differ across vendor strata (IOS, JunOS, FRRouting)?",
+    "EQ2: How sensitive are paired differences to the predefined small set of prompt variants (sensitivity analysis)?",
+    "EQ3: How often do automated repair iterations (preregistered templates) convert verifier-fails into verifier-passes, stratified by partition?"
+  ],
+  "benchmark_scope": [
+    "Emulation partition: synthetic topologies generated deterministically from public topology generators (see provenance below).",
+    "Community partition (exploratory): community-contributed medium-scale topologies assembled from public corpora referenced in evidence_record_ids.",
+    "Production-like partition: topologies synthesized from public configuration corpora and deterministic extraction rules derived from the supplied evidence records (provenance and filtering below)."
+  ],
+  "model_scope": [
+    "Hosted LLM API(s) permitted by capability_manifest (referred to as hosted-llm-api-v1). Exact model identifier(s) will be recorded in execution metadata.",
+    "No local GPU models; all LLM calls go to hosted APIs per capability_manifest."
+  ],
+  "transformation_scope": [
+    "Syntactic normalization (vendor-specific canonicalization), vendor-mapping translations (canonical ACL/policy encodings), verifier property encoders, and automated repair-prompt templates."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-vendor paired success-rate differences",
+    "fraction of violations by class (syntax/local-policy/vendor-specific) per partition",
+    "repair-conversion rate (proportion of failed→passed after automated repairs)"
+  ],
+  "sampling_plan": "Confirmatory paired design: fixed set of N_intents intents (pairs). For each intent we generate exactly two LLM-produced configurations (one targeting an emulation partition topology, one targeting a production-like partition topology) then run deterministic verification checks. Confirmatory N_intents = 250 paired intents (=> 500 LLM-generation tasks). Exploratory discovery items: 100 additional single-topology LLM-generation tasks targeted at the community partition (for vendor-stratified descriptive analyses). Totals derived: 250 intents * 2 trials/intent = 500 confirmatory generation trials; plus 100 discovery trials = 600 generation trials overall. Model-call accounting: per generation trial we preregister up to 2 automated repair iterations after the initial generation (initial + up to 2 repairs = up to 3 model calls per generation trial). Therefore worst-case planned_model_calls = 600 generation trials * 3 model calls/trial = 1800 model calls. All seeds and prompts are frozen pre-execution. Each trial is deterministically assigned a topology and vendor stratum; task-clusters = 3 vendor strata (IOS, JunOS, FRR).",
+  "analysis_plan": "Primary confirmatory estimator: paired binary analysis (paired_success_rate_difference_guarded_minus_baseline) computed by the registered executor 'paired_binary_analysis_v1'. Primary test: two-sided McNemar / paired-proportion procedure implemented by the analysis executor with 95% CIs. Report exact paired test p-value, absolute difference in percentage points with 95% CI, and effect-size. Secondary analyses: stratified per-vendor paired comparisons and violation-type proportions (descriptive with CIs). Sensitivity analyses: (a) treat generation/verification failures as automatic failures (zero) and rerun primary analysis (registered failed_call_treatment includes both complete_pair_primary and complete_pair_primary_with_failure_as_zero_sensitivity), (b) repeat analysis across the small preregistered prompt-variant set and report variation. All analysis code and inputs will be preserved. No post-hoc exclusions of confirmatory pairs are permitted except for the preregistered automated exclusion rules below.",
+  "multiplicity_plan": "One primary confirmatory comparison (emulation vs production-like). Up to five secondary hypotheses will be reported; p-values for secondaries will be presented but interpreted as exploratory. If formal secondary confirmatory claims are made, adjust using Bonferroni (m ≤ 5).",
+  "missingness_plan": "Automated treatments only. If an LLM call fails (API error/timeout) we follow deterministic retry policy (one immediate retry). If retry fails, the pair is handled according to the registered failed_call_treatment: primary analysis uses 'complete_pair_primary' (i.e., exclude incomplete pairs) and a sensitivity analysis treats the incomplete pair as pair-failure (zero). If verifier execution fails (runtime error), the trial is flagged and excluded from the primary confirmatory analysis; a sensitivity analysis treats excluded trials as failures. All exclusions and counts, with deterministic reasons, are logged and disclosed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Emulation partition (synthetic deterministic generator)",
+      "Community partition (public community-contributed topologies)",
+      "Production-like synthesized partition (public config corpora derivation)"
+    ],
+    "risk_factors": [
+      "Injected prompt or config fragments (prompt-injection) present in retrieved resources used during prompt construction",
+      "Presence of private or sensitive configuration fragments in public corpora used for synthesis",
+      "Verifier modelling mismatch for vendor-specific features"
+    ],
+    "detection_procedures": [
+      "Automated syntactic/semantic filters applied to LLM outputs and synthesized inputs (regex and token-pattern detectors for embedded instructions, 'enable secret', clear-text credentials, private IPs); evidence provenance tagging from source records for all synthesized artifacts.",
+      "Deterministic provenance checks: every synthesized production-like topology includes source-record identifiers (from allowed evidence_record_ids) and a hashing provenance fingerprint; items failing provenance checks are excluded.",
+      "Verifier-consistency checks: run each verified property under two encodings (primary encoding and an alternate encoding rule set); disagreements are flagged deterministically."
+    ],
+    "item_flagging_rules": [
+      "Flag and exclude any synthesized config containing credential-like tokens, private-address blocks not deterministically anonymized, or clearly copy-matched copyrighted fragments identified via exact-hash matching against a denylist.",
+      "Flag any LLM output where embedded instruction-like tokens (patterns from prompt-injection literature in evidence) appear; treat flagged outputs as excluded from primary analysis and included in a contamination-reporting appendix."
+    ],
+    "analysis_treatment": "Flagged items are excluded from the primary confirmatory analysis. Two sensitivity treatments are preregistered: (A) re-run primary analysis with all flagged items treated as failures; (B) re-run with flagged items removed (primary). Both results reported.",
+    "residual_uncertainty": [
+      "Automated detectors are imperfect; flagged/unflagged trade-offs are quantified in the contamination report.",
+      "Synthesis from public corpora may still not represent proprietary vendor idiosyncrasies (addressed as noncritical external-validity limitation)."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_recommended",
+      "description": "Recommended balanced-power scenario. Confirmatory N_pairs = 250; exploratory discovery trials = 100; task clusters = 3 vendor strata (IOS, JunOS, FRR).",
+      "planned_model_calls": 1800,
+      "models": [
+        "hosted-llm-api-v1"
+      ],
+      "transformations": [
+        "syntactic_normalization",
+        "vendor_mapping",
+        "repair_prompt_templates_v1"
+      ],
+      "discovery_items": 100,
+      "confirmatory_items": 250,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Total planned_model_calls (1800) fits under the capability manifest limit (max planned model calls 10000). All compute is via hosted APIs and CPU-only deterministic verification (Batfish-equivalent) using available CPU execution. No human annotation is required."
+    },
+    {
+      "scenario_id": "scenario_low_budget",
+      "description": "Lower-budget, lower-power scenario. Confirmatory N_pairs = 150; exploratory discovery trials = 50; task clusters = 3.",
+      "planned_model_calls": 1050,
+      "models": [
+        "hosted-llm-api-v1"
+      ],
+      "transformations": [
+        "syntactic_normalization",
+        "vendor_mapping"
+      ],
+      "discovery_items": 50,
+      "confirmatory_items": 150,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Conservative call budget for constrained API allowances; still executable within capability_manifest. Reduced power relative to recommended scenario."
+    },
+    {
+      "scenario_id": "scenario_high_budget",
+      "description": "High-powered scenario for increased precision. Confirmatory N_pairs = 400; exploratory discovery trials = 200; task clusters = 3.",
+      "planned_model_calls": 3000,
+      "models": [
+        "hosted-llm-api-v1"
+      ],
+      "transformations": [
+        "syntactic_normalization",
+        "vendor_mapping",
+        "repair_prompt_templates_v1",
+        "alternate_property_encodings"
+      ],
+      "discovery_items": 200,
+      "confirmatory_items": 400,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "Matches the candidate's original estimated_model_calls (3000) and remains within capability_manifest maximum planned calls. Higher sample yields greater power for small effects and more robust stratified analyses."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "15 percentage points absolute difference (production-like minus emulation)",
+    "clustering_unit": "intent-pair (each pair = same intent on emulation and production-like topology)",
+    "calculation_method": "Approximate McNemar/paired-proportion sample-size calculation using two-sided alpha=0.05. Calculation used assumed baseline emulation pass rate p1=0.90 and paired discordant proportion consistent with a 15% absolute reduction; standard normal approximation. Detailed calculation script recorded in preregistration artifacts.",
+    "assumptions": [
+      "Baseline emulation verifier-confirmed pass rate ≈ 0.90 (consistent with literature C2/C3) for the chosen intents.",
+      "Discordant-pair rate consistent with a 15 percentage-point shift; independence across intent-pairs is assumed for power calculation.",
+      "Alpha = 0.05, desired power = 0.80, two-sided test."
+    ],
+    "recommended_scenario_id": "scenario_recommended",
+    "minimum_detectable_effect_notes": "Under the above assumptions, required paired N ≈ 230; recommended confirmatory N = 250 to provide >80% power allowing modest deviation from assumptions. If actual emulation baseline is lower, detectable effect increases; the high-budget scenario (N=400) reduces MDE substantially.",
+    "sensitivity_analyses": [
+      "Treat incomplete pairs as failures (zero) and re-run primary estimator (registered failed_call_treatment 'complete_pair_primary_with_failure_as_zero_sensitivity').",
+      "Repeat primary analysis across the preregistered small set of prompt variants (up to 3 variants) and report variability in paired differences.",
+      "Recompute primary estimator excluding any items flagged by contamination detectors vs treating flagged items as failures; report both."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "syntactic_normalization (vendor parsers)",
+      "vendor_mapping (canonical ACL/policy encoders)",
+      "repair_prompt_templates_v1 (deterministic template-driven prompts)",
+      "alternate_property_encodings (secondary verifier encodings for consistency checks)"
+    ],
+    "semantic_equivalence_checks": [
+      "Round-trip check: generated config -> vendor parser -> canonical representation -> re-emitted config; compare semantics via header-space/reachability on a small deterministic emulated topology; mismatch rates recorded.",
+      "Alternate-encoding agreement: for each property, compare primary and alternate encodings in verifier; record disagreement rate."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any generated config that fails vendor-parser (syntax) deterministically.",
+      "Reject any generated config that contains disallowed tokens (credential-like strings) per regex denylist.",
+      "Reject items that fail provenance hashing or that match denylist copyright fingerprints."
+    ],
+    "audit_sample_policy": "Audit = deterministic 10% sample of all generated configs selected by an intent-id hash function (no human annotation). Audit executes an expanded automated static-analysis battery (additional parsers and property encodings) and records discrepancies automatically.",
+    "mapping_validation": "Vendor mapping tables and canonicalization scripts are validated by unit tests against public examples drawn from the evidence_record_ids corpora; test-suite results recorded and preserved.",
+    "residual_risks": [
+      "Automated equivalence checks cannot perfectly capture complex vendor-specific dynamic behaviors (e.g., proprietary feature interactions).",
+      "Audit is automated and cannot substitute for human expert adjudication; therefore some nuanced semantic errors may remain undetected."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External-validity limitation: publicly synthesized production-like topologies and configs may not capture proprietary vendor idiosyncrasies; this restricts generalization to private production networks (explicitly bounded in claims).",
+    "Verifier fidelity: deterministic verifiers may under- or over-approximate certain vendor-specific behaviors; this is mitigated by alternate-encoding agreement checks but remains a modelling limitation.",
+    "Hosted-model API operational constraints (rate limits, latency) could reduce realized throughput; preregistered retries and the planned model-call budgets are designed to operate within capability_manifest limits, but real-world API throttling remains a noncritical execution risk.",
+    "Automated PII/copyright detectors are imperfect; residual sensitive fragments might remain undetected despite provenance hashing and denylist filtering."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4404131920",
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4386385177",
+    "doi:10.1177/22104968261431521"
+  ]
+}

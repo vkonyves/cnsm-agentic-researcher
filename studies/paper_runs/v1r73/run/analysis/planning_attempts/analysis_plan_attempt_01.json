@@ -1,0 +1,33 @@
+{
+  "study_id": "study-cand-2026-LLM-verifier-sim2real-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis executed by paired_binary_analysis_v1 on execution/raw_results.jsonl (result_schema paired_binary_episode_v1). Compute paired verifier-pass rates per intent for emulation (baseline) vs production-like (guarded) episodes using the preregistered shared_initial_candidate pairing. Test primary estimand paired_success_rate_difference_guarded_minus_baseline with a two-sided McNemar/paired-proportion procedure implemented by paired_binary_analysis_v1, report exact p-value, absolute difference in percentage points, 95% confidence interval, and effect-size. Follow preregistered exclusions (parser-blocking syntax failures and denylist/private-data exclusions) and deterministic provenance flags; confirmatory claims restricted to this primary test.",
+  "secondary_analyses": [
+    "Per-vendor paired success-rate differences (IOS, JunOS, FRR) using paired comparisons implemented by paired_binary_analysis_v1 (descriptive; CIs reported; exploratory)",
+    "Violation-type composition tables: fraction and 95% CIs of violation classes (syntax, local-policy, vendor-specific) stratified by partition (emulation, production-like)",
+    "Repair conversion rate: proportion of episodes with verifier-fail → verifier-pass after the single allowed automated repair, stratified by partition (descriptive with CIs)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: treat any incomplete pairs/LLM-call failures or verifier-excluded episodes as failures (zero) and recompute primary paired estimator",
+    "Contamination sensitivity: treat items flagged by contamination detectors as failures and rerun primary estimator (alternate treatment to primary exclusion)",
+    "Prompt-variant sensitivity (if prompt-variant metadata present in raw_results.jsonl): recompute primary estimator across preregistered prompt variants and report variability"
+  ],
+  "uncertainty_quantification": "Primary uncertainty: exact paired-test p-value (two-sided McNemar) and 95% confidence interval for the paired difference produced by paired_binary_analysis_v1. Secondary/descriptive CIs (Wald/Wilson as implemented by the executor) reported for proportions. No unregistered bootstrap or manual CI methods used; all uncertainty summaries generated deterministically by the registered executor from the raw result schema.",
+  "multiplicity_implementation": "One predeclared primary confirmatory comparison only. Secondary analyses reported as exploratory (unadjusted p-values). If any secondary is elevated to a confirmatory claim, apply Bonferroni correction for up to m ≤ 5 secondaries per the preregistration. All multiplicity handling decisions logged in analysis outputs.",
+  "contamination_analysis": "Use preregistered deterministic detectors and provenance checks recorded in execution/transformation manifests: regex/token detectors for credential-like tokens, private-address patterns, denylist-hash matches, and prompt-injection patterns; alternate-encoding verifier consistency checks where applicable. Items flagged by these detectors are excluded from the primary analysis per the preregistration; flagged-item identifiers and deterministic reasons are recorded in execution/raw_results.jsonl and execution/execution_log.jsonl. Sensitivity analyses include treating flagged items as failures. No human adjudication is introduced.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary confirmatory summary: columns = intent_count_input, completed_pairs_count, emulation_pass_rate (%%), production_like_pass_rate (%%), paired_difference_in_percentage_points, 95% CI, McNemar_two-sided_p_value, executor_version_and_artifact_hashes. Derived directly from execution/raw_results.jsonl and result_schema.",
+    "Table 2 — Per-vendor paired results: rows = vendor_stratum (IOS, JunOS, FRR), columns = paired_N, emulation_pass_rate, production_like_pass_rate, paired_difference, 95% CI, exploratory_p_value. Produced from per-episode vendor_stratum fields in raw_results.",
+    "Table 3 — Violation-type composition: rows = partition (emulation, production-like), columns = counts and proportions with 95% CIs for violation_types (syntax, local-policy, vendor-specific) as recorded in result_schema.",
+    "Table 4 — Repair outcomes: rows = partition, columns = initial_fail_count, repairs_attempted_count, repaired_to_pass_count, repair_conversion_rate (with 95% CI). All counts derivable from repair_attempts and verifier_pass fields in raw_results.jsonl.",
+    "Table 5 — Execution manifest summary (machine-readable): completed_episode_count, failed_episode_count, model_calls_used, planned_episode_count, preregistration_sha256, artifact_hashes_total_count (values from execution/manifest)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of verifier-pass rates by partition (emulation vs production-like) with 95% CI error bars; data from verifier_pass boolean per episode in raw_results.jsonl.",
+    "Figure 2 — Per-vendor grouped bar chart: pass rates for each vendor_stratum by partition (emulation/production-like) with 95% CIs; derived from raw_results.jsonl vendor_stratum field.",
+    "Figure 3 — Stacked bar of violation-type mix by partition (syntax, local-policy, vendor-specific) using violation_types field aggregation from raw_results.jsonl.",
+    "Figure 4 — Repair flow Sankey/flow (counts): initial pass vs fail → repair attempted vs not → post-repair pass vs fail, stratified by partition; all transitions computed from verifier_pass and repair_attempts fields in paired_binary_episode_v1 entries."
+  ]
+}

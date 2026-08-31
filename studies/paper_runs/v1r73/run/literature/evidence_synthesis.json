@@ -1,0 +1,219 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "Large language models (LLMs) have been applied to intent-to-configuration or natural-language-to-network-configuration tasks and can produce usable draft configurations under experimental conditions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W7119198920",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4391399751",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W4401671778",
+        "https://openalex.org/W4406343535",
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4292779060",
+        "https://openalex.org/W4404986534"
+      ],
+      "evidence_type": "empirical_study_and_survey",
+      "confidence": 0.78,
+      "limitations": [
+        "Many reported results are bench or emulation-based rather than large-scale production deployments.",
+        "Works report draft or candidate configurations; several note remaining syntax/semantic errors and need for verification or human oversight.",
+        "Evaluation datasets and task scopes vary across studies, limiting direct comparability and generalization."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Architectures that interpose deterministic verifiers or validators between stochastic generation and acceptance (generate–verify–repair / generate–validate–repair) have been proposed and empirically shown to increase detection and correction of mechanically verifiable defects.",
+      "evidence_record_ids": [
+        "doi:10.1177/22104968261431521",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4408345657",
+        "https://openalex.org/W4404131920",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "architecture_proposal_and_case_study",
+      "confidence": 0.74,
+      "limitations": [
+        "Demonstrated improvements primarily address mechanically verifiable error classes (syntax, compile/run failures, local policy violations); semantic correctness and broader operational safety remain challenging.",
+        "Some evaluations are single-case or limited-scale; human intervention or seeded repair context is still often required."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "Deterministic network verification tools and formal-analysis approaches (e.g., Batfish, Plankton, header-space analysis, TLA+/SMT approaches) are mature methods for checking forwarding, reachability, and policy properties and are used as validators in research and practice.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4406343535",
+        "https://openalex.org/W4384202063",
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4309729366",
+        "https://openalex.org/W3168867926"
+      ],
+      "evidence_type": "tool_description_and_evolution",
+      "confidence": 0.88,
+      "limitations": [
+        "Scalability, fidelity, and modelling trade-offs are recurrently noted (state explosion, protocol detail fidelity, topology changes).",
+        "Integration effort is required to use these tools as black-box validators for LLM outputs in heterogeneous operational environments."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "LLM-only self-correction (without reliable external or deterministic feedback) is frequently unreliable; successful self-correction is typically observed only when dependable external feedback or verifiers are available or when tasks are especially self-monitorable.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404131920",
+        "https://openalex.org/W4401671778",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4404986534"
+      ],
+      "evidence_type": "critical_survey_and_empirical_analysis",
+      "confidence": 0.8,
+      "limitations": [
+        "Some task classes permit effective LLM self-correction, and large-scale fine-tuning or specialized pipelines can improve outcomes; conclusions depend on task taxonomy and available external signals.",
+        "Survey-level syntheses report mixed results across tasks and setups."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Prompt-injection and indirect prompt-injection are demonstrated, practical threats to LLM-integrated applications; proposed mitigations (filtering, detection classifiers, engineered defensive frameworks) can substantially reduce measured attack success rates in controlled evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.2139/ssrn.6645520",
+        "doi:10.36227/techrxiv.175416873.36395198/v1",
+        "https://openalex.org/W4391399751",
+        "https://openalex.org/W4401671778"
+      ],
+      "evidence_type": "threat_analysis_and_mitigation_evaluation",
+      "confidence": 0.86,
+      "limitations": [
+        "Most mitigation evaluations are performed on curated adversarial corpora or synthetic attacks; real-world attack distributions and adaptive adversaries may differ.",
+        "Mitigations often trade off latency/usability and require continual updating against novel injection strategies."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "Community work in 2023–2026 has produced multiple surveys, benchmarks, and prototype datasets for LLMs in NetOps and related evaluation methods, indicating active research but heterogeneous evaluation practices.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4394666973",
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4405229682",
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4401671778",
+        "doi:10.31224/6662"
+      ],
+      "evidence_type": "survey_and_benchmark_release",
+      "confidence": 0.84,
+      "limitations": [
+        "Available benchmarks and datasets differ in scope, format, and verification rigor; no single community-standard large-scale dataset covering intents, topologies, configs, and verifier-ground-truth is evident from these records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "To what extent do LLM-based configuration generators, when paired with deterministic verifiers, achieve operational readiness across diverse, large-scale production topologies and vendor heterogeneity?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386385177",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "open_empirical_question",
+      "confidence": 0.45,
+      "limitations": [
+        "Existing studies demonstrate feasibility on emulators, limited datasets, or single-case deployments; large-scale cross-vendor production evidence is not provided in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "How robust are proposed prompt-injection defenses and verifier-based pipelines against adaptive attackers who target NetOps-specific workflows (e.g., embedding malicious route/policy fragments inside retrieved artifacts)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.2139/ssrn.6645520",
+        "doi:10.36227/techrxiv.175416873.36395198/v1"
+      ],
+      "evidence_type": "security_open_question",
+      "confidence": 0.4,
+      "limitations": [
+        "Records show defenses reduce success rates in controlled corpora; explicit NetOps-targeted adaptive-adversary evaluations are not present among supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What standardized, verifiable evaluation metrics and datasets best capture operational correctness (intent satisfaction, safety, reachability constraints) for LLM-generated network configurations?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4391136507",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4405229682",
+        "doi:10.31224/6662"
+      ],
+      "evidence_type": "methodological_gap_question",
+      "confidence": 0.52,
+      "limitations": [
+        "Several benchmarks and proposals exist but they vary in target properties; no consensus metric or unified dataset covering intents + verifiable ground truth appears in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "A publicly available, large-scale, standardized dataset that pairs operator natural-language intents with concrete topologies, vendor-specific configurations, and deterministic verifier-ground-truth results (for reachability/policy/assurance) is not evident in the supplied records and would address reproducibility and external-validity gaps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4404131920",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4405229682",
+        "doi:10.31224/6662"
+      ],
+      "evidence_type": "dataset_gap",
+      "confidence": 0.72,
+      "limitations": [
+        "Some benchmark efforts (NetConfEval, PreConfig, task-specific datasets) exist but do not collectively provide the full intent+topology+vendor+verifier-ground-truth combination at community scale based on the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical evaluations of LLM+verifier pipelines under realistic sim-to-real domain shift (synthetic/emulated topologies → operational networks) are limited in the supplied set and represent a candidate research gap.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404131920",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4386722061",
+        "https://openalex.org/W4406343535"
+      ],
+      "evidence_type": "external_validity_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Records discuss sim/emulation usage and domain-shift concerns, but do not present large-scale sim-to-production transfer studies for LLM-driven NetOps in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "NetOps-specific adaptive adversary evaluations (prompt-injection vectors that exploit retrieval/tooling in intent-to-config pipelines) are underrepresented among the supplied threat/defense literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.2139/ssrn.6956641",
+        "doi:10.2139/ssrn.6645520"
+      ],
+      "evidence_type": "security_evaluation_gap",
+      "confidence": 0.68,
+      "limitations": [
+        "General prompt-injection and defenses are well-documented; targeted studies that combine NetOps pipelines, retrievals of operational artifacts, and adaptive adversaries are not present in the provided records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "Claim: \"LLM-based network configuration generators are production-ready and can be deployed without deterministic verification or human oversight.\" (Excluded — no supplied record provides production-scale evidence supporting this.)",
+    "Claim: \"LLM self-correction reliably eliminates hallucinations for arbitrary NetOps tasks without external validators.\" (Excluded — surveys and empirical analyses in the records indicate self-correction is limited without reliable external feedback.)",
+    "Claim: \"This work is the first to apply generate–verify–repair patterns to network configuration generation.\" (Excluded — multiple supplied records explicitly propose or evaluate GVR-like architectures in code and configuration domains.)",
+    "Claim: \"Prompt-injection is a solved problem in NetOps contexts; existing defenses fully prevent operational compromise.\" (Excluded — supplied mitigation papers show substantial reductions in controlled tests but do not claim or demonstrate complete, adaptive-proof prevention in NetOps deployments.)"
+  ]
+}

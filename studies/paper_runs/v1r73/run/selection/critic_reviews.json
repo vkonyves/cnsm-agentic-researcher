@@ -1,0 +1,93 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-2026-LLM-verifier-sim2real",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Sourcing/constructing production-like, vendor-heterogeneous topologies from public data may not capture real vendor idiosyncrasies (limits external validity).",
+        "Deterministic verifiers (e.g., Batfish) may not model all vendor-specific behaviors → false positives/negatives in intent-satisfaction labels.",
+        "Preregistration must tightly specify retry policy, prompt variants, and exclusions to avoid post-hoc tuning.",
+        "Ethical/data-sensitivity risks when synthesizing configs from public corpora."
+      ],
+      "required_design_repairs": [
+        "Specify exact public sources and synthesis procedure for production-like topologies; include provenance and filtering criteria.",
+        "Define verifier modelling assumptions per vendor and plan for false-positive/negative analysis (manual adjudication subset).",
+        "Preregister sample-size/power calculations, retry policy, seed management, and allowable prompt variants.",
+        "Add explicit data-sensitivity review and removal criteria to avoid releasing sensitive patterns."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-adaptive-prompt-injection-netops",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "High ethical risk: publishing realistic adaptive injection patterns can enable misuse if not carefully redacted.",
+        "Realism of adaptive injections created from public corpora may not reflect real-world attacker sophistication.",
+        "Defenses' operational utility trade-offs (false positives blocking benign retrievals) must be measured and reported."
+      ],
+      "required_design_repairs": [
+        "Institute an explicit ethics and responsible-disclosure plan (red-team oversight) and predefine what attack details will be redacted in publication.",
+        "Preregister attacker sophistication tiers and ensure adaptive injections are synthetic, labeled, and non-operational when released.",
+        "Define benign-retrieval corpora and utility metrics to quantify false-positive harms of defenses.",
+        "Specify classifier training/validation data, and ensure defenses are evaluated on held-out benign samples."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-verifiable-dataset-intent-topology-vendor",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.9,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Risk of inadvertently including sensitive or copyrighted configuration fragments in a public dataset.",
+        "Creating high-quality human reference configs and verifier-ground-truth is labor-intensive and may be under-resourced at proposed scale.",
+        "Verifier assumptions and modelling choices may limit downstream comparability if not fully documented."
+      ],
+      "required_design_repairs": [
+        "Provide an explicit source list, license review, and filtering/PII-removal pipeline prior to release.",
+        "Define annotation protocol and human-validation steps for reference configs; allocate reviewer effort and QA checks.",
+        "Fully document verifier configuration, assumptions, and property encodings; include example scripts and adjudication policy for ambiguous cases.",
+        "Justify dataset size vs. annotation effort or adjust target accordingly; include distributional statistics in preregistration."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2026-iterative-gvr-cost-benefit",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.9,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Mapping verifier feedback to structured repair prompts must be formalized; informal mappings risk irreproducibility and prompt-sensitivity.",
+        "Model-call cost accounting and latency/throughput trade-offs require precise preregistered budget and stopping rules.",
+        "Noisy or incomplete verifier modelling needs a defensible noise model and justification for experimental subgroup design."
+      ],
+      "required_design_repairs": [
+        "Preregister exact repair-prompt templates, transformation rules from verifier output to prompts, and prompt-sensitivity probes.",
+        "Specify iteration budget (N), stopping criteria, and model-call accounting; include cost-normalized evaluation metrics.",
+        "Define verifier-noise injection procedure and rationale for the noisy-feedback subgroup; preregister sample sizes and analysis plan.",
+        "Include controls for regressions introduced by iterations and a manual-adjudication protocol for ambiguous regressions."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
