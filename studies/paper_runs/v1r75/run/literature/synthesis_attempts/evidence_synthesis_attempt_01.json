@@ -1,0 +1,240 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "Executable, emulation-grounded benchmarks that place LLM agents in closed-loop multi-device networks reveal that agent failures extend beyond simple command syntax errors to task-specification, planning, and execution errors.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "benchmark study / empirical evaluation",
+      "confidence": 0.9,
+      "limitations": [
+        "Results derive from emulated networks and parameterized task templates, not broad production deployments.",
+        "Single benchmark implementation; generality across other benchmark designs not established."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "Translating high-level operator intent to concrete network configurations using LLMs (via fine-tuning and in‑context learning) is feasible and can achieve high intent-translation accuracy in evaluated use cases.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "system/proof-of-concept + survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Feasibility shown on reported use cases; scalability and robustness across diverse vendor ecosystems remain uncertain.",
+        "Some results reported for small models or constrained hardware settings; performance may vary with model choice."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "A generate–validate–repair architectural pattern (LLM generation + deterministic/static validation + iterative repair) is a recurring, effective design principle proposed and implemented across configuration/repair and program-repair domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W4407185663",
+        "https://openalex.org/W7204225093",
+        "https://openalex.org/W4404649103"
+      ],
+      "evidence_type": "system prototype and literature synthesis",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness depends on validator coverage and the repair search strategy; semantics-heavy faults remain challenging.",
+        "Reported successes often on injected faults, benchmarks, or constrained corpora rather than unconstrained production change sets."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Syntax-driven automatic configuration repair methods can achieve high repair rates on synthesized and some production-network incidents within measured evaluation settings.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766"
+      ],
+      "evidence_type": "empirical system evaluation",
+      "confidence": 0.85,
+      "limitations": [
+        "Reported high repair rates are conditional on the evaluated error types, network scale, and the injected-fault methodology.",
+        "Generality to novel, semantically subtle misconfigurations is not fully demonstrated."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Tool-augmented agent patterns (e.g., ReAct, Reflexion, multi-tool orchestration) and self-correction loops are widely advocated and shown to improve multi-step tool-use and decision workflows in agentic systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415289348",
+        "https://openalex.org/W7164886111",
+        "https://openalex.org/W4411630063"
+      ],
+      "evidence_type": "surveys and framework/prototype descriptions",
+      "confidence": 0.8,
+      "limitations": [
+        "Much supporting evidence is from architectural papers, surveys, and domain-specific prototypes rather than large-scale NetOps production deployments.",
+        "Improvement magnitude depends on tool design, prompt scaffolding, and task decomposition."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "Uncertainty estimation and calibration for LLM outputs is an active, necessary area: methods (e.g., sample-consistency proxies, calibrated verbalization) influence user trust and can reduce overreliance, but calibration gaps and domain dependence persist.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406679533",
+        "https://openalex.org/W4403362497",
+        "https://openalex.org/W4401042444"
+      ],
+      "evidence_type": "empirical studies and surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Empirical calibration evidence often comes from non-NetOps domains (medical, QA); transferability to NetOps tasks requires validation.",
+        "Different uncertainty proxies show variable discrimination and calibration properties."
+      ]
+    },
+    {
+      "claim_id": "C7",
+      "statement": "Evaluation that treats NetOps as static text-generation tasks underestimates operational challenges; workflow-centered, execution-grounded evaluation (including replay, sandboxing, hidden tests, and rollback-aware scoring) is recommended.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "position paper + benchmark study",
+      "confidence": 0.85,
+      "limitations": [
+        "Recommendations are prescriptive based on observed benchmark shortcomings; empirical comparisons of evaluation regimes are still emerging."
+      ]
+    },
+    {
+      "claim_id": "C8",
+      "statement": "Prompt-injection, jailbreaks, and adversarial manipulations constitute practical threats to agentic LLMs; layered defense strategies and detectors can substantially reduce attack success in prototype evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7115947466",
+        "https://openalex.org/W7158378160",
+        "https://openalex.org/W7163777524",
+        "https://openalex.org/W4416035833"
+      ],
+      "evidence_type": "surveys and prototype defenses / attack studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Defense efficacy varies by threat model, dataset, and attacker sophistication; near-zero ASR reported in some controlled tests may not generalize.",
+        "Deploying multi-layer defenses can introduce latency and operational complexity."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "What operational conditions and assurance contracts suffice for safely deploying LLM-based NetOps agents without frequent human-in-the-loop intervention?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7164886111",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "framework proposals / position analyses",
+      "confidence": 0.4,
+      "limitations": [
+        "Existing works propose confidence-gated HITL and assurance contracts but provide limited empirical production evidence.",
+        "Safety thresholds and monitoring practices are not standardized."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "How to integrate deterministic network-verification tools at scale with LLM generation in a way that is computationally tractable and preserves semantic correctness across diverse vendor configurations?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "system evaluation + position paper",
+      "confidence": 0.45,
+      "limitations": [
+        "Papers identify the need but do not provide a consensus, scalable integration pattern across large-deployment settings.",
+        "Concrete performance trade-offs (latency, solver scalability) depend on verifier choice and network size."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "Which uncertainty-proxy methods yield reliable, calibrated gating signals specifically for NetOps decision points (e.g., apply change vs defer), across realistic distribution shift and adversarial inputs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403362497",
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4406679533"
+      ],
+      "evidence_type": "empirical studies and surveys (cross-domain)",
+      "confidence": 0.5,
+      "limitations": [
+        "Existing empirical evidence comes mainly from medical and general LLM tasks, not NetOps-specific stress tests.",
+        "Adversarial robustness of uncertainty proxies is incompletely characterized."
+      ]
+    },
+    {
+      "claim_id": "U4",
+      "statement": "To what extent do emulation-grounded benchmark results predict real-world, multi-vendor NetOps behavior under production constraints (latency, partial observability, human workflows)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "benchmark + position analysis",
+      "confidence": 0.45,
+      "limitations": [
+        "Benchmarks provide risk-free evaluation but may omit production entanglements like vendor-specific idiosyncrasies and operational procedures.",
+        "External validity across deployments is not yet established."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Standardized, open, emulation-grounded NetOps benchmark suites with diverse topologies, vendor models, and hidden executable tests are needed (NetConfArena is a first step but broader standardization and dataset variety are lacking).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "benchmark study",
+      "confidence": 0.8,
+      "limitations": [
+        "NetConfArena demonstrates feasibility; scaling to a community-standard suite requires coordinated dataset curation and maintenance."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Practical, scalable pipelines combining symbolic/static verifiers and LLM-based generation with iterative repair and minimal semantic rewrites remain underdeveloped for production-scale NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7204225093",
+        "https://openalex.org/W4407185663"
+      ],
+      "evidence_type": "system prototypes and tooling research",
+      "confidence": 0.75,
+      "limitations": [
+        "Prototypes show promise but differ in domain (cloud emulation, smart-home, network repair); cross-domain transfer engineering is required."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "NetOps-specific uncertainty-calibration methods and decision-gating policies (tested under distribution shift and adversarial probes) are an open research need to enable reliable automation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W4403362497",
+        "https://openalex.org/W4406679533"
+      ],
+      "evidence_type": "survey + empirical studies",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing calibration research is mature in other domains but requires adaptation and empirical validation in NetOps contexts."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Runtime security guardrails tailored to agentic NetOps (intent validation, sandboxed execution, IaC static analysis, detector ensembles) warrant further empirical validation against adaptive adversaries while measuring operational cost.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7158378160",
+        "https://openalex.org/W7115947466",
+        "https://openalex.org/W7163777524"
+      ],
+      "evidence_type": "defense architectures and attack surveys",
+      "confidence": 0.8,
+      "limitations": [
+        "Prototype defense evaluations are promising but vary in attacker models and deployment assumptions; cost/latency trade-offs need quantification."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based NetOps agents are proven production-ready for broad autonomous operation without human oversight (no supplied record demonstrates large-scale production deployment without HITL).",
+    "There is published deterministic evidence that any single LLM achieves production-level correctness across vendor ecosystems for NetOps tasks (unsupported by supplied records).",
+    "Formal network-verification tools (e.g., Veriflow or Batfish) are shown in the supplied records to be fully integrated at production scale with LLM-driven pipelines (integration patterns are discussed but production-scale evidence is absent).",
+    "Any claim of being the first to demonstrate fully autonomous CNSM-style end-to-end research runs or papers is unsupported by the supplied records."
+  ]
+}

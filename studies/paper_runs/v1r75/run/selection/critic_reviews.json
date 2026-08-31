@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-1-gvr-verifier-adversarial",
+      "novelty": 0.6,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Deterministic verifier coverage may miss semantic faults (false-safe) and bias results toward optimistic safety gains.",
+        "Emulation fidelity and synthetic vendor images limit external validity to production multi-vendor nets.",
+        "Adversarial-prompt corpus construction risks leakage or non-blinded design that could bias outcomes.",
+        "Single-LLM use (same model across arms) limits generality; model/version-specific behavior may drive effects."
+      ],
+      "required_design_repairs": [
+        "Specify and publish exact verifier rule set and measurable coverage targets; include ablation over verifier-check classes.",
+        "Describe emulation fidelity/limitations and include at least one held-out vendor/topology sourced or plausibly realistic topology sample.",
+        "Pre-register blinded adversarial-attack generation procedure and seed attacker LLM; include held-out attacks for evaluation.",
+        "Add either a second LLM (different family/vendor) or a sensitivity analysis to show effect stability across model variants; log exact model identifiers and prompts."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-2-uncertainty-gating",
+      "novelty": 0.6,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Operational cost/latency of self-consistency (K samples) may make the winning proxy impractical despite statistical superiority.",
+        "Verbalized confidence is vulnerable to prompt manipulation; calibration derived in-distribution may not transfer under shift or adversary.",
+        "Choice of cost ratio for gating is subjective and can materially change conclusions.",
+        "Single-K choice and model-specific sampling behavior require sensitivity analysis."
+      ],
+      "required_design_repairs": [
+        "Pre-register latency/human-review budgets and show operating points that meet those budgets.",
+        "Include adversarial robustness tests for verbalized confidence and defensive prompt scaffolds; report manipulation examples.",
+        "Pre-register cost ratios and present sensitivity analysis across plausible cost settings.",
+        "Include K-sensitivity runs (e.g., K∈{4,8,16}) and report model-call budgets and latency trade-offs; log exact model identifiers and sampling seeds."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-3-runtime-guardrails-adversarial",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Constructing adaptive attacks raises ethical release and operational-risk concerns; test artifacts must remain contained.",
+        "Detector ensemble and sandbox tuning may overfit the evaluation corpus, overstating protection in the wild.",
+        "False-positive rates on benign tasks may be operationally unacceptable; user-cost accounting is underspecified.",
+        "Modeling realistic adaptive adversaries is difficult; bounded-budget attacker design must be justified."
+      ],
+      "required_design_repairs": [
+        "Document and enforce an ethical/containment plan for adversarial artifacts; keep artifacts in emulation-only and non-public if necessary.",
+        "Pre-register detector training/threshold procedures and perform cross-validation on held-out benign intents to avoid tuning leakage.",
+        "Define acceptable false-positive targets and report human-review burden; include operator-impact metrics.",
+        "Specify adaptive-adversary capabilities and budgets clearly; include stronger adversary variants in sensitivity analyses and explain why they are realistic."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-4-verifier-scalability-semantics",
+      "novelty": 0.8,
+      "falsifiability": 0.95,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.65,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Results depend strongly on the chosen verifier implementation; single-solver measurements risk tool-specific conclusions.",
+        "Synthetic topology generator may not capture production semantic complexity or vendor idiosyncrasies.",
+        "Large-scale verification may exceed available compute budget or wall-clock constraints; stopping rules need sharpening.",
+        "Operational applicability depends on organization-specific latency budgets; general recommendations may be context-limited."
+      ],
+      "required_design_repairs": [
+        "Include at least two verifier implementations (or clear rationale for chosen solver) and report differences in runtime/detection.",
+        "Augment synthetic topologies with a small set of realistic or public topology traces and report comparison.",
+        "Specify machine specs, parallelization strategy, exact stopping rules, and run-failure policy; include a compute-budget contingency plan.",
+        "Report results mapped to concrete latency buckets (e.g., interactive <2s, near-real-time <30s, async) and recommend verifier deployment patterns per bucket."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

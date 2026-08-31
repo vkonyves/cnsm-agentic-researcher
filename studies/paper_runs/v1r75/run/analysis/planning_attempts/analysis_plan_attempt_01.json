@@ -1,0 +1,33 @@
+{
+  "study_id": "study-cand-1-gvr-verifier-adversarial-2026-08-01",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Run registered executor paired_binary_analysis_v1 to estimate the primary estimand paired_success_rate_difference_guarded_minus_baseline (absolute paired difference in unsafe-apply rate: GVR minus LLM-only). Report point estimate, 95% bootstrap CI, and exact p-value from the executor. Primary exclusions per preregistration and adapter contract: exclude items flagged 'possible_false_safe' and infra-failed pairs (failed_call_treatment = complete_pair_primary). Use the completed execution artifact execution/raw_results.jsonl (schema paired_binary_episode_v1 v1.0) as input.",
+  "secondary_analyses": [
+    "Per-condition unsafe-apply rates (GVR and LLM-only) with 95% bootstrap CIs computed from paired_binary_episode_v1 unsafe_apply_flag, stratified by {in-distribution, distribution-shift, adversarial}.",
+    "Median repair-iteration count per arm per condition (compute repair_attempts length per episode; compare arms with Wilcoxon signed-rank tests, report medians and IQRs).",
+    "Total model_call_count per task and per arm (summary: mean, median, sd; per-condition breakdown).",
+    "Latency buckets distribution per arm: derive per-call_latency_ms from episodes; summarize fraction in buckets (interactive <2000ms, near-real-time <30000ms, async >=30000ms) and compare arms with paired tests."
+  ],
+  "sensitivity_analyses": [
+    "Include items flagged 'possible_false_safe' and treat them as unsafe (worst-case inclusion) and re-run paired_binary_analysis_v1 to report effect and CI.",
+    "Apply failed-call worst-case sensitivity: treat infra-failed pairs as unsafe using registered identifier complete_pair_primary_with_failure_as_zero_sensitivity and report re-estimated risk difference, CI, and p-value.",
+    "Report robustness across flagged adversarial items: repeat primary estimator restricted to non-adversarial subset and to adversarial subset (exploratory)."
+  ],
+  "uncertainty_quantification": "Executor-produced 95% bootstrap confidence intervals for rates and paired risk difference (use executor defaults), exact p-values from the registered paired test; Wilcoxon signed-rank exact p-values for repair-count comparisons. Report both uncorrected and multiplicity-corrected p-values for secondary tests.",
+  "multiplicity_implementation": "Single predeclared primary hypothesis (H1) — confirmatory. Secondary hypothesis tests and exploratory comparisons reported with Benjamini–Hochberg FDR correction; present both uncorrected and BH-adjusted p-values. All subgroup/post hoc tests labeled exploratory.",
+  "contamination_analysis": "Follow preregistered contamination_plan and execution manifest flags: (a) use adversarial hashes to identify adversarial tasks and report counts; (b) use deterministic string/hash matching to detect cross-run leaks; (c) report verifier–simulator inconsistencies (possible_false_safe) counts and exclude them from primary analysis per preregistration; (d) present sensitivity analyses that include flagged items as unsafe; (e) report residual uncertainty statement per preregistration (verifier coverage limits and bounded adversary). Detection procedures and flags are read from execution flags in paired_binary_episode_v1 (flags.possible_false_safe, flags.adversarial, flags.infra_failure).",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary paired result: paired risk difference (GVR minus LLM-only), 95% bootstrap CI, exact p-value; sample N (pairs included) and counts excluded with reasons (possible_false_safe, infra_failed). Source fields: unsafe_apply_flag, flags.* from paired_binary_episode_v1.",
+    "Table 2 — Per-condition rates: for each condition (in-distribution, shift, adversarial) and arm, report unsafe-apply rate, 95% CI, raw counts (unsafe/safe) and paired N. Source: unsafe_apply_flag, condition.",
+    "Table 3 — Repair and call-costs: per-arm median repair_attempts, mean model_call_count, distribution percentiles (p25,p50,p75) and per-condition breakdown. Source: repair_attempts, model_call_count.",
+    "Table 4 — Flags and contamination summary: counts and fractions of adversarial items, possible_false_safe, infra_failed; verifier PASS/FAIL cross-tab with simulator apply_result. Source: flags.*, verifier_result, simulator_apply_result."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of unsafe-apply rates by condition and arm with 95% bootstrap CI error bars (source: unsafe_apply_flag, condition).",
+    "Figure 2 — Boxplot or violin of repair-iteration counts by arm and condition (source: repair_attempts lengths).",
+    "Figure 3 — Histogram/CDF of model_call_count per task by arm (source: model_call_count).",
+    "Figure 4 — Latency-bucket stacked bar by arm (interactive / near-real-time / async) showing fractions (source: per-call_latency_ms aggregated to episode)."
+  ]
+}

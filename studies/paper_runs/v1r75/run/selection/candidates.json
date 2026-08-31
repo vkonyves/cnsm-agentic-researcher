@@ -1,0 +1,130 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-1-gvr-verifier-adversarial",
+      "title": "Effectiveness of Generate–Validate–Repair Pipelines with Deterministic Verifiers under Distribution Shift and Adversarial Prompts",
+      "research_question": "Does integrating a deterministic network verifier into a generate–validate–repair (GVR) pipeline reduce the rate of unsafe configuration applications by LLM-based NetOps agents under realistic distribution shift and adversarial prompt conditions compared to an LLM-only baseline?",
+      "hypotheses": [
+        "A GVR pipeline with a deterministic verifier will produce a lower unsafe-apply rate than an LLM-only pipeline on the same intent-to-configuration tasks under matched conditions.",
+        "Under distribution shift (novel topologies/vendors) the reduction in unsafe-apply rate from GVR will remain statistically significant though smaller than under in-distribution tasks.",
+        "Adversarial prompt injections that target instruction-following will cause substantially more failed repairs (greater iteration counts) in the GVR pipeline but overall fewer unsafe applications than the LLM-only baseline."
+      ],
+      "proposed_design": "Emulation-grounded closed-loop testbed (NetConfArena-style) with multi-vendor synthetic device images and hidden executable tests. Create a balanced task corpus (N≈240 intents): in-distribution (60%), distribution-shifted (20% novel topologies/vendor configs), adversarial-prompt (20% crafted prompt-injection attacks). Two arms: (A) LLM-only intent→config→apply (simulated apply with no verifier), (B) GVR pipeline: LLM generates config, deterministic verifier (static checks and reachability assertions) validates; on failure, LLM is asked to repair up to 3 iterations. Use identical LLM model and prompts across arms. Record apply decisions, verifier results, repair iterations, and simulated apply outcomes. Pre-register metrics, seeds, retry policy, and maximum model-call budget.",
+      "expected_data": "Per-task records: intent id, task type (in-distribution/shift/adversarial), LLM output config(s), verifier pass/fail, number of repair iterations, simulated apply outcome (safe/unsafe), total model calls per task, latency. Aggregated metrics by condition and arm (unsafe-apply rate, repair_iters_mean, median latency).",
+      "primary_outcome": "Absolute and relative reduction in unsafe-apply rate (fraction of tasks where a configuration would produce a semantic safety violation when applied) for GVR versus LLM-only, evaluated across pooled tasks and stratified by in-distribution / shift / adversarial subsets.",
+      "analysis_outline": "Compute unsafe-apply rates with 95% bootstrap confidence intervals for each arm and subset. Use paired task comparisons where possible and McNemar’s test for binary apply-safe outcomes; report risk difference and risk ratio. Model repair-iteration counts using nonparametric tests (Wilcoxon) and compare latencies with paired t-test or Wilcoxon as appropriate. Perform subgroup interaction tests to assess whether distribution shift or adversarial conditions modify the GVR effect. Report exact p-values, effect sizes, and number of model calls consumed. Conduct sensitivity analyses varying verifier coverage (ablation of specific checks).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7204225093",
+        "https://openalex.org/W7204209332"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4407185663"
+      ],
+      "risks": [
+        "Deterministic verifier may not cover semantic fault classes, producing false-safe signals.",
+        "Emulation fidelity may not reflect vendor-specific production idiosyncrasies, limiting external validity.",
+        "Adversarial prompt construction may unintentionally bias results if not blinded; attack strength must be standardized.",
+        "Retries or infrastructure failures could disproportionately affect one arm if not logged and handled per preregistered policy."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "cand-2-uncertainty-gating",
+      "title": "Comparative Evaluation of Uncertainty-Proxies as Gating Signals for Apply-vs-Defer Decisions in LLM-driven NetOps",
+      "research_question": "Which uncertainty-proxy methods (e.g., token-level entropy, sample-consistency/self-consistency, calibrated verbalized confidence) provide the most reliable, calibrated gating signals for apply-vs-defer decisions in NetOps across distribution shift and adversarial probes?",
+      "hypotheses": [
+        "Self-consistency (sample-consistency) will yield higher discrimination (AUC) for predicting safe applies than single-pass token-entropy based measures.",
+        "Calibrated verbalized confidence (model produces numeric confidence with a calibration mapping) will be better calibrated (Brier score) but may have lower discrimination than self-consistency.",
+        "Under adversarial inputs and distribution shift, all proxies will degrade in discrimination and calibration, but the relative ranking (self-consistency > calibrated verbalization > entropy) will persist.",
+        "A cost-weighted gating policy using the best proxy will reduce unsafe-apply rate at an acceptable human-review burden compared to no gating."
+      ],
+      "proposed_design": "Use the same emulation-grounded testbed and intent task corpus (N≈300) stratified into in-distribution, distribution-shift, and adversarial subsets. For each task, generate K=8 independent LLM samples to compute sample-consistency; compute token-entropy and request a calibrated verbalized confidence score from the model using a fixed prompt scaffold and mapping. For each proxy, derive threshold-based gating policies (vary threshold to build ROC). Evaluate proxies on discrimination (AUC), calibration (Brier, reliability diagrams), and operational utility (unsafe-apply reduction vs human-review rate). Pre-register K, thresholds grid, seeds, and decision cost parameters.",
+      "expected_data": "Per-task: true apply-safety label, token-entropy, sample-consistency score, verbalized confidence score, gated decision at multiple thresholds, human-review workload estimate. Aggregates: ROC curves, AUCs with CIs, Brier scores, calibration plots, operating points showing trade-offs between unsafe-apply rate and percent tasks deferred to human review.",
+      "primary_outcome": "Proxy discrimination quantified by AUC for predicting safe vs unsafe apply across pooled tasks and by subset (in-distribution, shift, adversarial); primary numeric metric is AUC difference between best proxy and second-best proxy.",
+      "analysis_outline": "Compute AUCs with 95% CIs via bootstrapping; compare proxies using DeLong’s test for correlated ROC curves. Report Brier scores and calibration slope/intercept. Produce decision-curve analysis: plot unsafe-apply reduction vs percent deferred for each proxy; select operating thresholds by pre-registered cost ratio and report expected net benefit. Perform subgroup analyses by task subset and sensitivity analyses varying K for self-consistency. Document model-call budget per proxy and per task.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4406679533",
+        "https://openalex.org/W4403362497",
+        "https://openalex.org/W4401042444"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403362497",
+        "https://openalex.org/W4401042444",
+        "https://openalex.org/W7204209332"
+      ],
+      "risks": [
+        "Self-consistency requires multiple model calls, increasing cost and latency.",
+        "Verbalized confidence may be manipulable by adversarial prompts, reducing reliability.",
+        "Calibration derived on in-distribution tasks may not transfer, yielding misleading gating performance under shift.",
+        "Choice of cost ratio for gating policy may be subjective; sensitivity must be reported."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "cand-3-runtime-guardrails-adversarial",
+      "title": "Measuring the Trade-offs of Runtime Guardrails (Detector Ensembles + Sandboxing) against Prompt-Injection Attacks in Agentic NetOps Workflows",
+      "research_question": "Do runtime guardrails composed of intent-validation, detector ensembles, and sandboxed execution materially reduce successful prompt-injection and adversarial-manipulation rates for LLM NetOps agents while preserving acceptable operational latency and false-positive rates?",
+      "hypotheses": [
+        "A layered runtime-guardrail stack (intent validation + detector ensemble + sandboxed execution) will reduce successful adversarial manipulations relative to an unguarded agent by a large margin (>50% relative reduction in attack success) on a standardized adversarial suite.",
+        "The guardrail stack will incur measurable latency and false-positive (benign operations flagged) rates that create a trade-off between security and throughput; tuning detector thresholds can move along this trade-off.",
+        "Adaptive adversarial strategies (attackers optimizing to evade detectors) will reduce guardrail efficacy, but ensemble diversity and sandbox constraints will meaningfully increase attacker cost (more attempts or higher query counts)."
+      ],
+      "proposed_design": "Construct an adversarial-attack corpus derived from literature-driven prompt-injection patterns (N≈200 attacks) and generated adaptive attacks via an attacker LLM constrained by query budget. Run three agent configurations on the emulation-grounded testbed: (1) Baseline LLM agent (no guards), (2) LLM + single detector (text-classifier), (3) LLM + detector ensemble + intent-validation + sandboxed execution (isolated simulation of config apply). For each attack, measure attack success (achieves malicious instruction execution), false positives on benign tasks (N≈400 benign intents), end-to-end latency, and model-call counts. Include an adaptive-adversary experiment where attacker can iteratively probe detectors up to a small budget. Pre-register detector architectures, ensembles, thresholds, and sandbox policies.",
+      "expected_data": "Per-attack and per-benign-task logs: attack id, configuration of guard, detector flags, sandbox verdict, attack success (binary), false-positive flag, latency, model and tool-call counts. Aggregate metrics: attack-success rate, false-positive rate, mean/95th latency, attacker probe counts, and defender operational overhead.",
+      "primary_outcome": "Relative reduction in attack-success rate for the full guardrail stack compared to the baseline unguarded agent, paired by attack instance, with associated false-positive rate and median latency reported.",
+      "analysis_outline": "Estimate paired proportions of attack success per configuration with 95% CIs; use McNemar’s test for paired attack results. Report false-positive rates on benign tasks with binomial CIs. Quantify latency overhead (median and 95th percentile) and perform cost-benefit plots showing security gain versus added latency and human-review burden. Analyze adaptive-adversary outcomes to estimate attacker query costs to reach pre-guard success rates. Provide failure-mode examples where guards cause blocking of benign changes.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7158378160",
+        "https://openalex.org/W7115947466",
+        "https://openalex.org/W7163777524",
+        "https://openalex.org/W7164886111"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7158378160",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7161165783"
+      ],
+      "risks": [
+        "Detectors and sandboxing may be bypassed by stronger adaptive attackers not captured in the testbed.",
+        "False positives could be operationally unacceptable, but dataset and threshold tuning may mitigate this; such tuning risks overfitting to the evaluation corpus.",
+        "Latency increases may make guardrails impractical in time-sensitive operations.",
+        "Ethical considerations: constructing adaptive attacks must be constrained and not release exploit patterns; all artifacts must remain in controlled emulation."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "cand-4-verifier-scalability-semantics",
+      "title": "Verifier Scalability and Semantic-Correctness Trade-offs for LLM+Verifier Pipelines as Network Size and Change Complexity Grow",
+      "research_question": "How do verifier computational cost (latency, solver invocations) and semantic-correctness outcomes scale with network size and change complexity when integrated with LLM-generated configurations, and which verification strategies (incremental vs full-check vs lightweight pre-checks) provide the best cost–accuracy trade-offs?",
+      "hypotheses": [
+        "Verifier runtime and resource use will grow superlinearly with network size for full-check strategies, whereas incremental verification will scale more favorably while preserving most semantic-correctness benefits.",
+        "Lightweight pre-check heuristics (syntax + constrained semantic rules) will catch a large fraction of unsafe changes quickly but will miss deeper reachability/forwarding errors that full solvers detect.",
+        "There exists a practical network-size threshold beyond which full verification latency renders real-time automated apply impractical without asynchronous workflows or human gating."
+      ],
+      "proposed_design": "Synthesize network topologies and configuration-change tasks at three scales: small (≤10 devices), medium (≈50 devices), large (≈200 devices). For each task, run an LLM to generate candidate configuration changes, then apply three verifier strategies: (A) full formal verifier (reachability/loop detection), (B) incremental verifier limited to affected subgraph, (C) lightweight pre-checks (syntax, ACL semantics). Measure per-task verifier runtime, memory, number of solver calls, and semantic-correctness outcome (simulated apply safe/unsafe). Pre-register topology generator, solver implementations, machine specs, and stopping rules. Analyze operationally realistic latency budgets (e.g., <2s, <30s, asynchronous).",
+      "expected_data": "Per-task records: network scale, change complexity, verifier strategy, runtime, peak memory, solver calls, semantic-safe label, and whether verifier caught unsafe change. Aggregates: runtime distributions by scale and strategy, catch-rate of unsafe changes, and cost-per-caught-unsafe metric. Threshold analyses identifying scale points where full-verifier median latency exceeds operational budgets.",
+      "primary_outcome": "Trade-off curve quantifying verifier median runtime versus semantic-unsafe detection rate across network scales and strategies; the principal numeric outcome is the verifier strategy that maximizes unsafe-detection rate per unit latency at each scale.",
+      "analysis_outline": "Report verifier runtime distributions, mean/median and 95% CI, as function of network size and strategy. Fit regression models (e.g., polynomial) of runtime vs device count and report scaling exponents. Compare detection rates with McNemar or chi-square tests across strategies. Compute cost-effectiveness (unsafe-detections per second) and identify operationally feasible strategy per scale. Conduct sensitivity analyses for solver configurations and network topologies.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7204225093"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7204225093"
+      ],
+      "risks": [
+        "Choice of verifier implementation (solver) heavily influences measured scalability; results may not generalize across verifier tools.",
+        "Synthetic topologies may not capture deployment-specific complexity (vendor semantics), limiting external validity.",
+        "Operational latency budgets are organization-specific; findings must be reported as context-dependent.",
+        "High computational cost could exhaust the pre-registered model-call or compute budget; stopping rules must be strictly followed."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

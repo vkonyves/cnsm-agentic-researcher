@@ -1,0 +1,81 @@
+{
+  "study_id": "study-cand-1-gvr-verifier-adversarial-2026-08-01",
+  "title": "Effectiveness of Generate–Validate–Repair (GVR) Pipelines with Deterministic Verifiers under Distribution Shift and Adversarial Prompts — Preregistration (Repaired)",
+  "research_question": "Does integrating a deterministic network verifier into a generate–validate–repair (GVR) pipeline reduce the rate of unsafe configuration applications by LLM-based NetOps agents under matched in-distribution, distribution-shift, and adversarial-prompt conditions, compared to an LLM-only pipeline, when executed as a paired, emulation-grounded benchmark?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The paired unsafe-apply rate (fraction of tasks where a configuration would produce a semantic safety violation when applied) is lower for the GVR arm than for the LLM-only arm. (Estimand: paired_success_rate_difference_guarded_minus_baseline).",
+    "H2 (shift interaction): Under distribution-shift tasks (novel topologies/vendors), the absolute reduction in unsafe-apply rate from GVR remains positive and statistically significant but is smaller than the in-distribution reduction.",
+    "H3 (adversarial interaction): Adversarial prompt injections cause more repair iterations in the GVR arm (higher median repair count), but the GVR arm still yields fewer unsafe applications than LLM-only."
+  ],
+  "exploratory_questions": [
+    "E1: How does the average repair-iteration count and total model-call budget differ by condition (in-distribution / shift / adversarial)?",
+    "E2: How sensitive are results to verifier-check subsets (ablation over verifier-check classes)?",
+    "E3: How stable are effects across two hosted LLM providers (sensitivity analysis)?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7162218766",
+    "https://openalex.org/W7204225093",
+    "https://openalex.org/W7204209332",
+    "https://openalex.org/W4407185663"
+  ],
+  "benchmark_scope": [
+    "Emulation-grounded NetConfArena-style closed-loop testbed (synthetic multi-vendor device images and hidden executable tests) — tasks limited to the supplied emulation environment and synthetic device images drawn from the public test corpus referenced in evidence.",
+    "Task corpus is limited to intent-to-configuration conversion tasks described in the preregistration; claims are explicitly bounded to this benchmark scope."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 240,
+    "planned_episode_count": 480,
+    "maximum_model_calls": 480,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (absolute paired difference in unsafe-apply rate: GVR minus LLM-only)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-condition unsafe-apply rates (GVR and LLM-only) with 95% bootstrap CIs",
+    "Median repair-iteration count per arm per condition",
+    "Total model calls consumed per task and per arm",
+    "Latency buckets distribution per arm (interactive <2s, near-real-time <30s, async)"
+  ],
+  "sampling_plan": "Paired design with exactly N = 240 distinct intents/tasks. Each task is executed under both arms (baseline/LLM-only and guarded/GVR) using the registered adapter behavior. Task composition: In-distribution = 60% (144 tasks), Distribution-shift = 20% (48 tasks; novel topologies/vendors held-out from the task generator), Adversarial-prompt = 20% (48 tasks; adversarial prompts generated and blinded per preregistered adversary procedure). Tasks are blocked into 24 topology-vendor clusters. For each intent both conditions are executed (paired); the adapter requires one shared initial generation per task and up to one repair call for guarded items. Runtime LLM sampling parameters (temperature, top_p, seed metadata as provided by the hosted model API) will be recorded for every model call. The registered adapter's shared_initial_candidate semantics means a single initial generation is produced per task and reused across the paired episodes; this is not a claim of deterministic LLM sampling—sampling nondeterminism is possible and is documented in execution logs.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Planned N=240 pairs. Target detectable effect: absolute reduction of 8 percentage points (e.g., from 20% to 12%) with alpha=0.05 two-sided; approximate power >80% under stated baseline assumptions. Exact effect estimates, bootstrap 95% CIs, and exact p-values will be produced by the registered 'paired_binary_analysis_v1' executor at analysis time. If realized baseline rates differ materially, the exact minimum detectable effect will be reported post hoc.",
+  "exclusion_rules": [
+    "Exclude pairs where verifier–simulator inconsistency is detected and flagged as 'possible false-safe' from the primary analysis (these are reported and included in predeclared sensitivity analyses).",
+    "Exclude task pairs with unrecoverable infrastructure failures after the preregistered retry policy (primary analysis follows 'complete_pair_primary' exclusion; all such exclusions are reported and included in sensitivity analyses treating failures as unsafe)."
+  ],
+  "missingness_plan": "Retry policy: deterministic automatic reruns for infra failures up to 2 attempts. If both attempts fail, mark the pair as infra-failed. Primary analysis excludes infra-failed pairs per the registered-adapter 'complete_pair_primary' treatment; a sensitivity analysis will treat these failed pairs as unsafe (failure-as-zero). All missingness counts and root causes will be reported in the execution manifest.",
+  "analysis_plan": "Primary analysis uses the registered analysis executor 'paired_binary_analysis_v1' (estimand id: paired_success_rate_difference_guarded_minus_baseline) to estimate the paired unsafe-apply rate difference (GVR minus LLM-only). Binary outcome per task: unsafe_apply (1) vs safe_apply (0) determined by deterministic simulation after the arm's final output (for GVR: after up-to-1 repair per adapter contract). Report risk difference, 95% bootstrap CIs, and exact p-value from the registered executor. Stratified per-condition analyses (in-distribution, shift, adversarial) use the same paired executor. Repair-iteration counts compared with Wilcoxon signed-rank tests (reported as secondary analyses). Latency comparisons use Wilcoxon or paired t-test depending on distributional checks. Failed-call treatments per executor options: primary = complete_pair_primary; sensitivity = complete_pair_primary_with_failure_as_zero_sensitivity. All analysis code, runtime seeds/recorded sampling parameters, and raw results will be archived.",
+  "multiplicity_plan": "Single primary hypothesis (H1). Secondary hypotheses and exploratory tests reported with Benjamini–Hochberg FDR correction for secondary tests; report both uncorrected and corrected p-values. All subgroup and post hoc tests labeled exploratory.",
+  "contamination_plan": "{\"benchmark_names\": [\"NetConfArena-style emulation benchmark (public test corpus referenced in evidence W7204209332)\"], \"risk_factors\": [\"Adversarial-prompt leak into in-distribution or shift tasks\",\"Verifier false-safe signals (semantic fault classes not covered by deterministic rules)\",\"Model vendor nondeterminism across hosted API calls\"], \"detection_procedures\": [\"Adversarial prompts generated under a blinded protocol with fixed attacker seed; all adversarial prompt texts are tagged and deterministically isolated from other tasks.\",\"Cross-run deterministic matching: any LLM output whose text matches an adversarial pattern is flagged via deterministic string/hashing rules.\",\"Verifier–simulator inconsistency detection: automated comparison of verifier PASS with simulator unsafe_apply outcome; inconsistencies are flagged for sensitivity analysis.\"], \"item_flagging_rules\": [\"If adversarial prompt text/hash equals a precomputed adversarial hash, mark the item as adversarial (designated subset).\",\"If verifier PASS but simulator reports unsafe_apply, flag item as 'possible false-safe' and exclude it from primary analysis (included in sensitivity analyses).\",\"If task pair experiences an infra failure after allowed retries, mark pair as infra-failure and apply failed_call_treatment.\"], \"analysis_treatment\": \"Primary analysis excludes 'possible false-safe' flags deterministically; sensitivity analyses: (a) include flagged items treating them as unsafe (worst-case), (b) treat infra-failed pairs as unsafe (failure-as-zero).\", \"residual_uncertainty\": [\"Deterministic verifier coverage may still leave unmeasured semantic fault classes.\",\"Adversarial attacker bounded to the preregistered fixed-attacker-seed protocol; stronger adaptive adversaries are out-of-scope.\"]}",
+  "stopping_rule": "No early stopping for efficacy. Stop after completing all preregistered task pairs (N=240) or if the registered execution adapter's maximum_model_calls limit (exactly task_count * 2 = 480) is reached. Technical retries allowed per task for infra failures up to 2 attempts; no reruns to change scientific outcomes beyond this policy.",
+  "planned_outputs": [
+    "Paired experiment result table and archive (per-task episodes and flags)",
+    "Analysis code and registered 'paired_binary_analysis_v1' executor outputs",
+    "Evidence-to-claim table and nearest-work comparison matrix",
+    "IEEE-format short paper (<=5 pages) including mandatory Disclosure Statement",
+    "Machine-readable execution manifest, raw logs, and artifact hashes",
+    "NotebookLM presentation brief (concise) if accepted"
+  ],
+  "unresolved_critical_issues": []
+}
