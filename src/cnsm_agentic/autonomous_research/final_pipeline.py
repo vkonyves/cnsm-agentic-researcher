@@ -7279,6 +7279,180 @@ class FinalAutonomousResearchPipeline:
             )
 
             # -------------------------------------------------
+            # Deterministic protected seed for post-hygiene recovery
+            # -------------------------------------------------
+            #
+            # A protected exact-page checkpoint may contain more supported
+            # scientific substance than the current post-hygiene candidate.
+            # Publication sanitation can reduce that protected checkpoint
+            # below the exact page budget. Probe it deterministically here,
+            # BEFORE the existing bounded scientific recovery loop, so the
+            # existing recovery machinery may use the stronger clean seed.
+            #
+            # No scientific agent call occurs in this seed-selection step.
+
+            if (
+                protected_submission_manuscript is not None
+                and protected_submission_validation is not None
+                and protected_submission_validation.get("passed") is True
+                and protected_submission_validation.get("page_count")
+                == protected_submission_validation.get("maximum_pages")
+            ):
+                pre_seed_manuscript = revised_manuscript
+                pre_seed_validation = dict(
+                    publication_validation
+                    if publication_validation is not None
+                    else {}
+                )
+
+                sanitized_protected_recovery_seed = (
+                    sanitize_structured_manuscript_publication_metadata(
+                        protected_submission_manuscript
+                    )
+                )
+
+                write_json(
+                    revision_rounds_dir
+                    / "post_hygiene_protected_recovery_seed.json",
+                    sanitized_protected_recovery_seed,
+                )
+
+                protected_seed_validation = (
+                    build_publication_artifacts(
+                        manuscript=(
+                            sanitized_protected_recovery_seed.model_dump()
+                        ),
+                        verified_records=records,
+                        output_dir=publication_dir,
+                        paper_run_constraints=(
+                            paper_run_constraints
+                        ),
+                    )
+                )
+
+                protected_seed_sanity = (
+                    audit_manuscript_publication_sanity(
+                        run_dir=run_dir,
+                    )
+                )
+
+                protected_seed_artifact_audit = (
+                    audit_manuscript_artifact_references(
+                        manuscript=(
+                            sanitized_protected_recovery_seed
+                        ),
+                        run_dir=run_dir,
+                    )
+                )
+
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_validation_"
+                        "post_hygiene_protected_recovery_seed.json"
+                    ),
+                    protected_seed_validation,
+                )
+                write_json(
+                    publication_dir
+                    / (
+                        "publication_sanity_audit_"
+                        "post_hygiene_protected_recovery_seed.json"
+                    ),
+                    protected_seed_sanity,
+                )
+                write_json(
+                    publication_dir
+                    / (
+                        "artifact_reference_audit_"
+                        "post_hygiene_protected_recovery_seed.json"
+                    ),
+                    protected_seed_artifact_audit,
+                )
+
+                current_seed_page_count = (
+                    pre_seed_validation.get("page_count")
+                )
+                protected_seed_page_count = (
+                    protected_seed_validation.get("page_count")
+                )
+                protected_seed_maximum_pages = (
+                    protected_seed_validation.get("maximum_pages")
+                )
+
+                current_seed_text_length = len(
+                    _manuscript_text(
+                        pre_seed_manuscript
+                    )
+                )
+                protected_seed_text_length = len(
+                    _manuscript_text(
+                        sanitized_protected_recovery_seed
+                    )
+                )
+
+                protected_seed_is_clean_and_useful = (
+                    protected_seed_validation.get("compile_status")
+                    == "passed"
+                    and protected_seed_sanity.get("passed") is True
+                    and protected_seed_artifact_audit.get("passed")
+                    is True
+                    and isinstance(protected_seed_page_count, int)
+                    and isinstance(protected_seed_maximum_pages, int)
+                    and protected_seed_page_count
+                    <= protected_seed_maximum_pages
+                    and (
+                        not isinstance(current_seed_page_count, int)
+                        or protected_seed_page_count
+                        >= current_seed_page_count
+                    )
+                    and protected_seed_text_length
+                    > current_seed_text_length
+                )
+
+                if protected_seed_is_clean_and_useful:
+                    revised_manuscript = (
+                        sanitized_protected_recovery_seed
+                    )
+                    publication_validation = dict(
+                        protected_seed_validation
+                    )
+
+                    write_json(
+                        revision_rounds_dir
+                        / (
+                            "selected_post_hygiene_"
+                            "protected_recovery_seed.json"
+                        ),
+                        revised_manuscript,
+                    )
+
+                    write_json(
+                        run_dir
+                        / "manuscript"
+                        / "revised_package.json",
+                        revised_manuscript,
+                    )
+
+                else:
+                    # The deterministic probe is non-destructive. Restore
+                    # the manuscript that entered seed selection and rerender
+                    # it so authoritative PDF/TeX artifacts remain aligned.
+                    revised_manuscript = pre_seed_manuscript
+                    publication_validation = (
+                        build_publication_artifacts(
+                            manuscript=(
+                                revised_manuscript.model_dump()
+                            ),
+                            verified_records=records,
+                            output_dir=publication_dir,
+                            paper_run_constraints=(
+                                paper_run_constraints
+                            ),
+                        )
+                    )
+
+            # -------------------------------------------------
             # Monotonic bounded post-hygiene scientific
             # underfill recovery
             # -------------------------------------------------

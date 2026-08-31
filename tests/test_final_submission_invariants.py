@@ -303,3 +303,68 @@ def test_unmeasured_operational_benefits_must_be_qualified():
         "Reject empirical-sounding claims of reduced human triage time"
         in source
     )
+
+
+
+def test_post_hygiene_recovery_can_seed_from_sanitized_protected_checkpoint():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    seed_pos = source.index(
+        "sanitized_protected_recovery_seed = ("
+    )
+    recovery_pos = source.index(
+        "# Monotonic bounded post-hygiene scientific",
+        seed_pos,
+    )
+
+    assert seed_pos < recovery_pos
+    assert (
+        "sanitize_structured_manuscript_publication_metadata("
+        in source[seed_pos:recovery_pos]
+    )
+    assert (
+        "selected_post_hygiene_"
+        in source[seed_pos:recovery_pos]
+    )
+    assert (
+        "protected_recovery_seed.json"
+        in source[seed_pos:recovery_pos]
+    )
+
+
+def test_protected_recovery_seed_is_deterministic_only():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    start = source.index(
+        "# Deterministic protected seed for post-hygiene recovery"
+    )
+    end = source.index(
+        "# Monotonic bounded post-hygiene scientific",
+        start,
+    )
+    seed_block = source[start:end]
+
+    assert "run_agent(" not in seed_block
+    assert "build_publication_artifacts(" in seed_block
+    assert "audit_manuscript_publication_sanity(" in seed_block
+    assert "audit_manuscript_artifact_references(" in seed_block
+
+
+def test_protected_final_rescue_remains_agent_free_after_seed_change():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    start = source.index(
+        "# Deterministic protected-candidate rescue"
+    )
+    end = source.index(
+        "# Re-run BOTH deterministic audits",
+        start,
+    )
+
+    assert "run_agent(" not in source[start:end]
