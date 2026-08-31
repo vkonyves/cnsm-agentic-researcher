@@ -457,6 +457,14 @@ PEER_REVIEWER = Agent(
         machine-provenance paths and digests, not to this sole mandatory
         master-prompt reference.
 
+        The preregistration must be identifiable in the manuscript by its study
+        or preregistration identifier, but its manifest SHA-256 is secondary
+        machine provenance and is NOT required in manuscript prose. Do not ask
+        the author to insert a preregistration SHA-256, do not reject an empty
+        or absent preregistration-hash field after publication hygiene, and do
+        not treat absence of that digest as a publication defect. The archived
+        provenance bundle is the authoritative location for that checksum.
+
         Reject empirical-sounding claims of reduced human triage time,
         improved operator efficiency, improved observability, reduced
         deployment risk, or similar operational benefits unless those outcomes

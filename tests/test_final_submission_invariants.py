@@ -436,3 +436,33 @@ def test_post_hygiene_recovery_demands_substantive_cumulative_expansion():
     assert "difficulty-stratified or workflow-pattern" in source
     assert "failure-mode analysis grounded in archived" in source
     assert "do not invent measurements" in source
+
+
+
+def test_disclosure_sanitizer_removes_preregistration_hash_placeholders():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "A preregistration digest is secondary machine provenance" in source
+    assert "preregistration[_" in source
+    assert "manifest\\s+sha" in source
+
+
+def test_review_policy_does_not_require_preregistration_sha():
+    reviewer_source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    closure_source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "manifest SHA-256 is secondary" in reviewer_source
+    assert "NOT required in manuscript prose" in reviewer_source
+    assert "Do not ask" in reviewer_source
+    assert "preregistration SHA-256" in reviewer_source
+
+    assert "preregistration-manifest SHA-256 is explicitly NOT" in closure_source
+    assert "Do not request" in closure_source
+    assert "insertion of a preregistration hash" in closure_source

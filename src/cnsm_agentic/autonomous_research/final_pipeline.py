@@ -296,6 +296,31 @@ def sanitize_structured_manuscript_publication_metadata(
                 master_prompt_sha,
             )
 
+        # A preregistration digest is secondary machine provenance. After
+        # full-digest removal, do not leave a misleading empty hash
+        # placeholder such as "(manifest SHA-256: )". The preregistration
+        # study identifier remains publication-facing; its digest remains
+        # available in the archived provenance bundle.
+        cleaned = re.sub(
+            r"(?i)"
+            r"\(\s*"
+            r"(?:preregistration\s+)?"
+            r"manifest\s+sha\s*-?\s*256"
+            r"\s*[:=]\s*"
+            r"(?:[0-9A-Fa-f]{64})?"
+            r"\s*\)",
+            "",
+            cleaned,
+        )
+        cleaned = re.sub(
+            r"(?i)"
+            r"\bpreregistration[_\s-]*sha(?:[_\s-]*256)?"
+            r"\s*[:=]\s*"
+            r"(?:[0-9A-Fa-f]{64})?",
+            "",
+            cleaned,
+        )
+
         # Repair punctuation/whitespace left by removal of secondary hashes.
         cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
         cleaned = re.sub(r"\s+([,.;:])", r"\1", cleaned)
@@ -8279,6 +8304,12 @@ class FinalAutonomousResearchPipeline:
                     "artifact path and exactly one full SHA-256 and they "
                     "are that master-prompt reference, do not reject or "
                     "request removal of them as provenance clutter. "
+                    "A preregistration identifier must be stated, but a "
+                    "preregistration-manifest SHA-256 is explicitly NOT "
+                    "required in the manuscript. Its digest belongs in "
+                    "the archived provenance bundle. Do not request "
+                    "insertion of a preregistration hash or treat its "
+                    "absence as an unresolved revision. "
                     "However, retain any genuine unresolved "
                     "scientific, methodological, accounting, "
                     "citation-semantic, or disclosure-content "
