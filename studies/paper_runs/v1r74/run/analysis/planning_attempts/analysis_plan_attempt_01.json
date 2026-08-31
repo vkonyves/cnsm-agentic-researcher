@@ -1,0 +1,31 @@
+{
+  "study_id": "c1-gnr-vv-2026-0001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute paired_binary_analysis_v1 on the completed paired episodes (N=72 paired intents, evidenced by execution_manifest completed_episode_count=144) to compute the paired_success_rate_difference_guarded_minus_baseline estimand. For each pair compute baseline_undetected and guarded_undetected binary indicators per preregistration; run the executor's paired paired-binary inference (McNemar-style exact or appropriate exact paired-binary test) to report the point estimate (paired difference), two-sided p-value, and estimator metadata.",
+  "secondary_analyses": [
+    "verifier_true_detection_rate (proportion of emulation faults flagged by verifier) with bootstrap 95% CI",
+    "verifier_false_positive_rate (proportion of verifier flags where emulation would not fail) with bootstrap 95% CI",
+    "per-category undetected_fault_rate by taxonomy (semantic mismatch, protocol misuse, ordering) — descriptive counts and rates (exploratory)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (pre-registered sensitivity treating excluded/failed confirmatory pairs as failures)",
+    "Conservative blocking-cost analysis treating any verifier flag as an executed-fault to quantify potential blocking cost (pre-registered)",
+    "Inclusion of high-similarity flagged items (pre-registered contamination sensitivity) — report effect estimate and p-value"
+  ],
+  "uncertainty_quantification": "Primary inferential p-value from paired_binary_analysis_v1; bootstrap 95% confidence intervals for verifier detection and false-positive rates (bootstrap implemented deterministically from raw_results.jsonl). Report exact counts and binomial CIs for per-category and per-stratum summaries.",
+  "multiplicity_implementation": "Single primary confirmatory test for the paired estimand. Two pre-specified subgroup confirmatory comparisons (topology complexity strata and policy type) adjusted with Holm correction to control familywise error across these subgroup tests. All other breakdowns and taxonomy analyses are explicitly exploratory and not claimed confirmatory.",
+  "contamination_analysis": "Apply preregistered deterministic provenance checks and exact-string/high-similarity fingerprinting per contamination_plan. Exact-match contaminated items are excluded from the confirmatory set per preregistration; high-similarity items are flagged and retained for sensitivity analysis. Confirmatory denominators reflect post-check selection (N=72 pairs as in execution_manifest). Residual uncertainty from private-model training data is noted per preregistration.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Primary paired outcomes summary (N=72 pairs): counts of baseline_undetected, guarded_undetected, paired difference, effect estimate, p-value, test used, and sample sizes by stratum.",
+    "Table 2: Verifier performance: true detection count/rate and false-positive count/rate with bootstrap 95% CIs.",
+    "Table 3: Exploratory fault-taxonomy table: counts and undetected_fault_rate by category (semantic mismatch, protocol misuse, ordering) and example canonical instances (from raw_results).",
+    "Table 4: Per-stratum descriptive results (small/medium/complex): per-stratum undetected rates, paired differences, and Holm-adjusted subgroup p-values."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar plot comparing baseline vs guarded undetected-fault proportions with 95% CIs (paired; N=72).",
+    "Figure 2: Stacked bar or heatmap of fault-category distribution of missed faults (exploratory) produced from raw_results.jsonl.",
+    "Figure 3: Per-stratum line or bar chart showing undetected-fault rate by topology complexity (small/medium/complex) with Holm-corrected subgroup annotations."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "Careful, preregistered paired evaluation of a generate→verify NetOps pipeline using a shared_initial_candidate design. Execution and deterministic analyses are complete and archived. Primary confirmatory result is a ceiling/null outcome: baseline and guarded conditions both produced zero undetected emulator faults (n_11=72), so no verifier benefit was observed under the chosen model, tasks, and shared‑initial semantics. The paper is methodologically sound and reproducible in principle, but requires a small set of mandatory manuscript clarifications before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Disclosure Statement includes run‑internal log‑level details (multiple SHA‑256 hashes and internal artifact paths) and reads like an execution manifest rather than a concise disclosure; this violates the track guidance to keep the Disclosure concise and not duplicate execution logs.",
+    "References metadata is not presented (or not guaranteed) in conventional IEEE numbered bibliography form; the manuscript's cited_record_ids list DOIs/URLs but the References section must contain full IEEE bibliographic entries with numeric citation markers matching prose claims.",
+    "Sampling/runtime semantics are underspecified in the Methods: model temperature and sampling settings are recorded as null in model_configuration.json but the manuscript does not explicitly state the concrete sampling semantics or explain that null/unset does not imply deterministic (temperature=0) sampling. This is important given the shared_initial_candidate design.",
+    "The manuscript must more explicitly and consistently state that the study used shared_initial_candidate semantics and therefore measured verifier effect only on the same single initial candidate per intent (i.e., the experiment cannot attribute any between‑condition difference to independent generation or prompt engineering). Although the paper already mentions shared_initial_candidate, several headline elements (title/abstract) could be read ambiguously; explicit clarifying sentences are required to avoid misinterpretation."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement to a concise paragraph that reports the required items (models, orchestration framework, preregistration presence and accessibility, autonomy boundary, and that artifacts/manifests are archived) without embedding run‑internal logs, per‑file paths, or multiple full SHA‑256 hashes in the main manuscript text. Keep an archival/manifest reference but remove log‑level provenance from the DS prose.",
+    "Replace any bare DOI/arXiv/URL entries in the References with conventional, full IEEE‑style numbered bibliographic entries (authors, title, venue, year, DOI/URL as optional). Ensure each numbered citation in the text is supported by the cited record's content and that citation markers are used in prose (e.g., [1], [2]).",
+    "Explicitly report the model sampling/runtime settings in Methods (state that temperature and other sampling parameters were unset/null in the recorded model_configuration, explain what the host default implies, and explicitly note that null does not equal deterministic sampling). If the recorded model_configuration.json is being cited as artifact evidence, state that it is archived and show the relevant manifest entry (but do not paste the full hash in the paper).",
+    "Add one or two precise sentences in Introduction/Methods (and mirror in the Abstract if needed) that unambiguously state the shared_initial_candidate experimental semantics and their implications: that the same initial LLM candidate was reused for both baseline and guarded conditions, so the experiment tests the verifier’s ability to prevent execution of faults in the same single‑shot candidate rather than testing effects of independent prompt/generation strategies. Make sure the title, abstract, research question, contribution bullets, and conclusion consistently reflect this estimator/contrast.",
+    "Edit any language that could be interpreted as claiming verifier benefit beyond what was actually tested (for example, avoid wording that implies the test measured verifier performance under independent generation or multiple sampled candidates). Where relevant, add a short clarifying sentence in Discussion that the null/ceiling outcome does not imply general verifier uselessness, only lack of observed benefit under the preregistered shared_initial_candidate contract and selected task/model scope."
+  ],
+  "optional_revisions": [
+    "Add a short explanatory note in Results or Discussion that explains why the bootstrap CI is zero‑width (intuitively: no observed variation) to help readers unfamiliar with that degenerate case.",
+    "Expand the discussion of alternative experimental designs (independent per‑condition generation, adversarial/fault‑injection test set, multiple models) and explicitly map how they would address the ceiling effect observed here.",
+    "Provide a concise NotebookLM presentation brief (if not already packaged with the artifacts) as recommended by the track; include it as a supplementary artifact rather than in the five‑page manuscript body."
+  ],
+  "accept_for_finalisation": false
+}

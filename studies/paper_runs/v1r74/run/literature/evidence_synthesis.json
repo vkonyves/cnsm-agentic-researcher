@@ -1,0 +1,163 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Recent literature demonstrates that LLMs can be used to translate high-level natural-language intents into low-level network configurations (intent→config) using fine-tuning and in‑context learning, producing promising task-level accuracy in controlled evaluations.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "Empirical study (intent→configuration)",
+      "confidence": 0.8,
+      "limitations": [
+        "Evaluations were performed on limited use cases and model/data settings specified in the paper.",
+        "Results do not imply safe execution in production networks without additional verification."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Multi-agent and tool‑augmented LLM frameworks for network management have been developed; at least one large-organization report describes an internal, production-oriented multi-agent LLM system that integrates validation tooling to reduce regressions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4400611559",
+        "https://openalex.org/W4386722061"
+      ],
+      "evidence_type": "System/field report and prototype studies",
+      "confidence": 0.7,
+      "limitations": [
+        "The production report is an organizational case (single provider) with limited public evaluation details.",
+        "Prototype studies use emulators or curated exercises rather than diverse production traces."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Generate–Verify–Repair (GVR) / generate–validate–repair architectures are proposed and instantiated in domains such as code generation and enterprise software to combine stochastic LLM generation with deterministic verification and iterative repair.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.2139/ssrn.6312138",
+        "https://openalex.org/W4389217585"
+      ],
+      "evidence_type": "Architectural proposals and case studies",
+      "confidence": 0.75,
+      "limitations": [
+        "Empirical instantiations are primarily in code, software engineering, or non‑NetOps domains; adaptation to network‑specific validators is implied but not extensively evaluated in supplied records."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Constraint‑enforcing decoding methods (e.g., integer-programming constrained decoding) reduce generation constraint violations compared to unconstrained decoding in evaluated domains.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6116106"
+      ],
+      "evidence_type": "Methodological/empirical study (constrained decoding)",
+      "confidence": 0.7,
+      "limitations": [
+        "Demonstrated in clinical/structured-output tasks; direct evidence for network-configuration grammar/semantic constraints is not provided in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Retrieval‑augmented generation (RAG) and domain‑specialized tool design improve LLM-based configuration debugging or troubleshooting in at least one non‑NetOps domain (DBMS configuration), suggesting a transferable pattern for domain grounding.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4407357344",
+        "https://openalex.org/W4400611559"
+      ],
+      "evidence_type": "Prototype/empirical system studies (RAG + tools)",
+      "confidence": 0.7,
+      "limitations": [
+        "Evidence comes from DBMS and enterprise co‑pilot examples; transferability to network protocols and semantics requires targeted evaluation."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM‑generated network configurations preserve operational safety, policy compliance, and end‑to‑end correctness when executed in diverse production networks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586",
+        "https://openalex.org/W4408167800",
+        "https://openalex.org/W4362515116"
+      ],
+      "evidence_type": "Limited/partial evidence / gap in cross‑organizational evaluation",
+      "confidence": 0.4,
+      "limitations": [
+        "Available records include organizational reports and surveys but lack systematic, multi‑site production-scale empirical evaluations that measure real execution outcomes."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "To what extent do formal network verifiers (header-space/NetKAT/Batfish–style tools) combined directly with LLM generation detect and prevent operationally relevant faults in generated configs?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4383102586"
+      ],
+      "evidence_type": "Architectural inference; absence of direct experimental evidence",
+      "confidence": 0.35,
+      "limitations": [
+        "Convergence and GVR work exist for code and formal-methods repair; supplied records do not include direct experiments that couple LLM generation with canonical network verifiers on production-like tasks."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Are there standardized, widely adopted benchmarks and datasets that measure operational correctness, safety, and robustness of LLM-driven NetOps across realistic network topologies and policies?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416982487",
+        "https://openalex.org/W4416037356",
+        "https://openalex.org/W4407357344"
+      ],
+      "evidence_type": "Evidence of absence / gap (benchmarks exist elsewhere but not NetOps‑standardized)",
+      "confidence": 0.6,
+      "limitations": [
+        "Surveys catalog many benchmarks across domains; supplied records indicate benchmark activity in adjacent areas but do not document a canonical, community‑adopted NetOps benchmark for LLM correctness/safety."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for standardized NetOps evaluation datasets and benchmarks that target operational properties (reachability, policy compliance, security invariants, safe rollbacks) for LLM‑generated configurations and agentic workflows.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416037356",
+        "https://openalex.org/W4416982487",
+        "https://openalex.org/W4407357344"
+      ],
+      "evidence_type": "Gap identified from literature survey and existing domain benchmarks",
+      "confidence": 0.65,
+      "limitations": [
+        "Inferred from the absence of an explicit, widely cited NetOps benchmark in the supplied records; feasibility and design choices require community consensus."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Controlled adversarial and fault‑injection evaluations (stress tests) for LLM‑driven NetOps—probing prompt perturbations, malicious intents, and noisy telemetry—are underrepresented and would address robustness threats.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4362515116",
+        "https://openalex.org/W4388585881",
+        "https://openalex.org/W4406928793"
+      ],
+      "evidence_type": "Gap inferred from robustness and hallucination surveys",
+      "confidence": 0.6,
+      "limitations": [
+        "Surveys and robustness work exist in general LLM literature; direct NetOps stress‑testing studies are not present among supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Empirical studies coupling LLM generation with canonical network verifiers (and reporting end‑to‑end execution outcomes) are needed to validate GVR approaches specifically for NetOps.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4383102586"
+      ],
+      "evidence_type": "Methodological gap (adapting GVR to NetOps)",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing GVR evidence is stronger in code/software repair; adapting to protocol semantics and runtime effects requires additional engineering and evaluation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are universally production‑ready for general NetOps without additional validation/guardrails.",
+    "There is conclusive evidence that LLM‑generated network configurations are safe to execute in production networks by default.",
+    "A single, community‑adopted NetOps benchmark for evaluating LLM correctness/safety already exists.",
+    "Formal verification tools, when paired with LLMs, have been proven (in supplied records) to fully eliminate all operational failures for network configurations."
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "selected_candidate_id": "c1",
+  "title": "Verified Generate–Verify Evaluation: Do Canonical Network Verifiers Reduce Undetected Faults in LLM→Config Pipelines?",
+  "research_question": "Does coupling an LLM-based intent→configuration generator with a canonical network verifier materially reduce the proportion of operational faults (reachability/policy violations) that would otherwise be executed undetected, compared to executing LLM-generated configs without verification, when evaluated on realistic emulated topologies and vendor‑dialect subsets?",
+  "confirmatory_hypotheses": [
+    "H1: The paired proportion of undetected operational faults (emulation failures not flagged by the verifier) is lower under the LLM+verifier guarded pipeline than under LLM-only execution (paired estimand: guarded minus baseline undetected‑fault rate < 0).",
+    "H2: The verifier will detect >50% of faults that would otherwise cause incorrect end‑to‑end behavior in emulated executions for the selected vendor‑dialect subset (detection rate > 50%), while semantic intent mismatches will remain a qualitatively distinct residual category."
+  ],
+  "exploratory_questions": [
+    "E1: Which fault categories (semantic intent mismatch, ACL misordering, routing-policy misuse) are most frequently missed by the verifier?",
+    "E2: How do topology complexity strata (small/medium/complex) affect verifier detection performance?"
+  ],
+  "benchmark_scope": [
+    "Publicly sourced topologies and policy examples restricted to vendor dialects supported by the chosen verifier (see Model/Tool scope).",
+    "Emulated end‑to‑end execution in isolated Docker/Mininet/FRRouting images (no production devices)."
+  ],
+  "model_scope": [
+    "Hosted LLM API: one hosted autoregressive model used for config generation (single model identifier pre-registered).",
+    "No fine-tuning; in‑context prompting only.",
+    "All model calls are to a hosted model API (provider/model id recorded at runtime)."
+  ],
+  "transformation_scope": [
+    "Deterministic config normalization (AST canonicalization), vendor‑dialect canonical mapping, and syntactic rendering for verifier and emulator ingestion."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (paired reduction in undetected operational‑fault proportion per intent; computable by paired_binary_analysis_v1 executor)",
+  "secondary_estimands": [
+    "verifier_true_detection_rate (proportion of emulation faults flagged by verifier)",
+    "verifier_false_positive_rate (proportion of verifier flags where emulation would not fail)",
+    "per-category undetected_fault_rate by taxonomy (semantic, protocol misuse, ordering)"
+  ],
+  "sampling_plan": "Confirmatory paired design with one paired observation per intent. Each intent yields one generated device‑level configuration (one LLM generation). The same generated config is evaluated in two paired treatments: (A) Baseline: execute the generated config in the emulator and record emulation outcome (fault/no fault). (B) Guarded: run the verifier on the same generated config; if verifier flags violations, treat the guarded outcome as ’prevented’ (no undetected executed fault); if verifier does not flag, execute the same config in emulator and record emulation outcome. Primary confirmatory sample = N paired intents. Confirmatory arithmetic: number of methods (2 arms) × trials per method (N paired intents counted once per pair) => N confirmatory pairs. Planned confirmatory N depends on selected budget scenario (see Budget Scenarios). Discovery items: a separate small exploratory set (10 intents) held out for taxonomy development and prompt‑sensitivity exploration; these discovery items are not included in confirmatory hypothesis testing.",
+  "analysis_plan": "Primary analysis: paired binary analysis (paired_success_rate_difference_guarded_minus_baseline) executed with the registered paired_binary_analysis_v1 executor. For each intent pair compute binary indicators: baseline_undetected = 1 if emulator failure when executing generated config; guarded_undetected = 1 if verifier fails to flag AND emulator failure occurs when executed (i.e., verifier false negative that leads to an executed fault). The estimand is the paired difference in undetected proportion (guarded minus baseline). Primary inferential test: McNemar-style paired binary significance via the paired_binary_analysis_v1 executor; bootstrap 95% CI for detection and false‑positive rates. Pre-specified subgroup analyses (confirmatory, multiplicity-corrected): topology complexity (3 strata) and policy type (reachability vs ACL/policy). Sensitivity analyses (pre-specified): (1) Treat verifier flags as executed faults in a conservative analysis (to quantify worst-case blocking cost), (2) failure-as-zero sensitivity where technical execution failures are counted as failures per the registered executor failed_call_treatment options. All analysis steps use deterministic scripts and the registered executor; exploratory taxonomy analyses are descriptive only.",
+  "multiplicity_plan": "Primary confirmatory test is a single paired estimand (guarded minus baseline undetected‑fault rate). Two pre-specified subgroup confirmatory comparisons (topology complexity and policy type) will apply Holm correction to control familywise error across these subgroup tests. Exploratory category‑level breakdowns are descriptive and labeled exploratory.",
+  "missingness_plan": "Technical failures (hosted API or emulator infra) are logged. Primary treatment of failed model calls: retry up to two times (total 3 attempts) for transient API errors (see retry policy). If a generation attempt fails after retries for a confirmatory pair, the pair is excluded from primary analysis and listed with full failure metadata; sensitivity analysis will treat excluded pairs as failures (complete_pair_primary_with_failure_as_zero_sensitivity) as supported by the registered executor. All exclusions and their deterministic reasons are archived and disclosed.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Public topology/policy corpora assembled from cited public datasets and prior NetOps papers (provenance recorded per item)"
+    ],
+    "risk_factors": [
+      "Potential leakage if an intent or exact config appears in the hosted LLM training data",
+      "Prompt template reuse effects across items"
+    ],
+    "detection_procedures": [
+      "Deterministic provenance checks for each item (source URL, DOI, checksum).",
+      "Exact-string and high-similarity fingerprinting of generated configs against public corpus items; flagged matches recorded.",
+      "If a generated config exactly matches a public corpus example used to create the intent, the item is flagged and moved to a documented contamination log (excluded from confirmatory analysis)."
+    ],
+    "item_flagging_rules": [
+      "Exact match => flag and exclude from confirmatory set.",
+      "High similarity (edit distance threshold pre-registered) => flag for sensitivity analysis (retained but reported)."
+    ],
+    "analysis_treatment": "Primary confirmatory analysis excludes items that meet the exact-match contamination exclusion rule. Sensitivity analysis reports the effect of including flagged high‑similarity items.",
+    "residual_uncertainty": [
+      "Cannot detect training‑set contamination where training data are private and not replicated in public corpora; treated as residual uncertainty in conclusions."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_minimal",
+      "description": "Conservative pilot: N = 60 confirmatory paired intents; exploratory discovery = 10 intents; max 3 LLM calls per intent (1 generation + up to 2 transient‑error retries).",
+      "planned_model_calls": 180,
+      "models": [
+        "hosted-llm-api: pre-registered model identifier (recorded at runtime)"
+      ],
+      "transformations": [
+        "config_normalization_ast_v1",
+        "vendor_dialect_mapper_v1"
+      ],
+      "discovery_items": 10,
+      "confirmatory_items": 60,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "60 confirmatory pairs × up to 3 calls per intent = 180 planned model calls; within hosted‑API budget limits and capability_manifest maximum (10000). Pilot size chosen to enable initial paired analysis while conserving API budget."
+    },
+    {
+      "scenario_id": "S2_recommended",
+      "description": "Recommended: N = 72 confirmatory paired intents (stratified equally across topology complexity strata), exploratory discovery = 10 intents; max 3 LLM calls per intent (1 generation + up to 2 transient retries).",
+      "planned_model_calls": 216,
+      "models": [
+        "hosted-llm-api: pre-registered model identifier (recorded at runtime)"
+      ],
+      "transformations": [
+        "config_normalization_ast_v1",
+        "vendor_dialect_mapper_v1"
+      ],
+      "discovery_items": 10,
+      "confirmatory_items": 72,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "72 confirmatory pairs × up to 3 calls per intent = 216 planned model calls. Power calculation (see power_plan) recommends 72 to reach target power against plausible effect sizes while remaining well under the capability_manifest model-call and runtime constraints. Docker-based emulation and verifier runs incur CPU time only; docker availability in capability_manifest allows local emulation within the runtime budget."
+    },
+    {
+      "scenario_id": "S3_expanded",
+      "description": "Expanded: N = 100 confirmatory paired intents for higher power and more granular subgroup estimates; exploratory discovery = 10 intents; max 3 LLM calls per intent.",
+      "planned_model_calls": 300,
+      "models": [
+        "hosted-llm-api: pre-registered model identifier (recorded at runtime)"
+      ],
+      "transformations": [
+        "config_normalization_ast_v1",
+        "vendor_dialect_mapper_v1"
+      ],
+      "discovery_items": 10,
+      "confirmatory_items": 100,
+      "task_cluster_count": 3,
+      "feasibility_rationale": "100 × 3 = 300 planned model calls; still within model-call ceiling but increases emulation CPU/time and storage requirements. Included as an optional high‑power scenario if additional hosted‑API budget is available."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute reduction of 0.20 in undetected‑fault proportion (e.g., from 0.30 baseline to 0.10 guarded) with two‑sided alpha=0.05 and power >= 0.80 for the paired test.",
+    "clustering_unit": "intent (paired observation unit)",
+    "calculation_method": "Approximate McNemar/pairwise difference sample‑size heuristic: required pairs ≈ 63 for detecting an absolute paired difference of 0.20 under conservative discordant proportions; selected N=72 (recommended scenario) to allow balanced stratification across three topology complexity strata and to provide margin for item exclusions due to deterministic contamination checks.",
+    "assumptions": [
+      "Baseline undetected‑fault rate approx 0.30 (based on prior small-scale intent→config studies and conservative assumptions).",
+      "Guarded undetected‑fault rate approx 0.10 under effective verifier detection.",
+      "Discordant pair proportion supports McNemar approximation; paired_binary_analysis_v1 executor performs exact inference when applicable.",
+      "Up to 5% of confirmed items may be excluded pre-analysis due to exact‑match contamination; planned N=72 allows retention of required effective pairs after such deterministic exclusions."
+    ],
+    "recommended_scenario_id": "S2_recommended",
+    "minimum_detectable_effect_notes": "With N=72, the study has ~80% power to detect absolute paired reductions ~0.18–0.22 under the assumed discordant structure; smaller effects will be underpowered and will be reported as inconclusive.",
+    "sensitivity_analyses": [
+      "Recompute paired inference treating excluded pairs as failures (worst‑case);",
+      "Bootstrap CI on detection rates;",
+      "Re-run primary analysis restricting to each topology stratum to inspect consistency (descriptive if underpowered)."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "config_parsing_to_AST",
+      "vendor_dialect_token_mapping",
+      "canonical_rendering_for_verifier_and_emulator"
+    ],
+    "semantic_equivalence_checks": [
+      "Round‑trip AST → rendered config → reparsed AST equality check (byte‑deterministic), failing items auto‑rejected.",
+      "Syntactic validation via vendor config linters (open‑source validators) after rendering.",
+      "Deterministic check that management-plane addresses and out‑of‑scope tokens (e.g., vendor management credentials) are unchanged by transformations; any change triggers auto‑rejection."
+    ],
+    "automatic_rejection_rules": [
+      "Reject transformation if AST round‑trip equality fails.",
+      "Reject if linter reports syntax errors for target vendor dialect.",
+      "Reject if transformation alters out‑of‑scope fields (management interfaces, credentials)."
+    ],
+    "audit_sample_policy": "Automated audit of 10% of transformed items per run: compute deterministic checksums, reapply transformations, verify round‑trip equality and linter pass. Audit failures recorded and cause deterministic reprocessing; if reprocessing fails, item excluded and logged.",
+    "mapping_validation": "Vendor‑dialect mapping implemented as deterministic token→AST rules; mapping tables are versioned and tests include a suite of canonical mapping unit tests (stored in repository). Mapping table provenance recorded and archived; mapping changes are disallowed during a frozen preregistration run.",
+    "residual_risks": [
+      "Semantic equivalence beyond AST-level (operator intent subtleties) may not be fully captured by automated checks; such residual risk is documented and treated as noncritical external validity uncertainty."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Emulator fidelity vs production devices (vendor‑specific hardware quirks) — study explicitly restricts scope to dialects and behaviors that Batfish and the emulation images model; generalization to production hardware is noncritical external‑validity uncertainty.",
+    "Possible hidden training‑data contamination in hosted LLMs that cannot be detected via public‑corpus matching — treated via sensitivity analyses and documented as residual uncertainty.",
+    "Verifier coverage limits: some deep semantic intent mismatches (operator intent not fully expressible as verifier invariants) may remain undetected; this is part of intended evaluation rather than a blocking critical issue."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4383102586",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4413757586"
+  ]
+}

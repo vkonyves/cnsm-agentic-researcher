@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c1",
+      "title": "Empirical evaluation of LLM→config paired with formal network verifiers (Batfish/NetKAT)",
+      "research_question": "Does coupling LLM-generated network configurations with a canonical network verifier (e.g., Batfish/NetKAT) materially reduce undetected operational faults compared to executing LLM-generated configs without verification in realistic emulated topologies?",
+      "hypotheses": [
+        "LLM-generated configurations executed without a formal verifier will produce a higher rate of operational faults (reachability/policy violations) than LLM-generated configurations filtered by a verifier.",
+        "A verifier integrated into a generate–verify pipeline will detect a majority (>50%) of faults that would otherwise cause incorrect end-to-end behavior in emulated executions, but some semantic faults (operator‑intent mismatches) will remain undetected."
+      ],
+      "proposed_design": "Construct a corpus of 60 intent→target pairs using public network topologies and policy examples (sourced from public datasets and prior NetOps papers). For each intent: (1) prompt a hosted LLM API to produce a device-level configuration (fixed prompt template, fixed seeds where supported); (2) run a canonical verifier (Batfish or NetKAT where applicable) to flag violations; (3) for configs that pass verifier and a stratified sample that fail, deploy into an isolated Docker-based emulation (e.g., Mininet or containerized router images) and run end-to-end tests (reachability, ACL/policy checks, rollback behavior). Arms: LLM-only (execute as produced), LLM+verifier (block or flag failures), and LLM+verifier+human-free auto-repair disabled (to measure detection only). Pre-register metrics, seeds, prompt templates, and retry policy. Log all raw outputs and verifier traces.",
+      "expected_data": "Per intent and arm: verifier pass/fail labels, list of flagged violations, emulation pass/fail on reachability and policy tests, execution logs, counts of false negatives (faults in emulation not flagged by verifier) and false positives (verifier blocks config that would have passed emulation), latency and number of configs blocked.",
+      "primary_outcome": "Proportion of operational faults (emulation failures) that are undetected by the verifier (i.e., false negative rate) comparing LLM+verifier vs LLM-only; primary metric: reduction in undetected faults (absolute and relative).",
+      "analysis_outline": "Compute per-task confusion matrices comparing verifier detection vs emulation ground truth. Use paired McNemar test to assess difference in undetected-fault proportions between arms. Report bootstrap 95% CIs for detection rates. Analyze categories of undetected faults via qualitative taxonomy (semantic intent mismatch, protocol misuse, ordering errors). Report verifier false-positive rate and tradeoffs. Pre-specified subgroup analyses: topologies complexity, policy type, device vendor config dialect.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4383102586",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4413757586"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4383102586"
+      ],
+      "risks": [
+        "Verifier may not fully model vendor-specific semantics leading to systematic false negatives.",
+        "Emulation environment (Mininet/container routers) may not reproduce production state leading to mismatch with real-world outcomes.",
+        "Hosted-model API nondeterminism or rate limits could bias paired comparisons; must use fixed seeds and record metadata.",
+        "Constructed intent corpus may not reflect full operational diversity (external validity)."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "c2",
+      "title": "Effectiveness and convergence of a Generate–Verify–Repair (GVR) loop for intent→configuration",
+      "research_question": "Does an iterative generate–verify–repair (GVR) pipeline using an LLM and deterministic network verifier converge to valid, executable configurations faster and with higher final correctness than single-pass generation or single-verify-with-one-repair strategies?",
+      "hypotheses": [
+        "An iterative GVR pipeline will achieve a higher final correctness rate (emulation-verified configs) within a bounded number of iterations than single-pass generation followed by a single repair attempt.",
+        "The majority of successful repairs in the GVR loop will be achieved within the first three repair iterations, producing diminishing returns afterwards."
+      ],
+      "proposed_design": "Implement three automated pipelines: (A) single-pass LLM generation (baseline); (B) generate + single automated repair (one additional LLM prompt guided by verifier output); (C) iterative GVR loop (up to 5 iterations or until verifier passes). Use a curated set of 80 intents over varied topologies/policy types. For each intent, run each pipeline with identical prompts, verifier feedback parsing, and deterministic stopping rules. For final configs, run the emulation tests (reachability/policy). Record iteration counts, verifier outputs, and LLM responses. Pre-register repair prompt templates, iteration cap, and acceptance criteria.",
+      "expected_data": "Per-intent: number of iterations to pass, verifier pass/fail per iteration, final emulation pass/fail, time-to-solution, number and type of repairs applied, cases where GVR cycles without convergence.",
+      "primary_outcome": "Final emulation-verified correctness rate within the iteration cap for GVR vs baselines (proportion of intents resulting in emulation-successful configs).",
+      "analysis_outline": "Compare final correctness rates across pipelines using paired proportion tests (McNemar or paired bootstrap). Model iteration counts with survival analysis (time-to-success) and report median iterations to success. Test the hypothesis of diminishing returns by plotting cumulative success vs iterations and testing slope changes. Conduct error-mode analysis on non-convergent cases to categorize failure causes (hallucination, verifier-ambiguous feedback, conflicting constraints).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4389217585",
+        "https://openalex.org/W4383102586"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4400611559"
+      ],
+      "risks": [
+        "LLM repair prompts may introduce new errors (repair-induced regressions).",
+        "Iteration cap might hide slower but correct convergence (choice affects conclusions).",
+        "Verifier feedback parsing errors could mislead the LLM repair step.",
+        "Compute/time constraints could bias sample size or iteration counts."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "c3",
+      "title": "Adversarial robustness of NetOps LLMs: prompt perturbations and noisy telemetry, and mitigation via RAG and constrained decoding",
+      "research_question": "How do adversarial prompt perturbations and noisy/poisoned telemetry inputs affect the correctness and safety of LLM-generated network configurations, and to what extent do retrieval-augmented grounding (RAG) and constraint-enforcing decoding mitigate those effects?",
+      "hypotheses": [
+        "Adversarial prompt perturbations and corrupted telemetry will significantly reduce the correctness and increase safety violations of LLM-generated configurations compared to clean inputs.",
+        "Combining RAG (grounding on verified policy fragments) with constraint-enforcing decoding will partially restore correctness and reduce safety violations relative to an unconstrained LLM under adversarial/noisy conditions."
+      ],
+      "proposed_design": "Define three perturbation families: lexical prompt perturbations (paraphrase/noise), malicious intent injection (conflicting goals), and telemetry corruption (noisy topology/ACL state). Create 90 tasks (30 per perturbation family) plus clean controls. For each task, run four methods: (1) LLM baseline; (2) LLM with constrained decoding; (3) LLM with RAG grounding; (4) LLM with RAG + constrained decoding. Use the verifier+emulation pipeline to evaluate safety and correctness. Pre-register perturbation generation procedures (random seeds, paraphrase models), RAG index contents (policy fragments, device templates), and decoding constraint specifications.",
+      "expected_data": "Per task and method: emulation pass/fail, list and categories of safety violations, verifier flags, distance-from-intent metrics, and per-method delta from clean-control performance. Aggregate performance by perturbation family and method.",
+      "primary_outcome": "Effect size (absolute and relative change) in emulation-verified correctness under perturbation for baseline vs mitigation (RAG + constraint); primary metric: mean difference in correctness proportion with 95% CI.",
+      "analysis_outline": "Estimate effect sizes per perturbation family using paired comparisons (paired bootstrap or McNemar as appropriate). Fit mixed-effects logistic regression with random intercepts for task to quantify mitigation effect controlling for perturbation type. Report mitigation efficacy as relative risk reduction. Perform qualitative analysis of residual failure modes where mitigations fail.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4362515116",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W4407357344"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4400611559",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Generated perturbations may not represent real-world adversaries (external validity).",
+        "Constraint-enforcing decoding may reduce utility/usability by over-restricting valid variants.",
+        "RAG index curation choices may bias mitigation efficacy (selection bias).",
+        "Access to paraphrase/noise generation models and RAG store consistency must be logged for reproducibility."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "c4",
+      "title": "Design and pilot evaluation of a compact NetOps safety benchmark (NetOps-SafeBench) for LLM-driven configuration correctness",
+      "research_question": "Can a compact, publicly reproducible NetOps safety benchmark that encodes operational invariants (reachability, policy compliance, safe rollback) discriminate between LLM-based pipelines (baseline LLM, LLM+verifier, LLM+GVR) on operationally meaningful metrics?",
+      "hypotheses": [
+        "A small curated benchmark (≈50 intents across diverse topologies) focused on operational invariants will reveal statistically significant performance differences among baseline LLM, LLM+verifier, and LLM+GVR pipelines.",
+        "The benchmark’s operational metrics (emulation-verified correctness and safety-violation counts) will correlate only moderately with static syntactic metrics (e.g., config grammar validity), demonstrating the necessity of end-to-end operational evaluation."
+      ],
+      "proposed_design": "Assemble NetOps-SafeBench from public topology examples and policy cases; define 50 intents with ground-truth operational tests and invariants. Implement three pipelines: baseline LLM generation, LLM+verifier (block/flag), and LLM+GVR (iterative repair). Run each pipeline on all benchmark tasks, execute emulation tests, and collect metrics. Publish benchmark artifacts, task definitions, and evaluation scripts. Pre-register inclusion rules, task sampling, and evaluation code.",
+      "expected_data": "Benchmark artifacts (topologies, intents, tests), per-task pipeline outputs, emulation pass/fail labels, counts of safety violations, config syntactic-validity scores, and per-pipeline aggregate metrics (accuracy, precision on violations detected, runtime).",
+      "primary_outcome": "Benchmark discriminability measured by ability to detect pipeline performance differences: primary metric is between-pipeline variance in emulation-verified correctness and significance of pairwise differences (e.g., ANOVA p-value <0.05).",
+      "analysis_outline": "Compute per-pipeline summary statistics and confidence intervals. Use repeated-measures ANOVA or Friedman test for nonparametric comparisons across pipelines; follow up with paired post-hoc tests (Wilcoxon signed-rank) and effect sizes. Compute correlation (Spearman) between syntactic validity measures and emulation correctness to evaluate construct validity. Publish benchmark and evaluation scripts for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4416037356",
+        "https://openalex.org/W4416982487",
+        "https://openalex.org/W4407357344"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4400611559"
+      ],
+      "risks": [
+        "Compact benchmark may not cover full operational diversity and could overfit to chosen pipelines.",
+        "Creating reproducible emulation artifacts that run across environments can be brittle; Dockerization and clear hashes required.",
+        "Benchmark may be gamed if pipeline-specific heuristics are tuned; mitigate by publishing fixed evaluation code and seeds."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

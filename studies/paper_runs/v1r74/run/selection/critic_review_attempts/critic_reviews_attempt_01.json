@@ -1,0 +1,97 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c1",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Emulation (Mininet/container) may not capture vendor-specific semantics leading to mismatch with verifier/emulation ground truth.",
+        "Verifier coverage (Batfish/NetKAT) may not model all device dialects -> systematic false negatives.",
+        "Sample size (60) and task diversity may be insufficient for strong external validity.",
+        "Hosted-API nondeterminism and rate limits could bias paired comparisons if not strictly controlled."
+      ],
+      "required_design_repairs": [
+        "Specify exact verifier(s), versions, vendor dialects supported and how unsupported dialects are handled.",
+        "Provide detailed emulation images, Docker hashes, and justify emulator fidelity relative to production.",
+        "Pre-register exact prompt templates, model identifiers, seeds, and retry policy; log model-call metadata.",
+        "Increase task diversity or stratify sample and justify 60-task size with power calculation; define inclusion/exclusion rules.",
+        "Define treatment of verifier false positives/negatives and analysis thresholds; include sensitivity analysis."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c2",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.55,
+      "compute_feasibility": 0.65,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier-to-LLM feedback parsing is brittle and may bias repair steps if underspecified.",
+        "Repair prompts can introduce regressions; need formalized repair prompt design and checks.",
+        "Iteration cap (5) may hide slower-but-correct convergences and bias conclusions.",
+        "Pipeline complexity makes full reproducibility challenging without exhaustive logging."
+      ],
+      "required_design_repairs": [
+        "Define formal parser/spec for verifier feedback -> prompt templates that consume structured feedback.",
+        "Pre-register iteration cap rationale and run sensitivity analysis with alternative caps.",
+        "Log every iteration with hashes, prompt+response archives, and exact model identifiers; provide replay scripts.",
+        "Specify acceptance criteria for ‘pass’ and behavior on oscillating repairs; include termination diagnostics."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c3",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.55,
+      "causal_interpretability": 0.55,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Adversarial/perturbation generation may be synthetic and not representative of real-world attacks without careful design.",
+        "Constrained-decoding implementation is underspecified (which algorithm/solver?), affecting reproducibility and effectiveness.",
+        "RAG index curation choices may strongly bias mitigation results; need exact provenance of indexed documents.",
+        "High model-call budget and dependence on auxiliary paraphrase/noise models can reduce reproducibility."
+      ],
+      "required_design_repairs": [
+        "Specify exact perturbation generation methods, models, seeds, and provide perturbation corpus for reuse.",
+        "Define the constrained-decoding algorithm precisely (implementation, hyperparameters) and provide code.",
+        "Publish exact RAG index contents, retrieval settings, and dataset hashes; pre-register curation policy.",
+        "Pre-register mixed-effects model specification and covariates; include robustness checks for perturbation realism."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c4",
+      "novelty": 0.65,
+      "falsifiability": 0.9,
+      "evidence_support": 0.5,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Compact benchmark may not cover operational diversity and risks overfitting to evaluated pipelines.",
+        "Creating reproducible emulation artifacts is brittle; portability across environments must be ensured.",
+        "Statistical discriminability with ~50 tasks may be underpowered unless effect sizes are large.",
+        "Benchmark publication plus five-page paper and required Disclosure may be tight on space."
+      ],
+      "required_design_repairs": [
+        "Provide full artifact packaging (Docker images, hashes, automated deploy scripts) and licensing for reuse.",
+        "Justify benchmark size with power analysis; if underpowered, adjust task count or frame as pilot study.",
+        "Define baseline pipeline implementations and configuration exactly; include evaluation code and seeds.",
+        "Ensure Disclosure Statement and artifact-links fit within five pages; prepare concise artifact appendices and external repo with integrity hashes."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}
