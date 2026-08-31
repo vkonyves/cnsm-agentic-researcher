@@ -1,0 +1,248 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Executable, emulation-grounded benchmarks and frameworks for closed-loop evaluation of LLM agents in network configuration tasks have been developed (enabling action execution in emulated networks and hidden task-specific tests).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W4405845747"
+      ],
+      "evidence_type": "benchmark/implementation",
+      "confidence": 0.9,
+      "limitations": [
+        "Evaluations are primarily in emulation/sandboxed settings (not full production networks).",
+        "Benchmarks vary in scope and task coverage across papers."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "LLM-based assistants can help network engineers in real demonstration networks, but their outputs are probabilistic and benefits depend on operator understanding and external tooling (HITL integration).",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "case-study/system",
+      "confidence": 0.85,
+      "limitations": [
+        "Reported user evaluations are from specific demonstration deployments and may not generalize.",
+        "Assessed helpfulness does not imply autonomous safe deployment without human oversight."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Agentic/tool-augmented architectures that combine LLM generation with iterative validation or formal verification improve repair efficacy and reduce unsafe regressions compared to base LLMs in benchmarked scenarios.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162218766",
+        "https://openalex.org/W7117986201"
+      ],
+      "evidence_type": "empirical/benchmark",
+      "confidence": 0.85,
+      "limitations": [
+        "Improvements are reported on benchmark/dataset instances and emulations; real-world scaling and edge cases remain partially evaluated.",
+        "Exact improvement magnitudes vary by architecture, dataset, and verification tooling."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Deterministic formal verification and symbolic/static analysis tools (e.g., Plankton, SymNet, Vera and header-space-style methods) are feasible and are used as validators/oracles for configuration correctness in research pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4288028074",
+        "https://openalex.org/W2339906640",
+        "https://openalex.org/W2832131618",
+        "https://openalex.org/W3189027064"
+      ],
+      "evidence_type": "tool/method",
+      "confidence": 0.9,
+      "limitations": [
+        "Formal/verifier approaches can be computationally expensive and may not capture every operational dynamic (e.g., runtime state, transient protocol behavior).",
+        "Integration with stochastic LLM outputs requires translation/abstraction layers."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Schema- or rule-constrained generation and tool-augmented verification materially increase the rate of producing executable/valid structured outputs in domain tasks; constrained generation and tool augmentation are effective mitigation components.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "doi:10.3390/app16020586",
+        "doi:10.26434/chemrxiv.15005091/v1"
+      ],
+      "evidence_type": "empirical/method",
+      "confidence": 0.8,
+      "limitations": [
+        "Cross-domain transfer of measured gains is not guaranteed; most reported quantitative improvements are domain- or dataset-specific.",
+        "Some supporting results are from preprints or non-network domains adapted for analogy."
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Adversarial/poisoning attacks (prompt injection, RAG poisoning, order‑oblivious injection) can induce hallucinations or actionable misconfigurations in LLM-driven NetOps pipelines; defensive mitigations reduce but do not fully eliminate these risks in evaluated settings.",
+      "evidence_record_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "doi:10.14722/ndss.2026.230675",
+        "doi:10.14722/ndss.2026.240702"
+      ],
+      "evidence_type": "security/empirical",
+      "confidence": 0.85,
+      "limitations": [
+        "Most adversarial evaluations are synthetic or simulator-based; operational exploitability in diverse production stacks needs further study.",
+        "Defenses often trade false positives, latency, or operational complexity."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How well do agentic + verifier architectures generalize and scale to production, multi-vendor networks with large topologies and live state?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7157506260",
+        "https://openalex.org/W7162218766"
+      ],
+      "evidence_type": "open_research_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Benchmarks report scale-related degradation and some production-case repairs, but systematic, large-scale production evaluations are lacking."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What is the real-world effectiveness of retrieval‑poisoning and prompt‑injection defenses in operational RAG pipelines used for NetOps?",
+      "evidence_record_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "doi:10.14722/ndss.2026.230675"
+      ],
+      "evidence_type": "security_open_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing studies are controlled and synthetic; transfer to heterogeneous production data and pipelines is uncertain."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "Which standardized metrics best capture operational correctness, semantic equivalence, and harmful side effects of generated configuration changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "https://openalex.org/W7163078129"
+      ],
+      "evidence_type": "measurement_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Several papers call for richer, behavior-grounded scoring but no single community standard is established in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "What operator acceptance thresholds, latency budgets, and workflow designs are required to safely integrate LLM-generated proposals into live change pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117",
+        "doi:10.59324/ejsmt.2026.2(3).12"
+      ],
+      "evidence_type": "operational_question",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing user studies are limited in scope and population; broader human factors research is needed."
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "How durable are safety gates and verification loops under long‑term distributional drift and continuous change in network state and documentation?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W7161354925",
+        "https://openalex.org/W7163078129"
+      ],
+      "evidence_type": "robustness_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Papers propose architectures for safety‑gated adaptation but longitudinal empirical evidence in operational settings is not supplied."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a shortage of large, public, multi‑vendor, real-device network configuration corpora that capture production variability for benchmarking LLM NetOps systems.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4392875514",
+        "https://openalex.org/W7157506260"
+      ],
+      "evidence_type": "data_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Some projects synthesize or curate corpora, but an openly shared, wide-coverage production corpus is not evident in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Benchmarks and evaluations that jointly exercise adversarial retrieval‑poisoning, HITL approval workflows, and emulation‑grounded execution are limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204209332",
+        "10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "evaluation_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Existing benchmarks address subsets (closed‑loop emulation or adversarial injection) but combined end‑to‑end scenarios are sparse."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Computational cost and scalability limits of formal verification when integrated into iterative LLM-driven repair loops need systematic quantification for large topologies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4288028074",
+        "https://openalex.org/W3189027064"
+      ],
+      "evidence_type": "methodological_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Plankton and other verifiers show performance gains but full-cost studies in continuous agentic pipelines are not detailed in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Operator-centered, multi‑site studies measuring trust, decision latency, and error‑tolerance for LLM suggestions are underrepresented.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162044117"
+      ],
+      "evidence_type": "human_factors_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "The supplied case study is valuable but limited to a single demonstration deployment and participant set."
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Standard, community‑accepted metrics for semantic equivalence and side‑effect detection (beyond syntactic correctness) are not yet established for LLM‑generated network changes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163078129",
+        "https://openalex.org/W7204209332"
+      ],
+      "evidence_type": "standards_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Some works propose measures or iterative refinement frameworks, but no consensus metric suite is evident in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G6",
+      "statement": "There is limited published empirical evaluation of agentic NetOps under real-world adversarial threat models (beyond synthetic simulators).",
+      "evidence_record_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "doi:10.14722/ndss.2026.230675"
+      ],
+      "evidence_type": "security_evidence_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Adversarial work is strong in simulators; field-scale adversarial evaluations against production stacks are not present in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production‑ready to autonomously perform network configuration changes in live multi‑vendor production networks without human approval.",
+    "A single LLM model or prompting scheme reliably generalizes across all network topologies and vendor configurations without verification.",
+    "There is no adversarial risk to RAG or agentic NetOps pipelines (i.e., prompt injection and retrieval poisoning are negligible).",
+    "Formal verification eliminates all operational risk when applied to LLM‑generated configurations (evidence shows it is necessary but not sufficient).",
+    "Existing benchmarks fully capture real-world production risks and thus suffice to claim production safety."
+  ]
+}
