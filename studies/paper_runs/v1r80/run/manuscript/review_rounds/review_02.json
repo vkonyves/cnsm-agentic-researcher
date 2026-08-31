@@ -1,0 +1,21 @@
+{
+  "summary": "Careful, well-logged preregistered paired experiment that executed as a shared_initial_candidate guarded generate→validate→repair pipeline and found no actionable misconfigurations (250/250 valid; no repairs applied). The run correctly documents a preregistration deviation (retrieval disabled), preserves required provenance (master prompt SHA), and archives analysis and execution artifacts. Main scientific limitation is that the executed design did not test the preregistered RAG/poisoning hypotheses; inference is therefore narrow and correctly bounded in the manuscript.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "References/ bibliography format not verifiable in the supplied manuscript excerpt: the final paper must use a conventional IEEE numbered bibliography with full bibliographic metadata (authors, title, venue, year, DOI/URL) rather than identifier-only entries (DOI/OpenAlex/arXiv IDs)."
+  ],
+  "required_revisions": [
+    "Replace any identifier-only reference entries with a standard IEEE-style numbered References section containing full bibliographic metadata for each cited work (authors, title, venue, year, and DOI/URL where available). Ensure in-text citations use IEEE numeric markers that match the reference list.",
+    "Add one explicit, prominent sentence in the Introduction (near the research-question statement) that states, in plain terms, that the preregistered RAG/poisoning hypotheses were not executed because retrieval_augmented_generation was disabled in the run, and therefore the reported confirmatory test measures only validator/repair effects under shared_initial_candidate semantics. (This must be clearly visible to a reader who reads the abstract+introduction only.)",
+    "Condense the Disclosure Statement to avoid repetition of execution-log detail while preserving the mandatory items (LLM(s) and provider, adapter, exact initial master_prompt locator and its SHA-256, autonomy-lock boundary, and the explicit note that generation_semantics=shared_initial_candidate and retrieval_augmented_generation=false). Remove or relocate per-file inventory or execution-log minutiae from the body Disclosure into the archived evidence bundle (the archive is already referenced)."
+  ],
+  "optional_revisions": [
+    "Include (or point explicitly to in the paper body) the evidence-to-claim table and nearest-work comparison matrix as a short appendix or as links with artifact hashes so reviewers/readers can inspect claim support easily.",
+    "Add a one-row mapping table in Methods showing stored scorer label semantics (e.g., VALID_CONFIGURATION=1) and the operationalized estimand (actionable_misconfig = 1 − VALID_CONFIGURATION) to help readers avoid confusion.",
+    "State explicitly in Methods that temperature=null/unset is recorded and discuss implications for hosted-model nondeterminism in a single succinct sentence (if not already present)."
+  ],
+  "accept_for_finalisation": false
+}

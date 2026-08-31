@@ -1,0 +1,28 @@
+{
+  "study_id": "candidate-2026-003-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis of per-task binary actionable_misconfig outcome (N_confirmatory = 250 task pairs) using the registered executor paired_binary_analysis_v1. Test the preregistered estimand paired_success_rate_difference_guarded_minus_baseline (guarded minus baseline) at the primary poison fraction = 0.30. Two-sided alpha = 0.05; report paired difference, 95% CI, and two-sided p-value (McNemar/conditional exact paired test as implemented in the executor). Apply preregistered exclusion rule 'complete_pair_primary' (exclude any pair with a missing condition).",
+  "secondary_analyses": [
+    "Paired mitigation-effect estimate (guarded vs baseline) at poison fraction 0.30 (paired estimate; report point estimate and 95% CI).",
+    "Exploratory: logistic mixed-effect dose–response model (poison_fraction predictor, task random effect) with clustered-bootstrap 95% CIs — reported only if poison_fraction metadata present in raw results; otherwise omitted and noted as not executed."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat missing model outputs as actionable_misconfig=0 for bounding effect sizes).",
+    "Report sensitivity to exclusions: descriptive table of excluded task_indices, failure codes, and hashes; if >10% exclusions, report execution-failure diagnostics per preregistration."
+  ],
+  "uncertainty_quantification": "Primary: two-sided 95% confidence interval for the paired difference (executor-provided exact/conditional method appropriate for paired binary outcomes). Secondary/exploratory GLMM: 95% CI via clustered bootstrap (preregistered). All CIs and p-values computed deterministically from archived raw_results.jsonl and verifier traces.",
+  "multiplicity_implementation": "Single predeclared confirmatory comparison only (primary estimand). All other analyses labeled exploratory. For reported families of exploratory hypothesis tests, control false discovery rate using Benjamini–Hochberg across that reported family. No post hoc promotion of exploratory results to confirmatory.",
+  "contamination_analysis": "Follow preregistered containment: synthetic-poison fragments were created in the reserved synthetic corpus, provenance-tagged as SYNTHETIC_POISON, and subject to deterministic pre-export hash allowlist checks. Confirmatory analysis uses only controlled injections from the synthetic-reserved corpus. No synthetic-poison fragments are exported; containment checks and provenance flags are logged. Residual risks and detection logs are included in the execution artifact bundle.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary confirmatory results: included_pairs_N, excluded_pairs_count (with failure codes), baseline actionable_misconfig rate, guarded actionable_misconfig rate, paired difference (guarded−baseline), 95% CI, two-sided p-value, and exact counts of discordant pairs (baseline=1/guarded=0 and baseline=0/guarded=1).",
+    "Table 2 — Sensitivity analyses: results for 'complete_pair_primary_with_failure_as_zero_sensitivity' (rates, paired difference, 95% CI), and table listing excluded task_indices with failure_code and artifact_hash.",
+    "Table 3 — Execution summary and provenance: planned_episode_count, completed_episode_count, failed_episode_count, model_calls_used, maximum_model_calls, preregistration_sha256, artifact_hashes_total_count, and brief containment check pass/fail flags."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar chart of actionable_misconfig rate by condition (baseline vs guarded) with 95% CI error bars computed from paired data (produced from execution/raw_results.jsonl).",
+    "Figure 2 — Distribution of per-task outcome pairs: stacked bar or mosaic of concordant vs discordant paired outcomes (counts of (0,0),(1,1),(1,0),(0,1)).",
+    "Figure 3 — Error-type breakdown: proportions of verifier_trace-labeled failure/error types among actionable_misconfig=1 cases (categories derived deterministically from verifier_trace fields in raw_results.jsonl)."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "summary": "Carefully documented, artifact-backed preregistered paired run that executed under shared_initial_candidate semantics with retrieval disabled. All 250 shared initial candidates were judged valid by the deterministic validator, so no repairs were applied and no actionable misconfigurations occurred in either arm. The paper correctly records a preregistration deviation (RAG/poisoning hypotheses not testable) and archives comprehensive provenance. The study is narrowly informative about the guarded pipeline only in the special case where baseline and guarded arms reuse an already-valid sampled candidate; it does not provide evidence about RAG-poisoning, independent-generation variability, or production generality.",
+  "novelty_score": 4,
+  "technical_depth_score": 5,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Preregistered primary hypothesis targeted RAG/poisoning effects, but retrieval_augmented_generation was disabled in execution. Although the manuscript documents this deviation, the paper must make explicit and unambiguous everywhere (title, abstract, introduction, contributions, and conclusions) that the executed estimand is the validator/repair effect on a shared initial candidate, not the originally preregistered RAG-poisoning estimand.",
+    "References and citation presentation in the supplied manuscript metadata use identifier lists (DOIs/OpenAlex ids). The submitted manuscript must include a conventional IEEE-numbered References section with full bibliographic metadata for every cited source, and every numbered citation in prose must actually support the proximate scholarly claim.",
+    "The paper’s primary confirmatory claim (no paired effect) depends entirely on shared_initial_candidate semantics. The Methods and Results must include an explicit, concise estimand mapping table that (a) shows the preregistered estimand(s), (b) shows the executed estimand(s) under shared_initial_candidate semantics, and (c clearly states how the analysis artifacts realize that executed estimand. This is required to avoid ambiguity about which causal contrast was actually measured."
+  ],
+  "required_revisions": [
+    "Prominently and unambiguously reframe the manuscript text (title/abstract/introduction/conclusion) so every principal claim refers to the executed estimand (validator/repair effect on a shared initial candidate). Do not present or imply that the run measured RAG/poisoning or independent per-condition generation effects.",
+    "Replace identifier-only citation entries with a conventional IEEE-numbered References list including full bibliographic metadata (authors, title, venue, year, DOI/URL). Ensure each numbered citation in the prose supports the immediately adjacent claim; revise any unsupported citation language.",
+    "Add an explicit estimand/contrast mapping table in Methods (or an Appendix within the five pages) that shows: preregistered estimand(s), executed estimand(s) under generation_semantics = shared_initial_candidate, how actionable_misconfig was operationalized (mapping VALID_CONFIGURATION → actionable_misconfig = 1 − VALID_CONFIGURATION), and how the paired test corresponds to the executed estimand. Reference the archived artifacts (contingency CSV, model_configuration.json, and master_prompt locator) that prove the realized semantics.",
+    "Confirm the Disclosure Statement is concise, remains within pages 1–5, and includes exactly one immutable master-prompt locator plus its SHA-256 digest as supplied in the evidence bundle (provenance/master_prompt.txt and its SHA-256). If any disclosure prose duplicates low-level execution logs or per-file hashes unnecessarily, condense to the required content only."
+  ],
+  "optional_revisions": [
+    "Add a short table or paragraph in Discussion quantifying how the observed zero-event outcome invalidates the preregistered power assumptions, and show the sensitivity region of baseline rates where the original design would have been informative (use archived discovery-partition simulations if available).",
+    "Clarify the practical implications of model_configuration.temperature = null: state explicitly whether provider traces show nondeterministic sampling in practice and point to the archived provider-call traces for readers who wish to inspect sampling variability.",
+    "Expand the Limitations/Future Work section to outline a concrete follow-up preregistered design that would enable a valid test of the original RAG/poisoning hypotheses (explicit retrieval pipeline, injection provenance, per-condition independent sampling, and diversified validators/models), referencing artifacts already present that would support such a run."
+  ],
+  "accept_for_finalisation": false
+}

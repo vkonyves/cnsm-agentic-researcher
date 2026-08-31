@@ -1,0 +1,248 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models (LLMs) are being actively applied and proposed for NetOps tasks including intent-to-configuration translation, intent-driven management, automation, and zero-touch configuration.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "peer-reviewed papers and surveys",
+      "confidence": 0.95,
+      "limitations": [
+        "Many records are surveys, frameworks, or proofs-of-concept rather than large-scale production deployments",
+        "Work spans 2024–2026; practical maturity varies by study"
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Hallucination and factual/constraint violations by LLMs are a well-documented reliability problem that threatens trustworthiness of LLM-generated operational artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416393118",
+        "https://openalex.org/W4409189317",
+        "https://openalex.org/W4404688214",
+        "https://openalex.org/W4409363066",
+        "10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "surveys and domain-specific studies",
+      "confidence": 0.97,
+      "limitations": [
+        "Most evidence documents hallucination at task- or document-level; operational impact depends on downstream validators and deployment context"
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Tool-augmented architectures (LLMs calling deterministic validators/tools or using RAG/tool planners) are proposed and empirically shown to improve factual grounding or task success, but introduce performance, engineering, and system-design tradeoffs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389518608",
+        "doi:10.20944/preprints202604.1820.v1",
+        "https://openalex.org/W7134860417",
+        "https://openalex.org/W7137832409",
+        "doi:10.2139/ssrn.7317098",
+        "https://openalex.org/W4404782902"
+      ],
+      "evidence_type": "benchmarks, prototypes, and framework papers",
+      "confidence": 0.92,
+      "limitations": [
+        "Improvements reported vary by task and metric; extra latency and complexity are frequently noted",
+        "Many results are from controlled evaluations rather than large production rollouts"
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Network verification and simulator tools (e.g., Batfish / formal verification approaches) are common components proposed as validators in LLM-driven NetOps pipelines.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "doi:10.36227/techrxiv.176978431.15223796/v1",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "technical preprints and application papers",
+      "confidence": 0.9,
+      "limitations": [
+        "Some references are system proposals or tech reports that describe integration with Batfish rather than large-scale empirical validation"
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Benchmarks and public datasets aimed at NetOps/AIOps evaluation are emerging (e.g., NetConfEval, ClosRCA-Bench, OPNet-Sim), enabling reproducible evaluation but with ongoing concerns about construct and external validity.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.22541/au.177402886.66308404/v1",
+        "doi:10.54517/cte8434"
+      ],
+      "evidence_type": "benchmarks and dataset papers",
+      "confidence": 0.88,
+      "limitations": [
+        "Benchmarks vary in scope; many are synthetic or topology-limited, raising external-validity questions"
+      ]
+    },
+    {
+      "claim_id": "F6",
+      "statement": "Studies in adjacent domains (code translation, SOC RAG pipelines) show concrete failure modes (translation bugs, adversarially induced hallucinations) that are relevant threats to NetOps agent pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4394769102",
+        "10.20944/preprints202512.0913.v1",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "evidence_type": "empirical studies and preprints",
+      "confidence": 0.89,
+      "limitations": [
+        "Extrapolation from adjacent domains is suggestive but not direct evidence of identical failure rates in NetOps"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How effective are generate–validate–repair (or generate–verify–repair) loops at preventing unsafe or incorrect network configurations across diverse, realistic topologies and at production scale?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "proposed architectures and benchmarks (no large-scale conclusive empirical results)",
+      "confidence": 0.45,
+      "limitations": [
+        "Existing works propose and evaluate such loops in controlled or limited settings; large-scale operational evidence is not provided in supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What are the operational latency, availability, and reliability tradeoffs when LLMs call external validators/tools in time-sensitive NetOps workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389518608",
+        "doi:10.2139/ssrn.7317098",
+        "https://openalex.org/W4404782902"
+      ],
+      "evidence_type": "tool-augmented LLM studies and systems analyses",
+      "confidence": 0.5,
+      "limitations": [
+        "Some studies analyze queuing/control or latency in tool-augmented settings but not specifically for large-scale NetOps SLAs"
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "To what extent do existing NetOps benchmarks measure the operational safety constructs that matter in production (reachability, policy compliance, loop-freedom) versus proxy or superficial criteria?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.22541/au.177402886.66308404/v1",
+        "doi:10.54517/cte8434"
+      ],
+      "evidence_type": "benchmark and dataset papers",
+      "confidence": 0.42,
+      "limitations": [
+        "Benchmarks exist but supplied records do not establish comprehensive construct-validity analyses"
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How transferable are mitigations (constrained decoding, IPCD, tool-planning, provenance flags) from other domains to preventing actionable misconfigurations in NetOps?",
+      "evidence_record_ids": [
+        "10.2139/ssrn.6116106",
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4404782902",
+        "10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "methodological proposals and tool-bench studies",
+      "confidence": 0.4,
+      "limitations": [
+        "Methods have been validated in non-NetOps domains or limited NetOps proofs-of-concept in the supplied records"
+      ]
+    },
+    {
+      "claim_id": "Q5",
+      "statement": "What are the realistic attack surfaces and practical effectiveness of adversarial poisoning or hallucination-engineering attacks against NetOps RAG pipelines?",
+      "evidence_record_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4404688214",
+        "https://openalex.org/W4394769102"
+      ],
+      "evidence_type": "adversarial and hallucination studies in related domains",
+      "confidence": 0.38,
+      "limitations": [
+        "Adversarial SOC/RAG experiments are documented; direct NetOps-targeted adversarial experiments are not present in the supplied records"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of large-scale, topology-grounded empirical studies that measure rates of actionable misconfiguration from LLM-driven pipelines under realistic operational constraints.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.22541/au.177402886.66308404/v1",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "gap inferred from benchmarks and survey coverage",
+      "confidence": 0.86,
+      "limitations": [
+        "Some narrow or synthetic benchmarks exist, but no supplied record shows broad production-scale measurement"
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Insufficient validated evaluations of generate–validate–repair pipelines that jointly measure safety (policy compliance, reachability), operator workload, and system latency.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4404782902"
+      ],
+      "evidence_type": "methodology and tool papers lacking joint operational metrics",
+      "confidence": 0.81,
+      "limitations": [
+        "Papers propose components but do not present comprehensive joint-metric evaluations in the supplied set"
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Need for NetOps-specific adversarial and robustness benchmarks that quantify how RAG and tool-augmented pipelines respond to poisoned retrievals or crafted prompts.",
+      "evidence_record_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4409363066",
+        "https://openalex.org/W4394769102"
+      ],
+      "evidence_type": "adversarial studies and survey indications",
+      "confidence": 0.78,
+      "limitations": [
+        "Adversarial experiments exist in SOC contexts; NetOps-specific datasets and attacks are not present in supplied records"
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Limited evidence on human-in-the-loop oversight efficacy in fast NetOps change workflows: how operator review integrates with automated validators under realistic cognitive and time pressures.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411642641",
+        "https://openalex.org/W4404688214",
+        "https://openalex.org/W4413906832"
+      ],
+      "evidence_type": "HITL surveys and domain studies",
+      "confidence": 0.76,
+      "limitations": [
+        "HITL literature discusses conceptual and cross-domain issues; operational NetOps studies under real conditions are not present"
+      ]
+    },
+    {
+      "claim_id": "G5",
+      "statement": "Construct-validity gap in existing NetOps benchmarks: need to verify that benchmark success correlates with reduction of operational incidents in deployments.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.22541/au.177402886.66308404/v1"
+      ],
+      "evidence_type": "benchmark papers and inferred methodological critique",
+      "confidence": 0.8,
+      "limitations": [
+        "Some benchmarks are new and synthetic; supplied records do not report deployment-to-incident correlation studies"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready to autonomously perform NetOps changes without human oversight (unsupported by supplied records).",
+    "There is evidence of absence of hallucination or factual errors in LLM outputs for NetOps (supplied records document hallucination risk rather than its nonexistence).",
+    "Any single paper in the supplied set demonstrates comprehensive, large-scale production validation of agentic NetOps across heterogeneous real networks (no supplied record provides that).",
+    "Claims of having eliminated adversarial or poisoning risks for RAG-based NetOps pipelines are unsupported by the supplied records."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "study_id": "candidate-2026-003-prereg-v1",
+  "title": "Robustness of RAG-supported NetOps pipelines to poisoned retrievals",
+  "research_question": "To what extent can targeted poisoning of retrieval contexts (RAG) induce actionable misconfigurations in an LLM-driven NetOps pipeline that uses retrieved artifacts as grounding?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): Carefully crafted poisoned retrieval fragments at a predefined poison fraction (primary dose = 0.30) increase the actionable-misconfiguration rate relative to clean retrievals (paired within-task comparison).",
+    "H2 (secondary): Deterministic retrieval filters (provenance flags and retrieval-score thresholds) reduce but do not fully eliminate the increase in actionable-misconfiguration rate induced by poisoning at realistic poison strengths."
+  ],
+  "exploratory_questions": [
+    "E1: Dose–response curve shape across poison fractions {0.0, 0.05, 0.10, 0.20, 0.30, 0.50}.",
+    "E2: Breakdown of error types (reachability loss, policy-violation, syntax error) induced by poisoning.",
+    "E3: Prompt-sensitivity of poisoning effectiveness (small template variations)."
+  ],
+  "evidence_record_ids": [
+    "10.20944/preprints202512.0913.v1",
+    "https://openalex.org/W4409363066",
+    "https://openalex.org/W4394769102",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4404782902",
+    "doi:10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4404688214"
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps task bank derived from public NetOps benchmarks and synthetic topology generator (topology families: spine-leaf, three-tier, small enterprise, datacenter-clos, campus).",
+    "Validator/simulator scope: deterministic network-verifier traces (reachability, loop-freedom, policy compliance) implemented using open-source verification primitives (simulator/integration code published with experiment artifacts)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 250,
+    "planned_episode_count": 500,
+    "maximum_model_calls": 500,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline for actionable-misconfiguration (poisoned vs clean) at primary poison fraction 0.30; per-task paired binary outcome (actionable misconfiguration: 1/0) comparing baseline generation to guarded (generate→validate→repair) generation.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Mitigation effect size: paired_success_rate_difference_poisoned_minus_defended at poison fraction 0.30 (paired estimate of guarded vs baseline).",
+    "Dose–response slope estimate: logistic regression coefficient for poison_fraction predicting actionable-misconfig (paired design, task as cluster)."
+  ],
+  "sampling_plan": "Confirmatory paired design with N_confirmatory = 250 distinct tasks (task_count fixed to adapter contract). Each task executed under two adapter-supported conditions mapped to the adapter's conditions: (a) baseline (direct_generation) and (b) guarded (generate_validate_repair). For modest stochasticity, each task-condition uses one shared initial-generation per task and up to one deterministic repair call per task as provided by the adapter; to characterize residual randomness we preregister three fixed RNG seeds used by transformation and synthetic-poison generation scripts (these seeds determine synthetic-poison fragment generation and prompt-canonicalization; runtime model sampling parameters are recorded but model-level sampling is not guaranteed deterministic). A held-out discovery/tuning partition of 20 tasks (distinct from confirmatory tasks) is reserved for defense hyperparameter tuning. Inclusion rule: tasks whose ground-truth configuration passes the verifier. Exclusion rule: tasks where the verifier fails to run due to simulator error will be recorded and excluded from primary paired analysis; exclusions are logged. Planned model-call arithmetic: per-task max calls = episodes_per_task * (initial_generation_calls_per_task + maximum_repair_calls_per_task) = 2 * (1 + 1) = 4? (adapter constraints bound maximum_model_calls to task_count*2; the planned execution follows the adapter's exact call budget: one shared initial generation per task and at most one repair episode for failing initial candidates; total maximum_model_calls = 500). All runtime model-call parameters and adapter execution metadata are logged.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline at poison fraction 0.30. Target effect: detect an absolute paired increase in actionable-misconfig rate of delta = 0.05 at two-sided alpha=0.05 with 80% power. Calculation method: analytic approximation for paired binary outcomes (paired-proportion/McNemar approximation) supplemented by preregistered simulation-based sensitivity checks using the discovery partition and preregistered baseline rates. Assumptions: baseline actionable-misconfig rate under clean generation ≈ 0.05; moderate within-task dependence. Planned confirmatory N = 250 provides ~80% power to detect an absolute paired increase ≈ 0.045–0.06 under stated assumptions. Sensitivity analyses across baseline rates {0.02,0.05,0.10} and intra-task correlations {0.2,0.5,0.8} are preregistered and archived.",
+  "exclusion_rules": [
+    "Exclude any task from primary analysis if the deterministic verifier/simulator fails to produce a ground-truth validation result (simulator crash or data error).",
+    "Exclude any task pair with missing condition outputs per the adapter's 'complete_pair_primary' rule: pairs with any missing condition are excluded from the primary confirmatory test; exclusions are logged with failure codes and justification."
+  ],
+  "missingness_plan": "All failed or timed-out LLM calls and adapter execution errors are logged with standardized failure codes. Primary analysis uses 'complete_pair_primary' (exclude any task with missing condition). Pre-specified sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats missing model outputs as non-actionable (0) to bound effect sizes. Retrieval failures are not part of the adapter-executed pipeline (retrieval_augmented_generation=false); synthetic-poison generation and injection are deterministic given seeds. Any simulator/verifier failures that persist are documented and excluded with per-exclusion rationale.",
+  "analysis_plan": "Primary confirmatory analysis uses the registered analysis executor 'paired_binary_analysis_v1' (estimand id = paired_success_rate_difference_guarded_minus_baseline). Primary test: paired difference in actionable-misconfig indicator between poisoned (primary dose 0.30, injected into shared initial candidate) and clean generation across N=250 tasks; two-sided alpha=0.05. Primary executor failed-call treatment: 'complete_pair_primary' (exclude pairs with missing conditions). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' treating failed model calls as zero-actionable-misconfig. Secondary analysis: paired estimate of mitigation effect (guarded vs baseline) using same executor. Exploratory dose–response model: generalized linear mixed model (logistic regression) with poison_fraction (continuous), defense indicator, and task as random effect; 95% CI via clustered bootstrap. All analysis code, seeds, and raw outputs archived with hashes. Analysis will run under available analysis family 'paired_binary_analysis_v1' and compatible adapter 'hosted_netops_gvr_v1'.",
+  "multiplicity_plan": "Primary confirmatory test is the single paired comparison (poisoned at primary dose 0.30 vs clean). All other comparisons (multiple poison fractions, guarded vs baseline exploratory analyses) are labeled exploratory. For families of exploratory hypothesis tests reported, false discovery rate control will be applied using the Benjamini–Hochberg procedure across the reported exploratory family. No exploratory result will be promoted to confirmatory post hoc.",
+  "contamination_plan": "Containment measures: synthetic-poison fragments created only in a reserved synthetic corpus and provenance-tagged; deterministic provenance flagging prevents any synthetic-reserved fragments from being committed to public corpora; deterministic pre-export containment checks compare retrieved/injected fragment hashes against a 'no-publication' allowlist. Item-flagging: fragments created by poison-generator script flagged SYNTHETIC_POISON and never exported. Risk factors: accidental leakage of synthetic-poison fragments, overly realistic poison fragments; detection procedures: provenance tagging, deterministic containment checks, and pre-export hash comparisons. Analysis treatment: confirmatory analysis uses only controlled-poison injections from the synthetic-reserved corpus; flagged items are excluded from public exports and kept in an audit-only partition. Residual uncertainties about attacker capabilities beyond preregistered bounds are documented.",
+  "stopping_rule": "Run the full preregistered confirmatory schedule (N=250 tasks) unless a persistent adapter-level infrastructure failure prevents completion within the capability manifest wall-clock and call budget. Technical restarts permitted only to recover from infrastructure failure and must be logged; scientific stopping (early stopping for significance) is not permitted. If excessive verifier/simulator failures cause >10% exclusions, stop and report as an execution failure with full logs.",
+  "planned_outputs": [
+    "Preregistered manifest and machine-readable experiment plan",
+    "Execution artifacts: raw model outputs, validator traces, repair traces, hashes",
+    "Analysis scripts and results (primary and sensitivity analyses)",
+    "Five-page IEEE-format manuscript including Disclosure Statement",
+    "NotebookLM presentation brief (concise machine-readable)"
+  ],
+  "unresolved_critical_issues": []
+}

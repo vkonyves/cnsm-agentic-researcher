@@ -1,0 +1,152 @@
+{
+  "selected_candidate_id": "candidate-2026-003",
+  "title": "Robustness of RAG-supported NetOps pipelines to poisoned retrievals",
+  "research_question": "To what extent can targeted poisoning of retrieval contexts (RAG) induce actionable misconfigurations in an LLM-driven NetOps pipeline that uses retrieved artifacts as grounding?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): Carefully crafted poisoned retrieval fragments at a predefined poison fraction (primary dose = 0.30) increase the actionable-misconfiguration rate relative to clean retrievals (paired within-task comparison).",
+    "H2 (secondary): Deterministic retrieval filters (provenance flags and retrieval-score thresholds) reduce but do not fully eliminate the increase in actionable-misconfiguration rate induced by poisoning at realistic poison strengths."
+  ],
+  "exploratory_questions": [
+    "E1: Dose–response curve shape across poison fractions {0.0, 0.05, 0.10, 0.20, 0.30, 0.50}.",
+    "E2: Breakdown of error types (reachability loss, policy-violation, syntax error) induced by poisoning.",
+    "E3: Prompt-sensitivity of poisoning effectiveness (small template variations)."
+  ],
+  "benchmark_scope": [
+    "Synthetic NetOps task bank derived from public NetOps benchmarks and synthetic topology generator (topology families: spine-leaf, three-tier, small enterprise, datacenter-clos, campus).",
+    "Validator/simulator scope: deterministic network-verifier traces (reachability, loop-freedom, policy compliance) implemented using open-source verification primitives (simulator/integration code published with experiment artifacts)."
+  ],
+  "model_scope": [
+    "Hosted LLM API (single hosted model endpoint selected from available hosted APIs at execution time).",
+    "Retriever: embedding-based vector retriever (exact architecture and hyperparameters preregistered; see sampling_plan)."
+  ],
+  "transformation_scope": [
+    "Retrieval step that returns top-k context fragments per task.",
+    "Synthetic poison insertion into a reserved-synthetic-corpus only (poison fragments are never added to any public dataset).",
+    "Deterministic filtering defense (provenance flags and retrieval-score thresholding) applied at retrieval time."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline for actionable-misconfiguration (poisoned vs clean) at primary poison fraction 0.30, where each task provides a paired binary outcome (actionable misconfiguration: 1/0) under clean and poisoned retrievals.",
+  "secondary_estimands": [
+    "Mitigation effect size: paired_success_rate_difference_poisoned_minus_defended at poison fraction 0.30.",
+    "Dose–response slope estimate: logistic regression coefficient for poison_fraction predicting actionable-misconfig (paired design, cluster = task)."
+  ],
+  "sampling_plan": "Paired design with N_confirmatory = 250 distinct tasks in the confirmatory partition. Each task is run under three conditions (clean baseline, poisoned, poisoned+defense). For variance estimation and modest stochasticity, each task-condition is executed with 3 fixed RNG seeds (deterministic seeds preregistered). A held-out tuning partition of discovery_items = 20 tasks (distinct from confirmatory tasks) is reserved for defense hyperparameter tuning. Retrieval and poisoning are deterministic given a seed; all retrieval fragments and provenance metadata are logged. Retriver hyperparameters (retriever model/version, embedding method, k=8, reranking method, similarity normalization) are fully preregistered. Inclusion rule: tasks must be solvable by the verifier under ground-truth configuration (verification passes for ground-truth). Exclusion rule: any task where the verifier fails to run due to simulator error will be recorded and excluded from the primary paired analysis; such exclusions are rare and logged (see missingness_plan). Arithmetic derivation of model-call budget (recommended scenario): per-task calls = conditions(3) * seeds(3) = 9 LLM calls. Confirmatory calls = 250 * 9 = 2250. Discovery partition calls = 20 * 9 = 180. Total planned LLM calls = 2430 (matches recommended budget scenario).",
+  "analysis_plan": "Primary confirmatory analysis uses the registered analysis executor paired_binary_analysis_v1 (estimand: paired_success_rate_difference_guarded_minus_baseline). Primary test: paired difference in actionable-misconfig indicator between poisoned (poison fraction 0.30) and clean retrievals across N=250 tasks; two-sided alpha=0.05. Primary executor treatment of failed calls: 'complete_pair_primary' (pairs with any missing condition excluded from primary analysis). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' treating failed model calls as zero-actionable-misconfig in a conservative check. Secondary analysis: paired estimate of mitigation effect (poisoned vs poisoned+defense) using same executor. Dose–response model (exploratory): generalized linear mixed model (logistic regression) with poison_fraction (continuous), defense indicator, and task as random effect; 95% CI via clustered bootstrap. All analyses and exact executor call parameters are preregistered and mapped to the compatible execution adapter 'hosted_netops_gvr_v1' or 'synthetic_paired_llm_benchmark_v1' as available. All code, seeds, and raw outputs are archived with hashes.",
+  "multiplicity_plan": "Primary confirmatory test is the single paired comparison (poisoned at primary dose 0.30 vs clean). Other poison fractions and defense comparisons are exploratory; where multiple exploratory hypothesis tests are reported, we will control the false discovery rate using Benjamini–Hochberg across the reported exploratory family. No secondary result will be promoted to confirmatory status post hoc.",
+  "missingness_plan": "Failed or timed-out LLM calls are logged with failure codes. Primary analysis excludes any task pair with any missing condition (complete-pair analysis). A pre-specified sensitivity analysis treats missing LLM outputs as non-actionable (0) to bound effect sizes. Retrieval failures or verifier crashes are unit-tested and fixed prior to execution; any verifier-simulator failures that persist will produce a documented exclusion list and per-exclusion justification.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Synthetic NetOps task bank (confirmatory and discovery partitions; not publicly appended to external corpora)"
+    ],
+    "risk_factors": [
+      "Accidental leakage of synthetic poison fragments into public datasets",
+      "Overly realistic poison fragments resembling real malicious artifacts",
+      "Tuning defenses on confirmatory partition"
+    ],
+    "detection_procedures": [
+      "Deterministic provenance flagging: every fragment stored with explicit provenance tag (public-corpus | synthetic-reserved). Retrieval pipeline automatically rejects fragments without provenance.",
+      "Automatic containment check: before any external write, a deterministic comparison prevents committing any fragment tagged synthetic-reserved to public repositories.",
+      "Retrieval-replay hashes: every retrieved fragment hash compared against a 'no-publication' allowlist before any artifact export."
+    ],
+    "item_flagging_rules": [
+      "Flag fragment as SYNTHETIC_POISON if created by the poison-generator script and never include flagged fragments in any public-corpus outputs.",
+      "Flag fragment as LOW_PROVENANCE if retrieval score < preregistered threshold (score threshold preregistered) and report separately in analyses."
+    ],
+    "analysis_treatment": "Main confirmatory analysis includes only tasks executed under controlled conditions where poisoned fragments come exclusively from the synthetic-reserved corpus. Any retrievals flagged as SYNTHETIC_POISON are excluded from public dataset exports; when evaluating defenses, analyses compare (a) clean vs (b) controlled-poisoning vs (c) controlled-poisoning+defense, with poisoned fragments never uploaded to public corpora. All flagged items are analyzed separately in an audit-only partition (not public).",
+    "residual_uncertainty": [
+      "Residual uncertainty about attacker capabilities beyond the preregistered threat bounds (poison fraction up to 0.50).",
+      "Possible unseen similarities between synthetic-poison fragments and real-world malicious artifacts despite syntheticization safeguards."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "recommended-2430calls",
+      "description": "Recommended confirmatory run: confirmatory N=250 tasks, discovery/tuning partition = 20 tasks, three conditions (clean, poisoned, poisoned+defense), 3 fixed seeds per condition; fully preregistered retrieval and poison protocols. Total planned LLM calls computed deterministically: (confirmatory_items + discovery_items) * conditions * seeds = (250 + 20) * 3 * 3 = 2430 model calls.",
+      "planned_model_calls": 2430,
+      "models": [
+        "hosted-llm-api (single hosted endpoint; exact endpoint selected at execution time from available hosted APIs)"
+      ],
+      "transformations": [
+        "embedding-based retrieval (k=8, preregistered embedding model/version)",
+        "poison-insertion into synthetic-reserved corpus (poison-generation script, preregistered seeds)",
+        "deterministic defense filtering (provenance + retrieval-score threshold)"
+      ],
+      "discovery_items": 20,
+      "confirmatory_items": 250,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "Planned_model_calls 2430 is below the candidate's estimated_model_calls (2500) and within the maximum_planned_model_calls bound (10000). The computations assume 3 conditions and 3 seeds per condition; all retrieval/replay scripts are CPU-executable and hosted-model API calls are within permitted resources."
+    },
+    {
+      "scenario_id": "conservative-1440calls",
+      "description": "Conservative, lower-cost confirmatory run for budget or time-constrained execution: confirmatory N=150 tasks, discovery partition = 10 tasks, same conditions and seeds. Computation: (150+10) * 3 * 3 = 1440 model calls.",
+      "planned_model_calls": 1440,
+      "models": [
+        "hosted-llm-api (single hosted endpoint)"
+      ],
+      "transformations": [
+        "embedding-based retrieval (k=8)",
+        "poison-insertion limited to synthetic-reserved corpus",
+        "defense filtering (provenance flags + threshold)"
+      ],
+      "discovery_items": 10,
+      "confirmatory_items": 150,
+      "task_cluster_count": 5,
+      "feasibility_rationale": "Lower model-call footprint reduces statistical power but guarantees execution well under planned budgets and wall-clock constraints."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline at poison fraction 0.30",
+    "target_effect": "Detect a paired absolute increase in actionable-misconfig rate of delta = 0.05 (5 percentage points) at two-sided alpha=0.05 with 80% power",
+    "clustering_unit": "task (each task produces a paired binary outcome between clean and poisoned conditions)",
+    "calculation_method": "Analytic approximation for paired binary outcomes (paired-proportion test / McNemar-approximation) to guide sample size. Supplemented by simulation-based sensitivity checks using preregistered baseline rates.",
+    "assumptions": [
+      "Baseline actionable-misconfig rate under clean retrievals ≈ 0.05 (conservative estimate from literature and pilot tuning partition).",
+      "Within-task correlation between clean and poisoned outcomes positive; conservative power calculation assumes moderate within-task dependence.",
+      "Alpha = 0.05 (two-sided); desired power = 0.80; planned confirmatory N = 250.",
+      "Model-call budget and seeds fixed as preregistered."
+    ],
+    "recommended_scenario_id": "recommended-2430calls",
+    "minimum_detectable_effect_notes": "With N=250 paired tasks, under the baseline rate and conservative within-task correlation assumptions, the study is expected to detect an absolute paired increase of ~0.045–0.06 with ~80% power (approximate analytic bound). Exact MDE computed and archived with simulation scripts used for power verification.",
+    "sensitivity_analyses": [
+      "Simulated power under baseline rates = {0.02,0.05,0.10} and intra-task correlation values in {0.2,0.5,0.8}.",
+      "Sensitivity of MDE to reduced confirmatory N (e.g., 150) reported in supplement."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "Retrieval (embedding search, k=8, similarity normalization)",
+      "Poison-generation (synthetic-poison templates and substitution rules)",
+      "Defense-filtering (provenance flags, score thresholds)",
+      "Prompt templating (fixed templates with seeded variations for sensitivity)"
+    ],
+    "semantic_equivalence_checks": [
+      "For clean retrieval fragments derived from documentation, a deterministic check confirms semantic equivalence to source by comparing canonicalized token sequences and verifier-consistent artifacts.",
+      "For poison fragments, semantic non-equivalence to ground-truth is intentional and verified by unit tests that assert contradiction to preregistered constraints."
+    ],
+    "automatic_rejection_rules": [
+      "Reject any fragment lacking a provenance tag or whose provenance tag indicates public-corpus when the fragment originates from synthetic-poison generator.",
+      "Reject retrieval items with retrieval score below the preregistered low-confidence threshold for the main confirmatory analysis (these are logged and used only in exploratory reporting)."
+    ],
+    "audit_sample_policy": "Deterministic audit sample: 5% of retrieved fragments per condition are selected via a fixed hash-based sampler for automated semantic and provenance checks; results published in the artifact bundle (poison fragments redacted or syntheticized as per containment policy).",
+    "mapping_validation": "Mapping from retrieved fragment to provenance and to verifier input is validated with unit tests and test vectors; all mapping code and test vectors are preregistered and published with execution artifacts.",
+    "residual_risks": [
+      "Automated checks cannot prove absence of accidental semantic similarity between synthetic-poison fragments and real malicious artifacts; residual risk mitigated by aggressive syntheticization and non-public retention."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity: effect sizes may vary with different retriever architectures, embedding models, or k; these are acknowledged as noncritical scope limitations and reported as exploratory sensitivity analyses.",
+    "Simulator fidelity: the verifier/simulator abstracts production device quirks; results are constrained to the declared verifier semantics.",
+    "Defenses tested are simple heuristics (provenance & score threshold); more advanced defenses (e.g., learned rerankers) are out of scope for confirmatory claims.",
+    "Real-world attacker capabilities beyond the preregistered threat bounds may produce different outcomes; such scenarios are left to future work."
+  ],
+  "evidence_record_ids": [
+    "10.20944/preprints202512.0913.v1",
+    "https://openalex.org/W4409363066",
+    "https://openalex.org/W4394769102",
+    "https://openalex.org/W4389518608",
+    "https://openalex.org/W4404782902",
+    "doi:10.20944/preprints202604.1820.v1",
+    "https://openalex.org/W4404688214"
+  ]
+}

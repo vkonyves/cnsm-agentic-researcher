@@ -1,0 +1,94 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "candidate-2026-001",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator-to-production external validity may bias operational conclusions",
+        "Design labels every rejected proposal as a failure (no human repair) which may misrepresent realistic operator workflows",
+        "Risk of verifier bugs biasing results if not unit-tested",
+        "Prompt/template sensitivity and verifier strictness thresholds not fully specified"
+      ],
+      "required_design_repairs": [
+        "Add deterministic unit and integration tests for the correctness checker; publish checker code and test vectors",
+        "Preregister verifier strictness thresholds and include sensitivity analysis in plan",
+        "Record rejected proposals but also log (separately) hypothetical human-repair pathways and their costs (do not use as primary outcome)",
+        "Include prompt-variation robustness checks or document prompt fixed seed choices and justify"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-2026-002",
+      "novelty": 0.7,
+      "falsifiability": 0.95,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Synthetic workload may not reflect real production burstiness or multi-tenant effects",
+        "Timeout/retry policies can materially bias latency and SLA-miss measurements if underspecified",
+        "Benchmark host resource isolation not described; host exhaustion could confound tail-latency"
+      ],
+      "required_design_repairs": [
+        "Preregister exact timeout and retry policies and justify choices",
+        "Provision and document isolated benchmarking environment (resource quotas, monitoring) to avoid host-induced artifacts",
+        "Include at least one workload variant that mimics burstiness and a multi-tenant scenario or justify exclusion",
+        "Provide baseline microbenchmarks (validator-only, LLM-only) and system-level instrumentation traces"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-2026-003",
+      "novelty": 0.85,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.75,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Ethical risk from creating realistic poisoned artifacts—need containment and clear safe-handling",
+        "Risk of tuning defenses on test data (overstating defense effectiveness)",
+        "Retrieval-system parameter choices (k, scorer) can strongly modulate effect sizes and must be preregistered"
+      ],
+      "required_design_repairs": [
+        "Constrain poisons to synthetic, non-public corpora and document containment/retention policies",
+        "Preregister retrieval system architecture and all hyperparameters (k, retriever model, scoring) and use held-out tuning partitions",
+        "Specify and preregister poison-generation protocol and realistic threat model bounds",
+        "Log provenance metadata and provide reproducible poison-seeding scripts"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "candidate-2026-004",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.85,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Human-subject variability and reviewer expertise differences threaten internal validity and reproducibility",
+        "Ethics/IRB procedures, consent, and participant safeguards are underspecified",
+        "Use of crowdworker proxies may not generalize to production operators; screening/training details missing",
+        "Potential participant stress from time-pressure conditions"
+      ],
+      "required_design_repairs": [
+        "Obtain and document IRB/ethics approval and include consent/debrief procedures",
+        "Preregister reviewer screening, qualification tests, and training protocol; include calibration/pilot run data",
+        "Define sample size and power analysis; preregister mixed-effects model specification and randomization scheme",
+        "Include opt-out, adequate compensation, and stress-mitigation/debrief procedures"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

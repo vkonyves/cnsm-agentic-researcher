@@ -1,0 +1,118 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "candidate-2026-001",
+      "title": "Empirical evaluation of a post-generation correctness checker on actionable NetOps misconfiguration rates",
+      "research_question": "Does applying an automated post-generation correctness check to LLM-produced network-change proposals reduce the rate of actionable misconfigurations across diverse simulated topologies?",
+      "hypotheses": [
+        "An automated correctness check will decrease the proportion of proposals that violate routing or policy constraints compared to unchecked proposals.",
+        "The relative reduction in actionable misconfigurations will be larger on mid-sized topologies than on the smallest synthetic topologies."
+      ],
+      "proposed_design": "Controlled, paired experiment using a public NetOps task bank and network simulator. For each intent-to-change task, produce a configuration with a single LLM prompt (model and prompt frozen by preregistration). For the intervention arm, run an automated deterministic correctness checker (simulator/verifier) that flags or rejects proposals; rejected proposals are recorded as failures (no human repair). For the control arm, accept the LLM proposal without the checker. Evaluate across a stratified set of 60 topologies (small/medium/large) drawn from public datasets and synthetic generators. Use identical random seeds and prompt templates for paired comparisons. Budgeted model-call cap per proposal and predefined retry policy enforced. All execution confined to simulators (no production devices).",
+      "expected_data": "Per-task paired records including topology id, task id, LLM output, verifier flags (reachability, policy, loop, ACL violation), binary actionable-misconfig label (simulator-detected), time-to-check, and decision (accepted/rejected). Aggregated counts by topology size and error type, with per-task latencies and model-call counts.",
+      "primary_outcome": "Paired difference in actionable misconfiguration rate (fraction of tasks producing simulator-flagged harmful configurations) between unchecked LLM outputs and outputs subject to the automated correctness check.",
+      "analysis_outline": "Compute per-task paired differences and report mean reduction with 95% bootstrap confidence intervals. Use Wilcoxon signed-rank test for paired nonparametric inference and stratified subgroup analysis by topology size. Report absolute and relative reductions, per-error-type confusion matrices, and number-needed-to-check (number of proposals checked to prevent one actionable misconfiguration). Perform sensitivity analysis for verifier strictness thresholds and include an exploratory logistic regression predicting residual failures.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406137434"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.36227/techrxiv.177004277.71795055/v1",
+        "https://openalex.org/W4402742293",
+        "doi:10.22541/au.177402886.66308404/v1"
+      ],
+      "risks": [
+        "Simulator-to-production mismatch may over- or under-estimate real-world harm; experiments must not be deployed to live networks.",
+        "Deterministic checker misconfiguration or bug could bias results if not thoroughly unit-tested.",
+        "LLM prompts may leak sensitive topology descriptors if public datasets include private-like metadata; sanitize inputs."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "candidate-2026-002",
+      "title": "Latency and availability tradeoffs when LLMs invoke external validators in time-sensitive NetOps workflows",
+      "research_question": "How does synchronous invocation of external deterministic validators by an LLM affect end-to-end decision latency and operation availability under realistic request loads?",
+      "hypotheses": [
+        "Synchronous validator calls will increase median end-to-end latency relative to LLM-only responses by a measurable amount that grows with request concurrency.",
+        "At moderate request loads, validator-induced latency will cause a non-negligible fraction of operations to miss aggressive time budgets used in time-sensitive workflows."
+      ],
+      "proposed_design": "Throughput-latency microbenchmarking using an orchestrated pipeline: a single LLM endpoint issues network-change proposals and, in the validator-enabled condition, waits synchronously for a deterministic validator (simulator or Batfish-like tool) before returning a final decision. Implement both pipeline variants and run synthetic workloads with controlled concurrency (1, 5, 10, 50 requests/sec) using public task bank inputs. Measure end-to-end latency, validator latency distribution, and the fraction of requests exceeding predefined SLAs (e.g., 200ms, 500ms, 2s). Use repeated trials and fixed seeds; log failure modes and retry behavior.",
+      "expected_data": "Latency distributions (per-request and per-component), percentiles (P50,P95,P99) for end-to-end and validator-only times, throughput achieved under each concurrency condition, SLA miss rates, and counts of transient failures/timeouts. Dataset includes per-request trace IDs and timings.",
+      "primary_outcome": "Increase in median end-to-end latency (and SLA miss-rate) attributable to synchronous validator invocation across tested concurrency levels.",
+      "analysis_outline": "Report latency percentiles and plot latency vs concurrency curves for both pipeline variants. Use paired comparisons per-request where applicable and aggregate across trials. Model SLA miss-rate as a function of concurrency using logistic regression; compute elasticity of median latency with respect to validator mean latency. Provide uncertainty via bootstrapped CIs and include resource-usage summaries (CPU/time) for validator components.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4389518608",
+        "doi:10.2139/ssrn.7317098",
+        "https://openalex.org/W4404782902"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404782902",
+        "https://openalex.org/W4402742293"
+      ],
+      "risks": [
+        "Synthetic workload may not capture production burstiness or multi-tenant effects, limiting external validity.",
+        "Improperly configured timeouts could trigger excessive retries, biasing latency estimates; clear retry policy required.",
+        "Resource exhaustion on benchmark host could produce misleading tail-latency artifacts; isolate benchmarking environment."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "candidate-2026-003",
+      "title": "Robustness of RAG-supported NetOps pipelines to poisoned retrievals",
+      "research_question": "To what extent can targeted poisoning of retrieval contexts (RAG) induce actionable misconfigurations in an LLM-driven NetOps pipeline that uses retrieved artifacts as grounding?",
+      "hypotheses": [
+        "Carefully crafted poisoned retrieval fragments can increase the rate of harmful configuration proposals compared to clean retrievals.",
+        "Simple retrieval filtering (e.g., provenance flags or retrieval-score thresholds) will partially mitigate poisoning but will not fully eliminate induced misconfigurations at realistic poisoning strengths."
+      ],
+      "proposed_design": "Experiment using a retrieval-augmented generation pipeline built from public documentation corpora and synthetic 'ground truth' fragments. For a set of NetOps tasks, run three conditions: clean retrievals, retrievals augmented with adversarially crafted poison fragments (designed to contradict correct constraints), and poisoned retrievals with simple filtering defenses (provenance flagging and score thresholds). For each condition generate LLM outputs with fixed prompts and seeds. Evaluate outputs in a simulator/verifier for actionable misconfigurations. Vary poisoning strength (fraction of retrieved items poisoned) and report dose–response.",
+      "expected_data": "Per-task records containing retrieval contents, poison fraction, LLM output, verifier results, binary actionable-misconfig labels, and defense flags. Aggregated dose–response curves mapping poison fraction to misconfig rate and defense effectiveness metrics.",
+      "primary_outcome": "Change in actionable misconfiguration rate between clean and poisoned retrieval conditions as a function of poisoning strength.",
+      "analysis_outline": "Estimate misconfig-rate increases with poison fraction and compute mitigation effect sizes of defenses. Use logistic regression with poison fraction and defense indicator as predictors; test interaction terms. Report dose–response curves with 95% CIs and false-positive rates introduced by defenses. Provide per-error-type breakdown and qualitative examples of successful poisoning cases.",
+      "novelty_evidence_ids": [
+        "10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4409363066",
+        "https://openalex.org/W4394769102"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389518608",
+        "https://openalex.org/W4404782902",
+        "doi:10.20944/preprints202604.1820.v1"
+      ],
+      "risks": [
+        "Adversarial artifacts must be confined to synthetic corpora to avoid contaminating public datasets.",
+        "Overly realistic poisons could resemble malicious content; ensure ethical review and safe-handling policies.",
+        "If retrieval-defense heuristics are tuned on the test set, results may overstate defense effectiveness; use held-out tuning partitions."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "candidate-2026-004",
+      "title": "Efficacy of human operator review under time pressure combined with automated validators",
+      "research_question": "How effective is quick human review combined with automated validators at preventing actionable misconfigurations compared to automated validators alone under constrained decision-time budgets?",
+      "hypotheses": [
+        "A brief human review step will reduce residual actionable misconfigurations beyond automated validation alone when reviewers have moderate time (e.g., 30–120 seconds) per change.",
+        "As human review time budgets shrink below a practical threshold, the marginal benefit of review will vanish and may be outweighed by increased latency."
+      ],
+      "proposed_design": "Simulated human-in-the-loop experiment using trained network-engineer proxies (paid crowdworkers with screening or expert volunteers) evaluating LLM+validator proposals under time budgets of 30s, 60s, and 120s. Three conditions: validator-only (auto accept/reject), validator plus human quick-review with accept/reject action, and human-only review (no validator) as control. Use the same public NetOps task bank and simulator for ground truth. Measure residual misconfig rates, reviewer decision accuracy, decision time, and operator workload (self-reported cognitive load questionnaire). Enforce ethical consent and compensation, and confine to simulated networks.",
+      "expected_data": "Per-task reviewer decisions, decision times, validator flags, final simulator verdicts, cognitive-load scores, and aggregated metrics by time-budget and condition. Confusion matrices for reviewer acceptance vs simulator ground truth.",
+      "primary_outcome": "Net reduction in actionable misconfigurations (residual misconfig rate) achieved by validator+human review versus validator-only under each time budget.",
+      "analysis_outline": "Compare conditions using paired task assignments where possible; compute absolute reductions and relative improvements with 95% CIs. Use mixed-effects logistic regression with random intercepts for reviewer identity and task, fixed effects for condition and time budget. Report inter-rater agreement, reviewer latency distributions, and cognitive-load correlations with accuracy. Conduct subgroup analysis by task complexity.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411642641",
+        "https://openalex.org/W4404688214",
+        "https://openalex.org/W4413906832"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4402742293",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Crowdworker proxy reviewers may not match production operator expertise; screen and report reviewer qualifications.",
+        "Human subjects procedures require consent and appropriate ethics oversight; ensure compliance.",
+        "Time-pressure experiments could induce stress for participants; include opt-out and debriefing."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

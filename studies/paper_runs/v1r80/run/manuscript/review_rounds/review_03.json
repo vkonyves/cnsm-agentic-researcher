@@ -1,0 +1,22 @@
+{
+  "summary": "Carefully preregistered paired experiment with full artifact archival. Execution used shared_initial_candidate semantics and retrieval was disabled, so the preregistered RAG/poisoning hypothesis was not testable. Results are internally consistent and reproducible from the supplied bundle (250/250 VALID_CONFIGURATION; no repairs applied). The manuscript transparently reports the preregistration deviation, documents sampling semantics, and preserves required provenance (master prompt SHA-256). Recommended revisions are primarily editorial and provenance/citation formatting to meet venue and reproducibility conventions.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 5,
+  "clarity_score": 1,
+  "critical_issues": [],
+  "required_revisions": [
+    "References: Replace identifier-only citation entries with a conventional IEEE numbered bibliography (authors, title, venue, year) and ensure all in-text citations use IEEE numeric markers; verify each referenced record actually supports the proximate claim.",
+    "Manuscript prose audit (shared_initial_candidate semantics): Add an explicit, single-sentence statement in Abstract and Methods that exactly one sampled initial generation per pair was reused by both arms (\"exactly one sampled initial generation per pair was reused by both arms under shared_initial_candidate semantics\") and that this design therefore precludes measuring any effect that requires independent per-condition generation variability. Remove or revise any wording that could be read as implying independent first-pass generations for the two arms.",
+    "Confirmatory-hypothesis labeling: Prominently mark the preregistered RAG/poisoning primary hypothesis as untested in the Abstract and Conclusion (not just in Methods/Results) and remove any language that could be interpreted as claiming a test of RAG-poisoning.",
+    "Disclosure Statement (conciseness and provenance hygiene): Condense the Disclosure so it remains concise and (a) retains the mandatory master-prompt locator and exactly that one SHA-256 digest, (b) lists the preregistration identifier (candidate-2026-003-prereg-v1) but omits preregistration full SHA-256 or other full artifact hashes in the main manuscript, and (c) removes run-internal file paths and non-mandatory full hashes from ordinary prose (these may remain in the archived evidence bundle).",
+    "Sampling semantics clarification: In Methods explicitly note that model_configuration.temperature = null/unset was recorded and that null/unset is not evidence of temperature=0 or deterministic hosted-model sampling, and confirm that the archived provider traces are the authoritative record of any nondeterminism.",
+    "Citation semantics verification: For each specific claim in Related Work or Evidence sections that cites a source, add a brief parenthetical or clause tying the cited record to the specific supporting point (e.g., \"[N] shows X by ...\") so a reader can verify the semantic support directly from the cited paper metadata in the references list."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement further where possible (keeping the mandatory master-prompt locator/digest) to avoid redundancy with the execution manifest; move extended provenance tables or lists to the archived artifact bundle.",
+    "Add a short, explicit table or boxed paragraph that maps preregistered analysis items to executed artifacts (e.g., primary estimand → analysis/results.json) to aid reproducibility readers; these links may be compact and reference archived paths without full hashes.",
+    "Briefly expand Discussion on how shared_initial_candidate designs can be intentionally used as a diagnostic (isolating validator/repair effect) and when independent-sampling contrasts are required to test generation-level adversarial effects."
+  ],
+  "accept_for_finalisation": false
+}
