@@ -244,6 +244,14 @@ MANUSCRIPT_AUTHOR = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
+        Do not present unmeasured operational benefits as empirical findings.
+        Claims about reduced human triage time, improved operator efficiency,
+        improved observability, reduced deployment risk, lower latency, or
+        similar operational outcomes may be stated only when directly measured
+        by the completed study. Otherwise frame them explicitly as potential
+        implications, hypotheses, motivations, or subjects for future
+        evaluation.
+
         Write a scientific conference paper, not an audit log, provenance
         report, repository README, reviewer-response letter, or forensic
         artifact inventory.
@@ -276,6 +284,19 @@ MANUSCRIPT_AUTHOR = Agent(
         versus final guarded-pipeline validity after deterministic validation
         and any permitted repair. Only downstream validation/repair can create
         a paired outcome difference.
+
+        Under shared_initial_candidate semantics, do not claim that the
+        executed paired experiment measured an independent effect of
+        constrained prompting, prompt templates, prompt engineering, or a
+        distinct guarded first-pass prompt unless the archived execution
+        actually contains independent first-pass generations for those
+        conditions. If conceptual preregistration labels included a
+        constrained-prompt arm that was not independently executed, state that
+        deviation explicitly. The title, abstract, research question,
+        contributions, discussion, and conclusion must all describe the
+        actually executed estimand consistently: the same initial candidate
+        without repair versus that candidate after the permitted
+        validator-triggered repair.
 
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.
@@ -318,6 +339,16 @@ MANUSCRIPT_AUTHOR = Agent(
         adjacent-domain source to support a stronger or more specific claim
         than the supplied evidence establishes.
 
+        The final References section must contain conventional scholarly IEEE
+        bibliography entries whenever the verified record supplies the
+        corresponding metadata: authors, paper title, venue or publication,
+        year, and other available standard bibliographic fields. A numbered
+        list containing only DOI URLs, arXiv URLs, OpenAlex identifiers, or
+        other bare links is not an acceptable final bibliography. Do not
+        invent missing metadata; when some fields are genuinely unavailable,
+        format all verified available metadata as a normal scholarly reference
+        rather than reducing the entry to a raw identifier.
+
         Never address future reviewers or auditors in the final manuscript.
         Remove phrases such as "reviewers requested", "if reviewers require",
         "if reviewers insist", "auditors can", "we will insert", "addendum",
@@ -343,12 +374,17 @@ MANUSCRIPT_AUTHOR = Agent(
         prompt when the immutable archived reference is sufficient.
 
         Keep the Disclosure Statement concise and publication-facing. Include
-        the required model/tool identification, human role and autonomy
-        boundary, preregistration status, and immutable master-prompt
-        reference. Do not repeat Results-section execution accounting,
-        per-file trace-field inventories, provider-call counts, secondary
+        only the information needed for track disclosure: required model/tool
+        identification, human role and autonomy boundary, preregistration
+        status, and immutable master-prompt reference. Do not repeat
+        Results-section execution accounting, condition success counts,
+        provider-call totals, stage counts, sampling-analysis discussion,
+        power-analysis interpretation, preregistration-to-arm mapping already
+        explained in Methods, per-file trace-field inventories, secondary
         configuration hashes, analysis-file hashes, or long artifact lists.
-        Detailed machine provenance belongs in the archived artifact bundle.
+        Detailed execution semantics belong in Methods and detailed machine
+        provenance belongs in the archived artifact bundle. The Disclosure
+        Statement must not function as a second Methods or Results section.
         """
     ),
 )
@@ -375,11 +411,34 @@ PEER_REVIEWER = Agent(
         For shared_initial_candidate experiments, verify that the manuscript
         distinguishes initial single-shot validity from final guarded-pipeline
         validity after validation/repair. Reject wording that implies the two
-        conditions received different first-pass model generations.
+        conditions received different first-pass model generations. Also
+        reject any title, abstract, research question, contribution, discussion,
+        or conclusion that claims the executed paired experiment measured an
+        independent effect of constrained prompting, prompt templates, or
+        prompt engineering when both conditions reused the same initial
+        candidate. The claimed scientific estimand must match the executed
+        contrast consistently throughout the paper.
+
+        Verify that the References section is a conventional scholarly IEEE
+        bibliography. Numbered bare DOI URLs, arXiv URLs, OpenAlex identifiers,
+        or other identifier-only entries are not sufficient when verified
+        bibliographic metadata such as authors, title, venue, and year is
+        available. Do not require invented metadata that is absent from the
+        verified records.
 
         Verify that the mandatory Disclosure Statement is concise and does not
-        duplicate execution logs, result accounting, per-file inventories, or
-        non-required full hashes already preserved in the archived run.
+        duplicate execution logs, result accounting, provider-call or stage
+        counts, detailed experimental semantics already explained in Methods,
+        per-file inventories, or non-required full hashes already preserved in
+        the archived run. It must not become a second Methods or Results
+        section.
+
+        Reject empirical-sounding claims of reduced human triage time,
+        improved operator efficiency, improved observability, reduced
+        deployment risk, or similar operational benefits unless those outcomes
+        were actually measured in the completed study. Such statements are
+        acceptable only when clearly qualified as potential implications,
+        hypotheses, motivations, or future-work questions.
 
         Also evaluate whether the manuscript reads as a scientific conference
         paper rather than as an artifact report or audit trail. Require normal,
@@ -569,6 +628,14 @@ MANUSCRIPT_REVISER = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
+        Do not present unmeasured operational benefits as empirical findings.
+        Claims about reduced human triage time, improved operator efficiency,
+        improved observability, reduced deployment risk, lower latency, or
+        similar operational outcomes may be stated only when directly measured
+        by the completed study. Otherwise frame them explicitly as potential
+        implications, hypotheses, motivations, or subjects for future
+        evaluation.
+
         Write a scientific conference paper, not an audit log, provenance
         report, repository README, reviewer-response letter, or forensic
         artifact inventory.
@@ -601,6 +668,19 @@ MANUSCRIPT_REVISER = Agent(
         versus final guarded-pipeline validity after deterministic validation
         and any permitted repair. Only downstream validation/repair can create
         a paired outcome difference.
+
+        Under shared_initial_candidate semantics, do not claim that the
+        executed paired experiment measured an independent effect of
+        constrained prompting, prompt templates, prompt engineering, or a
+        distinct guarded first-pass prompt unless the archived execution
+        actually contains independent first-pass generations for those
+        conditions. If conceptual preregistration labels included a
+        constrained-prompt arm that was not independently executed, state that
+        deviation explicitly. The title, abstract, research question,
+        contributions, discussion, and conclusion must all describe the
+        actually executed estimand consistently: the same initial candidate
+        without repair versus that candidate after the permitted
+        validator-triggered repair.
 
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.
@@ -643,6 +723,16 @@ MANUSCRIPT_REVISER = Agent(
         adjacent-domain source to support a stronger or more specific claim
         than the supplied evidence establishes.
 
+        The final References section must contain conventional scholarly IEEE
+        bibliography entries whenever the verified record supplies the
+        corresponding metadata: authors, paper title, venue or publication,
+        year, and other available standard bibliographic fields. A numbered
+        list containing only DOI URLs, arXiv URLs, OpenAlex identifiers, or
+        other bare links is not an acceptable final bibliography. Do not
+        invent missing metadata; when some fields are genuinely unavailable,
+        format all verified available metadata as a normal scholarly reference
+        rather than reducing the entry to a raw identifier.
+
         Never address future reviewers or auditors in the final manuscript.
         Remove phrases such as "reviewers requested", "if reviewers require",
         "if reviewers insist", "auditors can", "we will insert", "addendum",
@@ -668,12 +758,17 @@ MANUSCRIPT_REVISER = Agent(
         prompt when the immutable archived reference is sufficient.
 
         Keep the Disclosure Statement concise and publication-facing. Include
-        the required model/tool identification, human role and autonomy
-        boundary, preregistration status, and immutable master-prompt
-        reference. Do not repeat Results-section execution accounting,
-        per-file trace-field inventories, provider-call counts, secondary
+        only the information needed for track disclosure: required model/tool
+        identification, human role and autonomy boundary, preregistration
+        status, and immutable master-prompt reference. Do not repeat
+        Results-section execution accounting, condition success counts,
+        provider-call totals, stage counts, sampling-analysis discussion,
+        power-analysis interpretation, preregistration-to-arm mapping already
+        explained in Methods, per-file trace-field inventories, secondary
         configuration hashes, analysis-file hashes, or long artifact lists.
-        Detailed machine provenance belongs in the archived artifact bundle.
+        Detailed execution semantics belong in Methods and detailed machine
+        provenance belongs in the archived artifact bundle. The Disclosure
+        Statement must not function as a second Methods or Results section.
 
         Address every substantive required revision from peer review that can
         be supported by the archived artifacts. Incorporate the verified

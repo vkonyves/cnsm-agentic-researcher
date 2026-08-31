@@ -127,8 +127,11 @@ def test_disclosure_condensation_policy_is_applied_twice():
         "Keep the Disclosure Statement concise and publication-facing."
     ) == 2
     assert source.count(
-        "Detailed machine provenance belongs in the archived artifact bundle."
+        "provider-call totals, stage counts, sampling-analysis discussion"
     ) == 2
+    assert source.count(
+        "second Methods or Results section"
+    ) >= 2
 
 
 def test_peer_reviewer_checks_citation_semantics():
@@ -240,3 +243,63 @@ def test_final_closure_is_after_deterministic_failure_return():
     )
 
     assert deterministic_failure < closure
+
+
+
+def test_shared_initial_policy_forbids_claimed_prompting_effect():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "executed paired experiment measured an independent effect of"
+    ) >= 2
+    assert source.count(
+        "without repair versus that candidate after the permitted"
+    ) >= 2
+    assert (
+        "independent effect of constrained prompting"
+        in source
+    )
+
+
+def test_final_agents_require_full_ieee_bibliography():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "not an acceptable final bibliography"
+    ) >= 2
+    assert (
+        "Numbered bare DOI URLs, arXiv URLs, OpenAlex identifiers"
+        in source
+    )
+
+
+def test_disclosure_cannot_repeat_methods_and_results_accounting():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "must not function as a second Methods or Results section"
+    ) >= 2
+    assert (
+        "It must not become a second Methods or Results"
+        in source
+    )
+
+
+def test_unmeasured_operational_benefits_must_be_qualified():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert source.count(
+        "Do not present unmeasured operational benefits as empirical findings."
+    ) >= 2
+    assert (
+        "Reject empirical-sounding claims of reduced human triage time"
+        in source
+    )
