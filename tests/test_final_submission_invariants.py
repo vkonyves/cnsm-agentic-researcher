@@ -368,3 +368,50 @@ def test_protected_final_rescue_remains_agent_free_after_seed_change():
     )
 
     assert "run_agent(" not in source[start:end]
+
+
+
+def test_hosted_contract_exposes_outcome_independent_stress_profile():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/hosted_netops_adapter.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"profile_id": "challenging_workflow_stress_v1"' in source
+    assert '"selection_is_outcome_independent": True' in source
+    assert '"included_cycle_offsets_one_based": [4, 5, 6, 7, 8]' in source
+    assert '"very_hard"' in source
+    assert '"extreme"' in source
+    assert "task_index=8*cycle+offset" in source
+
+
+def test_planner_is_told_to_use_stress_task_indices():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert "challenging_workflow_stress_v1" in source
+    assert "offsets [4,5,6,7,8]" in source
+    assert "challenging-workflow stress-test" in source
+    assert "outcome-independent" in source
+
+
+def test_peer_reviewer_preserves_mandatory_master_prompt_reference():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_agents.py"
+    ).read_text(encoding="utf-8")
+
+    assert "IMPORTANT DISCLOSURE EXCEPTION" in source
+    assert "provenance/master_prompt.txt" in source
+    assert "Do not reject, request removal of" in source
+    assert "sole mandatory" in source
+
+
+def test_final_closure_preserves_mandatory_master_prompt_reference():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    assert "mandatory Disclosure exception" in source
+    assert "provenance/master_prompt.txt" in source
+    assert "exactly one full SHA-256" in source
+    assert "do not reject or" in source

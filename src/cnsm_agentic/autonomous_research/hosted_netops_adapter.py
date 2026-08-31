@@ -99,8 +99,35 @@ def hosted_netops_planning_contract() -> dict[str, Any]:
         },
         "episodes_per_task": 2,
         "maximum_model_calls_per_task": 2,
+        "task_index_profile": {
+            "profile_id": "challenging_workflow_stress_v1",
+            "scientific_scope": (
+                "Predeclared stress-test population restricted to the "
+                "existing generator's very_hard and extreme workflow "
+                "patterns. This is not a population-representative estimate "
+                "over all generated NetOps tasks."
+            ),
+            "selection_is_outcome_independent": True,
+            "generator_cycle_length": 8,
+            "included_cycle_offsets_one_based": [4, 5, 6, 7, 8],
+            "included_difficulty_levels": [
+                "very_hard",
+                "extreme",
+            ],
+            "index_rule": (
+                "For zero-based ordinal j: cycle=j//5; "
+                "offset=[4,5,6,7,8][j%5]; "
+                "task_index=8*cycle+offset."
+            ),
+        },
         "task_indices": (
-            "Exactly task_count unique positive integers."
+            "Use the deterministic challenging_workflow_stress_v1 profile: "
+            "for zero-based ordinal j from 0 to task_count-1, set "
+            "cycle=j//5, offset=[4,5,6,7,8][j%5], and "
+            "task_index=8*cycle+offset. The resulting task_indices must "
+            "contain exactly task_count unique positive integers. Selection "
+            "is fixed before hosted-model outcomes and must not be changed "
+            "based on observed success or failure."
         ),
         "estimated_model_calls": (
             "Between task_count and task_count * 2: "

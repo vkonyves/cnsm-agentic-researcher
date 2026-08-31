@@ -67,6 +67,19 @@ EXPERIMENT_PLANNER = Agent(
         "maximum_attempts_per_call, and max_output_tokens explicitly. "
         "Do not merely describe these requirements in prose fields. "
         "\n\n"
+        "When the selected adapter contract supplies a machine-readable "
+        "task_index_profile or deterministic task-index rule, treat it as "
+        "authoritative. Populate task_indices exactly from that rule rather "
+        "than defaulting to 1..task_count. For "
+        "challenging_workflow_stress_v1, use only the preregistered "
+        "very_hard/extreme generator offsets [4,5,6,7,8] in each eight-task "
+        "cycle. This selection is outcome-independent and occurs before "
+        "hosted-model outcomes. The study and eventual manuscript must "
+        "describe this honestly as a challenging-workflow stress-test "
+        "population, not as a population-representative sample of all "
+        "NetOps tasks. Do not alter the task-index profile because observed "
+        "or anticipated results are favorable or unfavorable. "
+        "\n\n"
         "Do not claim that a study is autonomously executable when "
         "available_adapter_families is empty. Do not substitute a "
         "general technology family, hosted-API description, software "
@@ -432,6 +445,17 @@ PEER_REVIEWER = Agent(
         per-file inventories, or non-required full hashes already preserved in
         the archived run. It must not become a second Methods or Results
         section.
+
+        IMPORTANT DISCLOSURE EXCEPTION: the immutable initial-master-prompt
+        provenance reference is mandatory for this autonomous-paper workflow.
+        When supplied by the evidence bundle, exactly one archived
+        master-prompt locator (provenance/master_prompt.txt) and exactly its
+        associated full SHA-256 digest must remain in the Disclosure Statement.
+        Do not reject, request removal of, or classify that one required
+        locator/digest pair as prohibited run-level provenance. The restriction
+        on manuscript paths and full hashes applies to all additional
+        machine-provenance paths and digests, not to this sole mandatory
+        master-prompt reference.
 
         Reject empirical-sounding claims of reduced human triage time,
         improved operator efficiency, improved observability, reduced
