@@ -43,3 +43,23 @@ def test_reference_renderer_preserves_normal_metadata():
 
     assert r"\bibitem{ref1}" in rendered
     assert "R. Example" in rendered
+
+
+def test_reference_renderer_strips_astral_unicode_from_metadata():
+    records = [
+        {
+            "record_id": "rec-emoji",
+            "authors": ["A. Example"],
+            "title": "🧜 Siren's Song in the AI Ocean",
+            "venue": "Example Journal",
+            "year": "2026",
+        }
+    ]
+
+    rendered = _render_references(
+        cited_record_ids=["rec-emoji"],
+        verified_records=records,
+    )
+
+    assert "🧜" not in rendered
+    assert "Siren's Song in the AI Ocean" in rendered

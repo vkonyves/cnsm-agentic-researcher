@@ -315,6 +315,14 @@ def _render_references(
             reference_text,
         )
 
+        # pdfLaTeX cannot render astral-plane Unicode such as emoji that
+        # may appear in bibliographic metadata.
+        reference_text = re.sub(
+            r"[\U00010000-\U0010FFFF]",
+            "",
+            reference_text,
+        )
+
         rendered.append(
             "\\bibitem{ref"
             f"{index}"
