@@ -1,0 +1,198 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLMs and agentic/multi-agent frameworks are being applied to NetOps tasks—intent-to-configuration translation, automated configuration generation, and VNF/service deployment—in experimental systems and prototypes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4405935382",
+        "https://openalex.org/W7163413045",
+        "https://openalex.org/W7126001030"
+      ],
+      "evidence_type": "empirical_and_system_builds",
+      "confidence": 0.9,
+      "limitations": [
+        "Evaluations are mainly on curated, simulated, or prototype setups rather than broad production deployments.",
+        "Reported results vary by task, model, and evaluation protocol and do not imply uniform production readiness."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Generate–Verify–Repair (GVR) or closed-loop generate–validate–repair architectures (interposing deterministic/verifier layers between generation and acceptance) have been proposed and demonstrated to detect mechanically verifiable errors and provide structured repair feedback to LLMs in system and code-focused experiments.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7163597961",
+        "https://openalex.org/W7163287242"
+      ],
+      "evidence_type": "architectural_prototype_and_case_studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Demonstrations focus on mechanically checkable defect classes (compilation, tests, verifier failures); extension to full NetOps semantics (multi-protocol, multi-vendor, runtime effects) is not shown in these records.",
+        "Semantic/intent-alignment failures that are correct-by-structure may remain undetected by these verifier layers."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Controlled benchmarks and task suites for AIOps/NetOps reveal substantial limitations of current LLM-based agents: modest end-to-end success on many operational scenarios, sensitivity to ticket wording and false-premise reports, and a non-trivial rate of wrong-but-plausible outputs that can trigger actions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7204566174",
+        "doi:10.21203/rs.3.rs-10646557/v1"
+      ],
+      "evidence_type": "benchmark_evidence",
+      "confidence": 0.9,
+      "limitations": [
+        "Benchmarks use controlled conditions and scoring methodologies (some use LLM judges or simulated tool effects) that limit direct extrapolation to all production contexts.",
+        "Coverage of vendor heterogeneity and large-scale production topologies is limited in the cited suites."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Tool-augmented orchestration strategies (verifier-guided recovery, self-healing orchestrators, auditable decision traces) reduce silent or wrong-but-plausible failures and improve task success in controlled evaluations compared with non-verifying or retry-only baselines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163597961",
+        "https://openalex.org/W7163287242",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "controlled_experiments_and_system_reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported improvements derive from controlled benchmarks; gains depend strongly on the coverage and correctness of available tools/validators.",
+        "Orchestration-level failures (tool timeouts, stale context, malformed arguments) remain practical concerns."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Design choices between retrieval-augmentation (RAG), fine-tuning, or hybrid adaptation materially affect factuality, refusal/guardrail behaviour, and deployment trade-offs; recent frameworks and comparative studies recommend task-dependent, auditable selection among these approaches.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7208252",
+        "doi:10.37547/tajet/volume08issue04-03"
+      ],
+      "evidence_type": "systematic_review_and_frameworks",
+      "confidence": 0.85,
+      "limitations": [
+        "Analyses are primarily conceptual or based on limited case studies; direct NetOps-specific longitudinal empirical evidence is sparse in the supplied records.",
+        "Practical trade-offs (latency, operational maintenance, freshness) depend on deployment specifics not fully captured in these works."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "EQ1",
+      "statement": "How comprehensive and operationally sufficient are existing deterministic network-verification tools when used as validators inside GVR pipelines for real-world, multi-protocol, multi-vendor NetOps tasks?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7163287242",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "methodological_gap",
+      "confidence": 0.5,
+      "limitations": [
+        "Cited works motivate verifier layers and verifier-guided inference but do not provide comprehensive empirical coverage across heterogeneous, large-scale NetOps validator completeness."
+      ]
+    },
+    {
+      "claim_id": "EQ2",
+      "statement": "To what extent do verifier-guided pipelines catch or prevent semantic/intent-misalignment errors that are syntactically valid and pass mechanical checks (i.e., correct-by-structure but incorrect-by-intent configurations)?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4404602270"
+      ],
+      "evidence_type": "open_empirical_question",
+      "confidence": 0.45,
+      "limitations": [
+        "Existing demonstrations emphasize mechanically verifiable defects; explicit evaluations of semantic intent preservation across complex NetOps tasks are not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "EQ3",
+      "statement": "How well do current benchmark outcomes (ITBench, FaulT-Bench, LogEval-style suites) generalize to production networks with larger scale, multi-vendor devices, evolving operator workflows, and real-world ticket noise?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7204566174",
+        "https://openalex.org/W4400377739"
+      ],
+      "evidence_type": "external_validity_question",
+      "confidence": 0.6,
+      "limitations": [
+        "The cited benchmarks document controlled conditions and known limitations; direct transfer studies to production environments are not included among the provided records."
+      ]
+    },
+    {
+      "claim_id": "EQ4",
+      "statement": "What human-in-the-loop gating, audit-trace, and operator-trust designs best balance automation benefits against operational risk for LLM/agentic NetOps in production settings?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7162496031",
+        "https://openalex.org/W4411620441"
+      ],
+      "evidence_type": "design_and_HCI_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Surveys and frameworks recommend traceability, evidence planes, and gating, but comparative trials of alternative human–agent gating strategies in operational NetOps contexts are not present in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a need for standardized, public NetOps benchmarks that combine realistic topologies, authentic operator-ticket noise (including false-premise tickets), executable validators, and reproducible scoring to measure end-to-end agentic behaviour.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7204566174",
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W4400377739"
+      ],
+      "evidence_type": "benchmark_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmark efforts address parts of this desideratum (ticket realism, log analysis, IT tasks) but no single curated, widely adopted NetOps benchmark meeting all listed criteria is evident in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Quantitative metrics and protocols to measure validator soundness, coverage, false-positive/false-negative rates, and operational impact when used as oracles inside GVR flows are underdeveloped and would materially improve trustworthiness evaluations.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7162496031",
+        "https://openalex.org/W7162952350"
+      ],
+      "evidence_type": "measurement_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Cited works motivate validator layers and auditable traces but do not deliver a standard validator-metric suite tailored to NetOps."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Publicly usable corpora of real-world router/firewall/switch configurations that preserve operational fidelity while protecting sensitive information are limited; privacy-preserving sharing mechanisms and synthetic-but-faithful generation methods are needed to support reproducible research.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416374815",
+        "https://openalex.org/W7204566174",
+        "https://openalex.org/W4402742293"
+      ],
+      "evidence_type": "data_gap",
+      "confidence": 0.75,
+      "limitations": [
+        "Some works propose anonymization or topology-cloaking strategies, but broadly available, standardized public corpora with validated anonymization are not evident in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "Longitudinal empirical evidence on maintenance costs, model drift, and the operational burden of RAG vs. fine-tuned vs. hybrid NetOps adaptation strategies is sparse in the supplied literature.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.7208252",
+        "https://openalex.org/W7162496031"
+      ],
+      "evidence_type": "longitudinal_evidence_gap",
+      "confidence": 0.65,
+      "limitations": [
+        "Frameworks and case studies discuss trade-offs and provide short-term evaluations, but multi-month or multi-release empirical comparisons in NetOps contexts are not included among the provided records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are currently production-ready to fully autonomously manage network configurations across diverse, multi-vendor production environments without human oversight.",
+    "A deterministic proof that a generate–verify–repair pipeline can guarantee zero-defect network changes in real-world NetOps (no such general proof exists in the supplied records).",
+    "A claim of superior performance of a specific LLM or agent across all NetOps tasks without experimental support in the supplied records.",
+    "Any empirical result or dataset produced prior to the autonomous run that is not contained among the supplied records (pre-lock development artifacts are excluded)."
+  ]
+}

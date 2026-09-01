@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "AC-2026-01",
+      "title": "Operational coverage of deterministic network verifiers inside generate–verify–repair pipelines for multi-vendor NetOps tasks",
+      "research_question": "How comprehensive are deterministic network-verification tools when used as validators inside generate–verify–repair (GVR) pipelines at detecting syntactic, semantic, and intent-misaligned errors across multi-vendor, multi-protocol NetOps configuration tasks?",
+      "hypotheses": [
+        "Deterministic verifiers will detect syntactic and protocol-compatibility errors at a high rate (>90%) across vendors in controlled scenarios.",
+        "A measurable fraction of LLM-produced configurations that are syntactically valid and pass verifiers will nevertheless violate operator intent (i.e., be correct-by-structure but incorrect-by-intent).",
+        "Verifier detection rates will vary systematically by vendor and protocol, with lower coverage on less-modeled vendor features."
+      ],
+      "proposed_design": "Create a controlled, reproducible task bank of 240 NetOps intents spanning routing, ACLs/firewalls, VLANs, and BGP across three vendor configuration syntaxes (publicly documented variants or synthetic mappings). For each intent, generate LLM-produced configurations using a fixed prompt template and a single hosted LLM API under a preregistered prompt/seed policy. Run each output through one or more deterministic verifiers (preregistered verifier implementations or open-source equivalents). Independently label intent conformance using a pre-specified oracle procedure combining deterministic simulation tests (where executable) and a blinded human-intent-judgment rubric applied to a held-out set (labeling protocol preregistered). Record verifier accept/reject, detected error class, and oracle intent-conformance. Preregister inclusion/exclusion rules, retry policy, maximum model-call budget, and random seeds.",
+      "expected_data": "Per-output records containing: intent id, vendor/protocol, LLM output, verifier verdict(s), verifier-detected error taxonomy, oracle intent-conformance label (conformant/nonconformant), and metadata (prompt, seed, timestamp). Aggregated tables of verifier true-positive, false-negative, false-positive rates for syntactic and semantic error classes, broken down by vendor/protocol.",
+      "primary_outcome": "The verifier operational coverage measured as the false-negative rate for intent-violating configurations that pass deterministically (percentage of intent-violations undetected by the verifier).",
+      "analysis_outline": "Compute confusion matrices (verifier verdict vs oracle intent-conformance) and report false-negative and false-positive rates with 95% bootstrap confidence intervals. Test hypotheses on vendor/protocol differences using chi-squared or Fisher exact tests and logistic regression with vendor/protocol as predictors. Perform sensitivity analyses for oracle-labeler disagreement, and report subgroup rates by task class. Predefine significance thresholds and correct for multiple comparisons where applicable.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7163287242",
+        "https://openalex.org/W7163597961"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7204566174"
+      ],
+      "risks": [
+        "Oracle intent labels may be subjective and introduce labeling noise.",
+        "Deterministic verifiers used may not represent the full diversity of production validators, limiting external validity.",
+        "Synthetic or publicly derived vendor mappings may omit proprietary features, reducing realism."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "AC-2026-02",
+      "title": "Extent of semantic/intent-misalignment that escapes mechanical verification in LLM-generated network changes",
+      "research_question": "What proportion of LLM-generated network-change proposals that pass mechanical/deterministic verifiers nonetheless violate operator intent, and which task characteristics predict these hidden semantic failures?",
+      "hypotheses": [
+        "A non-negligible proportion (>10%) of verifier-passing proposals will be intent-misaligned in tasks with ambiguous or noisy tickets.",
+        "Tasks containing false-premise or underspecified intent statements will exhibit higher rates of hidden semantic failures than well-specified intents.",
+        "Simple syntactic metrics (e.g., token edit distance to a reference) will poorly predict intent-conformance compared with semantic-check procedures or intent-focused validators."
+      ],
+      "proposed_design": "Assemble a balanced dataset of 300 NetOps ticket-style intents with controlled levels of ambiguity and injected false premises. For each intent, generate candidate configurations with the same LLM and prompt policy used across trials. Run deterministic verifiers and retain only verifier-passing outputs. For verifier-passing outputs, evaluate intent-conformance using a preregistered semantic-check pipeline combining executable simulation tests where feasible and a blinded adjudication rubric applied by two independent labelers (adjudication rules preregistered). Collect contextual features (ticket ambiguity score, presence of false premises, task class).",
+      "expected_data": "Dataset of verifier-passing outputs with binary intent-conformance labels, per-instance metadata (ambiguity, false-premise flag, task class), and auxiliary metrics (syntactic similarity to references, verifier logs). Aggregate statistics on the proportion of hidden semantic failures and their distribution by task features.",
+      "primary_outcome": "Proportion of verifier-passing outputs that are intent-misaligned (hidden-failure rate) and the predictive performance (AUC) of candidate predictors for hidden failures.",
+      "analysis_outline": "Estimate hidden-failure rate with 95% bootstrap CIs. Model predictors of hidden failure using logistic regression and report effect sizes and p-values for ambiguity, false-premise presence, and task class. Compute predictive AUCs for syntactic vs semantic predictor sets and test differences using Delong’s test. Include inter-rater reliability statistics (Cohen’s kappa) for adjudication.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4407384737"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163597961",
+        "https://openalex.org/W7163287242"
+      ],
+      "risks": [
+        "Adjudication may be noisy; inter-rater disagreement could reduce power.",
+        "Simulation-based semantic checks may not cover all real-world runtime effects.",
+        "Restricting to verifier-passing outputs reduces sample size and may inflate uncertainty."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "AC-2026-03",
+      "title": "A validator-metric suite for measuring soundness, coverage, and operational impact of GVR oracles in NetOps",
+      "research_question": "Can a standardized, empirically estimable metric suite for validators (coverage, false-positive rate, false-negative rate, detection latency, and operational-impact score) be defined and shown to predict end-to-end agentic NetOps success better than raw verifier pass rates?",
+      "hypotheses": [
+        "A multi-dimensional validator metric suite will explain more variance in end-to-end task success than a single verifier pass rate.",
+        "Injected realistic error classes will allow stable estimation of validator false-negative and false-positive rates under controlled conditions.",
+        "Validator metrics will correlate with operational-impact proxies (simulated test-failure cost) and thus can be used to prioritize verifier development."
+      ],
+      "proposed_design": "Define formal metric definitions (coverage, FP-rate, FN-rate, mean detection latency, operational-impact score) with computation recipes. Construct a controlled benchmark of 200 tasks and produce LLM outputs augmented with seeded faults across a taxonomy (syntactic, semantic, configuration-logic, policy-violation). Measure each validator’s metrics by running them against seeded outputs. Simulate operational impact using a cost model (pre-registered) mapping error classes to cost units. Evaluate whether validator metrics predict end-to-end task success and simulated impact using correlation and regression analyses. Publish metric definitions and scoring code as part of reproducible artifacts.",
+      "expected_data": "Per-validator metric vectors across tasks, seeded-fault detection rates, detection latencies, simulated operational-impact scores, and aggregated predictive performance statistics (R^2, AUC) for success/impact prediction.",
+      "primary_outcome": "Predictive power (adjusted R^2 or AUC) of the validator-metric suite for end-to-end task failure/impact, compared to the baseline of raw verifier pass rate.",
+      "analysis_outline": "Compute per-validator metrics and aggregate summaries. Use linear or logistic regression to predict task success/impact; compare models with and without the metric suite using nested model comparison (F-test or likelihood-ratio) and report effect sizes. Perform bootstrapped stability checks for metric estimates under varying seed rates and report recommended minimum sample sizes for metric estimation.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162496031",
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7162952350"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7204566174"
+      ],
+      "risks": [
+        "Seeded faults may not capture the full diversity of real operational errors.",
+        "The cost model for operational impact is a simplification and may not generalize to all environments.",
+        "Estimating latency metrics requires synchronized execution metadata and may be sensitive to infrastructure variability."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "AC-2026-04",
+      "title": "Comparing automated gating strategies for operator workload vs residual risk in LLM-driven NetOps workflows",
+      "research_question": "Which operator-gating strategy (full manual review, risk-threshold gating, explainability-assisted gating) best reduces operator workload while keeping residual unverifiable or dangerous changes below a pre-specified operational-risk threshold in LLM-driven NetOps workflows?",
+      "hypotheses": [
+        "Risk-threshold gating will reduce operator-review workload substantially compared with full manual review while keeping residual high-severity failures below a target threshold.",
+        "Explainability-assisted gating will increase reviewer time per change without a commensurate reduction in residual high-severity failures compared with simple risk-threshold gating.",
+        "Gating performance evaluated with an LLM-based proxy reviewer calibrated on a small held-out human-labeled set will rank strategies consistently under sensitivity analyses."
+      ],
+      "proposed_design": "Using a preregistered task bank of 240 intents, generate candidate changes via the selected LLM and run deterministic verification. Implement three gating strategies: (A) full manual review of all verifier-passing changes (simulated by a calibrated proxy reviewer), (B) risk-threshold gating where a verifier-derived risk score above threshold triggers manual review, and (C) explainability-assisted gating where LLM-generated rationales accompany changes and proxy reviewers use rationales when deciding. Because human reviewers are disallowed by the run constraints, construct a calibrated proxy reviewer using a secondary LLM prompt tuned on a small preregistered human-labeled calibration set (publicly sourced). Measure operator-workload proxies (fraction reviewed, proxy-decision time estimates) and residual failure rates (high-severity and total) under each strategy. Perform sensitivity analyses on proxy reviewer calibration and risk thresholds.",
+      "expected_data": "Per-strategy aggregates: fraction of changes requiring review, estimated reviewer-time workload, residual high-severity failure counts, total failure counts, and sensitivity curves over threshold values and proxy calibrations.",
+      "primary_outcome": "A workload–risk trade-off curve for each gating strategy; operationally, the primary scalar is the reviewer-time reduction at fixed maximum acceptable residual high-severity failure rate.",
+      "analysis_outline": "Compare strategies using paired comparisons across the same tasks (Wilcoxon signed-rank or paired t-tests as appropriate) for workload and residual-failure outcomes. Construct Pareto frontiers of workload vs residual risk. Report sensitivity analyses showing robustness to proxy reviewer calibration and threshold choice. Quantify uncertainty with bootstrap CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7162496031",
+        "https://openalex.org/W4411620441",
+        "https://openalex.org/W7163597961"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4407384737",
+        "https://openalex.org/W7204566174"
+      ],
+      "risks": [
+        "Proxy reviewer behavior may not fully match real operator decisions, limiting external validity.",
+        "Estimated reviewer-time proxies are approximations and may misrepresent actual human workload.",
+        "Calibrating the proxy reviewer requires a small human-labeled set; labeling noise or selection bias in that calibration set will affect results."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "study_id": "AC-2026-03",
+  "title": "Validator-metric suite for measuring soundness, coverage, and operational impact of GVR oracles in NetOps",
+  "research_question": "Can a standardized, empirically estimable validator metric suite (coverage, FP-rate, FN-rate, mean detection latency, operational-impact score) predict end-to-end agentic NetOps success better than a single raw verifier pass rate?",
+  "confirmatory_hypotheses": [
+    "H1: A multi-dimensional validator metric suite explains more variance in end-to-end task success than a single verifier pass rate (primary confirmatory hypothesis).",
+    "H2: Injected, preregistered realistic fault classes permit stable estimation of validator false-negative and false-positive rates under the controlled benchmark.",
+    "H3: Validator metrics correlate with a preregistered simulated operational-impact cost proxy and can be used to prioritize verifier development."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which injected fault classes (syntactic, semantic, configuration-logic, policy-violation) most strongly drive false-negative/false-positive tradeoffs?",
+    "EQ2: How sensitive are validator-metric estimates and predictive performance to alternative operational-cost parameterizations?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7162496031",
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W7162952350",
+    "https://openalex.org/W4407384737",
+    "https://openalex.org/W7204566174"
+  ],
+  "benchmark_scope": [
+    "Synthetic paired NetOps GVR episodes generated via the supplied synthetic_paired_llm_benchmark_v1 / hosted_netops_gvr_v1 adapter family.",
+    "Stress-test task-index profile: challenging_workflow_stress_v1 (adapter-prescribed 'very_hard' and 'extreme' generator levels)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-validator false-positive rate (FP-rate) averaged across tasks",
+    "per-validator false-negative rate (FN-rate) averaged across tasks",
+    "mean detection latency per validator (ms)",
+    "R^2 of linear model predicting simulated operational-impact score from validator metric vectors"
+  ],
+  "sampling_plan": "Confirmatory paired design using hosted_netops_gvr_v1 adapter with task_count = 200 (required_confirmatory_task_count). Task selection follows the deterministic challenging_workflow_stress_v1 index rule (indices fixed before any hosted-model call). Episodes: 2 per task (baseline, guarded) for 400 episodes total. Model-call budget: exactly task_count * 2 = 400. Because adapter does not guarantee deterministic sampling, one initial generation per task is preregistered as the shared initial candidate for the paired conditions; runtime sampling parameters (provider model name/version, temperature and other sampling parameters) will be recorded in the execution manifest for reproducibility and reported alongside results.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: detect an absolute paired improvement of 0.10 (10 percentage points) with alpha=0.05 (two-sided) and ~80% power. Recommended scenario: n=200 paired tasks (scenario_recommended_200). Calculation: approximate paired-proportion normal calculation under conservative baseline p=0.50 with sensitivity analyses for baseline p in {0.3,0.4,0.5,0.6,0.7} and within-pair correlations ρ in {0,0.1,0.2,0.3}. Bootstrap stability checks: 1,000 resamples to derive empirical SEs and CIs.",
+  "exclusion_rules": [
+    "Exact-duplicate outputs (identical SHA-256) → automatic exclusion from confirmatory set and log as contamination-exclusion; replacement follows deterministic next-index rule to preserve task_count.",
+    "Near-duplicate tasks (embedding cosine similarity > 0.95) → deterministic exclusion and replacement by next-index to preserve task_count.",
+    "Repaired configurations that omit any preregistered mandatory parameters (deterministic rule) → automatic failure for that episode (counts as episode completed but unsuccessful).",
+    "Repairs that introduce actions outside the task's predeclared allowed action set → exclusion from primary success numerator and logging as policy-violation repair.",
+    "Validator-overfitting signal (>20 percentage-point FP/FN divergence between seeded and held-out generator set) → affected validator relegated to exploratory-only analyses."
+  ],
+  "missingness_plan": "Adapter/infrastructure failures: maximum_attempts_per_call=1 (no manual retries). Primary analysis: complete-pair analysis only (paired_binary_analysis_v1 default). Sensitivity analysis: treat any missing/incomplete episode as failure (0) for the guarded condition (complete_pair_primary_with_failure_as_zero_sensitivity). All missingness metadata (timestamps, HTTP codes, provider error messages) logged in the execution manifest. No human adjudication or imputation will be used.",
+  "analysis_plan": "Primary confirmatory analysis executed by paired_binary_analysis_v1 executor (compatible with the registered adapter). Primary test: paired two-condition difference in binary success (guarded vs baseline) using the executor's paired-proportion / permutation procedure; report point estimate, 95% CI, and p-value. Failed-call handling: primary analysis uses complete pairs only; sensitivity analysis treats incomplete pairs as failures (0) for guarded episodes. Secondary analyses: linear/robust regression predicting simulated operational-impact score from validator metric vectors; report adjusted R^2 and AUC for binary impact-thresholded outcomes. Bootstrap (1,000 resamples) for stability of metric estimates and predictive statistics. Report all analysis code, executor configuration, and runtime sampling parameters in published artifacts.",
+  "multiplicity_plan": "Single pre-registered primary estimand (paired success-rate difference). All subgroup, per-error-class, per-validator, and cost-parameter analyses are exploratory. When reporting multiple p-values for exploratory hypothesis tests, control false discovery rate (Benjamini–Hochberg). Otherwise report effect sizes and confidence intervals without formal multiplicity claims.",
+  "contamination_plan": "Detect and remove contamination via deterministic duplicate-detection (SHA-256) and semantic-similarity screening (embedding cosine > 0.95) with deterministic exclusions and deterministic replacement indices. Run validators against a held-out generator set to detect overfitting; if validator FP/FN diverges >20 percentage points compared to seeded set, relegate that validator to exploratory analyses. All exclusions, replacements, and contamination logs are published with raw artifacts. Confirmatory analyses use contamination-cleaned data; sensitivity analyses report results including flagged items.",
+  "stopping_rule": "Stop when all preregistered task_indices (per deterministic index rule) have been processed or when maximum_model_calls = task_count * 2 = 400 is reached. No post-hoc sample changes; any early termination due to infrastructure failure is logged and reported as a technical failure (separate from scientific failure).",
+  "planned_outputs": [
+    "Preregistered machine-readable experiment plan and execution manifest",
+    "Execution artifacts: raw model outputs, validator traces, hashes, and logs",
+    "Analysis code and bootstrap scripts",
+    "Evidence-to-claim table and nearest-work comparison matrix",
+    "IEEE-format LaTeX manuscript (≤5 pages) and compiled PDF including mandatory Disclosure Statement",
+    "NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

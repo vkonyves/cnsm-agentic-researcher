@@ -1,0 +1,165 @@
+{
+  "selected_candidate_id": "AC-2026-03",
+  "title": "Validator-metric suite for measuring soundness, coverage, and operational impact of GVR oracles in NetOps",
+  "research_question": "Can a standardized, empirically estimable validator metric suite (coverage, FP-rate, FN-rate, mean detection latency, operational-impact score) predict end-to-end agentic NetOps success better than a single raw verifier pass rate?",
+  "confirmatory_hypotheses": [
+    "H1: A multi-dimensional validator metric suite explains more variance in end-to-end task success than a single verifier pass rate (primary confirmatory hypothesis).",
+    "H2: Injected, preregistered realistic fault classes permit stable estimation of validator false-negative and false-positive rates under the controlled benchmark.",
+    "H3: Validator metrics correlate with a preregistered simulated operational-impact cost proxy and can be used to prioritize verifier development."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which injected fault classes (syntactic, semantic, configuration-logic, policy-violation) most strongly drive false-negative/false-positive tradeoffs?",
+    "EQ2: How sensitive are validator-metric estimates and predictive performance to alternative operational-cost parameterizations?"
+  ],
+  "benchmark_scope": [
+    "Synthetic paired NetOps GVR episodes generated via the supplied synthetic_paired_llm_benchmark_v1 / hosted_netops_gvr_v1 adapter family.",
+    "Stress-test task-index profile: challenging_workflow_stress_v1 (only 'very_hard' and 'extreme' generator levels) as required by the adapter contract."
+  ],
+  "model_scope": [
+    "Single hosted LLM accessed via hosted_netops_gvr_v1 adapter (provider-model name/version to be recorded in execution manifest).",
+    "No private vendor-only verifiers; only public/open-source deterministic validators or deterministic checks embedded in scoring scripts."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (one generation call per task).",
+    "guarded: generate_validate_repair_v1 (initial generation + at most one repair call per task, as per adapter contract)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "per-validator false-positive rate (FP-rate) averaged across tasks",
+    "per-validator false-negative rate (FN-rate) averaged across tasks",
+    "mean detection latency per validator (ms)",
+    "R^2 of linear model predicting simulated operational-impact score from validator metric vectors"
+  ],
+  "sampling_plan": "Confirmatory paired design using hosted_netops_gvr_v1 adapter with episodes_per_task=2 (baseline, guarded). Task selection: deterministic challenging_workflow_stress_v1 profile (adapter-prescribed index rule). Three preplanned scenarios (minimal/recommended/ambitious). For the recommended (primary) scenario: task_count = 200 tasks. Derivation: adapter requires 1 initial generation and up to 1 repair call per task → maximum_model_calls = task_count * 2 = 200 * 2 = 400 model calls. Episodes: 2 per task → 400 episodes total (200 baseline, 200 guarded). All selection and indices fixed before any hosted-model call.",
+  "analysis_plan": "Primary confirmatory analysis executed by 'paired_binary_analysis_v1' executor (available). Estimand: paired_success_rate_difference_guarded_minus_baseline. Primary test: paired two-condition difference in binary success (guarded vs baseline) using the executor's permutation / paired-proportion test. Report estimate, 95% CI, and p-value. Model-failure handling per adapter/contract: follow failed_call_treatment=['complete_pair_primary','complete_pair_primary_with_failure_as_zero_sensitivity'] — primary analysis uses complete pairs only; sensitivity analysis treats any incomplete pair as failure (0) for guarded condition. Secondary analyses: linear regression (or robust regression) predicting simulated operational-impact score from validator metric vectors; report adjusted R^2 and AUC for binary impact-thresholded outcomes. Bootstrap (1,000 resamples) for stability of metric estimates and predictive statistics. All analysis code and executor configuration will be published with artifacts.",
+  "multiplicity_plan": "Single pre-registered primary confirmatory estimand (paired success-rate difference). All subgroup, per-error-class, per-validator, and cost-parameter analyses are explicitly exploratory and will use false-discovery-rate control (Benjamini–Hochberg) when reporting multiple p-values, or will be reported with effect sizes and confidence intervals without formal multiplicity claims for hypothesis testing.",
+  "missingness_plan": "API/infrastructure failures: no manual retries beyond adapter limits (maximum_attempts_per_call=1). Primary analysis uses complete pairs only (executor default). Sensitivity analysis treats missing/failed episodes as failures (0). All missingness, retry, and failure metadata (timestamps, HTTP codes, provider error messages) logged in execution manifest. No human adjudication will be used to impute missingness.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "synthetic_paired_llm_benchmark_v1",
+      "hosted_netops_gvr_v1 (adapter-provided episodes)"
+    ],
+    "risk_factors": [
+      "Task-generator leakage between training and evaluation regimes (generator producing trivial or out-of-scope prompts).",
+      "Duplicate or near-duplicate seeded outputs across tasks.",
+      "Validator implementations sharing code/heuristics with generation templates causing optimistic validator coverage estimates."
+    ],
+    "detection_procedures": [
+      "Deterministic duplicate-detection on task and generated-output hashes (SHA-256) and automatic exclusion of exact duplicates from analyses.",
+      "Automated semantic-similarity screening (embedding cosine similarity threshold) to flag near-duplicate tasks; flagged items are excluded from confirmatory sample if similarity > 0.95 (deterministic rule).",
+      "Run validators against a held-out set of clean, non-seeded generator outputs to detect validator overfitting to seeded templates (automatic comparison of FP/FN rates)."
+    ],
+    "item_flagging_rules": [
+      "Exact-duplicate outputs (identical SHA-256) → automatic exclusion from confirmatory set and logging as contamination-exclusion.",
+      "Near-duplicate tasks (embedding similarity > 0.95) → deterministic exclusion; replacement follow deterministic next-index rule to preserve task_count.",
+      "Validator-overfitting signal (large FP/FN divergence between seeded and held-out generator set, preregistered threshold: >20 percentage points) → automatic relegation of affected validator to exploratory-only analyses."
+    ],
+    "analysis_treatment": "Confirmatory analyses run on contamination-cleaned dataset per deterministic exclusion rules. All exclusions, replacements, and contamination logs are published alongside raw artifacts. Sensitivity analyses will report results both including and excluding flagged items.",
+    "residual_uncertainty": [
+      "Seeded taxonomy coverage vs real-world error distributions (bounded in remaining_noncritical_uncertainties).",
+      "Potential unseen generator–validator coupling beyond automated detection heuristics."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_minimal_100",
+      "description": "Minimal confirmatory run to verify pipeline and estimate variance (fast sanity-check).",
+      "planned_model_calls": 200,
+      "models": [
+        "single hosted LLM via hosted_netops_gvr_v1"
+      ],
+      "transformations": [
+        "baseline (direct_generation)",
+        "guarded (generate_validate_repair)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "100 tasks × up to 2 calls/task = 200 model calls. Fits well under model-call budget (<=10000) and enables quick pipeline validation; lower statistical power than recommended scenario."
+    },
+    {
+      "scenario_id": "scenario_recommended_200",
+      "description": "Primary recommended confirmatory run balancing power and cost.",
+      "planned_model_calls": 400,
+      "models": [
+        "single hosted LLM via hosted_netops_gvr_v1"
+      ],
+      "transformations": [
+        "baseline (direct_generation)",
+        "guarded (generate_validate_repair)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "200 tasks × up to 2 calls/task = 400 model calls. Within manifest limits; provides sufficient sample to detect ~10 percentage-point paired differences under preregistered assumptions (see power_plan)."
+    },
+    {
+      "scenario_id": "scenario_ambitious_500",
+      "description": "Ambitious run to increase sensitivity for subgroup and per-error-class analyses.",
+      "planned_model_calls": 1000,
+      "models": [
+        "single hosted LLM via hosted_netops_gvr_v1"
+      ],
+      "transformations": [
+        "baseline (direct_generation)",
+        "guarded (generate_validate_repair)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 500,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "500 tasks × up to 2 calls/task = 1000 model calls. Still within the manifest model-call budget and execution window but requires longer runtime and more storage; exploratory subgroup estimates improve with this sample."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Detect an absolute paired improvement of 0.10 (10 percentage points) in success rate (guarded minus baseline) with alpha=0.05 (two-sided) and ~80% power under conservative assumptions.",
+    "clustering_unit": "task (paired episodes per task: baseline + guarded)",
+    "calculation_method": "Approximate normal/paired-proportion calculation under conservative baseline p=0.50 and zero within-pair correlation for MDE approximation; bootstrap stability checks (1,000 resamples) to account for distributional deviations.",
+    "assumptions": [
+      "Baseline success rate approx 0.50 (conservative).",
+      "Within-pair correlation modest; MDE calculations presented for correlation=0 and sensitivity analyses for correlations in [0,0.3].",
+      "No post-hoc sample changes; all task indices fixed a priori."
+    ],
+    "recommended_scenario_id": "scenario_recommended_200",
+    "minimum_detectable_effect_notes": "With n=200 paired tasks, approximate standard error for a 0.5 baseline yields SE≈0.05, giving a 95% CI half-width ≈0.10; thus ~10 percentage points is a conservative detectable difference. Sensitivity analyses will compute MDE over plausible baseline rates (0.3–0.7) and correlations.",
+    "sensitivity_analyses": [
+      "Recompute MDE for baseline p in {0.3,0.4,0.5,0.6,0.7}.",
+      "Recompute power under within-pair correlations ρ in {0,0.1,0.2,0.3}.",
+      "Report bootstrap-derived empirical SE and MDE from pilot minimal scenario (scenario_minimal_100) if that run is executed first."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "direct_configuration_generation_v1",
+      "generate_validate_repair_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated token-level and semantic-similarity checks between repaired and intended-configuration specifications (embedding similarity thresholds and deterministic rule checks for preserved intent tokens).",
+      "Deterministic mapping checks ensuring that guarded repairs do not change intent keywords defined in the task prompt; any repair that alters intent keywords is flagged and excluded from the primary confirmatory success metric (documented deterministic rule)."
+    ],
+    "automatic_rejection_rules": [
+      "Repaired configurations that omit any preregistered mandatory parameters (deterministic rule) → automatic failure for that episode.",
+      "Repairs that introduce network-actions outside the task's allowed action set (predeclared per-task) → automatic exclusion from primary success numerator and logging as policy-violation repairs."
+    ],
+    "audit_sample_policy": "Deterministic cryptographic sampling: select the first 20 tasks by task_index for extra telemetry logging and archival of full validator traces; no human audit required — all traces are stored and published.",
+    "mapping_validation": "Publish all mapping rules used to translate generator outputs to validator input formats; include unit tests (deterministic) in released scoring scripts.",
+    "residual_risks": [
+      "Semantic-equivalence checks are heuristic and may miss subtle intent drift.",
+      "Deterministic exclusion rules may bias the confirmatory sample if many exclusions occur; this will be reported and sensitivity-analysed."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Representativeness of the seeded-fault taxonomy for real-world operational error distributions; claims explicitly bounded to the seeded taxonomy.",
+    "Detection-latency estimates may be sensitive to hosted-model API latency variation and infrastructure jitter; we mitigate via repeated time measurements and by reporting median and IQR.",
+    "Single-hosted-LLM execution limits generalization across model vendors; claims restricted to the tested model and the synthetic benchmark population."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7162496031",
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W7162952350",
+    "https://openalex.org/W4407384737",
+    "https://openalex.org/W7204566174"
+  ]
+}

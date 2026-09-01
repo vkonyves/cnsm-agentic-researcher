@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "AC-2026-01",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Design relies on human intent-oracle labeling though capability_manifest disallows human scientific labour (conflict with run constraints).",
+        "Deterministic verifiers proposed may not represent production diversity (vendor/proprietary features missing).",
+        "Synthetic/vendor-mapping realism risk — public mappings may omit important proprietary semantics.",
+        "Oracle intent labels are subjective; inter-rater noise may reduce effective power.",
+        "Single hosted LLM limits generality; results may not generalize across models/vendors."
+      ],
+      "required_design_repairs": [
+        "Replace disallowed human-oracle steps with a preregistered, reproducible adjudication alternative (e.g., LLM-based adjudicator calibrated on an existing public human-labeled dataset) or explicitly justify and provide publicly available human-labeled data consistent with capability limits.",
+        "Preregister exact verifier implementations and versions; include at least two open-source verifiers or clearly justify representativeness.",
+        "Document and publish synthetic vendor mappings, anonymization, and limitations; include sensitivity analysis for proprietary-feature gaps.",
+        "Predefine inter-rater/agreement procedures and minimum sample sizes; preregister power analysis and retry policy."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "AC-2026-02",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Design filters to verifier-passing outputs only, reducing sample size and inflating uncertainty if not preregistered with adequate power.",
+        "Adjudication plan requires two independent human labelers (conflicts with human_scientific_labour_allowed:false).",
+        "Ambiguity and false-premise injection procedures are underspecified and may bias results.",
+        "Use of single LLM and fixed prompt may conflate model artifacts with task phenomena."
+      ],
+      "required_design_repairs": [
+        "Replace human adjudicators with a reproducible LLM-based adjudication pipeline calibrated against a publicly available labeled corpus, or otherwise ensure labels are public and allowable under manifest constraints.",
+        "Preregister ambiguity/false-premise generation procedures, include objective ambiguity scoring rules, and run power analysis to ensure adequate verifier-passing sample size.",
+        "Include multi-model checks or sensitivity runs, or justify single-model choice and limit claims accordingly.",
+        "Publish all prompts, seeds, and retained verifier logs to enable repeatability."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "AC-2026-03",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Operational-impact cost model is necessarily simplified and may drive fragile conclusions if not stress-tested.",
+        "Seeded faults may not capture the full diversity of real operational errors.",
+        "Detection-latency measurement sensitive to infrastructure timing variability."
+      ],
+      "required_design_repairs": [
+        "Preregister the cost-model mapping and include sensitivity analyses over plausible cost parameters.",
+        "Openly publish the seeded-fault taxonomy and example cases; justify representativeness or bound claims to the seeded taxonomy.",
+        "Specify and preregister synchronized timing methodology for latency metrics and include repeated measures to estimate infrastructure variance.",
+        "Release metric-computation code and example datasets to ensure reproducibility."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "AC-2026-04",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Design depends on a calibrated proxy reviewer derived from a small human-labeled calibration set — conflicts with no-human-labour constraint unless calibration data are public and permissible.",
+        "Estimated reviewer-time proxies are approximate and may not reflect real operator workload.",
+        "Proxy reviewer calibration bias can meaningfully change strategy rankings.",
+        "Explainability-assisted gating may conflate rationale quality with reviewer heuristics; measurement needs specification."
+      ],
+      "required_design_repairs": [
+        "Either use a publicly available human-labeled calibration dataset consistent with capability limits or fully specify a reproducible LLM-based proxy-reviewer calibration procedure and make calibration data/code public.",
+        "Preregister reviewer-time estimation method and validate it against at least one external public benchmark or sensitivity range.",
+        "Define and preregister how explainability artifacts are generated and evaluated; include ablation showing effect of rationale quality on gating outcomes.",
+        "Limit claims to proxy-evaluated outcomes and explicitly state external-validity caveats."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

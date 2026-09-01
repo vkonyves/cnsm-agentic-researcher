@@ -1,0 +1,34 @@
+{
+  "study_id": "AC-2026-03",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis (complete-pair only) using the executor's paired-proportion procedure on paired_binary_episode_v1 results: compute paired success-rate difference (guarded − baseline), report point estimate, 95% CI, and p-value using the registered paired-proportion / permutation routine. Analysis uses completed pairs = completed_episode_count/2 (200 pairs) per execution manifest. All inputs drawn from execution/raw_results.jsonl and deterministic validator traces.",
+  "secondary_analyses": [
+    "Per-validator false-positive rate (FP-rate) averaged across tasks (exploratory/registered secondary)",
+    "Per-validator false-negative rate (FN-rate) averaged across tasks (exploratory/registered secondary)",
+    "Mean detection latency per validator (ms), averaged across tasks (registered secondary)",
+    "Linear/robust regression predicting simulated operational-impact score from validator metric vectors; report adjusted R^2 and regression coefficients (registered secondary)",
+    "AUC for operational-impact-thresholded outcomes derived from validator-metric predictor (registered secondary)"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: treat any missing or incomplete guarded episode as failure (0) for guarded condition and recompute primary estimand (pre-registered sensitivity)",
+    "Bootstrap stability: 1,000 bootstrap resamples of paired tasks to derive empirical SEs and CIs for primary and secondary estimands (registered sensitivity)",
+    "Include contamination-flagged episodes analysis: recompute primary and secondary estimands on full dataset including episodes flagged/ excluded by contamination checks (exploratory sensitivity)"
+  ],
+  "uncertainty_quantification": "Bootstrap with 1,000 resamples to produce empirical standard errors and 95% confidence intervals for primary and secondary estimands; report p-value from the executor's paired-permutation test for the primary estimand; report bootstrap CIs for adjusted R^2 and AUC.",
+  "multiplicity_implementation": "Single pre-registered primary estimand (paired_success_rate_difference_guarded_minus_baseline). All subgroup, per-error-class, per-validator, and cost-parameter tests are exploratory. When reporting multiple p-values for exploratory tests, control false discovery rate using Benjamini–Hochberg; otherwise report effect sizes and CIs without formal multiplicity claims.",
+  "contamination_analysis": "Apply deterministic contamination detection as preregistered: exclude exact-duplicate outputs by output_sha256 (SHA-256) and semantic duplicates with embedding cosine > 0.95; exclusions and deterministic replacements follow the preregistered replacement index rule and are logged in execution/execution_log.jsonl. Validators are evaluated against a held-out generator set; any validator with >20 percentage-point FP/FN divergence is relegated to exploratory-only analyses. All contamination/exclusion logs and affected episode identifiers published alongside raw_results.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary confirmatory result: paired success-rate difference (guarded − baseline), point estimate, 95% CI, p-value, n_pairs=200 (derived from execution manifest completed_episode_count=400). Source: execution/raw_results.jsonl",
+    "Table 2 — Per-validator summary metrics (exploratory/secondary): FP-rate, FN-rate, mean detection latency (ms), per-validator sample counts; averages computed across tasks. Source: deterministic_validator_trace in raw_results.jsonl",
+    "Table 3 — Predictive model results (secondary): regression coefficients, adjusted R^2, standard errors, and AUC for operational-impact-thresholded outcome; bootstrap CIs (1,000 resamples). Source: raw_results.jsonl and simulated operational-impact scores recorded in artifacts",
+    "Table 4 — Contamination and exclusion summary: counts of SHA-256 exact duplicates, semantic-similarity exclusions (cosine>0.95), replacements applied, and any validators relegated to exploratory status due to >20pp divergence. Source: execution/execution_log.jsonl and contamination logs"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Distribution of validator-metric vectors across tasks (FP-rate, FN-rate, detection latency) with per-validator boxplots; source: raw_results.jsonl deterministic_validator_trace",
+    "Figure 2 — Bootstrap sampling distribution for the primary paired success-rate difference (1,000 resamples) with 95% CI; source: bootstrap outputs from analysis code and raw_results.jsonl",
+    "Figure 3 — Exploratory per-error-class FP vs FN tradeoff (syntactic, semantic, config-logic, policy-violation) as scatter/contour plot, labeled exploratory; source: error-class annotations and validator traces in raw_results.jsonl",
+    "Figure 4 — Detection latency CDFs per validator and condition (baseline vs guarded); source: detection_latency_ms in paired_binary_episode_v1 artifacts"
+  ]
+}
