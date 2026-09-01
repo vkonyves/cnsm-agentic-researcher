@@ -405,22 +405,30 @@ def sanitize_structured_manuscript_publication_metadata(
         # Defensive fallback for a DOI label that was not bracketed.
         cleaned = inline_doi_label_pattern.sub("", cleaned)
 
-        # The renderer creates the canonical bibliography itself. A standalone
-        # body heading named "References" would therefore create a duplicate
-        # pre-bibliography heading such as:
+        # The renderer creates the canonical bibliography itself. Remove any
+        # standalone body heading named "References", including when that
+        # heading is one line inside a larger multi-line manuscript field.
+        # Ordinary prose containing the word "references" is preserved.
         #
-        #     References
-        #     [canonical thebibliography]
-        #
-        # Removing only an exact standalone heading is publication hygiene;
-        # ordinary scientific prose containing the word "references" is
-        # preserved.
-        if re.fullmatch(
-            r"\s*(?:#{1,6}\s*)?references\s*:?\s*",
-            cleaned,
-            flags=re.IGNORECASE,
-        ):
-            return ""
+        # Supported heading forms include:
+        #   References
+        #   ## References
+        #   REFERENCES:
+        #   \section{References}
+        #   \section*{References}
+        references_heading_line_pattern = re.compile(
+            r"(?im)"
+            r"^[ \t]*"
+            r"(?:"
+            r"#{1,6}[ \t]*references[ \t]*:?"
+            r"|references[ \t]*:?"
+            r"|\\section\*?\{[ \t]*references[ \t]*\}"
+            r"|\\subsection\*?\{[ \t]*references[ \t]*\}"
+            r")"
+            r"[ \t]*$"
+            r"(?:\r?\n)?"
+        )
+        cleaned = references_heading_line_pattern.sub("", cleaned)
 
         # Peer-review workflow language must not leak into the submitted paper.
         # Remove only complete sentences explicitly framed as reviewer process;
@@ -7505,7 +7513,8 @@ class FinalAutonomousResearchPipeline:
                 # If this attempt has reached the exact frozen page
                 # budget, no further format-model call is necessary.
                 if (
-                    publication_validation.get(
+                    publication_validation.get("passed") is True
+                    and publication_validation.get(
                         "compile_status"
                     )
                     == "passed"
@@ -7520,6 +7529,10 @@ class FinalAutonomousResearchPipeline:
             selected_exact_terminal_candidate = (
                 best_terminal_manuscript is not None
                 and best_terminal_publication_validation is not None
+                and best_terminal_publication_validation.get(
+                    "passed"
+                )
+                is True
                 and best_terminal_publication_validation.get(
                     "compile_status"
                 )

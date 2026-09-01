@@ -492,8 +492,28 @@ def build_publication_artifacts(
         encoding="utf-8",
     )
 
-    if pdf_path.exists():
-        pdf_path.unlink()
+    # Every manuscript candidate must receive a genuinely fresh LaTeX
+    # compilation. latexmk persists dependency/error state in auxiliary
+    # files; retaining that state across candidates can cause a corrected
+    # manuscript to inherit a previous candidate's failed build.
+    stale_build_artifacts = (
+        "manuscript.pdf",
+        "manuscript.aux",
+        "manuscript.fdb_latexmk",
+        "manuscript.fls",
+        "manuscript.log",
+        "manuscript.out",
+        "manuscript.toc",
+        "manuscript.bbl",
+        "manuscript.blg",
+        "manuscript.synctex.gz",
+    )
+
+    for artifact_name in stale_build_artifacts:
+        artifact_path = output_dir / artifact_name
+
+        if artifact_path.exists():
+            artifact_path.unlink()
 
     completed = subprocess.run(
         [

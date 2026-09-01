@@ -466,3 +466,47 @@ def test_review_policy_does_not_require_preregistration_sha():
     assert "preregistration-manifest SHA-256 is explicitly NOT" in closure_source
     assert "Do not request" in closure_source
     assert "insertion of a preregistration hash" in closure_source
+
+
+def test_terminal_exact_page_checkpoint_requires_full_publication_pass():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    start = source.index(
+        "selected_exact_terminal_candidate = ("
+    )
+    section = source[start:start + 1000]
+
+    assert (
+        'best_terminal_publication_validation.get(\n'
+        '                    "passed"\n'
+        '                )\n'
+        '                is True'
+        in section
+    )
+
+
+def test_terminal_exact_page_break_requires_publication_pass():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/final_pipeline.py"
+    ).read_text(encoding="utf-8")
+
+    marker = (
+        "If this attempt has reached the exact frozen page"
+    )
+    start = source.index(marker)
+    section = source[start:start + 700]
+
+    assert 'publication_validation.get("passed") is True' in section
+
+
+def test_publication_renderer_clears_latexmk_state_between_candidates():
+    source = Path(
+        "src/cnsm_agentic/autonomous_research/publication_renderer.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"manuscript.fdb_latexmk"' in source
+    assert '"manuscript.fls"' in source
+    assert '"manuscript.aux"' in source
+    assert "stale_build_artifacts" in source

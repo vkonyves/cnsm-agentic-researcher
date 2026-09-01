@@ -41,3 +41,35 @@ def test_reviewer_request_sentence_is_removed_but_science_preserved():
     assert "Reviewers requested" not in cleaned
     assert "The guarded arm improved correctness." in cleaned
     assert "The confidence interval was computed by paired bootstrap." in cleaned
+
+
+def test_publication_sanitizer_removes_embedded_references_heading():
+    manuscript = DummyManuscript(
+        body="""The experiment supports the bounded conclusion.
+
+References
+This sentence discusses references in ordinary prose and must remain."""
+    )
+
+    sanitized = sanitize_structured_manuscript_publication_metadata(
+        manuscript
+    )
+
+    assert "\nReferences\n" not in sanitized.body
+    assert "discusses references in ordinary prose" in sanitized.body
+
+
+def test_publication_sanitizer_removes_latex_references_heading():
+    manuscript = DummyManuscript(
+        body="""Supported scientific discussion.
+\\section*{References}
+Further supported scientific discussion."""
+    )
+
+    sanitized = sanitize_structured_manuscript_publication_metadata(
+        manuscript
+    )
+
+    assert "\\section*{References}" not in sanitized.body
+    assert "Supported scientific discussion." in sanitized.body
+    assert "Further supported scientific discussion." in sanitized.body
