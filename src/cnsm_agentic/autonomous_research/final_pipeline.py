@@ -2365,39 +2365,19 @@ def preregistration_identifiability_issues(
     preregistration: Any,
 ) -> list[str]:
     """
-    Detect design-time lack of exposure for a repair-effect estimand.
+    Detect only structural non-identifiability from the preregistered
+    execution contract.
 
-    Uses preregistered design only; never observed outcomes.
+    Do not require observed failures, injected faults, or multiple draws:
+    naturally occurring generator failures can make a paired repair
+    estimand identifiable under shared-initial-candidate semantics.
     """
     contract = preregistration.execution_contract.model_dump()
-
-    generation_semantics = str(
-        contract.get("generation_semantics") or ""
-    ).lower()
-
-    initial_calls = contract.get(
-        "initial_generation_calls_per_task"
-    )
 
     estimand = (
         str(preregistration.primary_estimand)
         + " "
         + str(preregistration.primary_estimand_id)
-    ).lower()
-
-    design_text = " ".join(
-        [
-            str(preregistration.research_question),
-            " ".join(
-                str(x)
-                for x in preregistration.confirmatory_hypotheses
-            ),
-            " ".join(
-                str(x)
-                for x in preregistration.transformation_scope
-            ),
-            str(preregistration.sampling_plan),
-        ]
     ).lower()
 
     repair_difference = (
@@ -2409,42 +2389,35 @@ def preregistration_identifiability_issues(
         )
     )
 
-    shared_single_draw = (
-        generation_semantics == "shared_initial_candidate"
-        and initial_calls == 1
+    if not repair_difference:
+        return []
+
+    conditions = {
+        str(value).strip().lower()
+        for value in contract.get("conditions", [])
+    }
+
+    maximum_repair_calls = int(
+        contract.get("maximum_repair_calls_per_task") or 0
     )
 
-    planned_exposure = any(
-        token in design_text
-        for token in (
-            "fault injection",
-            "fault-injection",
-            "perturbation",
-            "adversarial transformation",
-            "error injection",
-            "mutation",
-            "multi-sample",
-            "multiple initial generation",
-            "multiple generation",
-            "independent draws",
+    issues: list[str] = []
+
+    if not {"baseline", "guarded"}.issubset(conditions):
+        issues.append(
+            "Primary guarded-versus-baseline estimand requires both "
+            "baseline and guarded execution conditions."
         )
-    )
 
-    if (
-        repair_difference
-        and shared_single_draw
-        and not planned_exposure
-    ):
-        return [
-            "Primary guarded-versus-baseline repair estimand uses one "
-            "shared initial candidate per task but specifies no planned "
-            "exposure mechanism capable of producing validator-relevant "
-            "variation. Repair the preregistration using an executable "
-            "supported design mechanism, or choose a primary estimand "
-            "that is identifiable under the selected execution semantics."
-        ]
+    if maximum_repair_calls < 1:
+        issues.append(
+            "Primary guarded-versus-baseline repair estimand is "
+            "structurally non-identifiable because the execution "
+            "contract permits no repair call in the guarded condition."
+        )
 
-    return []
+    return issues
+
 
 
 def preregistration_execution_contract_issues(
