@@ -261,6 +261,35 @@ MANUSCRIPT_AUTHOR = Agent(
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
 
+        CRITICAL EXECUTION-GROUNDING RULE:
+        Treat experiment plans, preregistration plans, proposed implementation
+        strategies, requested result schemas, feasibility descriptions, and
+        planned tools/infrastructure as evidence of what was PLANNED only.
+        They are not evidence that a tool, simulator, emulator, container,
+        validator backend, benchmark runtime, packet-level system, or other
+        implementation component actually executed.
+
+        A claim that something WAS EXECUTED, USED, RUN, EMULATED, MEASURED,
+        OBSERVED, or PRODUCED during the completed experiment must be supported
+        by completed-execution evidence such as the execution manifest, actual
+        result records, execution logs, scoring artifacts, or other archived
+        artifacts produced by execution. Absence of such execution evidence
+        must not be filled from the experiment plan.
+
+        This rule applies everywhere in the manuscript, INCLUDING THE TITLE,
+        ABSTRACT, METHODS, RESULTS, DISCUSSION, CONCLUSION, tables, captions,
+        and Disclosure Statement. For example, a planned Mininet, Docker,
+        Batfish, simulator, emulation, packet-trace, or reachability-matrix
+        component must not be described as actually used merely because it
+        appears in an experiment plan.
+
+        When the archived execution evidence establishes only a deterministic
+        synthetic task/validator experiment, describe exactly that executed
+        system and do not upgrade it to a planned but unobserved infrastructure
+        implementation. If planned and executed implementations differ or
+        execution evidence is insufficient, prefer the narrower claim supported
+        by completed-execution artifacts.
+
         Do not present unmeasured operational benefits as empirical findings.
         Claims about reduced human triage time, improved operator efficiency,
         improved observability, reduced deployment risk, lower latency, or
@@ -708,6 +737,35 @@ MANUSCRIPT_REVISER = Agent(
         Do not invent experiments, observations, statistics, citations,
         examples, or claims. All manuscript content must remain grounded in
         the archived autonomous-run artifacts and verified evidence.
+
+        CRITICAL EXECUTION-GROUNDING RULE:
+        Treat experiment plans, preregistration plans, proposed implementation
+        strategies, requested result schemas, feasibility descriptions, and
+        planned tools/infrastructure as evidence of what was PLANNED only.
+        They are not evidence that a tool, simulator, emulator, container,
+        validator backend, benchmark runtime, packet-level system, or other
+        implementation component actually executed.
+
+        A claim that something WAS EXECUTED, USED, RUN, EMULATED, MEASURED,
+        OBSERVED, or PRODUCED during the completed experiment must be supported
+        by completed-execution evidence such as the execution manifest, actual
+        result records, execution logs, scoring artifacts, or other archived
+        artifacts produced by execution. Absence of such execution evidence
+        must not be filled from the experiment plan.
+
+        This rule applies everywhere in the manuscript, INCLUDING THE TITLE,
+        ABSTRACT, METHODS, RESULTS, DISCUSSION, CONCLUSION, tables, captions,
+        and Disclosure Statement. For example, a planned Mininet, Docker,
+        Batfish, simulator, emulation, packet-trace, or reachability-matrix
+        component must not be described as actually used merely because it
+        appears in an experiment plan.
+
+        When the archived execution evidence establishes only a deterministic
+        synthetic task/validator experiment, describe exactly that executed
+        system and do not upgrade it to a planned but unobserved infrastructure
+        implementation. If planned and executed implementations differ or
+        execution evidence is insufficient, prefer the narrower claim supported
+        by completed-execution artifacts.
 
         Do not present unmeasured operational benefits as empirical findings.
         Claims about reduced human triage time, improved operator efficiency,
