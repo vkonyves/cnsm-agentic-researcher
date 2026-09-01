@@ -719,6 +719,21 @@ def _human_dependency_occurrence_is_negated(
     ):
         return True
 
+    # --------------------------------------------------------
+    # 6. Human assessment mentioned only as an external
+    # comparison/reference target, not as an executable dependency.
+    #
+    # Examples:
+    #   surrogate for human adjudication
+    #   proxy for human adjudication
+    # --------------------------------------------------------
+    if re.search(
+        r"\b(?:surrogate|proxy)\s+for\s*$",
+        before_window,
+        flags=re.IGNORECASE,
+    ):
+        return True
+
     return False
 
 def _find_positive_human_dependencies(

@@ -673,3 +673,30 @@ def test_instead_of_manual_adjudication_is_not_a_human_dependency():
         "manual adjudication" in issue.lower()
         for issue in issues
     )
+
+def test_autonomous_scoring_allows_surrogate_for_human_adjudication():
+    from cnsm_agentic.autonomous_research.feasibility import (
+        validate_design_feasibility,
+    )
+
+    design = {
+        "remaining_noncritical_uncertainties": [
+            "The automated proxy is an imperfect surrogate for human adjudication."
+        ]
+    }
+
+    manifest = {
+        "autonomous_scoring_required": True,
+        "manual_adjudication_allowed": False,
+        "human_scientific_labour_allowed": False,
+    }
+
+    issues = validate_design_feasibility(
+        design=design,
+        capability_manifest=manifest,
+    )
+
+    assert not any(
+        "human adjudication" in issue.lower()
+        for issue in issues
+    )
