@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "c-7f4a1b2e",
+      "novelty": 0.7,
+      "falsifiability": 0.9,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Verifier coverage and soundness not specified (false negatives risk).",
+        "Dataset composition: vendor/device dialect balance and realism unclear.",
+        "Paired-design confound if some faults are unsalvageable by any repair.",
+        "Manual spot-check sampling may miss rare hallucination classes.",
+        "Operationalization of “safety/reachability” properties needs exact formalization."
+      ],
+      "required_design_repairs": [
+        "Specify concrete verifier(s) (e.g., Batfish) and known limitations; include independent verifier for validation.",
+        "Define dataset sourcing and per-vendor/device dialect quotas; include production-like topologies or justify synthetic choices.",
+        "Pre-register exact property specifications (reachability/isolation/ACL rules) and counterexample schema.",
+        "Define salvageability/exclusion rules for unsalvageable faults and handling policy.",
+        "Detail manual-annotation protocol: sample size, adjudication rubric, inter-rater agreement target, and sampling method."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c-2a9d8c6f",
+      "novelty": 0.6,
+      "falsifiability": 0.9,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Quality and provenance of vendor documentation corpus not specified (licensing/trust issues).",
+        "Parser/validator coverage across vendor dialect extensions is unclear.",
+        "Retrieval relevance unevenness may confound vendor effects.",
+        "Token-limit truncation of retrieved context may reduce measurable benefit."
+      ],
+      "required_design_repairs": [
+        "Specify retrieval backend, indexing pipeline, and retrieval evaluation metrics; document source corpus and licensing.",
+        "Use or build robust vendor-specific syntax parsers; list parser versions and coverage tests.",
+        "Pre-register retrieval ablation: paired control for retrieval quality across vendors and token-limit experiments.",
+        "Define automated semantic-checker rules and manual adjudication protocol with inter-rater reliability targets."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "c-5b3e0d9a",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 0.7,
+      "major_concerns": [
+        "Validator quality and feedback fidelity may drive results (risk of misleading the model).",
+        "Convergence and loop-divergence criteria are underspecified.",
+        "Human quality ratings introduce subjectivity; rater process not defined.",
+        "Task complexity stratification and randomization details absent."
+      ],
+      "required_design_repairs": [
+        "Specify validator implementation, failure modes it detects, and how feedback is formatted to the model.",
+        "Pre-register precise iteration bounds (e.g., 0,3,10) and convergence/stopping criteria; log retries deterministically.",
+        "Define human rating protocol: rater selection, rubric, sample size, and inter-rater agreement measurement.",
+        "Stratify tasks by complexity with pre-specified strata and randomize assignment; list seeds and retry policy."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "c-9c1f4a7b",
+      "novelty": 0.8,
+      "falsifiability": 0.8,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.5,
+      "reproducibility": 0.5,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Simulator/emulator fidelity vs real networks is a major external-validity risk.",
+        "Labeling bias in identifying hallucinated edits (manual adjudication) may distort outage probabilities.",
+        "Ethical risk: publishing exploitably detailed failure modes could enable misuse.",
+        "Topology sampling may not represent production heterogeneity; selection strategy unclear."
+      ],
+      "required_design_repairs": [
+        "Validate simulator fidelity against known ground-truth cases and document limits; include sensitivity analyses.",
+        "Pre-register hallucination adjudication protocol, sample sizes, and inter-rater agreement targets; consider blinded adjudication.",
+        "Add ethical-mitigation plan: redact actionable exploit details, coordinate disclosure, and include safe-reporting statement.",
+        "Define topology sourcing and sampling strategy to bound external validity; include diversity metrics and justify representativeness."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

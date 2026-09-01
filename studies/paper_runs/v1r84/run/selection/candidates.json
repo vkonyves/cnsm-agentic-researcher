@@ -1,0 +1,128 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "c-7f4a1b2e",
+      "title": "Verifier-assisted generate–validate–repair reduces unsafe LLM fixes for network configurations",
+      "research_question": "Does integrating a formal network verifier into a generate–validate–repair loop reduce the proportion of LLM-suggested configuration repairs that introduce safety- or reachability-violating changes compared with LLM-only repairs?",
+      "hypotheses": [
+        "Integrating a formal verifier in the repair loop will reduce the fraction of repairs that produce configurations violating stated reachability or isolation properties.",
+        "Repairs produced with verifier feedback will have a lower hallucinated-change rate (incorrect but syntactically plausible edits) than repairs proposed without verification.",
+        "The verifier-assisted pipeline will trade off modest additional wall-clock time per repair for materially improved operational correctness."
+      ],
+      "proposed_design": "Create a paired experimental pipeline using a public corpus of synthetic and real-world configuration faults (intentional misconfigurations) across multiple device dialects. For each fault instance run two interventions: (A) LLM-only repair: prompt a single-shot LLM to propose a repair; (B) Verifier-assisted loop: LLM proposes repair, formal verifier (emulation/static verifier) checks semantic properties (reachability/isolation/ACLs), returns counterexample feedback to LLM for up to two repair iterations, then accept final repair. Validate final configs with the same verifier and an independent parser. Use fixed seeds and record all model prompts and outputs.",
+      "expected_data": "Per-instance records including original faulty config, LLM outputs per iteration, verifier verdicts (pass/fail), counterexamples, number of iterations, syntactic parse success/failure, manual spot-check labels for hallucinated edits (sampled), wall-clock latency per instance, and binary labels indicating whether final config violates any target property in verifier/emulator.",
+      "primary_outcome": "Absolute difference in proportion of final repairs that pass formal verification between verifier-assisted loop and LLM-only repair (paired proportion difference).",
+      "analysis_outline": "Compute paired proportions of verifier-passing repairs across N matched fault instances. Use McNemar's test for paired binary outcomes and report 95% confidence intervals for difference in proportions. Report hallucinated-fix rates with Wilson CI on sampled manual checks. Report median and IQR of iterations and latency and test latency difference with Wilcoxon signed-rank. Perform subgroup analyses by device dialect and fault class; correct for multiple comparisons using Bonferroni where applicable.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4405845747",
+        "https://openalex.org/W4399750638"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4411563239"
+      ],
+      "risks": [
+        "LLM nondeterminism causing variable outcomes across runs.",
+        "Formal verifier may have coverage gaps leading to false negatives (undetected unsafe repairs).",
+        "Manual spot-checking sample may miss rare hallucination classes.",
+        "Paired design may be confounded if some faults are unsalvageable by any automated repair."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "c-2a9d8c6f",
+      "title": "Retrieval-augmented generation (RAG) for multi-vendor CLI correctness and hallucination reduction",
+      "research_question": "To what extent does retrieval-augmented prompting with vendor-specific documentation reduce syntactic and semantic errors (including hallucinated commands) when LLMs translate operator intent to vendor CLI snippets across heterogeneous vendors?",
+      "hypotheses": [
+        "Providing vendor-specific reference material via retrieval will increase the proportion of syntactically valid CLI lines generated for that vendor.",
+        "Retrieval augmentation will reduce the incidence of semantically incorrect or hallucinated commands compared to context-only prompting.",
+        "The benefit of retrieval augmentation will be larger for less-represented vendor dialects than for well-represented dialects in model pretraining data."
+      ],
+      "proposed_design": "Assemble an intent-to-CLI dataset covering three vendor dialects (e.g., Cisco IOS, Juniper Junos, Arista EOS) using public examples and synthesized intents. Implement two conditions per instance: (A) Baseline in-context prompting with few-shot examples; (B) RAG condition where a retrieval module returns vendor CLI reference excerpts and configuration examples appended to the prompt. Use the same underlying LLM and fixed prompt templates apart from retrieved text. Validate generated CLI with a syntax parser and a semantics checker (static rules/emulation when feasible). Measure syntactic validity, semantic correctness relative to intent, and hallucination incidents. Log retrieval hits and prompt sizes.",
+      "expected_data": "Per-instance records: intent, retrieved documents identifiers and snippets, LLM output, parser pass/fail, semantic correctness label (automated and sampled manual adjudication), hallucination flags, retrieval relevance scores, and latency/token usage.",
+      "primary_outcome": "Change in proportion of syntactically and semantically correct CLI outputs between baseline and RAG conditions (percentage-point improvement attributable to RAG).",
+      "analysis_outline": "Treat instances as paired; compute paired differences in correctness rates and apply McNemar's test with 95% CIs. Estimate effect sizes stratified by vendor dialect and perform logistic regression with fixed effects for vendor to test interaction between RAG and vendor. Report retrieval hit-rate correlations with correctness and perform error-mode taxonomy on hallucinations.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4405845747",
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404782868"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4411551677",
+        "https://openalex.org/W4411563239"
+      ],
+      "risks": [
+        "Retrieved documents may contain outdated or contradictory vendor guidance causing incorrect outputs.",
+        "Syntactic validators might falsely accept vendor-specific vendor-extensions not covered by parser.",
+        "Retrieval module quality will influence outcomes creating confounding if retrieval relevance is uneven across vendors.",
+        "Token limits may truncate useful retrieved context, reducing RAG benefit."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "c-5b3e0d9a",
+      "title": "Bounded iterative self-correction for agentic NetOps change plans",
+      "research_question": "Does bounding the number of self-correction iterations for an agentic LLM change-planning workflow improve the safety (fewer unsafe change plans accepted) without unacceptable degradation in plan quality or excessively long latency compared to unbounded/self-guided iteration?",
+      "hypotheses": [
+        "Applying a strict small bound (e.g., max 3 correction iterations) on self-correction will significantly reduce acceptance of unsafe change plans compared to single-shot generation while preserving most plan quality metrics.",
+        "Unbounded or high-iteration self-correction may produce marginal safety gains at the cost of increased hallucination risk and latency.",
+        "Bounded iteration will produce more predictable runtime and reproducible outcomes than unconstrained agentic loops."
+      ],
+      "proposed_design": "Define a set of change-planning tasks: multi-step maintenance or feature deployment scenarios requiring order constraints, rollback planning, and impact statements. Implement three agentic workflows: (1) single-shot LLM plan; (2) bounded iterative self-correction (max 3 iterations) where the model revises plan after automated validator feedback; (3) unbounded iterative loop permitted up to 10 iterations or until convergence. For all workflows use the same validator(s) and same initial prompts. Evaluate plan safety (violations of constraints in validator/emulated dry-run), plan completeness (coverage of required steps), hallucination rate, and latency. Use randomized assignment of tasks across runs and fixed seeds for model calls when supported.",
+      "expected_data": "Per-task logs including initial plan, subsequent revisions, validator feedback at each iteration, final plan, whether plan passed simulated dry-run, number of iterations performed, latency, token usage, and sampled human quality ratings for completeness and clarity.",
+      "primary_outcome": "Proportion of accepted final plans that violate safety constraints in bounded-iteration vs single-shot and unbounded conditions.",
+      "analysis_outline": "Compare proportions using pairwise McNemar or chi-squared tests as appropriate. Model iteration count and latency differences with nonparametric tests (Kruskal-Wallis with post-hoc pairwise Wilcoxon). Fit logistic regression to predict safety violation using iteration policy as a factor, controlling for task complexity. Report effect on plan-quality ratings with ordinal models and analyze trade-offs (safety vs latency).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404782868",
+        "https://openalex.org/W4411523078"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4399750638",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "risks": [
+        "Unbounded iteration may cause looped or divergent behavior increasing hallucinations.",
+        "Validator feedback quality limits effective correction; poor validators can mislead models.",
+        "Human rating samples may introduce subjectivity; inter-rater variability must be measured.",
+        "Simulated dry-runs may not fully capture production-side side-effects."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "c-9c1f4a7b",
+      "title": "Quantifying operational outage risk from LLM hallucinations in simulated network topologies",
+      "research_question": "What is the conditional probability that a hallucinated or incorrect LLM-generated configuration change leads to a simulated outage (connectivity loss, security exposure, or service degradation) across varied realistic topologies?",
+      "hypotheses": [
+        "A non-negligible fraction of hallucinated LLM edits will map to configuration changes that cause measurable outages in emulated topologies.",
+        "Topology complexity (number of nodes/paths) increases the likelihood that an incorrect change will produce observable service impact.",
+        "Certain hallucination classes (e.g., incorrect ACLs or route-redistribution statements) have disproportionately high outage probability per occurrence compared to minor syntactic deviations."
+      ],
+      "proposed_design": "Construct a corpus of LLM-generated erroneous edits by prompting models to propose fixes or changes for a range of intents and then identify hallucinated/incorrect edits via automated checks and manual adjudication. Inject each erroneous change into a set of publicly sourced or synthetically generated topologies of varying complexity and run emulation (or lightweight simulator) dry-runs to observe if the injected change causes predefined outage metrics (loss of reachability, path stretch beyond threshold, or exposure event). Record per-injection outcomes and classify hallucination types. Use stratified sampling to bound manual adjudication effort.",
+      "expected_data": "For each injected hallucinated edit: hallucination class, topology identifier and complexity metrics, simulator verdicts on reachability/service metrics before and after change, outage-type label, duration/impact metrics, and aggregated per-class outage probabilities with CIs.",
+      "primary_outcome": "Estimated conditional probability (with 95% CI) that a hallucinated edit causes an outage in at least one monitored service metric across the evaluated topology set.",
+      "analysis_outline": "Estimate outage probability per hallucination class using binomial proportion estimation with Wilson CIs. Use logistic regression to model outage occurrence as a function of hallucination class and topology complexity, reporting odds ratios. Perform survival-style analysis if outage-duration data is available. Report calibrated risk estimates and sensitivity analyses across topology families.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4399750638"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4405845747",
+        "https://openalex.org/W4404782868",
+        "doi:10.1002/nem.2313"
+      ],
+      "risks": [
+        "Simulator/emulator fidelity may misestimate real-world outage impact.",
+        "Manual adjudication to identify hallucinated edits may introduce labeling bias.",
+        "Ethical risk if results are misused to craft adversarial hallucinations; dissemination should avoid operational exploit details.",
+        "Sampled topologies may not represent full production heterogeneity, limiting external validity."
+      ],
+      "estimated_model_calls": 2000
+    }
+  ]
+}

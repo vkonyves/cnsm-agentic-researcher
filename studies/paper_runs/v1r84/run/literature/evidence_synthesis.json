@@ -1,0 +1,177 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "C1",
+      "statement": "LLMs can be used to translate high-level operator intent into network configuration artifacts in controlled/experimental settings using fine-tuning and in‑context learning.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313"
+      ],
+      "evidence_type": "peer-reviewed empirical study",
+      "confidence": 0.7,
+      "limitations": [
+        "Evaluations reported are in controlled settings; vendor/CLI and protocol coverage is limited.",
+        "Performance depends on fine-tuning / in-context examples and may not generalize to unseen production topologies."
+      ]
+    },
+    {
+      "claim_id": "C2",
+      "statement": "LLMs can serve as configuration validators / misconfiguration detectors with non-trivial effectiveness, when combined with prompt engineering and example data.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411551677",
+        "https://openalex.org/W4411563239"
+      ],
+      "evidence_type": "empirical system papers",
+      "confidence": 0.75,
+      "limitations": [
+        "Detection efficacy varies by model and configuration domain; authors report blind spots (e.g., some misconfiguration classes are detected poorly).",
+        "LLM nondeterminism and hallucination risk require output checks."
+      ]
+    },
+    {
+      "claim_id": "C3",
+      "statement": "LLMs can propose repairs for infrastructure-as-code and configuration files, often reducing automated scanner alarms, but a notable fraction of suggested fixes are incorrect or hallucinated.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4411271286"
+      ],
+      "evidence_type": "empirical evaluation / framework papers",
+      "confidence": 0.8,
+      "limitations": [
+        "Reported metrics show high reduction in alarm counts but manual verification finds a non-negligible false-fix (hallucination) rate.",
+        "Human-in-the-loop validation was required/used in evaluated pipelines."
+      ]
+    },
+    {
+      "claim_id": "C4",
+      "statement": "Benchmarking frameworks for LLMs on network-configuration tasks have been proposed (e.g., NetLLMBench) to integrate prompt engineering with emulation and closed-loop validation.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405845747"
+      ],
+      "evidence_type": "conference paper / benchmark framework",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmark frameworks are early-stage and do not yet establish community-wide standardized suites or broad ecological validity."
+      ]
+    },
+    {
+      "claim_id": "C5",
+      "statement": "Retrieval-augmentation, external tool/middleware use, and validator-assisted generate–validate–repair architectures are proposed and empirically used to reduce hallucinations and improve factual/structural grounding of LLM outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404782868",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "evidence_type": "surveys and architectural proposals",
+      "confidence": 0.7,
+      "limitations": [
+        "Proposed mitigations vary in evaluation depth; their effectiveness in realistic, multi-vendor NetOps pipelines is not yet fully characterized."
+      ]
+    },
+    {
+      "claim_id": "C6",
+      "statement": "Surveys and empirical studies consistently identify major failure modes for LLMs relevant to NetOps: hallucinations, non-determinism, prompt sensitivity, and concerns about evaluation validity.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4402860127"
+      ],
+      "evidence_type": "surveys and empirical analyses",
+      "confidence": 0.9,
+      "limitations": [
+        "The cited analyses cover broad LLM applications (code, V&V, evaluation methodology); direct quantitative NetOps-specific failure-rate generalization requires domain-specific studies."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "U1",
+      "statement": "To what extent do LLM-based NetOps systems generalize across vendor CLIs, routing/switching protocols, and large/heterogeneous production topologies?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415071524",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "survey / V&V review highlighting external validity gaps",
+      "confidence": 0.4,
+      "limitations": [
+        "Surveys note external validity concerns but do not provide definitive cross-vendor empirical estimates.",
+        "Requires systematic multi-vendor, large-topology experiments not present in supplied records."
+      ]
+    },
+    {
+      "claim_id": "U2",
+      "statement": "What are the best-practice integration patterns and empirical effectiveness when combining LLM generation with formal network verification tools (e.g., closed-loop use of verifiers) in NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399750638",
+        "https://openalex.org/W4405845747"
+      ],
+      "evidence_type": "review and benchmark proposal",
+      "confidence": 0.35,
+      "limitations": [
+        "Existing work calls for such integration but empirical studies demonstrating robust combos at scale are not present among the supplied records."
+      ]
+    },
+    {
+      "claim_id": "U3",
+      "statement": "What operational safety and human-in-the-loop governance policies are necessary to make agentic LLM NetOps acceptable in production (metrics, latency, approval workflows, liability)?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "doi:10.36227/techrxiv.176118749.93102582/v1"
+      ],
+      "evidence_type": "policy/oversight analyses and reviews",
+      "confidence": 0.45,
+      "limitations": [
+        "The records diagnose governance and oversight challenges but stop short of validated operational prescriptions for NetOps."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for standardized, reproducible, community-accepted NetOps LLM benchmarks that cover multi-vendor CLIs, realistic topologies, and safety-relevant failure modes; existing proposals are nascent.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4405845747",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4391136507"
+      ],
+      "evidence_type": "benchmark proposal + surveys calling out evaluation gaps",
+      "confidence": 0.8,
+      "limitations": [
+        "NetLLMBench exists as an initial framework, but community adoption and coverage breadth remain limited per surveys."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Empirical quantification of hallucination-induced operational risk in NetOps (e.g., misconfiguration causing outages or security exposures) is underexplored in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403919717",
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4399750638"
+      ],
+      "evidence_type": "empirical repair paper + hallucination analyses + V&V survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Some papers measure repair/hallucination rates for IaC and code, but explicit linkage from LLM hallucinations to quantified NetOps operational risk in production scenarios is missing."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Comparative evaluations of mitigation strategies (RAG, tool calling, formal verification, multi-agent SOP constraints) specifically for NetOps workflows are limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411203672",
+        "https://openalex.org/W4404782868",
+        "doi:10.36227/techrxiv.176978431.15223796/v1"
+      ],
+      "evidence_type": "surveys and architectural proposals",
+      "confidence": 0.7,
+      "limitations": [
+        "Mitigation techniques are proposed and demonstrated in adjacent domains; head-to-head NetOps-specific comparisons are not present among the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are proven production-ready to autonomously manage enterprise networks without human oversight (unsupported: supplied records show controlled experiments, partial fixes, and notable hallucination/validation gaps).",
+    "Retrieval-augmentation (RAG) or tool-calling fully eliminates hallucinations in NetOps settings (unsupported: surveys and empirical studies show mitigation benefits but not complete elimination).",
+    "LLMs achieve near-perfect automatic repair of network configurations with zero incorrect/hallucinated fixes (unsupported: IaC repair and SecConfig papers report non-negligible incorrect-fix rates).",
+    "There is conclusive evidence in the supplied records that integration of LLMs with formal network verifiers (e.g., Batfish/NetPlumber) has been empirically validated at production scale (unsupported by supplied records)."
+  ]
+}

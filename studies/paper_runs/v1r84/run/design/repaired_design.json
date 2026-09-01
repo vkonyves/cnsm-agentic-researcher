@@ -1,0 +1,165 @@
+{
+  "selected_candidate_id": "c-7f4a1b2e",
+  "title": "Verifier-assisted generate–validate–repair reduces unsafe LLM fixes for network configurations (repaired preregistration)",
+  "research_question": "Does integrating a formal network verifier into a generate–validate–repair loop reduce the proportion of LLM-suggested configuration repairs that violate stated reachability/isolation properties compared with LLM-only repairs?",
+  "confirmatory_hypotheses": [
+    "H1: The verifier-assisted pipeline yields a higher paired proportion of final repairs that pass formal verification than LLM-only repairs (estimand: paired_success_rate_difference_guarded_minus_baseline).",
+    "H2: The verifier-assisted pipeline produces a lower rate of syntactically-plausible but semantically-incorrect edits (hallucinated-change proxy, automatically detected) than LLM-only repairs.",
+    "H3: The verifier-assisted pipeline increases median wall-clock latency per repair modestly vs baseline."
+  ],
+  "exploratory_questions": [
+    "E1: Does effect size vary by device dialect (vendor CLI family) or by fault class (routing vs ACL vs interface misconfig)?",
+    "E2: How sensitive are hallucination-rate estimates to the automated-detection heuristic thresholds?"
+  ],
+  "benchmark_scope": [
+    "Paired synthetic+public real-world faulty-config instances (intentional misconfigurations) restricted to the adapter task profile challenging_workflow_stress_v1 (difficulty: very_hard/extreme).",
+    "Device dialect strata: {vendorA-like, vendorB-like, vendorC-like} represented via generator dialect labels (quota pre-specified)."
+  ],
+  "model_scope": [
+    "Hosted LLM API (single hosted model): openai/gpt-4o (model_name and model_version recorded in adapter runtime configuration)."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (single-shot LLM repair)",
+    "guarded: generate_validate_repair_v1 (LLM repair + verifier feedback loop up to 1 feedback iteration per adapter contract)"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (as defined by paired_binary_analysis_v1 executor)",
+  "secondary_estimands": [
+    "paired_hallucination_rate_difference_guarded_minus_baseline (automated-detection proxy)",
+    "median_latency_difference_guarded_minus_baseline (Wilcoxon signed-rank)"
+  ],
+  "sampling_plan": "Confirmatory paired sample with deterministic task_index profile challenging_workflow_stress_v1. Task_count (confirmatory items) is set per budget/power scenario (see Budget Scenarios). For each selected task index: one shared initial generation (baseline and guarded share initial faulty instance) and up to one guarded repair call if initial repair fails deterministic validation; adapter contract enforces at most 2 model calls per task and episodes_per_task=2. Per-vendor quotas: enforce minimum 20% per declared dialect stratum when task_count>=100; exact per-stratum counts computed deterministically from task_index list before execution.",
+  "analysis_plan": "Primary confirmatory analysis executed by paired_binary_analysis_v1 executor (McNemar-style paired binary test). Report paired difference in success proportions (guarded - baseline) with two-sided 95% CI and p-value. Secondary analyses: automated-hallucination-proxy rate with Wilson CI; latency median/IQR and Wilcoxon signed-rank test. Subgroup analyses by dialect and fault class with Bonferroni correction. Sensitivity analysis: failed-call treatment using the compatible failed_call_treatment options: (1) primary: complete_pair_primary (drop pairs where both conditions absent) and (2) sensitivity: complete_pair_primary_with_failure_as_zero_sensitivity (treat missing/failed as zero success). All model calls, seeds, and raw verifier outputs logged for reproducibility.",
+  "multiplicity_plan": "Pre-specified primary estimand only. Subgroup and secondary analyses are explicitly exploratory; apply Bonferroni correction for K subgroup tests (K pre-declared: 3 dialects + 3 fault classes = 6). Report unadjusted and adjusted p-values; interpret adjusted as confirmatory only if surviving correction.",
+  "missingness_plan": "Salvageability rule: a task is 'unsalvageable' if both baseline and guarded final outputs fail syntactic parse or the guarded pipeline's verifier cannot produce a verdict due to parser error. Handling: primary analysis uses complete_pair_primary; sensitivity analysis treats unsalvageable pairs as failures (success=0) under complete_pair_primary_with_failure_as_zero_sensitivity. All unsalvageable counts and causes logged; deterministic exclusion/inclusion rules are pre-registered.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "challenging_workflow_stress_v1 generator-derived tasks (internal generator profile)"
+    ],
+    "risk_factors": [
+      "Prompt leakage of ground-truth repair into test prompt templates (data contamination)",
+      "Verifier blind spots (false negatives) yielding apparent but incorrect passes",
+      "Model non-determinism producing within-task variance"
+    ],
+    "detection_procedures": [
+      "Deterministic prompt integrity check: verify no task-specific ground-truth solution tokens are present in prompt templates prior to model calls (automated string-based scan).",
+      "Dual-verifier disagreement check: compare primary verifier verdict with independent secondary validator (see Transformation Validation). Flag disagreements deterministically.",
+      "Re-run deterministic subset (fixed RNG seeds) to estimate model-call nondeterminism variance; report discordant rate."
+    ],
+    "item_flagging_rules": [
+      "If primary verifier PASS and secondary validator FAIL -> flagged for conservative counting (treated as FAIL in conservative sensitivity analysis).",
+      "If prompt integrity check finds forbidden substrings -> task excluded from confirmatory analysis and logged."
+    ],
+    "analysis_treatment": "Primary analysis uses primary verifier verdict; conservative sensitivity analysis re-labels flagged items as failures. All flagged items reported with raw logs.",
+    "residual_uncertainty": [
+      "Verifier coverage gaps (undetected unsafe repairs) remain; addressed via dual-verifier sensitivity analyses but not fully eliminable.",
+      "Model non-determinism yields sampling variance; mitigated by deterministic seeds and reporting."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S-small-100",
+      "description": "Minimal confirmatory run to detect large effects (fast/low-cost).",
+      "planned_model_calls": 200,
+      "models": [
+        "openai/gpt-4o"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Model calls = confirmatory_items * 2 = 100 * 2 = 200, within capability manifest maximum_planned_model_calls (10000). Docker available for verifier. Detects large (>~25 percentage point) paired differences with limited power."
+    },
+    {
+      "scenario_id": "S-recommended-600",
+      "description": "Recommended balanced run: powered for medium effect sizes while staying within candidate-estimate and model-call constraints.",
+      "planned_model_calls": 1200,
+      "models": [
+        "openai/gpt-4o"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 600,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Model calls = 600 * 2 = 1,200. Candidate estimated_model_calls=1800; 1,200 is below that estimate and well within maximum_planned_model_calls. Docker-based Batfish verifier (primary) plus CPU-based secondary validator fit the available CPU/docker resources; hosted LLM calls feasible under hosted_model_api_available."
+    },
+    {
+      "scenario_id": "S-large-800",
+      "description": "Higher-powered confirmatory run to detect smaller effects and enable richer subgroup splits.",
+      "planned_model_calls": 1600,
+      "models": [
+        "openai/gpt-4o"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 800,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Model calls = 800 * 2 = 1,600. Within candidate estimate (1,800) and overall manifest limit (10,000). Larger sample improves power for subgroup analyses at modest additional API cost."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "15 percentage points absolute increase (e.g., baseline 55% -> guarded 70%)",
+    "clustering_unit": "task (paired baseline+guarded episodes per task)",
+    "calculation_method": "Approximate paired-proportion/McNemar sample-size reasoning: using two-sided alpha=0.05, power=0.80 and conservative discordant-pair assumptions yields required N≈580; we round up to 600 for recommended scenario.",
+    "assumptions": [
+      "Baseline paired-pass rate ≈ 0.55 (based on literature C3/C1 indicative ranges).",
+      "Expected guarded paired-pass rate ≈ 0.70 (target effect = 0.15).",
+      "Discordant-pair proportion (proportion of tasks where baseline and guarded disagree) ≈ 0.25 assumed for variance calculation; sensitivity analyses for discordant ∈ {0.15,0.35}.",
+      "Two-sided alpha=0.05, power=0.8."
+    ],
+    "recommended_scenario_id": "S-recommended-600",
+    "minimum_detectable_effect_notes": "With N=600, under assumptions above, the study is powered to detect ≈15 percentage-point paired differences. If discordant proportions are lower, detectable MDE increases; report MDE sensitivity table in analysis.",
+    "sensitivity_analyses": [
+      "Recompute MDE under discordant-pair proportions 0.15 and 0.35.",
+      "Secondary sensitivity: treat failed/missing pairs as failures (failure-as-zero) to produce conservative effect estimates."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "syntax_validation (vendor-specific parser)",
+      "semantic_verification_primary (Batfish docker-based reachability/ACL verifier)",
+      "semantic_verification_secondary (independent lightweight graph-based reachability validator using sanitized topology and NetworkX abstractions)",
+      "compare_and_feedback (counterexample schema returned to LLM as concise failure token + minimal counterexample context)"
+    ],
+    "semantic_equivalence_checks": [
+      "No-additional-entity rule: final repair must not introduce configuration entities (e.g., new ACL names, VRFs) outside a pre-declared allowed set unless the LLM justifies the new entity in a standardized justification field and both verifiers accept.",
+      "Scope-preservation rule: changes must be confined to pre-declared configuration blocks (e.g., interface, ACL) as indicated by the task metadata; parser enforces block deltas.",
+      "Path-presence check: for declared reachability properties, verify presence/absence of expected abstract paths in both primary and secondary verifiers; require agreement or flag."
+    ],
+    "automatic_rejection_rules": [
+      "Reject final repair if syntactic parse fails (deterministic parser) -> mark pair unsalvageable.",
+      "Reject and request single auto-repair iteration if primary verifier FAIL returns concrete counterexample (adapter permits up to 1 guarded repair call). If second guarded attempt still fails, record final as FAIL.",
+      "If primary verifier PASS but secondary validator FAIL, flag item and treat as FAIL in conservative sensitivity analysis."
+    ],
+    "audit_sample_policy": "No human adjudication. Audit = deterministic dual-verifier disagreement set plus border cases where automated hallucination proxy score is within threshold band. For audit-set items, automatically re-run: (a) re-parse using alternate parser settings, (b) re-run secondary validator, and (c) produce conservative composite verdict (PASS only if both validators PASS). All audit actions and outcomes logged.",
+    "mapping_validation": "Vendor-dialect mapping validated by synthetic unit tests: feed canonical examples per dialect to parser and ensure parse success rate >=95% for declared dialects; failing dialects excluded from confirmatory strata or counted as unsalvageable.",
+    "residual_risks": [
+      "Verifier soundness gaps may yield false PASS; mitigated via conservative sensitivity analyses but not fully removable.",
+      "Parser coverage may underrepresent exotic vendor extensions; such items will be deterministically excluded or logged as unsalvageable."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "External validity across real production topologies and undocumented vendor dialect extensions remains uncertain (U1). The confirmatory claims are bounded to the generator-profiled task population and declared dialect strata.",
+    "Verifier completeness: Batfish and the secondary validator reduce but may not eliminate undetected semantic errors; sensitivity analyses address this residual risk.",
+    "Automated hallucination-proxy is an imperfect surrogate for human adjudication; we provide sensitivity bounds rather than absolute hallucination counts."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4403919717",
+    "https://openalex.org/W4405845747",
+    "https://openalex.org/W4399750638",
+    "doi:10.1002/nem.2313",
+    "https://openalex.org/W4411203672",
+    "https://openalex.org/W4411563239"
+  ]
+}
