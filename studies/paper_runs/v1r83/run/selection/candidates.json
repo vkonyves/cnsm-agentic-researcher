@@ -1,0 +1,128 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "cand-001",
+      "title": "Validator-Fidelity Impact on Semantic Correctness for Multi-Device NetOps Changes",
+      "research_question": "How does validator fidelity (syntactic linting vs digital-twin emulation vs formal policy checker) affect the rate of semantic policy-level violations after LLM-generated network-change proposals across multi-device topologies?",
+      "hypotheses": [
+        "Higher-fidelity validators (digital-twin emulation or formal policy checking) used in a generate→validate→repair pipeline produce fewer residual semantic policy violations than low-fidelity syntactic validators.",
+        "LLM-generated proposals paired with high-fidelity validators will require fewer iterative repair steps to reach policy compliance than those paired with low-fidelity validators.",
+        "The reduction in semantic violations from high-fidelity validators will be statistically significant and practically meaningful (effect size > 0.25) under paired task evaluation."
+      ],
+      "proposed_design": "Construct a benchmark of 120 multi-device network-change intents (routing, ACL, VLAN/policy changes) and corresponding baseline topologies (synthetic but parameterized to reflect vendor heterogeneity). For each intent: (1) prompt a fixed LLM to generate initial device configurations; (2) run three parallel pipelines that apply the same LLM outputs to (A) syntactic validator (lint + CLI parse checks), (B) digital-twin emulation using Batfish-style reachability and ACL emulation, and (C) formal policy checker (policy-to-spec verification). For each pipeline, allow an automated repair loop where the LLM receives validator feedback and can attempt up to three repairs. Record final configurations after repair. Use fixed random seeds, frozen prompts, and a preregistered retry policy. All runs use the same LLM and prompt template so comparisons isolate validator fidelity.",
+      "expected_data": "Per-task records containing: initial LLM output, validator-reported failure types and counts for each validator, number of repair iterations, final configuration, binary flag for semantic policy violation (reachability/policy checks) on final config, syntactic executability flag, time-to-convergence, and logs of repair edits. Aggregate tables with per-intent outcomes for each validator condition.",
+      "primary_outcome": "Difference in residual semantic policy-violation rate on final configurations between the high-fidelity validator condition (digital-twin or formal) and the low-fidelity syntactic validator, measured as paired proportion difference across the 120 intents.",
+      "analysis_outline": "Compute per-intent paired differences in residual violation flags between conditions. Test primary hypothesis using McNemar's test for paired binary outcomes and report paired proportion differences with 95% bootstrap CIs. Complement with effect-size (Cohen's h) and paired Wilcoxon signed-rank test on number of repair iterations. Report subgroup analyses by intent type (ACL, routing, VLAN) and vendor-sim heterogeneity. Correct for multiple comparisons in secondary analyses using Benjamini–Hochberg FDR control.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "doi:10.2139/ssrn.6426760",
+        "https://openalex.org/W7155247165"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7155247165"
+      ],
+      "risks": [
+        "Digital-twin/emulation fidelity may not reflect production devices causing external validity gaps.",
+        "LLM prompt sensitivity may introduce variance that confounds validator effect; frozen prompt mitigates but does not eliminate this risk.",
+        "Repair loop may overfit to validator-specific error messages, producing configurations that pass validators but still violate real-world semantics (TOCTOU and validator-coverage risk).",
+        "Synthetic topologies may underrepresent rare real-world vendor quirks, biasing results."
+      ],
+      "estimated_model_calls": 2200
+    },
+    {
+      "candidate_id": "cand-002",
+      "title": "Structured Schema-Constrained Decoding to Reduce Semantic Policy Errors in LLM-Generated Configs",
+      "research_question": "Does schema-aware constrained decoding reduce semantic (policy-level) errors in LLM-generated network configurations more than it reduces only syntactic/executable errors, for multi-hop policy changes?",
+      "hypotheses": [
+        "Schema-aware constrained decoding will reduce semantic policy-level errors (e.g., unintended reachability/ACL violations) relative to unconstrained decoding.",
+        "The relative reduction in syntactic/executable errors will be smaller than the relative reduction in semantic policy errors when using schema constraints designed to encode policy-relevant structure.",
+        "Schema-constrained outputs will require fewer manual or automated repair iterations to satisfy end-to-end policy tests than unconstrained outputs."
+      ],
+      "proposed_design": "Select 100 multi-hop policy-change tasks that require coordinated edits across multiple devices. For each task, generate outputs from the same LLM under two decoding regimes: (A) unconstrained sampling with temperature tuning and (B) constrained decoding using a serialized schema/template (structured JSON or YAML with field types, allowed value sets) plus a decoding filter that enforces schema tokens. Feed both outputs through a high-fidelity digital-twin validator (Batfish) to assess syntactic executability and semantic policy correctness. Allow identical automated repair loops for both conditions. Use within-task paired design, frozen prompts, and fixed seeds for sampling where applicable.",
+      "expected_data": "Per-task paired records: unconstrained and constrained outputs, executability flags, semantic policy-violation flags from digital-twin tests, number of repair iterations, and edit distance between initial outputs and final repaired configs. Aggregate rates of syntactic failures and semantic failures for each decoding regime.",
+      "primary_outcome": "Paired reduction in semantic policy-violation rate (constrained vs unconstrained) as measured by digital-twin reachability and ACL checks across tasks.",
+      "analysis_outline": "Use McNemar's test for paired binary semantic-violation outcomes; compute paired proportion differences with bootstrap 95% CIs. Compare relative reduction between syntactic and semantic error rates using paired ratio tests and permutation tests. Report median repair iterations per condition and test differences with Wilcoxon signed-rank. Conduct robustness checks over two LLM temperature settings and two schema strictness levels.",
+      "novelty_evidence_ids": [
+        "doi:10.26434/chemrxiv.15005091/v1",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W7163777690"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.26434/chemrxiv.15005091/v1",
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Schema enforcement may produce brittle outputs that omit necessary vendor-specific constructs, increasing manual repair burden.",
+        "Constrained decoding tooling integration with the chosen LLM API may be limited, increasing engineering overhead.",
+        "Schema design may inadvertently encode assumptions that bias semantic evaluation results.",
+        "Digital-twin validator may classify vendor-specific but semantically correct constructs as violations due to imperfect modeling."
+      ],
+      "estimated_model_calls": 1600
+    },
+    {
+      "candidate_id": "cand-003",
+      "title": "Workflow-Centered Evaluation of Generate→Validate→Repair Pipelines: Trace Quality, Canary/Rollback Outcomes, and Operational Reliability",
+      "research_question": "In a simulated NetOps workflow with injected failures, how much do generate→validate→repair pipelines improve end-to-end operational reliability metrics (safe-deploy rate, canary-detected regressions, rollback success) compared to LLM-alone proposals without validator-mediated repair?",
+      "hypotheses": [
+        "A generate→validate→repair pipeline will increase the safe-deploy rate (proportion of changes applied without post-deploy semantic failures) relative to LLM-alone proposals.",
+        "Pipelines that include a canary stage with digital-twin emulation will detect a greater share of latent failures pre-deploy than pipelines without canaries.",
+        "Pipelines that log proof-carrying artifacts (audit traces) will enable faster and higher-success rollbacks when post-deploy regressions are detected, compared to pipelines lacking such traces."
+      ],
+      "proposed_design": "Build a workflow simulation: for 100 intents create change proposals via the LLM. Compare three workflow conditions in parallel per intent: (1) LLM-alone push (no validation), (2) generate→validate→repair (digital-twin + repair loop) then push, (3) generate→validate→repair plus canary stage (apply to subset simulated devices with digital-twin monitoring) and proof-carrying audit trace. Inject controlled failure modes (malformed ACLs, conflicting routes, TOCTOU race conditions simulated by delayed state) in 40% of tasks. For each condition measure safe-deploy, canary-detected failures pre-push, post-deploy failures, rollback success (automated rollback triggered by monitor), and time-to-recovery. Use identical LLM seed/prompts and deterministic simulation seeds where possible.",
+      "expected_data": "Per-intent workflow traces: whether canary detected issue, whether post-deploy failure occurred, whether rollback succeeded, number of repair iterations, audit traces produced, and time metrics. Aggregated workflow metrics: safe-deploy rate, canary detection rate, rollback success rate, mean time-to-recovery.",
+      "primary_outcome": "Increase in safe-deploy rate for the generate→validate→repair + canary condition versus LLM-alone, expressed as absolute percentage point improvement across the scenario set.",
+      "analysis_outline": "Test paired differences in safe-deploy rates using McNemar's test and report absolute and relative improvements with bootstrap CIs. Compare canary detection rates and rollback success rates across conditions with paired proportion tests. Analyze time-to-recovery using Kaplan–Meier curves and log-rank tests for censored recovery times. Perform failure-mode stratified analyses and report precision/recall of canary detection for injected failures.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "doi:10.2139/ssrn.6531679",
+        "https://openalex.org/W4414897036"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W4411015066"
+      ],
+      "risks": [
+        "Simulated injection scenarios may not capture full production-class emergent failures, limiting external validity.",
+        "Automated rollback policies in simulation may differ from real operator workflows, biasing rollback-success estimates.",
+        "Audit/proof-carrying traces may leak sensitive topology details if applied to real datasets; this study uses synthetic/open topologies only.",
+        "There is a risk of overfitting canary thresholds to the simulated failure distribution, reducing generalizability."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "cand-004",
+      "title": "Protocol-Mediated Execution versus Naive Agentic Execution for Preventing Unsafe Automated Changes",
+      "research_question": "Does protocol-mediated execution (proof-carrying authorization + enforced executor checks) reduce the rate of unsafe automated configuration changes executed by an agentic LLM system in heterogeneous simulated vendor environments compared to naive agentic execution?",
+      "hypotheses": [
+        "Protocol-mediated execution that requires machine-verifiable proofs and enforces executor-side checks will result in fewer unsafe changes executed than naive agentic execution that directly applies LLM outputs.",
+        "The safety benefit of protocol mediation will be larger in heterogeneous vendor-topology scenarios with conflicting device behaviors than in homogeneous scenarios.",
+        "Some classes of sophisticated semantic attacks (crafted prompts that exploit validator blind spots) may still succeed under protocol mediation unless proofs encode semantic invariants, indicating partial but not complete mitigation."
+      ],
+      "proposed_design": "Create two execution frameworks over the same set of 90 heterogeneous vendor scenarios and intents: (A) naive agentic execution where the LLM agent generates configs and an automated push executor applies them; (B) protocol-mediated execution where the agent must attach machine-verifiable proofs (e.g., model-generated structured attestations of intended invariants, signed manifests) and the executor enforces checks and refuses changes without valid proofs. Introduce adversarial/edge-case intents and crafted prompt-injection variants for 30% of tasks to simulate attack patterns. Use Batfish-style simulation to classify executed changes as safe or unsafe. Measure executed unsafe-change rate, false-rejection rate (safe changes blocked), and time-to-approval.",
+      "expected_data": "Per-task records of proposed change, proof artifact (if any), executor decision (apply/deny), final applied config, safety label from simulation, whether attack prompt was used, and timing metrics. Aggregated unsafe-executed rates, false-rejection rates, and attacker-success rates per framework.",
+      "primary_outcome": "Difference in executed unsafe-change rate between naive agentic execution and protocol-mediated execution across heterogeneous scenarios.",
+      "analysis_outline": "Compare executed unsafe-change proportions with paired McNemar tests, report absolute risk reductions and number-needed-to-protect equivalents. Analyze false-rejection tradeoffs via ROC-style curves varying proof strictness. Report attacker-success rates under both frameworks and test differences with Fisher's exact test for small-sample adversarial cases. Provide qualitative failure analyses of cases where protocol mediation failed.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6426760",
+        "doi:10.2139/ssrn.6352164",
+        "https://openalex.org/W7203776655"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7155247165"
+      ],
+      "risks": [
+        "Proof formats may be toy models that overstate real-world enforceability; executor enforcement in simulation may not match deployment constraints.",
+        "Adversarial prompt injections used in the study may not represent all real-world attack vectors, limiting conclusions about comprehensive protection.",
+        "Protocol mediation can increase false rejections, delaying valid changes and producing operational costs.",
+        "Ethical risk: designing adversarial prompts must avoid creating publicly reusable exploit recipes; stored artifacts will be redacted and not published as-is."
+      ],
+      "estimated_model_calls": 2700
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "study_id": "cand-003-stud-001",
+  "title": "Workflow-Centered Evaluation of Generate→Validate→Repair Pipelines: Trace Quality, Canary/Rollback Outcomes, and Operational Reliability",
+  "research_question": "In a simulated NetOps workflow with injected failures, how much does a generate→validate→repair pipeline with a canary stage improve paired safe-deploy rates (guarded vs baseline LLM-alone) across a stress-test corpus of intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The paired safe-deploy rate under the guarded pipeline (generate→validate→repair + canary) is higher than the paired safe-deploy rate under baseline LLM-alone proposals (estimand = paired_success_rate_difference_guarded_minus_baseline).",
+    "H2: The guarded pipeline with a canary stage will detect a greater share of injected latent failures pre-deploy (higher canary-detection rate) than a guarded pipeline without canary.",
+    "H3: When post-deploy regressions occur, workflows that emit proof-carrying audit traces will have higher automated rollback success rates than workflows lacking such traces."
+  ],
+  "exploratory_questions": [
+    "E1: How do repair-iteration counts relate to eventual safe-deploy outcomes across injected-failure types?",
+    "E2: How sensitive are canary detection precision/recall and rollback success to canary-threshold settings and injection rates?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161165783",
+    "doi:10.2139/ssrn.6531679",
+    "https://openalex.org/W4414897036",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7163777690",
+    "https://openalex.org/W4411015066"
+  ],
+  "benchmark_scope": [
+    "Synthetic topology corpus (public/open synthetic topologies only)",
+    "Challenging_workflow_stress_v1 task-index profile (included difficulty levels: very_hard, extreme)",
+    "Simulated digital-twin emulator used as deterministic validator (emulator implementation published with replay scripts)"
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 1000,
+    "planned_episode_count": 2000,
+    "maximum_model_calls": 2000,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (difference in paired safe-deploy rates: guarded pipeline minus baseline LLM-alone)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_difference_canary_detection_rate_guarded_vs_baseline",
+    "paired_difference_rollback_success_rate_with_proofs_vs_without"
+  ],
+  "sampling_plan": "Confirmatory paired design with task_count = 1000 intents drawn deterministically using the provided challenging_workflow_stress_v1 profile. Selection rule: for zero-based ordinal j from 0..999 set cycle=j//5, offset=[4,5,6,7,8][j%5], task_index=8*cycle+offset. This produces exactly 1000 unique task_indices. Each task yields two episodes (baseline and guarded). Planned model calls = task_count * 2 = 1000 * 2 = 2000 (one initial generation per task shared across paired conditions; guarded may use its single allowed repair call but adapter bounds model calls to exactly 2 per task). All seeds and task_index selection are fixed before any hosted-model invocation. Runtime sampling parameters (temperature, top-p, etc.) are recorded in the execution manifest per adapter rules.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: absolute increase of 0.15 (15 percentage points). With baseline≈0.60 and guarded≈0.75, two-sided alpha=0.05 and task_count=1000 yields >80% power under the adapter/executor's McNemar-style paired test. The registered analysis executor will compute exact p-values and bootstrap 95% CIs (bootstrap implemented by executor). Sensitivity analyses vary baseline safe-deploy in [0.50,0.70] and repeat bootstrap CIs.",
+  "exclusion_rules": [
+    "Tasks deterministically excluded by the preregistered challenging_workflow_stress_v1 index rule only (none additionally excluded post hoc).",
+    "If a task's initial generation contains evidence of prompt leakage (identical token-level traces across conditions beyond shared intent), the task is auto-flagged and excluded from sensitivity analyses but retained in the main intent set with the exclusion documented.",
+    "If the emulator returns a deterministic error for a candidate episode, that episode is flagged and handled per the missingness_plan and adapter/executor failure-treatment rules."
+  ],
+  "missingness_plan": "Model/API failures or adapter infrastructure failures produce a recorded episode-level failure flag. Primary analysis uses the adapter's 'complete_pair_primary' treatment (executor documents how incomplete pairs are handled). Sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' where any failed episode is treated as an unsafe outcome. All missingness reasons are logged; no manual imputation or human annotation occurs.",
+  "analysis_plan": "Confirmatory analysis executed by the registered analysis executor 'paired_binary_analysis_v1' using result schema 'paired_binary_episode_v1'. Primary test: McNemar-style paired difference test implemented by the executor for estimand paired_success_rate_difference_guarded_minus_baseline (primary_estimand_id = 'paired_success_rate_difference_guarded_minus_baseline'); report absolute and relative improvement with bootstrap 95% CIs (bootstrap implemented by executor). Failed-call treatment: primary execution uses 'complete_pair_primary' per adapter contract; sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity'. Secondary analyses: paired proportion tests for canary detection and rollback success; exploratory time-to-recovery analyses are descriptive (Kaplan–Meier and log-rank where applicable). All analyses and seeds are executed by the registered executor; no human adjudication.",
+  "multiplicity_plan": "Primary confirmatory test is H1 (paired estimand above). Secondary estimands are reported with unadjusted two-sided p-values and bootstrap CIs; for hypothesis claims beyond the primary, multiplicity-adjusted p-values will be reported using the Holm–Bonferroni method in the analysis report. All tests and adjustments are preregistered.",
+  "contamination_plan": "Benchmark names: challenging_workflow_stress_v1 synthetic corpus. Risk factors: leakage between baseline and guarded conditions via shared prompt materials or cached outputs; overfitting of canary thresholds to the simulated failure distribution; validator-emulator deterministic shortcomings (emulator blind spots). Detection procedures: deterministic seeding and fixed task_index selection pre-execution; automatic comparison of prompt texts and prompt-embedded context hashes between conditions to ensure independence; monitoring of per-failure-type prevalence and flagging deviations >5 percentage points from preregistered injection rates prior to analysis. Flagging rules: tasks with prompt-leak evidence are auto-flagged and handled as specified in exclusion_rules; emulator deterministic errors are flagged and treated per missingness_plan. Analysis treatment: flagged items are recorded and reported; main confirmatory analysis uses the full preregistered task set (excluding only tasks excluded by predeclared deterministic selection rules).",
+  "stopping_rule": "Execute all preregistered task_count = 1000 paired episodes. If adapter or infrastructure failures prevent completion within the adapter/manifest constraints, stop execution and run the preregistered sensitivity analyses (including failure-as-zero). No post-hoc reduction of task_count is permitted except for deterministic predeclared selection rules or unrecoverable infrastructure failure, in which case the event and deviation are recorded and disclosed.",
+  "planned_outputs": [
+    "Preregistration/experimental plan (this document)",
+    "Execution manifest and model-call logs",
+    "Raw model outputs and validator/emulator traces",
+    "Analysis results (paired_binary_analysis_v1 output with bootstrap CIs)",
+    "Failure-analysis record",
+    "Evidence-to-claim table",
+    "Nearest-work comparison matrix and verified bibliography record",
+    "Complete IEEE LaTeX manuscript (≤5 pages) with Disclosure Statement",
+    "BibTeX bibliography",
+    "Compiled PDF of manuscript (≤5 pages)",
+    "Execution code, replay scripts, and sanitized replay artifacts",
+    "Autonomy and human-involvement disclosure record",
+    "Internal methodological, statistical-consistency, and reference-integrity reviews",
+    "Autonomous revision log and final-output hash manifest",
+    "Concise NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

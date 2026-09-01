@@ -1,0 +1,95 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "cand-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "External validity: digital-twin/emulator fidelity may not reflect real vendor quirks.",
+        "Validator-overfitting: repair loop can game validator outputs producing spurious passes (TOCTOU/coverage risk).",
+        "Prompt sensitivity could confound attribution of effects to validator fidelity rather than LLM variance.",
+        "Need clear artifact release plan to enable independent reproduction."
+      ],
+      "required_design_repairs": [
+        "Include a validator-fidelity calibration step (show Batfish/emulator limitations vs. ground truth or multiple emulator versions).",
+        "Prespecify and publish topology corpus, prompts, seeds, and repair-prompt templates; provide scripts to replay runs.",
+        "Add monitoring for validator-overfitting (e.g., holdout semantic tests not exposed to repair loop).",
+        "Explicitly bound claims to tested LLM/model and synthetic topology scope."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Engineering risk: constrained-decoding integration with hosted LLM APIs can be nontrivial and brittle.",
+        "Schema design may bias results or omit vendor-specific constructs, inflating apparent semantic gains.",
+        "Digital-twin evaluation may misclassify vendor-correct but schema-omitted constructs as failures.",
+        "Need clearer operationalization of 'schema strictness' and decoder fallback policies."
+      ],
+      "required_design_repairs": [
+        "Specify exact constrained-decoding implementation (token-level filter, constrained sampler, or post-hoc mapper) and fallbacks if the LLM violates schema.",
+        "Provide multiple schema strictness levels and document schema design rationale; publish schemas.",
+        "Include vendor-specific template extensions or a mechanism to encode vendor idioms and evaluate their effect.",
+        "Add sensitivity analyses for decoding temperature and schema strictness; preregister these comparisons."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "cand-003",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Simulation realism: injected failures and rollback policies may not reflect operator behavior in production.",
+        "Canary threshold tuning risks overfitting to simulated failure distribution.",
+        "Need to avoid conflating simulator-detected ‘safe-deploy’ with real-world operational safety."
+      ],
+      "required_design_repairs": [
+        "Document and publish the simulation model (failure injection types, timing/TOCTOU models, rollback policy) with replay scripts.",
+        "Include robustness checks: vary canary thresholds, injection rates, and rollback policies; report sensitivity.",
+        "Justify selection of injected failure types and proportion (40%) relative to operational data or prior literature.",
+        "Preregister decision rules for automated rollback and for what constitutes a ‘safe-deploy’ event."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "cand-004",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Proof artifacts may be toy/over-simplified and not reflect deployable proof-carrying schemes; risk of overstating mitigation.",
+        "Adversarial-prompt experiments create ethical risk; must avoid publishing exploit recipes.",
+        "Protocol mediation may produce high false-rejection rates with operational costs that need quantification.",
+        "Executor enforcement in simulation may not map to real-world executors and admin policies."
+      ],
+      "required_design_repairs": [
+        "Specify provably-structured proof format and verifier rules; avoid toy attestations or clearly label them as prototypes.",
+        "Define safe handling/redaction policy for adversarial prompts and do not include raw exploit prompts in public artifacts.",
+        "Measure and report false-rejection operational cost (delay, rollback overhead) and include human-override modeling.",
+        "Add qualitative analysis of failure cases where protocol mediation failed and tie them to concrete mitigations or limitations."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

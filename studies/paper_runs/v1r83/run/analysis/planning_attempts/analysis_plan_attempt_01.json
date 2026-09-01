@@ -1,0 +1,30 @@
+{
+  "study_id": "cand-003-stud-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Execute McNemar-style paired test for estimand paired_success_rate_difference_guarded_minus_baseline on result schema paired_binary_episode_v1 using the executor's implementation; sample: n_pairs=1000 (completed_episode_count=2000, failed_episode_count=0 per execution manifest). Report absolute and relative difference (guarded minus baseline), exact two-sided p-value, and bootstrap 95% CI (executor bootstrap). Failed-call treatment: complete_pair_primary.",
+  "secondary_analyses": [
+    "paired_difference_canary_detection_rate_guarded_vs_baseline",
+    "paired_difference_rollback_success_rate_with_proofs_vs_without"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity",
+    "bootstrap_CI_sensitivity_vary_baseline_rates_in_[0.50,0.70]"
+  ],
+  "uncertainty_quantification": "Bootstrap 95% confidence intervals on paired difference (executor-implemented bootstrap) and exact two-sided p-values from the McNemar-style paired test (executor).",
+  "multiplicity_implementation": "Primary confirmatory test only for H1. Report unadjusted p-values for secondary estimands and provide Holm–Bonferroni adjusted p-values for secondary hypothesis claims as preregistered.",
+  "contamination_analysis": "Run preregistered contamination checks using recorded prompt texts and prompt-embedded context hashes from execution artifacts: (1) compare prompt/context hashes across baseline vs guarded for identical-token leakage; (2) verify adapter caching disabled per manifest and log any cache hits; (3) compare observed per-failure-type prevalences to preregistered injection rates and flag deviations >5 percentage points. Flagged tasks will be listed and reported; main confirmatory analysis uses the full preregistered task set excepting only deterministic preregistered exclusions.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Execution summary — planned vs completed episodes, model_calls_used (1005), completed_episode_count (2000), failed_episode_count (0), artifact counts and manifest paths.",
+    "Table 2: Primary estimand results — baseline safe-deploy rate, guarded safe-deploy rate, absolute difference, relative improvement, McNemar p-value, bootstrap 95% CI.",
+    "Table 3: Secondary estimand results — paired canary-detection rates and paired rollback-success rates with unadjusted p-values and bootstrap CIs; Holm–Bonferroni adjusted p-values for secondary hypothesis claims.",
+    "Table 4: Sensitivity analyses — failure-as-zero reanalysis results and bootstrap CI sensitivity across baseline-rate scenarios (0.50,0.60,0.70).",
+    "Table 5: Contamination and exclusion log — prompt-leakage flags, cache-hit log summary, and any emulator deterministic error flags (if present)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar plot of paired safe-deploy rates (baseline vs guarded) with bootstrap 95% CIs (from paired_binary_analysis_v1 output).",
+    "Figure 2: Bootstrap distribution histogram for the paired difference (guarded minus baseline) with indicated 95% CI.",
+    "Figure 3: Exploratory histogram of repair-iteration counts vs eventual safe-deploy outcome (descriptive; Kaplan–Meier if time-to-repair available)."
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "selected_candidate_id": "cand-003",
+  "title": "Workflow-Centered Evaluation of Generate→Validate→Repair Pipelines: Trace Quality, Canary/Rollback Outcomes, and Operational Reliability",
+  "research_question": "In a simulated NetOps workflow with injected failures, how much does a generate→validate→repair pipeline with a canary stage improve paired safe-deploy rates (guarded vs baseline LLM-alone) across a stress-test corpus of intents?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The paired safe-deploy rate under the guarded pipeline (generate→validate→repair + canary) is higher than the paired safe-deploy rate under baseline LLM-alone proposals (estimand = paired_success_rate_difference_guarded_minus_baseline).",
+    "H2: The guarded pipeline with a canary stage will detect a greater share of injected latent failures pre-deploy (higher canary-detection rate) than a guarded pipeline without canary.",
+    "H3: When post-deploy regressions occur, workflows that emit proof-carrying audit traces will have higher automated rollback success rates than workflows lacking such traces."
+  ],
+  "exploratory_questions": [
+    "E1: How do repair-iteration counts relate to eventual safe-deploy outcomes across injected-failure types?",
+    "E2: How sensitive are canary detection precision/recall and rollback success to canary-threshold settings and injection rates?"
+  ],
+  "benchmark_scope": [
+    "Synthetic topology corpus (public/open synthetic topologies only)",
+    "Challenging_workflow_stress_v1 task-index profile (included difficulty levels: very_hard, extreme)",
+    "Simulated digital-twin emulator used as deterministic validator (emulator implementation published with replay scripts)"
+  ],
+  "model_scope": [
+    "Single hosted LLM provider configured via the hosted-model adapter (model_name and model_version specified in execution manifest). Results are explicitly bounded to the tested hosted LLM and version."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (single initial generation per task)",
+    "guarded: generate_validate_repair_v1 (initial generation + at most one repair call if deterministic validator fails)",
+    "canary: guarded pipeline with simulated canary-stage emulation and proof-carrying audit trace emission"
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "paired_difference_canary_detection_rate_guarded_vs_baseline",
+    "paired_difference_rollback_success_rate_with_proofs_vs_without"
+  ],
+  "sampling_plan": "Confirmatory paired design with task_count = 1000 intents drawn deterministically using the provided challenging_workflow_stress_v1 profile. Selection rule: for zero-based ordinal j from 0..999 set cycle=j//5, offset=[4,5,6,7,8][j%5], task_index=8*cycle+offset. This produces exactly 1000 unique task_indices. Each task yields two episodes (baseline and guarded). Planned model calls = task_count * 2 = 1000 * 2 = 2000 (one initial generation per condition per task; guarded may use its single allowed repair call but adapter bounds model calls to exactly 2 per task). All seeds and task_index selection are fixed before any hosted-model invocation.",
+  "analysis_plan": "Confirmatory analysis executed by the registered analysis executor 'paired_binary_analysis_v1' using result schema 'paired_binary_episode_v1'. Primary test: McNemar-style paired difference test implemented by the executor for estimand paired_success_rate_difference_guarded_minus_baseline; report absolute and relative improvement with bootstrap 95% CIs (bootstrap implemented by executor). Failed-call treatment: primary execution uses 'complete_pair_primary' per adapter contract; sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' where model/API failures are treated as a failed (unsafe) outcome for the affected episode. Secondary analyses: paired proportion tests for canary detection and rollback success; time-to-recovery analyses are exploratory and descriptive (Kaplan–Meier curves and log-rank tests where applicable). All analyses and seeds are preregistered and executed by the registered executor; no human adjudication.",
+  "multiplicity_plan": "Primary confirmatory test is H1 (paired estimand above). Secondary estimands are exploratory-confirmatory hybrid: report unadjusted two-sided p-values and bootstrap CIs; for hypothesis claims beyond the primary, report multiplicity-adjusted p-values using Holm–Bonferroni in the analysis report. All tests and adjustments are preregistered.",
+  "missingness_plan": "Model/API failures or adapter infrastructure failures produce a recorded episode-level failure flag. Primary analysis uses the adapter's 'complete_pair_primary' treatment (executor documents how incomplete pairs are handled). Sensitivity analysis treats any failed episode as an unsafe outcome (failure-as-zero). All missingness reasons are logged; no manual imputation or human annotation occurs.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "challenging_workflow_stress_v1 synthetic corpus"
+    ],
+    "risk_factors": [
+      "Leakage between baseline and guarded conditions via shared prompt materials or cached outputs",
+      "Overfitting of canary thresholds to simulated failure distribution",
+      "Validator-emulator deterministic shortcomings (emulator blind spots)"
+    ],
+    "detection_procedures": [
+      "Deterministic seeding and task_index selection fixed pre-execution to prevent post-hoc selection.",
+      "Automatic comparison of prompt texts and prompt-embedded context hashes between conditions to ensure independence.",
+      "Monitor and log distributional statistics (per-failure-type prevalence) and flag large deviations from preregistered injection rates (>5 percentage points) prior to analysis."
+    ],
+    "item_flagging_rules": [
+      "If a task's initial generation contains evidence of prompt leakage (identical token-level traces across conditions beyond shared intent), the task is auto-flagged and excluded from sensitivity analyses but retained in the main intent set with exclusion documented.",
+      "If the emulator fails deterministically (error code) the episode is flagged and treated per the failed_call_treatment rules."
+    ],
+    "analysis_treatment": "Flagged items are recorded and reported. Main confirmatory analysis uses the full preregistered task set (excluding only tasks excluded by predeclared deterministic selection rules). Sensitivity analyses exclude flagged items or treat failures-as-zero as specified above.",
+    "residual_uncertainty": [
+      "Emulator fidelity gaps (TOCTOU-style behaviours not captured by the digital twin)",
+      "Simulation-to-production generalizability of canary thresholds"
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "minimal",
+      "description": "Minimal confirmatory run constrained to ensure rapid completion and low model-call cost.",
+      "planned_model_calls": 200,
+      "models": [
+        "openai/gpt-4o (configured model_version recorded in execution manifest)"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1 (no separate canary stage in minimal mode; canary analyses are exploratory)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "100 confirmatory paired tasks => 100 * 2 = 200 model calls. Detects large absolute improvements (~20+ percentage points) with limited power; suitable as a fast pilot under the hosted-model quota."
+    },
+    {
+      "scenario_id": "recommended",
+      "description": "Full preregistered confirmatory run with canary stage and proof-carrying traces enabled.",
+      "planned_model_calls": 2000,
+      "models": [
+        "openai/gpt-4o (configured model_version recorded in execution manifest)"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1 + canary-stage emulation + proof-carrying audit trace"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 1000,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "1000 confirmatory paired tasks => 1000 * 2 = 2000 model calls. Within the frozen model-call budget (<=10000) and adapter contract (exactly 2 calls/task). Expected to provide >80% power to detect absolute paired safe-deploy improvements of ~12–15 percentage points under plausible baseline assumptions (see power plan). Execution fits the 7-day wall clock and hosted-model API availability."
+    },
+    {
+      "scenario_id": "ambitious",
+      "description": "Larger confirmatory sweep for higher sensitivity and narrower CIs.",
+      "planned_model_calls": 4000,
+      "models": [
+        "openai/gpt-4o (configured model_version recorded in execution manifest)"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1 + canary-stage emulation + proof-carrying audit trace"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 2000,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "2000 tasks × 2 calls/task = 4000 calls. Also feasible within overall manifest limits; chosen only if additional budget and wall-clock time are allotted."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute increase of 0.15 (15 percentage points) in safe-deploy rate (guarded vs baseline)",
+    "clustering_unit": "task/intent (paired within-task comparison)",
+    "calculation_method": "Heuristic paired-proportion power rationale: with baseline safe-deploy ≈ 0.60 and guarded ≈ 0.75, a two-sided alpha=0.05 test on 1000 paired observations yields >80% power to detect a 15 percentage-point absolute difference (executor uses McNemar-style paired test). Exact p-values and bootstrap CIs will be reported by the registered analysis executor.",
+    "assumptions": [
+      "Baseline safe-deploy rate assumed 0.60 (plausible under stress corpus per evidence F2/F1).",
+      "Paired correlation driven by shared intent; conservative assumption of moderate discordant-pair rate consistent with prior generate→validate→repair studies.",
+      "Significance level alpha = 0.05 (two-sided) for the primary estimand.",
+      "Planned sample (recommended) = 1000 paired tasks; minimal = 100 paired tasks."
+    ],
+    "recommended_scenario_id": "recommended",
+    "minimum_detectable_effect_notes": "With 1000 paired tasks the minimal detectable absolute difference (two-sided, alpha=0.05, ~80% power) is approximately 0.12–0.16 (12–16 percentage points) under assumed baseline rates; with 100 tasks MDE is ≈0.25–0.30 (25–30 percentage points). Exact MDEs reported in analysis output computed by paired_binary_analysis_v1.",
+    "sensitivity_analyses": [
+      "Vary baseline safe-deploy from 0.50 to 0.70 and recompute bootstrap CIs for the paired difference.",
+      "Repeat primary analysis under 'failure-as-zero' sensitivity (treating model/API failures as unsafe outcomes).",
+      "Vary canary detection thresholds across preregistered range [low, medium, high] and report effect on canary detection precision/recall and on rollback success rates."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "direct_configuration_generation_v1",
+      "generate_validate_repair_v1",
+      "proof_carrying_audit_trace_v1",
+      "canary_emulation_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated token-level and semantic-diff checks between guarded re-generated configs and initial baseline proposals to ensure repairs change semantics only as necessary; all differences are logged.",
+      "Holdout semantic tests (emulator checks not exposed to the repair loop) used for final safe-deploy labeling to detect validator-overfitting."
+    ],
+    "automatic_rejection_rules": [
+      "If the deterministic validator returns a fatal syntax/execution error for a candidate, the candidate is rejected and a guarded repair call is invoked (max one repair per adapter contract).",
+      "If proof-carrying trace fails deterministic verifier acceptance rules, the push is blocked in the simulation and flagged as 'proof-rejection' (automated exclusion from safe-deploy)."
+    ],
+    "audit_sample_policy": "All episodes and their full logs (prompts, model outputs, validator traces, proof artifacts) are recorded. For public artifact publication, raw exploit-like prompts are redacted per the reviewer-required safe-handling policy; replay scripts provide sanitized, reproducible seeds and sanitized inputs.",
+    "mapping_validation": "Transformations from natural-language intent to config and from config to emulator input are implemented as deterministic mappers with unit tests. Mapping correctness tests run in CI (included in artifact release) and are documented in the replay scripts.",
+    "residual_risks": [
+      "Validator blind spots (emulator may not capture vendor idiosyncrasies)",
+      "Repair loop potentially exploiting validator acceptance criteria (validator-overfitting)",
+      "Synthetic topology limitations vs production heterogeneity"
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulation realism and emulator fidelity: TOCTOU and nuanced vendor behavior remain approximated in the digital twin (bounded to synthetic/topology corpus).",
+    "Generalisability of canary thresholds and detection tuning: risk of overfitting to the simulated failure distribution despite preregistered sensitivity ranges.",
+    "Operational cost modeling: simulated rollback policies may not fully capture operator labor or approval policies in production; study bounds conclusions to simulated automated rollback success."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161165783",
+    "doi:10.2139/ssrn.6531679",
+    "https://openalex.org/W4414897036",
+    "https://openalex.org/W7155247165",
+    "https://openalex.org/W7163777690",
+    "https://openalex.org/W4411015066"
+  ]
+}

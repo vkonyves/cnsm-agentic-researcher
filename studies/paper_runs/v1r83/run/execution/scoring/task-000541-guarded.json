@@ -1,0 +1,139 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000541-guarded",
+  "normalized_reference_answer": "interface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+  "normalized_response": "interface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+  "pair_id": "pair-000541",
+  "raw_response_sha256": "70bbc645227a94e6fcb1c01392db5f4c7af3fb5b5c96254fa25cdaee840261bf",
+  "reference_answer_sha256": "f3f0382b9309a6e61f0d884ec10d8f9f3f7b66dd7423560bd342465aef10d359",
+  "repair_provider_trace_path": "execution/provider_calls/task-000541-guarded-repair.json",
+  "repair_provider_trace_sha256": "8078f758f9f0ea932c431165fb851a5f75a578dd624830c6f31b2d96cc7ac31e",
+  "schema_version": "1.0",
+  "score": 1,
+  "score_reason_code": "VALID_CONFIGURATION",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_initial_provider_trace_path": "execution/provider_calls/task-000541-shared-initial.json",
+  "shared_initial_provider_trace_sha256": "db5075edc1a1f558e729eed86b56321c915e277202d0f860573af11edf6fc3c3",
+  "study_id": "cand-003-stud-001",
+  "task_id": "task-000541",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "final_configuration": "interface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+    "repair_applied": true,
+    "repair_prompt_sha256": "eac01c4783595d86ea237785ad037dfc84744dd3cbe339c716ab05adca8b709e",
+    "shared_initial_candidate": "interface uplink136 vlan 200\ninterface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+    "shared_initial_candidate_sha256": "ed017f30ec279e710b0591d08044dcf5d54e0ac1ff0ff1fa8bf3ef90a000d3d5",
+    "shared_initial_response_path": "execution/responses/task-000541-shared-initial.txt",
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge269": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge270": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt68": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink135": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 210
+        },
+        "uplink136": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 3,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_before": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge269": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge270": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt68": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink135": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 210
+        },
+        "uplink136": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface uplink136 vlan 200\ninterface uplink136 admin up\ninterface uplink135 admin down\ninterface uplink135 vlan 210",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 4,
+      "required_command_count": 3,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: uplink136 vlan."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "uplink136 vlan ended as 200; expected 201."
+        }
+      ]
+    }
+  }
+}

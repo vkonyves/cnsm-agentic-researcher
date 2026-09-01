@@ -1,0 +1,186 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "LLMs exhibit frequent hallucinations and high prompt sensitivity that materially affect correctness of generated artifacts (including config-like outputs).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4414677042",
+        "https://openalex.org/W4411523078",
+        "doi:10.32388/be0zbc.2"
+      ],
+      "evidence_type": "empirical_survey_and_controlled_experiments",
+      "confidence": 0.9,
+      "limitations": [
+        "Findings aggregate across tasks and models; severity is model- and prompt-dependent.",
+        "Some studies are synthetic or domain-agnostic and may not fully capture production NetOps complexity."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Architectures that pair LLM generation with deterministic validators and iterative repair (generate→validate→repair) measurably improve correctness and safety of network-configuration repair tasks compared to base LLM outputs.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W7155247165"
+      ],
+      "evidence_type": "experimental_benchmark_and_system_paper",
+      "confidence": 0.85,
+      "limitations": [
+        "Benchmarks and evaluations are largely offline/synthetic or limited-scope scenarios.",
+        "Improvement magnitudes vary by model, validator fidelity, and scenario complexity."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Constrained or schema-aware planning/decoding substantially increases the rate of executable/valid outputs from LLM planners compared with unconstrained generation.",
+      "evidence_record_ids": [
+        "doi:10.26434/chemrxiv.15005091/v1",
+        "doi:10.2139/ssrn.6116106"
+      ],
+      "evidence_type": "empirical_method_development",
+      "confidence": 0.82,
+      "limitations": [
+        "Primary evidence comes from domains (cheminformatics, clinical) outside NetOps, but mechanisms generalize to structured-output tasks.",
+        "Effect depends on quality of schema/tooling that enforces constraints."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Agentic/multi-agent NetOps architectures can outperform single-model baselines on configuration repair and end-to-end workflows, but their operational reliability depends on external governance, protocol enforcement, and bounded tool interfaces rather than on the LLM alone.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7161165783",
+        "doi:10.2139/ssrn.6426760"
+      ],
+      "evidence_type": "system_evaluation_and_architectural_argument",
+      "confidence": 0.86,
+      "limitations": [
+        "Empirical evaluations often use controlled scenarios; real-world heterogeneity (device/vendor differences, legacy systems) is underrepresented.",
+        "Claims about dependence on governance are supported by architectural/position papers rather than large-scale production trials."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "There is substantial literature and proposals emphasizing governance, protocol-mediated execution, proof-carrying authorization, and auditability as necessary mitigations for unsafe agentic executions; TOCTOU and evidence-safety gaps remain open risks.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6426760",
+        "doi:10.2139/ssrn.6352164",
+        "doi:10.2139/ssrn.6684401",
+        "https://openalex.org/W7203776655"
+      ],
+      "evidence_type": "architectural_and_theoretical_proposals_with_prototypes",
+      "confidence": 0.88,
+      "limitations": [
+        "Proposals and prototypes address known classes of risk but do not eliminate all practical attack/automation failure modes.",
+        "Production-scale validation of these governance layers is limited in the supplied records."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "Can agentic LLM systems, governed by existing protocol/enforcement proposals, safely perform unrestricted autonomous live network changes at production scale without human-in-the-loop approval?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "doi:10.2139/ssrn.6426760",
+        "doi:10.2139/ssrn.6684401"
+      ],
+      "evidence_type": "evidence_gap / open_research_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Records document the need for evidence and governance and note production-evidence weakness, but do not provide large-scale production trials."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What combinations of validator fidelity (e.g., formal verification, digital twins, emulation) and agent orchestration policies yield acceptable risk–utility tradeoffs for different classes of NetOps changes?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W7163777690",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "design_space_question",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing works demonstrate architectures and prototypes but do not exhaustively map the design space or quantify tradeoffs across representative real-world workloads."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "To what extent do constrained-decoding and schema constraints reduce semantic (policy-level) errors in NetOps configs versus only syntactic/executable errors?",
+      "evidence_record_ids": [
+        "doi:10.26434/chemrxiv.15005091/v1",
+        "doi:10.2139/ssrn.6116106"
+      ],
+      "evidence_type": "method_generalization_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Empirical evidence shows gains for executability; transfer to semantic/policy correctness in multi-device networks requires targeted NetOps studies not present in supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "Lack of standardized, workflow-centered NetOps evaluation benchmarks that measure end-to-end agentic behavior (trace quality, validator integration, rollback/canary outcomes) rather than isolated QA-style correctness metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "doi:10.2139/ssrn.6531679",
+        "https://openalex.org/W4414897036"
+      ],
+      "evidence_type": "gap_identified_by_surveys_and_position_papers",
+      "confidence": 0.83,
+      "limitations": [
+        "Surveys and position papers call for workflow-centered evaluation but some domain-specific benchmarks exist; the gap is in standardized, widely-adopted NetOps workflow benchmarks."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Limited production-scale evidence for governance-layer proposals (protocol-mediated execution, proof-carrying authorization) demonstrating they prevent real-world automation failures or attacks in heterogeneous network environments.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6426760",
+        "doi:10.2139/ssrn.6352164",
+        "doi:10.2139/ssrn.6684401"
+      ],
+      "evidence_type": "empirical_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Records provide architectures and prototypes but stop short of industry-scale deployment data in diverse vendor/legacy settings."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Insufficient NetOps-specific studies measuring how constrained decoding/schema methods reduce long-tail, multi-step misconfigurations (e.g., multi-device policy violations, emergent reachability failures).",
+      "evidence_record_ids": [
+        "doi:10.26434/chemrxiv.15005091/v1",
+        "doi:10.2139/ssrn.6116106",
+        "https://openalex.org/W7163777690"
+      ],
+      "evidence_type": "methodological_gap",
+      "confidence": 0.78,
+      "limitations": [
+        "Existing constrained-output evidence comes from other structured domains; NetOps multi-hop semantics introduce additional complexity."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Need for reproducible artifact suites (public datasets, digital-twin/topology corpora, and validated validators like Batfish traces) to enable comparative evaluation of agentic NetOps systems under realistic failure injections.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7155247165",
+        "https://openalex.org/W4411015066",
+        "https://openalex.org/W4416426157"
+      ],
+      "evidence_type": "infrastructure_and_dataset_gap",
+      "confidence": 0.8,
+      "limitations": [
+        "Some projects provide prototypes or scenario sets, but a community-standard, openly curated artifact suite is not evident in supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs (or a single LLM) are proven production-ready to autonomously perform arbitrary live network changes without human oversight.",
+    "Constrained decoding/schema constraints alone fully eliminate semantic/policy-level misconfigurations across multi-device networks.",
+    "Existing governance proposals (protocol-mediated execution, proof-carrying authorization) are demonstrated to be sufficient to close the evidence-safety gap in production.",
+    "Survey/benchmarks cited here prove broad multi-vendor production efficacy for agentic NetOps at ISP scale."
+  ]
+}
