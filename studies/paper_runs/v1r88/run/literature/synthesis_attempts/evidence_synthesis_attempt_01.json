@@ -1,0 +1,202 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Hallucination (fabricated or unsupported outputs) is a widely documented reliability problem for large language models that undermines trust in operational applications.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4416393118",
+        "https://openalex.org/W4401353384",
+        "doi:10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "survey / empirical reports / preprint",
+      "confidence": 0.9,
+      "limitations": [
+        "Most cited works are cross-domain surveys or simulated/specific-domain studies rather than NetOps field trials; they document the phenomenon but not uniform empirical rates in NetOps deployments."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Retrieval-augmented and evidence-grounded generation (RAG) designs can substantially reduce hallucination rates in operations-style question-answering and documentation tasks compared to naive retrieval approaches.",
+      "evidence_record_ids": [
+        "doi:10.69987/jacs.2024.40308",
+        "doi:10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "empirical evaluation / preprint",
+      "confidence": 0.8,
+      "limitations": [
+        "Evidence is from specific datasets and simulated evaluation protocols; generalization to all NetOps task types is not established by the supplied records."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Generate–validate–repair (tool-assisted or verifier-guided) architectures improve correctness for infrastructure-as-code (IaC) and other code-generation tasks in published studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7172473776",
+        "https://openalex.org/W7172330379",
+        "https://openalex.org/W4412889499"
+      ],
+      "evidence_type": "method / empirical improvement reports",
+      "confidence": 0.8,
+      "limitations": [
+        "Demonstrations are primarily in IaC, mathematics/program-verification, or general instruction-following benchmarks—not specifically on network-device configuration execution in operational NetOps testbeds."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "LLMs can be applied to intent-driven network-configuration translation, but published work emphasizes fine-tuning, in-context learning, and continuous learning to improve accuracy rather than claiming turnkey deployment.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4386721326"
+      ],
+      "evidence_type": "application paper / evaluation dataset",
+      "confidence": 0.7,
+      "limitations": [
+        "Reported evaluations focus on translation accuracy and model capability benchmarks rather than on executed, end-to-end network-change safety measurements."
+      ]
+    },
+    {
+      "claim_id": "EF5",
+      "statement": "Human-in-the-loop oversight is a pervasive recommendation for operational AI, but several works highlight structural limits (automation bias, liability framing) that constrain its effectiveness.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4416298062"
+      ],
+      "evidence_type": "conceptual / survey / normative analysis",
+      "confidence": 0.75,
+      "limitations": [
+        "Analyses identify risks and behavioral limitations but vary in empirical scope and are not NetOps-only field trials."
+      ]
+    },
+    {
+      "claim_id": "EF6",
+      "statement": "Benchmarking efforts for LLM capabilities in NetOps/AIOps exist but remain nascent and heterogeneous (task scopes and metrics vary).",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "benchmark / survey",
+      "confidence": 0.8,
+      "limitations": [
+        "Existing benchmarks emphasize question/answer performance or capability evaluation rather than standardized, execution-level operational safety metrics."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "Do verifier-guided generate–validate–repair pipelines that improve IaC correctness (e.g., TerraFormer) transfer effectively to network-configuration generation to prevent unsafe or incorrect live configurations?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4386721326"
+      ],
+      "evidence_type": "cross-domain inference question supported by IaC and NetOps literature",
+      "confidence": 0.5,
+      "limitations": [
+        "No supplied record directly evaluates verifier-guided pipelines on network-device configuration execution; transferability is therefore an open empirical question."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "What fraction of LLM-generated network configurations would cause actionable misconfigurations when executed in network simulators or testbeds?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386721326",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W3005228016"
+      ],
+      "evidence_type": "measurement gap (absence noted among supplied records)",
+      "confidence": 0.4,
+      "limitations": [
+        "Supplied records include NetOps capability benchmarks and network-simulation surveys but do not report execution-based failure-rate measurements for LLM-generated configs."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "Which agentic or multi-agent orchestration patterns yield robust, auditable, and verifiable NetOps automation in practice?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4393065402",
+        "doi:10.2139/ssrn.6515481",
+        "doi:10.2139/ssrn.6103406"
+      ],
+      "evidence_type": "architectural / conceptual literature showing many proposals but limited validated patterns",
+      "confidence": 0.5,
+      "limitations": [
+        "Many agentic-system frameworks are conceptual or simulated; comparative, deployment-level evidence in NetOps contexts is not present in the supplied records."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is no supplied, standardized execution-based benchmark that measures operational correctness and safety of LLM-generated network configurations in network simulators/testbeds.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W3005228016"
+      ],
+      "evidence_type": "gap identified by contrast between capability benchmarks and simulation infrastructure literature",
+      "confidence": 0.65,
+      "limitations": [
+        "This statement is based on the absence of such a benchmark among the supplied records; absence of evidence in this corpus does not prove no such benchmark exists outside the supplied set."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "NetOps-specific verifier/toolchain integrations analogous to verifier-guided IaC systems (e.g., TerraFormer) are underrepresented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W4290990971"
+      ],
+      "evidence_type": "methodological gap (IaC verifier exists; NetOps-specific analogs not evident in supplied records)",
+      "confidence": 0.6,
+      "limitations": [
+        "NAssim and related works provide parsers/validators for device onboarding but do not demonstrate integrated LLM→verifier→repair pipelines for live network config execution in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "There is limited empirical understanding in the supplied records of how human-in-the-loop oversight performs under realistic NetOps operational constraints (time pressure, cognitive load).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W7203798170"
+      ],
+      "evidence_type": "human factors / governance gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Supplied analyses discuss structural limits and human roles but do not provide NetOps-specific controlled studies measuring oversight efficacy under operational stress."
+      ]
+    },
+    {
+      "claim_id": "CG4",
+      "statement": "RAG pipelines in operations are vulnerable to adversarial poisoning that can induce hallucinations; defensive techniques are preliminary in the supplied corpus.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "doi:10.69987/jacs.2024.40308"
+      ],
+      "evidence_type": "threat / defensive-evaluation gap",
+      "confidence": 0.7,
+      "limitations": [
+        "Adversarial examples and a single lightweight defense are demonstrated in SOC-style simulations; broader defensive evaluation for NetOps RAG pipelines is not present among the supplied records."
+      ]
+    },
+    {
+      "claim_id": "CG5",
+      "statement": "Public, large-scale corpora of real network device configurations suitable for training/evaluating LLMs are not evident in the supplied record set.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W4290990971"
+      ],
+      "evidence_type": "data gap",
+      "confidence": 0.55,
+      "limitations": [
+        "Some curated and task-specific datasets (e.g., NetEval) exist, but the supplied records do not include extensive, execution-ready corpora of real/sanitized router configs for large-scale LLM training/evaluation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are production-ready to autonomously perform unsupervised, live network configuration changes without human oversight or formal verification (unsupported by supplied records).",
+    "This corpus demonstrates that verifier-guided RL approaches have been validated end-to-end for network-device configuration execution on live testbeds (no supplied record reports such an end-to-end NetOps execution evaluation).",
+    "Any single reviewed paper in the supplied set proves general superiority of one architectural pattern (e.g., agentic multi-agent frameworks) for safe NetOps automation across deployment contexts."
+  ]
+}

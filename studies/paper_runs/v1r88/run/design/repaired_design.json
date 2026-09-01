@@ -1,0 +1,144 @@
+{
+  "selected_candidate_id": "CAND-001-VER-GVR",
+  "title": "Effectiveness of a Generate–Validate–Repair (GVR) Pipeline to Reduce Unsafe LLM‑Generated Network Configurations",
+  "research_question": "Does a generate–validate–repair pipeline, combining an LLM generator with a deterministic network-config verifier and automated repair, reduce the rate of executable unsafe or incorrect network configurations compared to LLM generation alone when evaluated in a packet-level network simulator?",
+  "confirmatory_hypotheses": [
+    "A GVR pipeline will produce fewer executable misconfigurations than LLM-only generation on the same intent prompts (paired per-intent comparison).",
+    "Most residual failures after GVR will be syntactic or policy-edge cases that a stronger verifier can detect but an LLM repair step may still miss.",
+    "The relative improvement from GVR will be larger for complex multi-step changes than for single-device simple edits."
+  ],
+  "exploratory_questions": [
+    "Which failure categories (syntax, routing loop, reachability loss, policy violation) are most reduced by the repair step?",
+    "How many repair iterations (0,1) suffice for majority of verifier-detected faults?"
+  ],
+  "benchmark_scope": [
+    "Public NetOps task collections and synthetic intent generation (see evidence_record_ids).",
+    "Packet-level simulated topologies (Mininet-based templates described below)."
+  ],
+  "model_scope": [
+    "Single hosted LLM provider via API (model_name and model_version frozen in preregistration)."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (one-shot LLM generation).",
+    "guarded: generate_validate_repair_v1 (LLM generation → deterministic verifier → if flagged, single LLM repair iteration → final verifier re-check)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute risk reduction (baseline - guarded) in executable unsafe proportion",
+    "distributional shifts in failure categories (chi-square / Fisher tests)",
+    "number-needed-to-repair (1 / absolute risk reduction)"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N intents drawn deterministically from the adapter profile 'challenging_workflow_stress_v1' (selected task_indices per adapter rule). Two confirmatory scenarios are preregistered (see budget_scenarios). For each selected task index, the adapter will produce exactly two episodes: baseline (direct_generation) and guarded (generate_validate_repair). Task selection is outcome-independent and fixed before any model calls per adapter 'task_index_profile'.",
+  "analysis_plan": "Primary analysis: paired binary comparison of per-intent executable-safety (safe=1, unsafe=0) using McNemar test and reporting absolute risk difference with 95% Wilson CIs. Analysis executor: paired_binary_analysis_v1 (estimand 'paired_success_rate_difference_guarded_minus_baseline'). Primary call-failure treatment: 'complete_pair_primary' (exclude pairs with missing both episodes); sensitivity analysis uses 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed episodes as unsafe). Report exact p-values, effect sizes, and Benjamini–Hochberg FDR correction (0.05) for exploratory subgroup tests.",
+  "multiplicity_plan": "Primary confirmatory test: single paired McNemar comparison (no multiplicity correction). Exploratory subgroup tests (complex vs simple intents, failure-category distributions) will use FDR correction (Benjamini–Hochberg at 0.05). All exploratory tests are labeled as such.",
+  "missingness_plan": "Simulator or execution failures: log deterministic failure reason. Primary analysis excludes incomplete pairs ('complete_pair_primary'); sensitivity analysis treats any missing or failed episode as 'unsafe' (failure-as-zero). All failures and recovery attempts (per frozen retry policy) are logged and reported. No human adjudication—automated deterministic mappings convert simulator metrics to binary labels (see simulator mapping below).",
+  "contamination_plan": {
+    "benchmark_names": [
+      "NetOps public collections referenced in evidence_record_ids (selection manifest recorded prior to execution)"
+    ],
+    "risk_factors": [
+      "Overlap between intent corpus and any retrieval/repair corpora",
+      "Prompt leakage (exact-match examples) into LLM context or provider cache"
+    ],
+    "detection_procedures": [
+      "Exact-file and exact-record SHA256 hashing of all corpus files prior to execution; compute pairwise exact and high-similarity (Jaccard n-gram) matches between test intents and any repair/RAG corpora. Flag items exceeding exact-match or similarity thresholds.",
+      "Record model-provider returned retrieval or context metadata when available; treat identical-match evidence as contamination."
+    ],
+    "item_flagging_rules": [
+      "Exact-match: if SHA256(test_intent) equals SHA256(any_repair_corpus_record) then exclude from confirmatory sample and move to an exploratory 'leaked' bucket.",
+      "High-similarity: if n-gram Jaccard ≥ 0.9, flag for sensitivity analysis (not excluded) and report separately."
+    ],
+    "analysis_treatment": "Primary analysis excludes exact-match leaked items from confirmatory counts and reports excluded-counts. Sensitivity analyses include high-similarity-flagged items and report effect-size differences.",
+    "residual_uncertainty": [
+      "Hashing/ similarity-based detection cannot detect non-exact conceptual overlap; report remaining uncertainty in limitations."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "scenario_small_100",
+      "description": "Minimum confirmatory run to obtain preliminary evidence under strict runtime/model-call constraints.",
+      "planned_model_calls": 200,
+      "models": [
+        "openai_responses:baseline_model_v1"
+      ],
+      "transformations": [
+        "direct_configuration_generation_v1",
+        "generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Adapter hosted_netops_gvr_v1 enforces maximum_model_calls = task_count*2. For 100 tasks, model calls = 200 ≤ capability_manifest maximum_planned_model_calls (10000). Wall-clock feasible within hosted API and CPU orchestration using Dockerized Mininet harness."
+    },
+    {
+      "scenario_id": "scenario_recommended_200",
+      "description": "Recommended confirmatory run balancing statistical power and execution cost; paired design with 200 intents.",
+      "planned_model_calls": 400,
+      "models": [
+        "openai_responses:baseline_model_v1"
+      ],
+      "transformations": [
+        "direct_configuration_generation_v1",
+        "generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "200 paired tasks produce 400 model calls (1 initial generation + up to 1 repair per task as adapter caps). 400 model calls fit well within capability manifest budget (max 10000 calls) and the 7-day wall-clock limit with CPU-based simulation orchestrated in Docker."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction of 10 percentage points in unsafe executable rate (e.g., from 30% to 20%).",
+    "clustering_unit": "intent (paired baseline vs guarded episodes per intent).",
+    "calculation_method": "Approximate McNemar-power reasoning for paired binary outcomes; target alpha=0.05, two-sided, desired power=0.8. With assumed baseline unsafe rate 0.30 and discordant-pair structure consistent with a 10% absolute reduction, recommended confirmatory scenario is 200 paired tasks (scenario_recommended_200). Exact power numbers will be computed and reported pre-execution using the frozen assumptions; sensitivity analyses will vary baseline unsafe rate in {0.2,0.3,0.4} and target effect {0.08,0.10,0.12}.",
+    "assumptions": [
+      "Baseline unsafe rate ≈ 0.30 (domain-informed prior).",
+      "Discordant pairs follow approximate rates consistent with a 10% absolute improvement.",
+      "Independence across tasks (adapter profile-selection enforces diverse task indices).",
+      "Primary analysis excludes incomplete pairs; sensitivity treats failures as unsafe."
+    ],
+    "recommended_scenario_id": "scenario_recommended_200",
+    "minimum_detectable_effect_notes": "With N=200 pairs, detectable absolute risk reductions near 8–12 percentage points are plausible under baseline unsafe rates 0.2–0.4; smaller MDEs (<5%) are underpowered in this confirmatory budget.",
+    "sensitivity_analyses": [
+      "Vary baseline unsafe rate (0.2, 0.3, 0.4) and recompute exact McNemar-based power.",
+      "Alternate failed-call treatment: treat missing as unsafe and recompute effect sizes.",
+      "Vary verifier strictness (see transformation_validation) and report effect-size sensitivity."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "direct_configuration_generation_v1",
+      "generate_validate_repair_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic verifier re-check: after any repair iteration, run the same verifier to ensure original intent-level functional properties (reachability invariants) hold or improve.",
+      "Automated diff-based regression detection: compute semantic-impact signatures (reachability matrix differences) pre- and post-repair; if repair reduces desired reachability, flag as regression."
+    ],
+    "automatic_rejection_rules": [
+      "Reject repaired config automatically if verifier reports any new critical invariant failures (syntax error, newly introduced routing loop, or new policy-violation) compared to baseline.",
+      "Reject repair if repair output fails to parse or exceeds token-length limits; log as unrepaired unsafe."
+    ],
+    "audit_sample_policy": "Random automated audit sample of 10% of repaired episodes: regenerate deterministic verifier logs, compute diffs, and archive both versions with SHA256 hashes. Audits are automated checks (no human involvement); all audit data stored with hashes for reproducibility.",
+    "mapping_validation": "Explicit mapping from simulator metrics to binary label: 'unsafe' if any of (a) end-to-end reachability from declared endpoints fails for >5 seconds of simulated time, (b) measured forwarding loops (duplicate TTL-expired patterns) detected, or (c) security-policy violation triggers (traffic permitted when intent demanded deny). These numeric thresholds are frozen in preregistration.",
+    "residual_risks": [
+      "Verifier may not capture semantic features outside encoded invariants (e.g., vendor-specific nuanced behaviors).",
+      "Repair LLM could synthesize latent misconfigurations not captured by verifier rules; these appear in residual failure categories."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Simulator fidelity: Mininet-based simulations abstract some physical-device timing and vendor-specific quirks; this limits external generalizability to production hardware.",
+    "Representativeness: adapter 'challenging_workflow_stress_v1' focuses on very_hard/extreme patterns and is not population-representative of all NetOps intents.",
+    "Provider nondeterminism: hosted LLM responses may vary across calls; adapter does not guarantee deterministic sampling—report variance and seeds where available."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7124141852",
+    "https://openalex.org/W7172473776",
+    "https://openalex.org/W7172330379",
+    "doi:10.69987/jacs.2024.40308",
+    "https://openalex.org/W4386721326",
+    "https://openalex.org/W4412889499"
+  ]
+}

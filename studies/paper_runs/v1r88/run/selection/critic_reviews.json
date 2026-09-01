@@ -1,0 +1,98 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-001-VER-GVR",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier semantics are underspecified (which invariants exactly will be checked; formal definitions missing).",
+        "Simulator fidelity and mapping from simulator failures to production-impact not defined.",
+        "Dataset provenance for the 200 intent prompts not fully specified (possible leakage, representativeness concerns).",
+        "Limited detail on exact LLM model/identifier, temperature, and retry policy—these affect results and reproducibility.",
+        "Potential for repair step to introduce new semantic faults not captured by verifier; need instrumentation to detect introduced regressions."
+      ],
+      "required_design_repairs": [
+        "Specify deterministic verifier formalism and exact semantic checks (syntax, reachability tests, loop detection, policy rules) and thresholds.",
+        "Declare exact simulator (version), topology templates, and how simulator-observed failures map to the binary safety label.",
+        "Provide provenance and sampling procedure for the 200 intents; ensure train/test separation from any retrieval/repair corpora.",
+        "Record exact LLM(s) with model identifiers, prompt templates, hyperparameters, seeds, and frozen retry policy in preregistration.",
+        "Add explicit evaluation of 'repair-induced' regressions and a mitigation plan (e.g., verifier re-check after repair and logging of repair diffs)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-002-MEAS-HF",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "'Actionable' misconfiguration threshold is underspecified and may not map to real production harm.",
+        "RAG corpus curation may leak examples overlapping test intents, biasing the measured improvement.",
+        "Human-derived reference configs process is vague (who authors them; are they gold-standard?).",
+        "Large run count (300 intents × 3 variants) requires exact simulator-run budget and deterministic seeds to ensure reproducibility."
+      ],
+      "required_design_repairs": [
+        "Precisely define 'actionable' criteria with numeric thresholds (service outage duration X, packet-loss thresholds, etc.) and justify choices.",
+        "Document RAG corpus creation, sources, and explicit steps to avoid overlap with test intents; provide hash manifest for corpora.",
+        "Define process for producing human reference configs (expert panel, adjudication) or explain acceptable automated reference.",
+        "Fix simulator configuration (tool and version), seeds, and orchestration commands; preregister subsampling or budget-based decisions if simulator time is limited."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-003-ADV-POI",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Adversarial poisoning must be constructed safely—risk of producing dangerous configuration payloads if not sanitized.",
+        "Attribution of unsafe outputs to specific poisoned documents is methodologically approximate and needs validated instrumentation.",
+        "Defenses (provenance filtering) implementation details and their practical latency/utility trade-offs are underspecified.",
+        "Ethical review / safeguards and data-handling constraints for injected poison documents are not stated."
+      ],
+      "required_design_repairs": [
+        "Run an explicit ethics/safety assessment and document safe-poisoning templates that avoid deployable harmful payloads.",
+        "Specify the retrieval/indexing stack and exact provenance metadata scheme; provide reproducible poisoning-generation scripts and hashes.",
+        "Define and validate attribution methodology (e.g., attention/log-provenance, retrieval scores) and its limitations.",
+        "Quantify defense overhead (latency/recall) and pre-register acceptable operational trade-offs; state exact LLM identifiers and prompts used."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-004-HITL-TIME",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.4,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Human-subject recruitment of 45 experienced NetOps practitioners may be infeasible under current constraints; no IRB/ethics plan provided.",
+        "If simulated reviewers are used, external validity will be limited; candidate mixes recruitment and simulation without clear decision rule.",
+        "Time-pressure operationalization (30s) is arbitrary and must be justified or varied in sensitivity analyses.",
+        "Potential automation-bias effects require careful measurement; instrumentation and questionnaires are underspecified."
+      ],
+      "required_design_repairs": [
+        "Provide a concrete recruitment plan, inclusion/exclusion criteria, compensation, and IRB/ethics safeguards, or prespecify a validated simulation alternative and justify its validity.",
+        "Pre-register time-pressure levels and include sensitivity analysis; justify chosen durations with pilot data or literature.",
+        "Specify exact verifier outputs and UI shown to reviewers; record interaction logs and cognitive-load measurement instruments.",
+        "State fallback analysis plan if human recruitment is infeasible and label those results as exploratory/pilot."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

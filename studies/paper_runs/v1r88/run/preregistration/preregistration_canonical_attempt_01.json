@@ -1,0 +1,97 @@
+{
+  "study_id": "PREREG-CAND-001-VER-GVR-2026-09-01",
+  "title": "Effectiveness of a Generate–Validate–Repair (GVR) Pipeline to Reduce Unsafe LLM‑Generated Network Configurations",
+  "research_question": "Does a generate–validate–repair pipeline, combining an LLM generator with a deterministic network-config verifier and automated repair, reduce the rate of executable unsafe or incorrect network configurations compared to LLM generation alone when evaluated in a packet-level network simulator?",
+  "confirmatory_hypotheses": [
+    "A GVR pipeline will produce fewer executable misconfigurations than LLM-only generation on the same intent prompts (paired per-intent comparison).",
+    "Most residual failures after GVR will be syntactic or policy-edge cases that a stronger verifier can detect but an LLM repair step may still miss.",
+    "The relative improvement from GVR will be larger for complex multi-step changes than for single-device simple edits."
+  ],
+  "exploratory_questions": [
+    "Which failure categories (syntax, routing loop, reachability loss, policy violation) are most reduced by the repair step?",
+    "How many repair iterations (0,1) suffice for majority of verifier-detected faults?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7124141852",
+    "https://openalex.org/W7172473776",
+    "https://openalex.org/W7172330379",
+    "doi:10.69987/jacs.2024.40308",
+    "https://openalex.org/W4386721326",
+    "https://openalex.org/W4412889499"
+  ],
+  "benchmark_scope": [
+    "Public NetOps task collections and synthetic intent generation (see evidence_record_ids).",
+    "Packet-level simulated topologies (Mininet-based templates described in transformation_validation)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (per-intent paired difference in proportion of safe/executable configurations: guarded minus baseline)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute risk reduction (baseline - guarded) in executable unsafe proportion",
+    "distributional shifts in failure categories (chi-square / Fisher tests)",
+    "number-needed-to-repair (1 / absolute risk reduction)"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N=200 intents drawn deterministically from the adapter profile 'challenging_workflow_stress_v1' (task indices set per adapter task_index_profile). For each selected task index, the adapter will produce exactly two episodes: baseline (direct_configuration_generation_v1) and guarded (generate_validate_repair_v1). Task selection is fixed before any model calls and is outcome-independent. Adapter-enforced maximum_model_calls = task_count * 2 (400).",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target absolute reduction: 10 percentage points (e.g., 30%→20%). Alpha=0.05 two-sided, desired power≈0.8. Recommended confirmatory scenario: scenario_recommended_200 (N=200 paired intents; planned_model_calls=400). Pre-execution exact McNemar power calculations will be computed from frozen assumptions; sensitivity analyses will vary baseline unsafe rate in {0.2,0.3,0.4} and target effect in {0.08,0.10,0.12}.",
+  "exclusion_rules": [
+    "Exclude any task with exact-match contamination per contamination_plan (SHA256 exact-match with repair or corpus records); move excluded items to an exploratory 'leaked' bucket and report counts."
+  ],
+  "missingness_plan": "Simulator or execution failures: log deterministic failure reason. Primary analysis uses 'complete_pair_primary'—exclude incomplete pairs where both episodes are missing. Sensitivity analysis 'complete_pair_primary_with_failure_as_zero_sensitivity' treats any missing or failed episode as 'unsafe' (failure-as-zero). All failures and recovery attempts (per frozen retry policy) are logged. Automated deterministic mappings convert simulator metrics to binary labels (see transformation_validation). No human adjudication.",
+  "analysis_plan": "Primary analysis executor: paired_binary_analysis_v1 (estimand id: paired_success_rate_difference_guarded_minus_baseline). Primary test: paired binary comparison of per-intent executable-safety using McNemar test; report exact p-values, absolute risk difference with 95% Wilson CIs, and paired effect size. Primary failed-call treatment: 'complete_pair_primary' (exclude incomplete pairs). Sensitivity analysis: 'complete_pair_primary_with_failure_as_zero_sensitivity' (treat missing/failed episodes as unsafe). Exploratory subgroup tests labeled exploratory and corrected using Benjamini–Hochberg FDR (0.05).",
+  "multiplicity_plan": "Single primary confirmatory McNemar test (no multiplicity correction). Exploratory subgroup and failure-category tests use Benjamini–Hochberg FDR correction at 0.05 and are explicitly labeled exploratory.",
+  "contamination_plan": "{\"benchmark_names\": [\"NetOps public collections referenced in evidence_record_ids (selection manifest recorded prior to execution)\"], \"risk_factors\": [\"Overlap between intent corpus and any repair/repair-corpus\", \"Prompt leakage into provider cache or context\"], \"detection_procedures\": [\"SHA256 hashing of all corpus files prior to execution; compute exact and high-similarity (n-gram Jaccard) matches between test intents and any repair/RAG corpora; flag items exceeding thresholds\", \"Record provider returned context/retrieval metadata when available; treat identical-match evidence as contamination.\"], \"item_flagging_rules\": [\"Exact-match: if SHA256(test_intent) equals SHA256(any_repair_corpus_record) then exclude from confirmatory sample and move to exploratory 'leaked' bucket.\", \"High-similarity: if n-gram Jaccard ≥ 0.9, flag for sensitivity analysis (do not exclude).\"], \"analysis_treatment\": \"Primary analysis excludes exact-match leaked items from confirmatory counts and reports excluded counts. Sensitivity analyses include high-similarity-flagged items and report effect-size differences.\", \"residual_uncertainty\": [\"Hashing/similarity detection cannot detect non-exact conceptual overlap; report remaining uncertainty in limitations.\"]}",
+  "stopping_rule": "Stop after executing the fixed set of task_indices for N=200 pairs, or earlier if adapter-enforced maximum_model_calls (task_count * 2 = 400) is reached. No post-hoc changes to task selection; any infrastructure restarts follow frozen retry policy and are logged.",
+  "planned_outputs": [
+    "final research-selection record",
+    "literature-search record",
+    "verified bibliography record",
+    "nearest-work comparison matrix",
+    "preregistration / frozen experiment plan (this document)",
+    "experiment code and configuration",
+    "raw experiment artifacts (LLM inputs/outputs, verifier logs, simulator traces)",
+    "execution manifest (runtime metadata, hashes)",
+    "statistical-results file",
+    "failure-analysis record",
+    "evidence-to-claim table",
+    "complete IEEE LaTeX manuscript (≤5 pages)",
+    "BibTeX bibliography",
+    "compiled PDF (≤5 pages)",
+    "autonomy and human-involvement disclosure record",
+    "internal methodological review",
+    "statistical-consistency review",
+    "reference-integrity review",
+    "novelty and overclaiming review",
+    "page-count and IEEE-format validation report",
+    "autonomous revision log",
+    "final-output hash manifest",
+    "concise NotebookLM presentation brief"
+  ],
+  "unresolved_critical_issues": []
+}

@@ -1,0 +1,32 @@
+{
+  "study_id": "PREREG-CAND-001-VER-GVR-2026-09-01",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis on paired_binary_episode_v1 records. For each intent pair (baseline, guarded) compute binary_label_safe outcomes and form the 2x2 paired contingency table. Apply failed-call treatment 'complete_pair_primary' (exclude any incomplete pairs). Perform two-sided exact McNemar test; report exact p-value, absolute paired risk difference (guarded minus baseline) with 95% Wilson score CI, and paired counts used (n_pairs). Use only execution/raw_results.jsonl, verifier_log, and simulator_trace artifacts referenced in execution_manifest. ",
+  "secondary_analyses": [
+    "Absolute risk reduction (baseline - guarded) with 95% Wilson CIs computed from per-condition proportions.",
+    "Number-needed-to-repair (NNR = 1 / absolute risk reduction) with point estimate and CI derived from risk-difference CI.",
+    "Distributional comparisons of failure categories (syntax, routing loop, reachability loss, policy violation) between conditions using Fisher exact or chi-square tests; label all failure-category tests exploratory and apply BH-FDR per multiplicity_plan.",
+    "Exploratory subgroup paired McNemar tests by change-complexity strata (single-device vs multi-device); labeled exploratory and BH-FDR corrected."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity",
+    "Include high-similarity-flagged items (n-gram Jaccard ≥ 0.9) in confirmatory table and recompute primary estimand",
+    "Recompute primary estimand including exact-match leaked items (exploratory; report effect-size change)"
+  ],
+  "uncertainty_quantification": "Report exact two-sided McNemar p-values. Compute 95% Wilson score CIs for absolute risk differences and 95% Clopper–Pearson CIs for per-condition safe proportions. Report raw counts, proportions, and CI bounds; report BH-FDR-adjusted p-values for exploratory tests.",
+  "multiplicity_implementation": "Single predefined primary confirmatory McNemar test with no multiplicity correction. All exploratory subgroup and failure-category hypothesis tests are labeled exploratory and corrected using Benjamini–Hochberg FDR at 0.05 as specified in the preregistration.",
+  "contamination_analysis": "Follow preregistered contamination_plan: exclude from primary confirmatory analysis any exact-match items (SHA256 equality) by moving them to an exploratory 'leaked' bucket and report counts and task_indices excluded. Flag high-similarity items (n-gram Jaccard ≥ 0.9) and include them only in sensitivity analyses. Record all contamination-detection hashes and flags from task_manifest_path; report residual uncertainty per preregistration.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Paired 2x2 contingency table (baseline_safe vs baseline_unsafe) × (guarded_safe vs guarded_unsafe), n_pairs used, McNemar exact p-value, absolute risk difference (guarded - baseline) with 95% Wilson CI.",
+    "Table 2: Per-condition counts and proportions of binary_label_safe (baseline and guarded) with 95% Clopper–Pearson CIs and raw counts (numerator/denominator).",
+    "Table 3: Failure-category counts and percentages by condition (syntax, routing loop, reachability loss, policy violation) with exploratory Fisher/chi-square p-values and BH-FDR adjusted p-values.",
+    "Table 4: Contamination summary: counts of exact-match excluded items, list of excluded task_indices (leaked bucket), and count of high-similarity-flagged items included in sensitivity analyses."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of safe-executable proportion per condition (baseline vs guarded) with 95% Wilson CIs, computed from binary_label_safe in paired_binary_episode_v1.",
+    "Figure 2: Stacked bar chart of failure-category distribution by condition (percentages) derived from verifier_log classifications.",
+    "Figure 3: Transition/Sankey summarizing per-intent transitions (baseline_safe→guarded_safe, baseline_unsafe→guarded_safe, baseline_unsafe→guarded_unsafe, baseline_safe→guarded_unsafe) with counts from paired records."
+  ]
+}

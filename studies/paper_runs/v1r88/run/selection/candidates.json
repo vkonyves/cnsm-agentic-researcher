@@ -1,0 +1,120 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-001-VER-GVR",
+      "title": "Effectiveness of a Generate–Validate–Repair (GVR) Pipeline to Reduce Unsafe LLM‑Generated Network Configurations",
+      "research_question": "Does a generate–validate–repair pipeline, combining an LLM generator with a deterministic network-config verifier and automated repair, reduce the rate of executable unsafe or incorrect network configurations compared to LLM generation alone when evaluated in a packet‑level network simulator?",
+      "hypotheses": [
+        "A GVR pipeline will produce fewer executable misconfigurations than LLM-only generation on the same intent prompts.",
+        "Most residual failures after GVR will be syntactic or policy-edge cases that a stronger verifier can detect but an LLM repair step may still miss.",
+        "The relative improvement from GVR will be larger for complex multi-step changes (e.g., inter-domain route policies) than for single-device simple ACL edits."
+      ],
+      "proposed_design": "1) Assemble a corpus of 200 diverse NetOps intent prompts (device onboarding, ACL changes, route redistribution, interface/IP changes) sampled from public NetOps datasets and synthetic intents. 2) Use a single off-the-shelf LLM (via hosted API) to generate device-level configurations per intent (fixed prompt template, fixed temperature). 3) Implement a deterministic verifier that parses configs, checks syntax and a set of semantic invariants (reachability, loop prevention, policy conflicts) and flags violations. 4) For flagged outputs, run an automated repair module that invokes the LLM with verifier feedback to produce repaired configs (up to two repair iterations). 5) Execute original LLM outputs and repaired outputs in a packet‑level network simulator (Mininet or equivalent) and observe behavioral correctness and safety. 6) Baselines: (A) LLM-only (no verifier/repair), (B) LLM + verifier-only (reject without repair). Record per-sample executable-safety outcomes.",
+      "expected_data": "Per intent and per method: (1) binary executable-safety label (safe/unsafe) after simulator execution; (2) failure category label (syntax, routing loop, reachability loss, security policy violation); (3) number of verifier flags and repair iterations; (4) time-to-solution metrics; (5) qualitative examples of repaired vs unrepaired configs.",
+      "primary_outcome": "Reduction in executable unsafe-configuration rate: proportion of intents producing unsafe executable configurations in GVR pipeline versus LLM-only generation.",
+      "analysis_outline": "Compute proportions of unsafe outcomes per method with 95% Wilson CIs. Use paired McNemar test on per-intent safe/unsafe labels comparing GVR vs LLM-only (paired design since same intents used). Report absolute risk reduction and number needed-to-repair. Subgroup analyses for change complexity (simple vs complex intents) using stratified proportions and Fisher exact tests if counts small. Report failure-mode distribution differences using chi-square or Fisher tests. Perform sensitivity analysis varying verifier strictness threshold and repair iteration cap. Report effect sizes and exact p-values; correct for multiple subgroup comparisons with Benjamini–Hochberg FDR at 0.05 for exploratory subgroups.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7124141852",
+        "https://openalex.org/W7172473776",
+        "https://openalex.org/W7172330379"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.69987/jacs.2024.40308",
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W4412889499"
+      ],
+      "risks": [
+        "Simulator fidelity may not capture operator-unique production interactions leading to over- or under-estimation of unsafe outcomes.",
+        "Automated repairs could introduce new semantic errors not flagged by the verifier.",
+        "API rate limits or transient provider failures could bias which prompts are retried under the frozen retry policy."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "CAND-002-MEAS-HF",
+      "title": "Measuring the Actionable Misconfiguration Rate of LLM‑Generated Network Configurations in a Controlled Simulator",
+      "research_question": "What fraction of LLM-generated network configurations, produced from operational intents, cause actionable misconfigurations (service loss, route blackholing, security policy breach) when executed in a controlled network simulator?",
+      "hypotheses": [
+        "A nontrivial fraction (>10%) of naive LLM-generated configurations will produce actionable misconfigurations in simulator execution for a broadly sampled set of operational intents.",
+        "The majority of actionable misconfigurations will be semantic (policy or reachability errors) rather than purely syntactic errors.",
+        "Applying a simple retrieval-augmented prompt (RAG) will reduce the actionable misconfiguration fraction compared to naive prompts but will not eliminate it."
+      ],
+      "proposed_design": "1) Curate 300 operational intent prompts from public NetOps task collections and synthetically varied edge cases. 2) For each intent, produce three outputs: (A) naive LLM-generated config (single-shot prompt), (B) LLM with retrieval-augmented context (RAG) using a small curated corpus of device examples and vendor docs, (C) human-derived reference config (sanity check). 3) Execute generated configs in a packet-level simulator and observe for predefined actionable failure criteria (service outage > X seconds, permanent route blackholing, ACL allowing explicit forbidden traffic). 4) Label each run for actionable misconfiguration and failure mode. 5) Pre-register thresholds, seeds, and retry policy.",
+      "expected_data": "Per-intent and per-method labels for actionable misconfiguration (binary), failure mode taxonomy counts, latency-to-failure, and retrieval-context similarity scores. Aggregated counts and per-intent traces (simulator logs) for reproducibility.",
+      "primary_outcome": "Estimated proportion of LLM-generated configurations that produce actionable misconfigurations for the naive LLM baseline; comparative reduction for RAG baseline.",
+      "analysis_outline": "Estimate proportions with 95% Wilson CIs for each method. Use paired comparisons (McNemar test) between naive LLM and RAG outputs on same intents. Compute relative risk reduction and absolute risk difference. Disaggregate failure modes and test for distributional differences with chi-square tests. Use logistic regression to model actionable-failure probability as function of intent complexity, retrieval-similarity score, and method; report odds ratios and 95% CIs. Report exact counts and avoid overgeneralization beyond sampled intents.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4386721326",
+        "https://openalex.org/W3005228016"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416393118",
+        "doi:10.69987/jacs.2024.40308"
+      ],
+      "risks": [
+        "Definitions of 'actionable' rely on simulator thresholds and may not perfectly map to production impact.",
+        "RAG corpus curation could inadvertently bias results if it overlaps with test intents.",
+        "Large-scale simulator runs may be constrained by wall-clock budget leading to subsampling decisions that must be disclosed."
+      ],
+      "estimated_model_calls": 800
+    },
+    {
+      "candidate_id": "CAND-003-ADV-POI",
+      "title": "Robustness of Retrieval‑Augmented NetOps Pipelines to Adversarially Poisoned Retrieval Corpora",
+      "research_question": "How susceptible are retrieval-augmented generation (RAG) pipelines for NetOps intent-to-configuration tasks to adversarial poisoning of the retrieval corpus, and which lightweight defenses mitigate induced unsafe configurations?",
+      "hypotheses": [
+        "Adversarially poisoned retrieval documents that include plausible-sounding but unsafe config snippets will increase the rate of unsafe LLM outputs in RAG pipelines compared to clean corpora.",
+        "Simple retrieval defenses (document provenance tagging and top-k provenance filtering) will reduce but not fully eliminate the poisoning-induced rise in unsafe outputs.",
+        "Pipelines that combine provenance-aware retrieval plus verifier checks will show the lowest susceptibility to poisoning compared to naive RAG and provenance-only defenses."
+      ],
+      "proposed_design": "1) Create a clean retrieval corpus of vendor docs and sanitized config examples. 2) Generate a set of 150 intent prompts. 3) Create poisoned versions of the corpus by injecting adversarial documents that suggest unsafe but plausible config changes targeting those intents. Vary poisoning intensity (1%, 5%, 10% of corpus). 4) Run three pipeline variants per intent and poisoning level: (A) naive RAG, (B) RAG with provenance filtering (exclude low-provenance docs in top-k), (C) RAG + verifier post-check that rejects unsafe suggestions. 5) Execute resulting configs in simulator and measure unsafe outcome rate. 6) Log retrieval traces to attribute model outputs to poisoned documents.",
+      "expected_data": "Per intent, per poisoning level, and per pipeline variant: unsafe/safe binary labels, attribution traces linking model tokens to retrieved docs, counts of times poisoned docs were used in top-k, and time/resource overhead of defenses.",
+      "primary_outcome": "Increase in unsafe-configuration rate induced by poisoning for naive RAG and reduction in that increase achieved by each defense (provenance filtering, verifier).",
+      "analysis_outline": "For each poisoning intensity, compute unsafe rates per pipeline with 95% CIs. Test difference-in-differences: (naive RAG poisoned vs clean) minus (defense pipeline poisoned vs clean) using paired tests (McNemar for paired safe/unsafe labels). Model the relationship between poisoning fraction and unsafe-rate increase using linear or logistic regression; include interaction terms for defense type. Report attribution statistics (percentage of unsafe outputs traceable to poisoned docs) and compute ROC-style metrics if deriving a detector. Correct for multiple comparisons across poisoning levels.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "doi:10.69987/jacs.2024.40308",
+        "https://openalex.org/W4386721326"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416393118",
+        "https://openalex.org/W4412889499"
+      ],
+      "risks": [
+        "Adversarial poisoning must be ethically constructed and contain no real unsafe payloads; simulated poisoning may not capture sophisticated real-world adversaries.",
+        "Attribution of model token-generation to specific retrieved docs is approximate and may misassign cause.",
+        "Defenses implemented may increase latency or reduce utility, affecting operational viability."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "CAND-004-HITL-TIME",
+      "title": "Efficacy of Human‑in‑the‑Loop Review with Verifier Assistance Under Operational Time Pressure",
+      "research_question": "Does adding an automated verifier and structured verifier feedback to human operator review of LLM-generated network-change proposals improve the human catch-rate of unsafe configurations under time-pressure conditions compared to human review alone?",
+      "hypotheses": [
+        "Under time pressure, human reviewers will miss a higher fraction of unsafe configurations than when allowed generous review time.",
+        "Providing structured verifier feedback (explicit flagged invariants and suggested fix lines) during review will increase human catch-rate of unsafe configs compared to human review without verifier output.",
+        "The combination of verifier feedback plus a concise repair suggestion will yield higher catch-rate but may induce overreliance, increasing acceptance of verifier-missed errors in some cases."
+      ],
+      "proposed_design": "1) Recruit a pool of 45 experienced NetOps practitioners via public recruitment channels (or, if not possible under public-datasets-only constraint, simulate reviewers using documented human-performance priors and a small expert pilot). 2) Prepare 120 LLM-generated proposals (balanced safe/unsafe) derived from intents and executed-simulator-verified ground truth. 3) Randomize reviewers to three conditions in a within-subjects design: (A) Human review only (30s per proposal), (B) Human review + verifier flags, (C) Human review + verifier flags + repair suggestion. Each reviewer evaluates a balanced subset under time pressure. 4) Primary metric: human catch-rate (proportion of unsafe proposals correctly rejected). 5) Collect secondary data: false-rejection rate on safe configs, review time, and subjective cognitive-load ratings.",
+      "expected_data": "Per-reviewer and per-condition catch-rate, false-rejection rate, time-per-decision, cognitive-load scores, and logs of decisions. Aggregated confusion matrices and per-error-type detection rates.",
+      "primary_outcome": "Increase in human catch-rate for unsafe configurations when verifier feedback is provided versus human review only under time pressure.",
+      "analysis_outline": "Use repeated-measures ANOVA or mixed-effects logistic regression with reviewer as random effect and condition as fixed effect to compare catch-rates across conditions. Post-hoc paired contrasts (paired t-tests or Wilcoxon signed-rank for non-normal data) between conditions with Bonferroni correction. Analyze trade-offs in false-rejection rates. Report effect sizes (Cohen's d or odds ratios) and 95% CIs. If human recruitment is infeasible and simulation is used, report that as a limitation and treat results as pilot/exploratory with descriptive statistics.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6685078",
+        "https://openalex.org/W7203798170",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4416298062",
+        "https://openalex.org/W4386721326"
+      ],
+      "risks": [
+        "Recruiting qualified human reviewers under the study timeline may be constrained; simulated reviewers alter external validity.",
+        "Time-pressure thresholds are operationalization choices that affect measured catch-rates and must be pre-registered.",
+        "Verifier feedback may bias reviewers (automation bias), producing false confidence and missed non-flagged errors."
+      ],
+      "estimated_model_calls": 600
+    }
+  ]
+}
