@@ -2285,6 +2285,168 @@ def required_confirmatory_task_count(
     return int(matches[0].confirmatory_items)
 
 
+
+def preregistration_scientific_coherence_issues(
+    preregistration: Any,
+) -> list[str]:
+    """
+    Deterministic design-time coherence checks only.
+
+    Does not inspect execution outcomes.
+    """
+    hypotheses = " ".join(
+        str(x)
+        for x in preregistration.confirmatory_hypotheses
+    ).lower()
+
+    estimand = (
+        str(preregistration.primary_estimand)
+        + " "
+        + str(preregistration.primary_estimand_id)
+    ).lower()
+
+    analysis = str(
+        preregistration.analysis_plan
+    ).lower()
+
+    issues: list[str] = []
+
+    predictive_claim = any(
+        token in hypotheses
+        for token in (
+            "predict",
+            "explain",
+            "variance",
+            "correlat",
+            "association",
+            "discriminat",
+        )
+    )
+
+    paired_difference_estimand = (
+        "paired_success_rate_difference" in estimand
+        or (
+            "guarded" in estimand
+            and "baseline" in estimand
+            and "difference" in estimand
+        )
+    )
+
+    predictive_analysis = any(
+        token in analysis
+        for token in (
+            "regression",
+            "r-squared",
+            "r²",
+            "auc",
+            "predictive",
+            "correlation",
+            "association",
+        )
+    )
+
+    if (
+        predictive_claim
+        and paired_difference_estimand
+        and not predictive_analysis
+    ):
+        issues.append(
+            "Confirmatory hypothesis makes a predictive/explanatory "
+            "comparison, but the primary estimand/test is a paired "
+            "guarded-versus-baseline success difference. Rewrite the "
+            "hypothesis or choose an estimand and analysis that directly "
+            "test the same scientific claim."
+        )
+
+    return issues
+
+
+def preregistration_identifiability_issues(
+    preregistration: Any,
+) -> list[str]:
+    """
+    Detect design-time lack of exposure for a repair-effect estimand.
+
+    Uses preregistered design only; never observed outcomes.
+    """
+    contract = preregistration.execution_contract.model_dump()
+
+    generation_semantics = str(
+        contract.get("generation_semantics") or ""
+    ).lower()
+
+    initial_calls = contract.get(
+        "initial_generation_calls_per_task"
+    )
+
+    estimand = (
+        str(preregistration.primary_estimand)
+        + " "
+        + str(preregistration.primary_estimand_id)
+    ).lower()
+
+    design_text = " ".join(
+        [
+            str(preregistration.research_question),
+            " ".join(
+                str(x)
+                for x in preregistration.confirmatory_hypotheses
+            ),
+            " ".join(
+                str(x)
+                for x in preregistration.transformation_scope
+            ),
+            str(preregistration.sampling_plan),
+        ]
+    ).lower()
+
+    repair_difference = (
+        "paired_success_rate_difference" in estimand
+        or (
+            "guarded" in estimand
+            and "baseline" in estimand
+            and "difference" in estimand
+        )
+    )
+
+    shared_single_draw = (
+        generation_semantics == "shared_initial_candidate"
+        and initial_calls == 1
+    )
+
+    planned_exposure = any(
+        token in design_text
+        for token in (
+            "fault injection",
+            "fault-injection",
+            "perturbation",
+            "adversarial transformation",
+            "error injection",
+            "mutation",
+            "multi-sample",
+            "multiple initial generation",
+            "multiple generation",
+            "independent draws",
+        )
+    )
+
+    if (
+        repair_difference
+        and shared_single_draw
+        and not planned_exposure
+    ):
+        return [
+            "Primary guarded-versus-baseline repair estimand uses one "
+            "shared initial candidate per task but specifies no planned "
+            "exposure mechanism capable of producing validator-relevant "
+            "variation. Repair the preregistration using an executable "
+            "supported design mechanism, or choose a primary estimand "
+            "that is identifiable under the selected execution semantics."
+        ]
+
+    return []
+
+
 def preregistration_execution_contract_issues(
     preregistration: PreregistrationDocument,
     *,
@@ -4271,6 +4433,18 @@ class FinalAutonomousResearchPipeline:
                     analysis_contracts=(
                         available_analysis_contracts
                     ),
+                )
+            )
+
+            preregistration_contract_issues.extend(
+                preregistration_scientific_coherence_issues(
+                    preregistration
+                )
+            )
+
+            preregistration_contract_issues.extend(
+                preregistration_identifiability_issues(
+                    preregistration
                 )
             )
 

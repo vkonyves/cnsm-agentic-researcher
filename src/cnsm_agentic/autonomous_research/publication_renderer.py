@@ -303,12 +303,24 @@ def _render_references(
             if item
         ]
 
+        reference_text = ", ".join(parts)
+
+        # Some bibliographic providers occasionally preserve a source-side
+        # numeric citation label such as "[1] " at the beginning of metadata.
+        # LaTeX already numbers \bibitem entries, so retaining that label
+        # renders duplicated output such as "[1] [1] Author...".
+        reference_text = re.sub(
+            r"^\s*\[\d+\]\s*",
+            "",
+            reference_text,
+        )
+
         rendered.append(
             "\\bibitem{ref"
             f"{index}"
             "} "
             + _latex_escape(
-                ", ".join(parts)
+                reference_text
             )
         )
 
