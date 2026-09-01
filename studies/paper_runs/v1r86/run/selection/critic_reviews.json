@@ -1,0 +1,95 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "C1-GVR-multivendor-2026",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Hosted-LLM nondeterminism and single-model dependence threaten exact reproducibility and may inflate apparent GVR gains.",
+        "Deterministic verifiers (syntax, reachability, ACL) may miss high-level semantic/policy violations leading to false assurance.",
+        "Simulated vendor templates/topologies in Mininet may not capture device-specific quirks of real multi-vendor hardware, risking overgeneralization.",
+        "Preregistration lacks explicit power/sample-size justification for McNemar/Wilcoxon tests and failure-mode subgroup analyses."
+      ],
+      "required_design_repairs": [
+        "Specify exact LLM model identifier(s), temperature/seed policies, and retry rules; predefine procedures for repeated runs to quantify variance.",
+        "Extend verifier coverage or add adjudication for semantic/policy checks (e.g., policy-rule formalization or human oracle for ambiguous cases).",
+        "Add stratified vendor-template selection and include at least one hardware-proximate variability test or explain limitations explicitly.",
+        "Provide sample-size/power calculation for paired comparisons and predefine handling of nondeterministic API failures and retries."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C2-detector-operational-impact-2026",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Operational 'harm' labels depend strongly on emulation fidelity and predefined harmful outcomes—risk of label mismatch to real-world harms.",
+        "Multi-sample approaches increase model-call cost/latency; operational tradeoffs (human-review load reduction vs cost) need explicit quantification.",
+        "Semantic-entropy and agreement metrics require precise definition and calibration; thresholds chosen on validation fold may not generalize.",
+        "Risk of false negatives on rare but severe semantic errors not well addressed."
+      ],
+      "required_design_repairs": [
+        "Define harm taxonomy and emulation instrumentation in detail; justify that chosen emulation outcomes map to operationally consequential harms.",
+        "Provide explicit semantic-entropy computation formula, tokenization details, and multi-sample generation procedure (sampling seeds/temperature).",
+        "Include cost/latency analysis showing detector deployment feasibility at target false-positive rates and an a priori power analysis for AUC estimation.",
+        "Add robustness checks: alternate thresholds, cross-validation, and sensitivity analysis to emulation assumptions; plan for human-oracle adjudication of ambiguous cases."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C3-fault-mode-catalog-2026",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Reliance on deterministic verifiers/emulation for labeling may under-detect subtle semantic faults or misclassify borderline cases.",
+        "Using a single hosted LLM model limits generality of the catalog; prompt-engineering choices may dominate observed distributions.",
+        "Public-task sampling may underrepresent rare but critical production intents; representativeness unclear.",
+        "Retry-policy definitions insufficiently precise (e.g., what constitutes 'syntax-only' repair)."
+      ],
+      "required_design_repairs": [
+        "Adopt adjudication protocol (automated+human spot checks) to validate verifier labels and estimate label error-rate.",
+        "Clarify and preregister exact prompt templates, retry-policy algorithms, and selection criteria for intents; include stratified sampling to cover rare-critical categories.",
+        "Consider multi-model replication (at least one other model) or sensitivity checks to show catalog stability across models.",
+        "Report latency/cost tradeoffs per retry policy and include an analysis of operational acceptability for increased latency."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "C4-reproducible-verifier-emulation-pipeline-2026",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Perfect bytewise reproducibility is unlikely when using hosted LLMs; the protocol must distinguish reproducible verifier outputs from nonreproducible LLM artifacts.",
+        "External dependencies and package/version drift can compromise reproducibility unless pinned and archived.",
+        "Publication of configuration artifacts risks leaking sensitive/proprietary data unless sanitization is strictly defined."
+      ],
+      "required_design_repairs": [
+        "Pin and archive all software dependencies (container images, package wheels) and record cryptographic hashes; include an instructionized reproducibility checklist.",
+        "Provide a deterministic LLM-stub mode or offline model snapshot for exact-replay experiments, or clearly document expected nondeterminism and metrics to quantify it.",
+        "Define and implement an explicit sanitization policy for published artifacts; include legal/ethics checklist for artifact sharing.",
+        "Predefine acceptance criterion for 'reproducible' (e.g., verifier-output equivalence vs. full artifact hash match) and add root-cause classification procedures for mismatches."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

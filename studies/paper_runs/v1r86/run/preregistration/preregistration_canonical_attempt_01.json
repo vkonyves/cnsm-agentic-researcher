@@ -1,0 +1,84 @@
+{
+  "study_id": "C1-GVR-multivendor-2026-v1",
+  "title": "Scaling Generate–Verify–Repair to Heterogeneous Multi‑Vendor NetOps Configurations (Repaired Preregistration)",
+  "research_question": "Does a verifier-grounded generate–verify–repair (GVR) loop significantly reduce operationally detectable policy-violation errors produced by a hosted-LLM when generating network configurations for operator intents across heterogeneous multi-vendor template families and topology patterns in a Mininet-based emulation?",
+  "confirmatory_hypotheses": [
+    "A GVR loop that uses deterministic syntax, reachability, and ACL verifiers will reduce the per-intent operational policy-violation rate (paired comparison) relative to single-call LLM generation.",
+    "GVR will reduce syntactic and topology-errors (mechanically verifiable) relative to LLM-only generation.",
+    "Relative improvement from GVR will vary across vendor/template families, with larger absolute reductions in vendor/template groups that show higher baseline error rates."
+  ],
+  "exploratory_questions": [
+    "How many additional model calls (mean) does GVR use per avoided policy violation (cost tradeoff)?",
+    "What categories of semantic/policy violations remain after GVR and which verifier classes (syntax/reachability/ACL) most commonly fail to detect them?"
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4406863879",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W4388629193"
+  ],
+  "benchmark_scope": [
+    "Paired, provenance-traced intent→configuration workloads executed in Mininet emulation with synthetic vendor-specific configuration templates (3 vendor template families) and 4 topology patterns.",
+    "Scope explicitly bounded to the Mininet-emulated templates and the included template variability perturbations (no claims about production hardware generalization)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline: difference in the probability that an intent produces zero operationally-detectable policy violations under guarded (GVR) relative to baseline (LLM-only), measured over N paired intents.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Absolute and relative reduction in syntactic-error incidence (per-intent)",
+    "Absolute and relative reduction in topology (reachability) error incidence (per-intent)",
+    "Mean extra model calls per intent for guarded vs baseline"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N = 200 unique operator intents (paired episodes: baseline and guarded per intent). Stratified sampling across 3 vendor-template families and 4 topology patterns (12 strata) using the adapter's deterministic challenging_workflow_stress_v1 index profile. Task_count is fixed at 200 and task_indices are selected deterministically by the adapter's task_index_profile prior to any model calls. Episodes_per_task = 2 (baseline, guarded). Initial_generation_calls_per_task = 1; maximum_repair_calls_per_task = 1. Selection is fixed before observing model outputs and must not be changed based on outcomes.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect: 10 percentage point absolute reduction (e.g., baseline 20% → guarded 10%), two-sided α=0.05, power=0.80. McNemar discordant-pair approximation yields required n≈157; N=200 chosen to provide margin and permit stratified subgroup description. With N=200 detectable absolute risk difference ≈8pp under same assumptions. Sensitivity analyses: recompute under baseline rates 10% and 30% and alternative discordant distributions; report bootstrap 95% CIs for risk difference.",
+  "exclusion_rules": [
+    "Exclude any task flagged as duplicate by deterministic prompt+context hash comparison from the primary confirmatory analysis; duplicates will be reported and included in sensitivity analyses.",
+    "Exclude pairs aborted due to mapping_validation unit-test failures or CI-container template substitution failures from the primary paired test; these aborted pairs will be reported and included in sensitivity analyses.",
+    "Exclude pairs where automated audit/CI prevents execution due to environment integrity failures; such exclusions are logged and reported."
+  ],
+  "missingness_plan": "Treat infrastructure/API failures and adapter errors as missing-at-random for the primary analysis under the 'complete_pair_primary' default. Pre-registered sensitivity analysis ('complete_pair_primary_with_failure_as_zero_sensitivity') will treat failed or partial pairs conservatively as failures (no-success). All failed calls, retries, and technical restarts will be logged; any pair with unrecoverable infrastructure failure will be excluded from the primary paired test and included in sensitivity reports.",
+  "analysis_plan": "Primary analysis: paired comparison of binary per-intent policy-violation presence (yes/no) using McNemar's test as implemented by paired_binary_analysis_v1 (analysis_executor: paired_binary_analysis_v1). Report risk difference (guarded minus baseline) with 95% bootstrap confidence intervals (bootstrap performed on paired outcomes). Adhere to the analysis contract's failed-call treatment default 'complete_pair_primary' for primary inference and report sensitivity using 'complete_pair_primary_with_failure_as_zero_sensitivity'. Secondary analyses: paired Wilcoxon signed-rank test for counts of syntax/topology errors (exploratory). Per-vendor subgroup effect-size summaries are descriptive and exploratory. Report mean additional model calls per avoided violation with 95% bootstrap CI. Record analysis code, exact bootstrap seeds, and runtime metadata.",
+  "multiplicity_plan": "One predeclared primary estimand (policy-violation paired difference). Secondary estimands (syntax/topology reductions, cost) are exploratory and will be reported without alpha-adjusted confirmatory claims; p-values for secondary tests will be labeled exploratory and effect sizes with CIs provided.",
+  "contamination_plan": "{\"benchmark_names\": [\"Mininet-based Multi‑Vendor Template Stress Set (provenance-traced)\"], \"risk_factors\": [\"Hosted-LLM nondeterminism (sampling, provider-side changes).\", \"Template leakage or duplication across tasks.\", \"Verifier systematic blind spots for semantic/policy violations.\"], \"detection_procedures\": [\"Deterministic artifact hashing to detect duplicate prompts/outputs across tasks (duplicates flagged automatically).\", \"Record and compare verifier traces and emulation outcomes to detect anomalous identical results indicating leakage.\", \"Automated injection tests (see Transformation Validation) to estimate verifier detection sensitivity.\"], \"item_flagging_rules\": [\"Flag any task with identical prompt+context hash to a previous task as duplicate and exclude from confirmatory analysis (sensitivity analysis will include duplicates).\", \"Flag tasks where verifier outputs are 'ambiguous' per deterministic ambiguity rules for conservative treatment (treated as failure in primary analysis).\"], \"analysis_treatment\": \"Primary conservative treatment: ambiguous verifier outcomes are treated as 'violation present' in the primary confirmatory analysis. Sensitivity analyses will re-classify ambiguous cases as 'no violation' to bound inference. Duplicate tasks excluded from primary analysis; sensitivity analyses will report their inclusion impact.\", \"residual_uncertainty\": [\"Residual risk that verifiers miss high-level semantic policy violations (false negatives).\", \"Residual nondeterminism due to hosted model provider or version drift.\"]}",
+  "stopping_rule": "Stop after execution of all predeclared task_indices (N=200) and their paired episodes, or immediately if the maximum_model_calls budget (400) is exhausted, or if wall-clock execution exceeds the capability manifest limit of 7 days. Technical restarts permitted only per adapter policy and only for infrastructure recovery; unrecoverable infra failures exclude affected pairs as described in the missingness_plan and are logged.",
+  "planned_outputs": [
+    "Machine-readable preregistration record (this document).",
+    "Complete experiment code, Docker environment, and CI unit-tests (template mapping tests).",
+    "Raw model call logs and archived raw LLM outputs with runtime sampling parameters per call.",
+    "Deterministic verifier traces and Mininet emulation results (per episode).",
+    "Execution manifest and hash manifest for all artifacts.",
+    "Analysis code and results (primary and sensitivity analyses), with seeds and bootstrap replication files.",
+    "Evidence-to-claim table and nearest-work comparison matrix.",
+    "Complete IEEE LaTeX manuscript, BibTeX, and compiled PDF ≤ 5 pages including mandatory Disclosure Statement.",
+    "Concise NotebookLM presentation brief."
+  ],
+  "unresolved_critical_issues": []
+}

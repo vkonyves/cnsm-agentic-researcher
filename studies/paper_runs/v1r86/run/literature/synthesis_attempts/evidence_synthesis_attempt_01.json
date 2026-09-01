@@ -1,0 +1,147 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "LLMs can produce draft network configurations or configuration-related code but frequently make syntax, topology, or semantic errors; pairing generation with deterministic verifiers or localized verification feedback measurably reduces those errors in prototype studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388629193",
+        "doi:10.31224/7995",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "evidence_type": "empirical studies / prototypes",
+      "confidence": 0.85,
+      "limitations": [
+        "Evaluations are prototype-scale and task-limited (e.g., single-router translation, P4 device examples).",
+        "Human oversight still present in reported workflows; not full production deployment evidence."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Generate–Verify–Repair (GVR) or verifier-grounded closed-loop architectures are a recurrent, empirically supported mitigation pattern for reducing mechanically verifiable errors in LLM outputs across domains (code, domain-specific programs, and configuration-like artifacts).",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "doi:10.31224/7995",
+        "doi:10.2139/ssrn.6947162"
+      ],
+      "evidence_type": "method proposals with empirical single-case / domain studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Effectiveness depends on existence of a suitable deterministic verifier/oracle and on the verifier providing localized, actionable feedback.",
+        "Reported results focus on mechanically checkable properties (compilation, formal semantics) rather than all semantic correctness modes."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Hallucination/confabulation in LLMs is a persistent phenomenon; detection and uncertainty-estimation techniques (semantic-entropy, multi-sample consistency) can identify many such failures but do not eliminate the underlying stochastic/coverage limitations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4390490761",
+        "https://openalex.org/W4399803256",
+        "doi:10.36227/techrxiv.176288195.52086234/v1",
+        "https://openalex.org/W4391158659"
+      ],
+      "evidence_type": "theoretical analyses and empirical detection studies",
+      "confidence": 0.75,
+      "limitations": [
+        "Detection methods identify subsets of hallucinations (e.g., confabulations) and have false positives/negatives.",
+        "Theoretical inevitability arguments are formal/idealized and do not prescribe practical elimination techniques."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Recent surveys and domain papers document rapid growth of LLM-for-NetOps / LLM-for-AIOps research but highlight recurring evaluation gaps: benchmark provenance, operational-validity of metrics, and limited realistic emulation/production testing.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4406137434",
+        "https://openalex.org/W4411735779",
+        "doi:10.31219/osf.io/bv5sg_v2",
+        "doi:10.2139/ssrn.7373038"
+      ],
+      "evidence_type": "surveys and benchmark-audit studies",
+      "confidence": 0.8,
+      "limitations": [
+        "Surveys synthesize available literature but themselves rely on the set of published studies (possible publication bias).",
+        "Specific gaps (e.g., dataset shortages) vary by subtask and are described at a high level rather than quantified uniformly."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "How well do verifier-assisted LLM workflows scale and generalize across heterogeneous, multi-vendor network environments, multi-device policies, and realistic operator workflows?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388629193",
+        "doi:10.31224/7995"
+      ],
+      "evidence_type": "limited empirical prototypes and case studies",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing studies show promise on narrow use cases (single-router translation, P4 examples) but do not provide broad cross-vendor or large-scale emulation evidence."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "To what extent can automated detection (semantic-entropy, consistency) and GVR loops prevent operationally consequential misconfigurations (policy violations causing outages/security breaches) in live or high-fidelity emulated NetOps settings?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4399803256"
+      ],
+      "evidence_type": "benchmarks/prototypes and detection-method studies",
+      "confidence": 0.55,
+      "limitations": [
+        "Benchmarks and detection papers demonstrate effects on contained tasks; they do not measure end-to-end operational safety in production-grade testbeds."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What standardized benchmarks, verifiers, and provenance practices are necessary to produce reproducible, operationally meaningful evaluations of LLM-based NetOps automation?",
+      "evidence_record_ids": [
+        "doi:10.31219/osf.io/bv5sg_v2",
+        "doi:10.2139/ssrn.7373038",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "survey and benchmark-audit literature",
+      "confidence": 0.65,
+      "limitations": [
+        "Existing calls-for-benchmarking identify needs but do not converge on a single standardized suite or verifier-interface for NetOps tasks."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A gap exists in publicly available, provenance-traced NetOps datasets and verifier-integrated emulation experiments that pair realistic network state/topologies with deterministic or formal verifiers to quantify LLM failure modes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.2139/ssrn.7373038",
+        "https://openalex.org/W4406863879"
+      ],
+      "evidence_type": "benchmark critiques and domain surveys",
+      "confidence": 0.7,
+      "limitations": [
+        "NetConfEval and similar efforts provide initial benchmarks/prototypes but are not yet comprehensive or provenance-traced at scale.",
+        "Some domain-specific emulation resources exist (Mininet/GNS3 papers) but are not paired with standardized LLM+verifier pipelines publicly."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Empirical quantification of types/frequencies of LLM-induced configuration faults (syntax, topology, policy violation, security misconfigurations) under realistic prompting, operator intent variability, and retry policies is limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388644518"
+      ],
+      "evidence_type": "case studies and prototype evaluations",
+      "confidence": 0.65,
+      "limitations": [
+        "Available studies report qualitative or small-sample quantitative results; comprehensive, statistically powered fault-mode catalogs tied to operational fault consequences are missing."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs (alone) are production-ready and safe for fully autonomous NetOps deployment without deterministic verification and human oversight.",
+    "Generate–Verify–Repair architectures completely eliminate hallucinations or make LLM outputs infallible for all semantic correctness classes.",
+    "This record set supports any claim of 'first' provenance for generating verifier-assisted NetOps workflows (no supplied record proves an uncontested first-in-field claim)."
+  ]
+}

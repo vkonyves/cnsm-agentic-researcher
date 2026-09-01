@@ -1,0 +1,116 @@
+{
+  "queries": [
+    {
+      "query": "(\"large language model\" OR LLM OR transformer) AND (network OR NetOps OR \"network configuration\" OR \"network management\") AND (fail* OR hallucinat* OR \"incorrect configuration\" OR misconfigur* OR unsafe OR error)",
+      "rationale": "Identify empirical reports and analyses of where LLMs produce incorrect, unsafe, or misleading NetOps outputs (phenomenon).",
+      "source_preferences": [
+        "IEEE (CNSM, INFOCOM), ACM (SIGCOMM, IMC), USENIX",
+        "arXiv, tech reports",
+        "industry whitepapers (Cisco, Juniper) with verifiable data"
+      ]
+    },
+    {
+      "query": "(hallucinat* OR \"confabulation\" OR \"nonsensical output\" OR \"incorrect inference\") AND (LLM OR \"large language model\" OR transformer) AND (mechanis* OR cause OR \"failure mode\" OR \"prompt sensitivity\")",
+      "rationale": "Survey literature on internal/foundational mechanisms (hallucination, prompt sensitivity, confidence calibration) that explain erroneous LLM outputs applicable to NetOps.",
+      "source_preferences": [
+        "ML venues (NeurIPS, ICML, ICLR), arXiv, computational linguistics venues",
+        "transfer papers in systems/security conferences"
+      ]
+    },
+    {
+      "query": "(\"generate-validate-repair\" OR \"generate-then-verify\" OR \"verifier-assisted\" OR \"LLM + verifier\" OR \"tool-assisted\" OR \"constrained generation\") AND (network OR NetOps OR \"configuration\")",
+      "rationale": "Locate mitigation architectures that combine LLM generation with validators or repair loops relevant to reducing NetOps errors.",
+      "source_preferences": [
+        "Systems and ML conferences, arXiv, AIOps/DevOps literature",
+        "repositories describing toolchains (e.g., LangChain-like integrations) with reproducible artifacts"
+      ]
+    },
+    {
+      "query": "(formal OR symbolic OR \"model checking\" OR SMT OR \"network verification\" OR \"NetKAT\" OR \"header space analysis\" OR Veriflow OR Anteater) AND (configuration OR policy OR verification)",
+      "rationale": "Collect foundational and recent deterministic verification tools and techniques for network configurations to serve as validators or ground truth.",
+      "source_preferences": [
+        "Networking conferences (SIGCOMM, NSDI), formal-methods venues, top-tier journals, arXiv"
+      ]
+    },
+    {
+      "query": "(benchmark OR dataset OR evaluation) AND (LLM OR \"large language model\" OR AIOps) AND (NetOps OR \"network configuration\" OR \"network management\") AND (methodolog* OR validity OR \"evaluation gap\" OR \"ground truth\" OR reproducib*)",
+      "rationale": "Assess existing benchmarks/datasets and critical evaluations about their validity for operational NetOps tasks (benchmark validity and gaps).",
+      "source_preferences": [
+        "Benchmarks like 6G-Bench, TSNBench, OpsEval, OWL; arXiv; workshop papers; data repositories (GitHub, Zenodo)"
+      ]
+    },
+    {
+      "query": "(Mininet OR ns-3 OR GNS3 OR \"emulation\" OR \"testbed\" OR \"simulator\") AND (NetOps OR network OR \"configuration testing\") AND (LLM OR \"automation\" OR \"autonomous\")",
+      "rationale": "Find simulation and emulation environments and experimental methodologies used to evaluate automated NetOps interventions.",
+      "source_preferences": [
+        "Networking systems literature, testbed papers, reproducible-experiment repos"
+      ]
+    },
+    {
+      "query": "(metrics OR measure* OR \"operational correctness\" OR safety OR robustness OR \"policy compliance\" OR reachability OR loop-freeness OR availability) AND (network OR NetOps OR configuration) AND (evaluation OR metric)",
+      "rationale": "Gather candidate quantitative metrics that meaningfully reflect operational correctness, safety, and reliability in NetOps experiments.",
+      "source_preferences": [
+        "Networking research, formal verification papers, NIST-like standards, RFCs"
+      ]
+    },
+    {
+      "query": "(\"agentic\" OR \"autonomous agent\" OR \"agentic AI\" OR \"tool-using LLM\" OR ReAct OR Toolformer OR \"tool augmentation\") AND (network OR NetOps OR \"network management\")",
+      "rationale": "Survey agentic and tool-using LLM architectures and their safety/verification implications when applied to NetOps workflows.",
+      "source_preferences": [
+        "ML conferences, systems safety venues, arXiv, workshop/workgroup reports"
+      ]
+    },
+    {
+      "query": "(AIOps OR \"AI Ops\" OR \"automated operations\" OR \"Autonomous Network Management\") AND (case study OR evaluation OR \"failure analysis\" OR \"operational incident\")",
+      "rationale": "Identify prior AIOps/Autonomous-NetOps case studies and failure analyses to inform realistic threat models and operational scenarios.",
+      "source_preferences": [
+        "Industry case studies, academic/system papers, incident reports"
+      ]
+    },
+    {
+      "query": "(\"self-correction\" OR \"self-refine\" OR \"iterative repair\" OR \"self-consistency\" OR \"verification loop\") AND (LLM OR \"large language model\") AND (application OR experiment)",
+      "rationale": "Collect methods and empirical evidence for LLM iterative self-correction strategies applicable to NetOps generate-validate-repair loops.",
+      "source_preferences": [
+        "ML/AI conferences, arXiv, reproducible code repos"
+      ]
+    },
+    {
+      "query": "(\"security\" OR \"safety\") AND (LLM OR \"large language model\" OR \"autonomous agent\") AND (\"critical infrastructure\" OR network OR NetOps OR \"operational safety\")",
+      "rationale": "Survey safety engineering, adversarial threats, and assurance techniques when deploying LLM-driven automation in critical NetOps contexts.",
+      "source_preferences": [
+        "Security conferences (USENIX, CCS), safety engineering literature, policy/standards documents"
+      ]
+    },
+    {
+      "query": "(\"nearest neighbor\" OR \"related work\" OR \"survey\" OR \"systematic review\") AND (\"LLM for networking\" OR \"LLM NetOps\" OR \"AI for NetOps\" OR AIOps)",
+      "rationale": "Find surveys and systematic reviews to map the neighborhood of scholarly work and detect gaps or overlap with candidate study angles.",
+      "source_preferences": [
+        "Surveys in journals, arXiv surveys, literature reviews in workshops"
+      ]
+    },
+    {
+      "query": "(\"data provenance\" OR \"artifact availability\" OR reproducib* OR \"open dataset\" OR \"benchmarks\" OR GitHub OR Zenodo) AND (NetOps OR \"network configuration\" OR AIOps)",
+      "rationale": "Locate open datasets, reproducible artifacts, and provenance practices to support experiment reproducibility and verification.",
+      "source_preferences": [
+        "Data repositories (GitHub, Zenodo, IEEE DataPort), benchmarks' official project pages"
+      ]
+    }
+  ],
+  "inclusion_criteria": [
+    "Works that explicitly connect LLMs/LLM-based agents to network operations, configuration generation, or network-management automation.",
+    "Papers describing validators, formal verification, or deterministic analyzers for network configurations (NetKAT, Veriflow, HSA, etc.).",
+    "Empirical studies, case studies, benchmarks, surveys, and reproducible artifacts (code/datasets) with verifiable provenance.",
+    "Safety, security, and failure-analysis literature relevant to autonomous agents applied to critical network infrastructure.",
+    "Methodology and experimental-design papers discussing evaluation metrics, simulators/emulators (Mininet, ns-3), or measurement protocols.",
+    "Publicly accessible sources: peer-reviewed publications, preprints on arXiv, verifiable technical reports, and open repositories."
+  ],
+  "exclusion_criteria": [
+    "Standalone LLM benchmarking that tests only factual/encyclopedic knowledge without operational NetOps tasks or validators.",
+    "Unverifiable blog posts, social-media threads, or marketing fluff without reproducible data or citations.",
+    "Proprietary internal incident reports or datasets that are not publicly accessible or lack verifiable artifacts.",
+    "Works outside the NetOps/AIOps domain unless they offer generalizable methods (e.g., formal verifier techniques) explicitly transferable to networking.",
+    "Pre-lock internal development artifacts or rehearsals not published or publicly available (per programme constraints).",
+    "Papers older than foundational verification works when superseded by more relevant modern treatments—except when explicitly foundational."
+  ],
+  "date_rationale": "Prioritize literature from 2020–2026 for LLM-specific phenomena and mitigation research (post-transformer/ChatGPT era). Include earlier foundational networking verification and AIOps works (2005–2019) where they introduce enduring formal methods or testbeds (e.g., NetKAT, Veriflow, HSA, Anteater). This window balances recency for LLM developments with older, essential verification literature needed to build valid NetOps validators and benchmarks."
+}

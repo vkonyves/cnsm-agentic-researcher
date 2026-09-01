@@ -1,0 +1,125 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "C1-GVR-multivendor-2026",
+      "title": "Scaling Generate–Verify–Repair to Heterogeneous Multi‑Vendor NetOps Configurations",
+      "research_question": "Does a verifier-grounded generate–verify–repair (GVR) loop significantly reduce syntax, topology, and policy-violation errors produced by LLM-generated network configurations across heterogeneous multi-vendor device templates and topologies?",
+      "hypotheses": [
+        "A GVR loop that uses deterministic syntax, reachability, and ACL verifiers will reduce syntactic errors in LLM-generated configurations compared to LLM generation alone.",
+        "GVR will produce a statistically significant reduction in operationally detectable policy violations (e.g., unauthorized access, routing blackholes) across diverse vendor templates versus LLM-only outputs.",
+        "The effectiveness of GVR will vary by vendor/template complexity, yielding larger relative improvements for templates with higher baseline error rates."
+      ],
+      "proposed_design": "Preregister a paired experiment: construct a provenance-traced task set of 200 operator intents mapped to three vendor template families (simulated via vendor-specific configuration templates) and 4 topology patterns in a Mininet-based emulation. For each intent run: (a) generate a configuration with a single LLM call (baseline); (b) run GVR: generate, run deterministic verifiers (syntax parser, reachability/forwarding checks, ACL policy checker), produce localized feedback, and allow up to two automated repair iterations. Record verifier traces, produced configs, and emulation outcomes. Use a single hosted LLM model endpoint consistent across conditions, fixed random seed where supported, and log all prompts/outputs. Primary comparison is paired per-intent error counts between baseline and GVR.",
+      "expected_data": "Per-intent artifacts including raw LLM outputs, repaired configurations, verifier pass/fail logs (syntax, reachability, ACL), emulation test traces (reachability matrices, dropped flows), per-intent error labels (syntax, topology, policy-violation, security misconfig), and per-iteration timestamps and model-call counts. Full provenance records and hashes for each artifact.",
+      "primary_outcome": "Relative reduction in operationally detectable policy-violation rate (percentage points) when using GVR versus LLM-only generation, measured across the 200 paired intents.",
+      "analysis_outline": "Compute per-intent binary indicators for policy-violation presence under baseline and GVR. Use McNemar's test for paired binary comparison of policy-violation rates and report risk difference with 95% bootstrap confidence intervals. Report secondary analyses: paired comparison of syntax and topology error counts (Wilcoxon signed-rank), per-vendor subgroup effect sizes, and model-call cost tradeoffs (mean extra calls per avoided violation). Conduct failure-mode analysis categorizing cases where GVR failed to correct semantic/policy errors and inspect verifier feedback locality.",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406863879"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.31224/7995",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Deterministic verifiers may have false negatives for complex semantic policy violations, producing false assurance.",
+        "Experiment may overfit to the selected vendor templates and not generalize to unseen vendor behaviors.",
+        "Emulation abstractions (Mininet) may miss device-specific quirks present in production hardware.",
+        "Use of hosted LLM APIs creates non-determinism that can complicate exact reproducibility."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "C2-detector-operational-impact-2026",
+      "title": "Efficacy of Semantic-Entropy and Multi‑Sample Consistency for Detecting Operationally Consequential Misconfigurations",
+      "research_question": "Can semantic-entropy and multi-sample consistency detectors reliably identify LLM outputs that would cause operationally consequential misconfigurations (outage or security breach) in a high-fidelity emulated NetOps environment?",
+      "hypotheses": [
+        "Semantic-entropy computed over token-level model uncertainties will be higher for LLM outputs that produce operationally consequential misconfigurations than for benign outputs.",
+        "Low multi-sample agreement (high variability across independent LLM samples) will correlate with outputs that fail deterministic verifiers or cause harmful emulation outcomes.",
+        "Combining semantic-entropy and multi-sample consistency into a composite detector will yield higher detection sensitivity at operationally relevant false-positive rates than either detector alone."
+      ],
+      "proposed_design": "Assemble a labeled dataset of 300 operator intents with ground-truth harm labels obtained by executing generated configurations in a Mininet/GNS3 emulation instrumented to detect outages and security violations (predefined harmful outcomes). For each intent, collect 5 independent LLM samples (fixed prompt), compute semantic-entropy and inter-sample agreement scores, and run deterministic verifiers and emulation to label harm. Predefine detector thresholds on a validation split. Evaluate detection on held-out test set with ROC analysis. Log all artifacts, seeds, and verifier outputs.",
+      "expected_data": "Per-sample detector scores (semantic-entropy, agreement), harm labels from emulation/verifier, confusion matrices across thresholds, ROC curves and AUC, per-intent multi-sample outputs, and provenance logs.",
+      "primary_outcome": "Area under the ROC curve (AUC) for the composite detector distinguishing harmful versus non-harmful LLM outputs on the test set.",
+      "analysis_outline": "Compute ROC and AUC with 95% bootstrap CIs for each detector and the composite detector. Compare AUCs using paired DeLong or bootstrap-based difference tests. Report sensitivity, specificity, positive predictive value at operational thresholds (e.g., target false-positive rates). Conduct subgroup analyses by harm type (outage vs security) and by intent complexity. Provide failure-case examples and estimate expected operational workload reduction if detectors used to flag outputs for human review.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4390490761",
+        "https://openalex.org/W4399803256",
+        "doi:10.36227/techrxiv.176288195.52086234/v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399803256",
+        "https://openalex.org/W4399629579"
+      ],
+      "risks": [
+        "Detectors may produce false negatives for rare but severe semantic errors, giving a false sense of safety.",
+        "Multi-sample approaches increase model-call costs and latency, which may be impractical in some operational workflows.",
+        "Emulation-labeled harm may not capture all real-world harm modes, limiting external validity.",
+        "Thresholds optimized on synthetic/held-out tasks may not transfer to live operator distributions."
+      ],
+      "estimated_model_calls": 1700
+    },
+    {
+      "candidate_id": "C3-fault-mode-catalog-2026",
+      "title": "Empirical Catalog of LLM‑Induced Configuration Faults under Operator Intent Variability and Retry Policies",
+      "research_question": "What are the types, frequencies, and costs of LLM-induced configuration faults (syntax, topology, policy-violation, security misconfiguration) when translating operator intents across varying prompt styles and retry policies?",
+      "hypotheses": [
+        "Prompt style (concise vs structured template vs detailed) materially changes the distribution of fault types produced by an LLM during intent-to-configuration translation.",
+        "Automated retry policies that prioritize syntax repair will substantially reduce syntax errors but yield diminishing returns for semantic policy violations.",
+        "Certain intent categories (e.g., multi-device policy changes) will show higher baseline rates of policy-violation faults independent of prompt style or retry policy."
+      ],
+      "proposed_design": "Factorial preregistered experiment with 400 diverse operator intents sampled from public NetOps task corpora. Factors: prompt style (3 levels) and retry policy (none, syntax-only auto-repair, full GVR up to two repairs). Use one hosted LLM model for generation. For each generated configuration run deterministic verifiers and emulation to label fault types. Record model-call costs and wall-clock latency per condition. All prompts, outputs, verifier logs, and artifact hashes are saved for provenance.",
+      "expected_data": "Per-intent, per-condition counts of fault types, per-condition success rates, model-call and latency distributions, provenance logs, and representative failure traces for manual inspection.",
+      "primary_outcome": "Distribution of fault-type frequencies per experimental condition, with primary inferential target being difference in policy-violation rate across prompt styles and retry policies.",
+      "analysis_outline": "Use chi-square tests to test independence between condition and fault-type distributions, and logistic regression to model probability of each fault type as a function of prompt style, retry policy, and intent complexity (with clustered standard errors). Adjust for multiple comparisons (Benjamini–Hochberg). Report effect sizes (odds ratios) with 95% CIs, and produce a ranked catalog of common failure modes with example artifacts.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4406137434"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4388629193"
+      ],
+      "risks": [
+        "Labeling depends on deterministic verifiers and emulation and may misclassify subtle semantic faults as non-errors.",
+        "Findings may be sensitive to the single chosen LLM model and prompt formulations, limiting generality.",
+        "Retry policies may increase change latency which could be operationally unacceptable even if reducing some fault types.",
+        "Public-task sampling may underrepresent rare but critical production intents."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "C4-reproducible-verifier-emulation-pipeline-2026",
+      "title": "A Reproducible Verifier‑Integrated Emulation Pipeline for Provenance‑Traced Evaluation of LLM NetOps Automation",
+      "research_question": "Can a public, provenance-traced emulation pipeline integrated with deterministic verifiers produce reproducible artifacts and enable audited evaluation of LLM NetOps workflows across independent executions?",
+      "hypotheses": [
+        "A Dockerized, Mininet-based pipeline with deterministic verifiers and cryptographic artifact hashing will produce identical verifier outputs and artifact hashes across repeated independent runs for the majority of tasks when LLM nondeterminism is controlled.",
+        "Non-reproducibility will predominantly stem from external nondeterministic dependencies (hosted LLM randomness, system clocks), and documenting/isolating these sources will enable reproducible core verifier outcomes.",
+        "Publishing the pipeline and provenance logs will allow independent researchers to reproduce primary experiment results for at least 90% of tasks without manual intervention."
+      ],
+      "proposed_design": "Implement a fully documented pipeline packaged in Docker with: Mininet topologies, deterministic syntax/reachability/ACL verifiers, artifact logging with SHA-256 hashes, and an experiment-run orchestrator that records environment metadata. Run a reproducibility study: execute a fixed set of 100 intents twice under isolated conditions with the same pipeline (controlling seeds where supported) and compare bytewise verifier outputs and artifact hashes. Release code, sample data, and provenance logs publicly. Record differences and trace nondeterminism sources.",
+      "expected_data": "Artifact bundles per run with configuration files, verifier outputs, SHA-256 hashes, environment metadata (container image IDs, package versions), run logs, and a reproducibility report enumerating any mismatches and root-cause traces.",
+      "primary_outcome": "Fraction of tasks for which verifier outputs and artifact hashes are identical between independent executions (bytewise reproducibility proportion).",
+      "analysis_outline": "Compute reproducibility proportion with exact binomial 95% CI. For tasks with mismatches, perform root-cause attribution by comparing environment metadata and logs to classify nondeterminism sources (LLM randomness, external network calls, system nondeterminism). Report time-to-reproduce, disk storage, and model-call counts. Provide recommended mitigations and a checklist for future reproducible NetOps-LMM experiments.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "doi:10.2139/ssrn.7373038",
+        "https://openalex.org/W4406137434"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4406863879",
+        "https://openalex.org/W4406137434"
+      ],
+      "risks": [
+        "Hosted LLM non-determinism and provider rate limits may prevent perfect bytewise reproducibility across independent runs.",
+        "Dockerized emulation may not capture hardware-specific determinism issues present on physical devices.",
+        "Publication of configuration artifacts requires careful sanitization to avoid exposing sensitive or proprietary data, even when derived from public tasks.",
+        "External dependencies (package updates) can silently change reproducibility unless pinned and archived."
+      ],
+      "estimated_model_calls": 400
+    }
+  ]
+}

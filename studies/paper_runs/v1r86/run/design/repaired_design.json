@@ -1,0 +1,150 @@
+{
+  "selected_candidate_id": "C1-GVR-multivendor-2026",
+  "title": "Scaling Generate–Verify–Repair to Heterogeneous Multi‑Vendor NetOps Configurations (Repaired Preregistration)",
+  "research_question": "Does a verifier-grounded generate–verify–repair (GVR) loop significantly reduce operationally detectable policy-violation errors produced by a hosted-LLM when generating network configurations for operator intents across heterogeneous multi-vendor template families and topology patterns in a Mininet-based emulation?",
+  "confirmatory_hypotheses": [
+    "A GVR loop that uses deterministic syntax, reachability, and ACL verifiers will reduce the per-intent operational policy-violation rate (paired comparison) relative to single-call LLM generation.",
+    "GVR will reduce syntactic and topology-errors (mechanically verifiable) relative to LLM-only generation.",
+    "Relative improvement from GVR will vary across vendor/template families, with larger absolute reductions in vendor/template groups that show higher baseline error rates."
+  ],
+  "exploratory_questions": [
+    "How many additional model calls (mean) does GVR use per avoided policy violation (cost tradeoff)?",
+    "What categories of semantic/policy violations remain after GVR and which verifier classes (syntax/reachability/ACL) most commonly fail to detect them?"
+  ],
+  "benchmark_scope": [
+    "Paired, provenance-traced intent→configuration workloads executed in Mininet emulation with synthetic vendor-specific configuration templates (3 vendor template families) and 4 topology patterns.",
+    "Scope explicitly bounded to the Mininet-emulated templates and the included template variability perturbations (no claims about production hardware generalization)."
+  ],
+  "model_scope": [
+    "Hosted model provider: openai_responses",
+    "Model name: openai/gpt-4o",
+    "Model version: 2026-08-01",
+    "Temperature: 0.0 (deterministic sampling policy where supported).",
+    "Random-seed policy: set seed=0 where provider supports seeding; record runtime sampling parameters for every call."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (single LLM generation call per intent).",
+    "guarded: generate_validate_repair_v1 (one initial generation + at most one automated repair iteration using verifier feedback)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (per the paired_binary_analysis_v1 contract): difference in the probability that an intent produces zero operationally-detectable policy violations under guarded (GVR) relative to baseline (LLM-only), measured over N paired intents.",
+  "secondary_estimands": [
+    "Absolute and relative reduction in syntactic-error incidence (per-intent)",
+    "Absolute and relative reduction in topology (reachability) error incidence (per-intent)",
+    "Mean extra model calls per intent for guarded vs baseline"
+  ],
+  "sampling_plan": "Confirmatory paired sample of N = 200 unique operator intents (paired episodes: baseline and guarded per intent). Stratified sampling across 3 vendor-template families and 4 topology patterns (12 strata) using the adapter's deterministic challenging_workflow_stress_v1 index profile. Per-adapter constraints: episodes_per_task=2 (baseline, guarded); initial_generation_calls_per_task=1; maximum_repair_calls_per_task=1. The selection of the 200 task_indices follows the adapter's deterministic rule (cycle/offset mapping) and is fixed before any model calls.",
+  "analysis_plan": "Primary analysis: paired comparison of binary per-intent policy-violation presence (yes/no) using McNemar's test as implemented by paired_binary_analysis_v1 (analysis_executor: paired_binary_analysis_v1). Report risk difference (guarded minus baseline) with 95% bootstrap confidence intervals (bootstrap performed on paired outcomes). Failed-call treatment (pre-registered): use analysis contract default 'complete_pair_primary' (complete pairs only) for primary inference and report sensitivity using 'complete_pair_primary_with_failure_as_zero_sensitivity' where model-call or adapter failures are treated as 'no-success' to bound optimistic inferences. Secondary analyses: paired Wilcoxon signed-rank test for counts of syntax/topology errors; per-vendor subgroup effect-size summaries (descriptive; hypothesis tests exploratory). Report mean additional model calls per avoided violation and 95% CI by bootstrap. All analysis code and seeds will be recorded and archived.",
+  "multiplicity_plan": "One predeclared primary estimand (policy-violation paired difference). Secondary estimands (syntax/topology reductions, cost) are exploratory and will be reported without alpha-adjusted confirmatory claims; p-values for secondary tests will be labeled exploratory and effect sizes with CIs provided.",
+  "missingness_plan": "Treat infrastructure/API failures and adapter errors as missing-at-random for the primary analysis under 'complete_pair_primary' per available analysis contract. Pre-registered sensitivity analysis will treat failed/partial pairs conservatively as failures (failure-as-zero sensitivity). All failed calls, retries, and technical restarts will be logged; any pair with unrecoverable infrastructure failure will be excluded from the primary paired test and included in sensitivity reports.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "Mininet-based Multi‑Vendor Template Stress Set (provenance-traced)"
+    ],
+    "risk_factors": [
+      "Hosted-LLM nondeterminism (sampling, provider-side changes).",
+      "Template leakage or duplication across tasks.",
+      "Verifier systematic blind spots for semantic/policy violations."
+    ],
+    "detection_procedures": [
+      "Deterministic artifact hashing to detect duplicate prompts/outputs across tasks (duplicates flagged automatically).",
+      "Record and compare verifier traces and emulation outcomes to detect anomalous identical results indicating leakage.",
+      "Automated injection tests (see Transformation Validation) to estimate verifier detection sensitivity."
+    ],
+    "item_flagging_rules": [
+      "Flag any task with identical prompt+context hash to a previous task as duplicate and exclude from confirmatory analysis (sensitivity analysis will include duplicates).",
+      "Flag tasks where verifier outputs are 'ambiguous' per deterministic ambiguity rules (see transformation_validation.mapping_validation) for conservative treatment (treated as failure in primary analysis)."
+    ],
+    "analysis_treatment": "Primary conservative treatment: ambiguous verifier outcomes are treated as ‘violation present’ (worst-case) in the primary confirmatory analysis. Sensitivity analyses will re-classify ambiguous cases as 'no violation' to bound inference. Duplicate tasks excluded from primary analysis; sensitivity analyses will report their inclusion impact.",
+    "residual_uncertainty": [
+      "Residual risk that verifiers miss high-level semantic policy violations (false negatives).",
+      "Residual nondeterminism due to hosted model provider or version drift."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1-recommended-200",
+      "description": "Recommended confirmatory run: N=200 paired intents stratified over 3 vendor-template families and 4 topologies (12 strata).",
+      "planned_model_calls": 400,
+      "models": [
+        "openai/gpt-4o (2026-08-01)"
+      ],
+      "transformations": [
+        "direct_configuration_generation_v1 (baseline)",
+        "generate_validate_repair_v1 (guarded)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 200,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Adapter imposes maximum_model_calls = task_count*2 = 400. 400 ≤ capability manifest maximum_planned_model_calls (10000). CPU-emulation (Mininet) and deterministic verifiers execute within the 7-day wall-clock budget for 200 tasks under typical host hardware; Docker images will be used to pin environment."
+    },
+    {
+      "scenario_id": "S2-reduced-100",
+      "description": "Cost-constrained exploratory confirmatory run: N=100 paired intents. Same stratification rules applied where possible.",
+      "planned_model_calls": 200,
+      "models": [
+        "openai/gpt-4o (2026-08-01)"
+      ],
+      "transformations": [
+        "direct_configuration_generation_v1 (baseline)",
+        "generate_validate_repair_v1 (guarded)"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 100,
+      "task_cluster_count": 12,
+      "feasibility_rationale": "Planned_model_calls = 200 ≤ capability manifest budget. Use if faster turnaround or quota-limited. Note: reduced power for primary comparison; recommended scenario is S1."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute reduction of 10 percentage points in policy-violation rate (e.g., baseline 20% → guarded 10%), two-sided alpha=0.05, power=0.80 (target) for McNemar paired test.",
+    "clustering_unit": "Operator intent (paired baseline/guarded episodes per intent).",
+    "calculation_method": "Approximate McNemar sample-size formula using discordant-pair approximation: n ≈ (Z_{1-α/2}+Z_{1-β})^2 * (p10+p01)/(p10-p01)^2. With assumed p10=0.15, p01=0.05 (p10+p01=0.20, difference=0.10): n ≈ 7.84*0.20/0.01 ≈ 157.",
+    "assumptions": [
+      "Baseline policy-violation rate ≈ 20% (empirically plausible from evidence synthesis prototypes).",
+      "GVR reduces violations producing discordant proportions p10≈0.15, p01≈0.05 (absolute risk difference 10pp).",
+      "Two-sided α=0.05, power 80% (Z_{1-α/2}=1.96, Z_{1-β}=0.84).",
+      "Independence of intents for paired comparisons within the adapter's selection profile."
+    ],
+    "recommended_scenario_id": "S1-recommended-200",
+    "minimum_detectable_effect_notes": "With N=200 the detectable absolute risk difference (two-sided, α=0.05, power=0.8) is ≈8 percentage points under the same discordant assumptions; the planned N=200 exceeds the approximate minimum (≈157) and provides margin for stratified subgroup description.",
+    "sensitivity_analyses": [
+      "Recompute power and effect estimates under alternative baseline rates (10%, 30%) and discordant distributions to demonstrate robustness.",
+      "Report results of sensitivity analysis treating ambiguous verifier outcomes as 'violation' vs 'no violation'."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "syntax_parser_v1 (deterministic vendor-template grammar checks)",
+      "reachability_checker_v1 (Mininet-based forwarding/reachability matrix tests)",
+      "acl_policy_checker_v1 (rule-based ACL semantics over canonical model)"
+    ],
+    "semantic_equivalence_checks": [
+      "Automated canonicalization: map generated/repaired configurations to a canonical intent model and compare intent->configuration parameter hashes; if canonical mapping changes outside predefined allowable variable substitutions, mark as semantic-altering repair (flagged automatically).",
+      "Constrain repairs to localized modifications: repairs that alter more than a threshold of distinct configuration lines (threshold pre-registered as >10% of non-comment lines) are flagged as potential intent changes and treated conservatively in primary analysis (treated as failure)."
+    ],
+    "automatic_rejection_rules": [
+      "Reject repaired configuration if syntax parser fails after repair.",
+      "Reject repair as ambiguous if reachability tests pass but ACL policy checker flags potential unintended permit rules (detection rule deterministic); ambiguous repairs counted as 'violation present' in primary analysis."
+    ],
+    "audit_sample_policy": "Automated synthetic injection: generate a fixed automated audit set of 20 synthetic intents where we inject known faults (syntactic, reachability, ACL) into gold configurations and verify that verifiers detect them. Use these automated injections to estimate verifier detection sensitivity and false-negative rates (no human adjudication).",
+    "mapping_validation": "All template variable mappings are validated by deterministic unit-tests that assert variable substitution correctness and that generated configs adhere to vendor-template required fields; tests run automatically in CI container. Any mapping-failure aborts the affected task and is logged; aborted pairs excluded from primary analysis and reported in sensitivity.",
+    "residual_risks": [
+      "Verifiers may miss high-level semantic policy violations that are not expressible in current ACL/reachability rules (residual false negatives).",
+      "Automated audit set may not cover all real-world corner cases; this is a known limitation and recorded as residual uncertainty."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "Generalization to production hardware: Mininet emulation and synthetic template perturbations do not fully reproduce all device-specific quirks of real multi-vendor hardware; conclusions are bounded to the emulated scope.",
+    "Deterministic verifiers may not detect all semantic policy violations (residual false-negative risk); we estimate detection sensitivity via automated injected audit set but cannot eliminate this uncertainty without hardware-or-human oracles (not permitted by capability manifest).",
+    "Hosted-LLM provider nondeterminism (provider-side model changes) may affect exact reproducibility; mitigations include temperature=0, seed recording, and archival of raw outputs, but perfect bytewise reproducibility of LLM outputs is not guaranteed."
+  ],
+  "evidence_record_ids": [
+    "doi:10.2139/ssrn.6754899",
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4406863879",
+    "https://openalex.org/W4399803256",
+    "https://openalex.org/W4388629193"
+  ]
+}

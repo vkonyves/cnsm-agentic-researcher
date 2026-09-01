@@ -1,0 +1,33 @@
+{
+  "study_id": "C1-GVR-multivendor-2026-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis executed by paired_binary_analysis_v1: compute per-intent binary outcome (policy_violation_flag) contingency (guarded vs baseline), report McNemar test p-value and the point estimate of risk difference (guarded minus baseline). Estimate 95% CI for the risk difference via paired bootstrap on the N=200 paired episodes using archived paired_binary_episode_v1 records and the preregistered bootstrap seed(s) recorded in analysis metadata. Follow preregistered exclusion and missingness rules and the preregistered failed_call_treatment default: complete_pair_primary.",
+  "secondary_analyses": [
+    "Paired Wilcoxon signed-rank tests (exploratory) on counts of syntactic errors per intent (syntax_parser outputs) comparing guarded vs baseline (using paired counts derived from verifier_traces in paired_binary_episode_v1).",
+    "Paired Wilcoxon signed-rank tests (exploratory) on counts of topology/reachability errors per intent (reachability_checker outputs).",
+    "Descriptive per-vendor/template-family summaries: paired risk-difference estimates and 95% bootstrap CIs reported without confirmatory alpha claims (exploratory).",
+    "Estimate mean additional model calls per intent (guarded minus baseline) and bootstrap 95% CI; compute mean extra calls per avoided policy violation (exploratory cost–tradeoff)."
+  ],
+  "sensitivity_analyses": [
+    "failed-call sensitivity using registered identifier complete_pair_primary_with_failure_as_zero_sensitivity (treat pairs with unrecoverable infra/API failures or flagged ambiguous verifier outcomes conservatively as 'failure' for guarded where applicable).",
+    "Duplicate-inclusion sensitivity: include any deterministic prompt+context duplicates flagged by artifact-hash detection and report impact on primary estimand.",
+    "Ambiguity reclassification sensitivity: reclassify verifier-flagged 'ambiguous' cases as 'no violation' and re-run primary paired analysis to bound inference."
+  ],
+  "uncertainty_quantification": "Primary uncertainty: 95% bootstrap CI for paired risk difference (bootstrap performed on paired outcomes; seeds and bootstrap replication files archived). Report exact McNemar p-value and bootstrap percentile/BCa intervals as produced by paired_binary_analysis_v1. For secondary estimates report bootstrap CIs and effect-size summaries; label p-values exploratory.",
+  "multiplicity_implementation": "Single predeclared confirmatory estimand (primary) with α=0.05 for McNemar test. All other estimands (syntax, topology, cost, per-vendor summaries) are exploratory and reported without alpha-adjusted confirmatory claims; p-values for secondary tests are labeled exploratory per preregistration.",
+  "contamination_analysis": "Follow preregistered contamination_plan: detect and flag duplicates by deterministic prompt+context hashing (artifact hashes in execution manifest and raw_results.jsonl); ambiguous verifier outcomes are flagged and treated as 'violation present' in the primary analysis. Record verifier traces and emulation outputs to detect anomalous identical outputs; automated injection/verification tests recorded in transformation_validation artifacts estimate verifier sensitivity. Report flagged items, exclusions from primary paired test, and residual uncertainties (verifier false negatives and hosted-LLM nondeterminism) as preregistered.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Primary 2x2 paired contingency table (counts of intents: violation present/absent in baseline vs guarded), McNemar discordant counts, risk difference (guarded−baseline), McNemar p-value, 95% bootstrap CI for risk difference (bootstrap seeds recorded). (Source: execution/raw_results.jsonl + execution_manifest.json).",
+    "Table 2 — Paired summary of syntactic-error counts per intent (median, IQR, mean) by condition and Wilcoxon paired-test statistic and exploratory p-value. (Source: verifier_traces.syntax_parser in paired_binary_episode_v1 records).",
+    "Table 3 — Paired summary of topology/reachability-error counts per intent and exploratory Wilcoxon results. (Source: verifier_traces.reachability_checker + mininet_emulation_result).",
+    "Table 4 — Per-vendor/template-family descriptive table: N per stratum, baseline rate, guarded rate, paired risk difference and 95% bootstrap CI (exploratory). (Source: task_manifest and paired_binary_episode_v1).",
+    "Table 5 — Execution manifest and provenance summary: planned vs completed episodes, model_calls_used, artifact_hashes_total_count, warnings, and any excluded pairs with exclusion reason codes. (Source: execution_manifest.json)."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Bar plot of policy-violation rate (percentage of intents with violation): baseline vs guarded, overall and by vendor/template-family (three grouped bars per vendor). (Data: paired_binary_episode_v1 aggregated by vendor tag in task_manifest).",
+    "Figure 2 — CDF (or empirical CDF) of model_calls_count per intent under baseline and guarded (showing extra calls distribution used by GVR). (Data: model_calls_count field in paired_binary_episode_v1).",
+    "Figure 3 — Paired dot/connected-interval plot of per-intent binary outcome (0/1) showing paired changes (baseline → guarded) to visualize discordant pairs; overlay percent discordant and annotate McNemar statistic. (Data: paired_binary_episode_v1 paired outcomes)."
+  ]
+}
