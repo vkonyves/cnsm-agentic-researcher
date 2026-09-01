@@ -1,0 +1,22 @@
+{
+  "summary": "Careful, well-executed paired preregistered study that archives generator→validator→repair artifacts. Execution and analysis appear internally consistent and reproducible; main limitation is a near-ceiling baseline that renders the preregistered power assumptions inapplicable. Two formal manuscript defects must be corrected before finalisation: (1) the Disclosure Statement currently duplicates execution/accounting details that should remain in the artifact bundle and must be condensed while preserving the single required master-prompt locator+SHA-256; (2) the References must be presented as a conventional IEEE-numbered bibliography with full bibliographic metadata (no bare DOI/identifier-only entries).",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Disclosure Statement duplicates execution logs, provider-call/stage counts, and detailed execution accounting in the manuscript prose. Per the track rules, the Disclosure must be concise and must not reproduce provider-call counts, stage counts, per-file inventories, or detailed execution logs; it must retain exactly one immutable master-prompt locator and its SHA‑256 digest. The current text must be condensed accordingly.",
+    "References are not provided in a conventional IEEE numbered bibliography with full metadata. The manuscript must include an IEEE-style numbered References section (authors, title, venue, year, pages/DOI/arXiv as appropriate) and ensure every in-text numeric citation corresponds to an entry that supports the nearby scholarly claim. Bare DOI/identifier-only or metadata-light entries are not acceptable."
+  ],
+  "required_revisions": [
+    "Condense the Disclosure Statement so it is a short, standalone paragraph inside the five-page manuscript that (a) names the LLM(s) and orchestration adapter, (b) preserves exactly one immutable master-prompt locator and its full SHA‑256 digest (provenance/master_prompt.txt plus SHA-256), (c) states that the run was preregistered and executed autonomously after the lock, and (d) points readers to the archived execution manifest/artifact bundle for detailed provider-call counts, stage counts, logs, and per-file hashes. Remove provider-call counts, stage counts, per-file inventory, and other execution-log-level detail from the Disclosure prose. (This revision can be satisfied using the already archived artifacts.)",
+    "Replace the current reference list with a conventional IEEE-numbered bibliography containing full bibliographic metadata for every cited record used in the text. Ensure every numeric in-text citation maps to a full IEEE entry and that each cited work actually supports the claim for which it is cited. Use the verified bibliographic records from the archived evidence bundle to populate the entries; do not use bare DOI/identifier-only lines.",
+    "In the manuscript Methods (or a clearly labeled short paragraph), explicitly state the archived model-configuration sampling fields: report that model_configuration recorded temperature = null/unset and explicitly note that null/unset does not imply temperature=0 or deterministic sampling. Also explicitly restate the preregistered generation_semantics = shared_initial_candidate and that exactly one sampled initial generation per task was deterministically reused by both baseline and guarded episodes (this is required by the track and by the preregistration)."
+  ],
+  "optional_revisions": [
+    "Add a one-sentence explanation (Methods or Results) clarifying why the exact two-sided McNemar test yields a non-significant result (p=1.0) in the presence of a single discordant pair, and reiterate the practical interpretation given the observed near-ceiling baseline and the preregistered power assumptions.",
+    "In Related Work, ensure each cited prior system or benchmark is explicitly tied to a numbered reference and briefly note the most relevant limitation of each prior work relative to this experiment (e.g., lack of verifier-backed artifacts, lack of shared_initial_candidate controls, or limited artifact archival).",
+    "Consider adding a short pointer in the Discussion that indicates where within the archived execution manifest/readme a reader can find the full execution accounting (provider-call events, stage counts, repair traces) so reviewers and readers can inspect the detailed logs without those appearing in the Disclosure prose."
+  ],
+  "accept_for_finalisation": false
+}

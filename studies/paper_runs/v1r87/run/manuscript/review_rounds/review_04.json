@@ -1,0 +1,23 @@
+{
+  "summary": "Well-executed, preregistered paired study that evaluates a verifier‑guarded generate→validate→repair pipeline for synthetic intent→configuration NetOps tasks under explicit shared_initial_candidate semantics. Artifacts, hashes, preregistration, validator traces, and analysis outputs are archived and largely consistent. The manuscript accurately limits inferences to the guarded repair effect (not independent first-pass generation) and reports statistical outcomes and limitations transparently. Several clarity and provenance-accounting clarifications are required before finalisation.",
+  "novelty_score": 5,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "Model-call / sampling accounting is ambiguous in the manuscript: the execution manifest shows model_calls_used=201 while planned episodes=400; the paper must explicitly explain that shared_initial_candidate semantics produced 200 shared initial generations plus 1 repair model call (201 total) and clarify why provider/audit condition_counts appear as {\"shared\":200,\"guarded\":1}.",
+    "References / bibliography formatting and citation semantics: the References section must be rendered as a conventional IEEE-numbered bibliography with complete bibliographic metadata for each cited work (authors, title, venue, year, pages/DOI as available). Ensure every numbered reference actually supports the claim it is cited for; do not leave bare identifier-only entries.",
+    "McNemar / statistical reporting clarification: the manuscript reports exact McNemar p = 1.0 with n10=1,n01=0. Add a brief explanatory sentence in Results/Methods clarifying the exact test implementation and the interpretation of p=1.0 in the context of one discordant pair and extremely high baseline success rate (so readers correctly understand the inferential limitation)."
+  ],
+  "required_revisions": [
+    "Add an explicit, short paragraph in Methods and/or Execution accounting that states the precise model-call accounting: 200 shared_initial_generation calls (one per task) + 1 repair call = 201 model calls; explain that baseline and guarded episodes reused the same sampled initial candidate per task (shared_initial_candidate) and that guarded-only model calls occur only when a repair is invoked. Point reviewers to the exact execution_manifest path and representative hash already archived for verification.",
+    "Replace or augment the current References block with a conventional IEEE numbered bibliography (authors, article/chapter title, venue/conference or journal, year, and DOI/URL). Verify each cited record supports the proximate claim and correct any bibliographic omissions or identifier-only entries.",
+    "In Results (or Methods) add one or two sentences explaining the exact McNemar two-sided test used (implementation of the small-sample exact test), the meaning of p = 1.0 given n10=1,n01=0, and the relationship between discordant-pair counts and statistical power given the observed baseline rate. (This is a manuscript clarification; no new analysis is required because the archived analysis artifacts already contain the necessary numbers.)"
+  ],
+  "optional_revisions": [
+    "Consider adding a concise note in Methods clarifying why temperature=null is recorded and reiterating that null/unset is not evidence of deterministic sampling (the bundle already records this, but a short explicit sentence improves clarity for readers unfamiliar with adapter semantics).",
+    "Optionally include a single-row table or supplementary line identifying the repaired task_id (the single discordant pair) with a 1–2 sentence non-sensitive summary of the violation type (ordering/workflow) and pointer to the archived validator trace; ensure sensitive/proprietary details remain only in the archive and not in the paper body.",
+    "Add an explicit sentence in Discussion reiterating that the preregistered power target (10–15 percentage points) was not met due to unexpectedly high baseline success and describe briefly how that affects the intended confirmatory inference (this is partially present; a one-sentence clarification would help)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,28 @@
+{
+  "study_id": "CAND-2026-001",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired binary analysis using the executor's McNemar-style implementation on the per-task binary outcome 'all-specified-invariants-pass' (guarded vs baseline). Report per-condition pass rates, 95% Wilson confidence intervals, paired risk difference (guarded − baseline) for estimand paired_success_rate_difference_guarded_minus_baseline, discordant-pair counts, and two-sided McNemar p-value. Use completed pairs only per preregistered primary failed-call handling.",
+  "secondary_analyses": [
+    "Per-invariant pass rates (paired differences guarded vs baseline) reported as exploratory descriptive results.",
+    "Failure-mode distribution proportions by topology class and vendor family (exploratory descriptive taxonomy and counts)."
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity (treat persistent unparsable outputs as failures for affected condition(s))",
+    "Post-hoc achieved-power calculation for the primary estimand using observed discordant-pair counts (exploratory)."
+  ],
+  "uncertainty_quantification": "95% Wilson confidence intervals for per-condition pass rates; paired risk-difference estimate with bootstrap-derived 95% CI where supported by executor; report discordant counts and two-sided McNemar p-value from executor's paired test implementation.",
+  "multiplicity_implementation": "Single predeclared confirmatory test (primary_estimand paired_success_rate_difference_guarded_minus_baseline). All other analyses (per-invariant, subgroup, descriptive) are explicitly exploratory and reported without multiplicity correction.",
+  "contamination_analysis": "Follow preregistered contamination_plan: deterministic deduplication and checksums of vendor-template sources prior to use; exclude exact token-normalized matches per preregistered exclusion rules; compute and log per-task token-level similarity between gold templates and generated configs and flag unusually high similarity; monitor and log verifier anomaly patterns; report flagged items separately but include them in primary analysis per failed_call_treatment; all flags and provenance recorded in execution manifest and raw_results.jsonl.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1: Task/sample summary — total preregistered tasks (200), completed episodes, exclusions with deterministic reason counts, persistent unparsable counts, and model_calls_used (from execution_manifest).",
+    "Table 2: Primary confirmatory results — baseline and guarded per-condition pass rates with 95% Wilson CIs, paired risk difference (guarded − baseline) with estimate and CIs, discordant-pair counts (n01, n10), McNemar two-sided p-value, and exact counts used for sensitivity analysis variant.",
+    "Table 3: Exploratory breakdowns — per-invariant pass rates (reachability, ACL policy compliance, loop-freedom, route advertisement) by condition with paired differences and descriptive counts; failure-mode proportions by topology class and vendor family (counts and percentages)."
+  ],
+  "figure_specifications": [
+    "Figure 1: Bar chart of per-condition pass rates (baseline vs guarded) with 95% Wilson CIs (data from Table 2).",
+    "Figure 2: Stacked bar or heatmap showing failure-mode distribution proportions stratified by topology class and vendor family (from Table 3).",
+    "Figure 3: Flow diagram of the episode transformation (shared_initial_candidate → verifier verdict → optional single repair call) annotated with observed frequencies (counts of repair invocations and persistent unparsables) drawn from transformation_manifest.json and raw_results.jsonl."
+  ]
+}

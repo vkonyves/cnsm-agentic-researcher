@@ -1,0 +1,95 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Unclear exact verifier choice/version and parsing strategy for malformed LLM outputs",
+        "Single hosted LLM choice risks overgeneralization (single-model claims)",
+        "Vendor-template representativeness vs. proprietary device variance",
+        "Handling and labeling of ambiguous/gold-reference-free intents not fully specified"
+      ],
+      "required_design_repairs": [
+        "Specify deterministic verifier (e.g., Batfish) version, parsing pipeline, and failure-handling for unparsable outputs",
+        "Declare exact hosted LLM identifier(s), temperature/seed settings, prompt template, and model-call budget enforcement",
+        "Provide concrete sources and selection criteria for vendor templates and topology generation; supply gold-config creation rules or explain absence",
+        "Preregister retry policy and criteria for excluding tasks (e.g., persistent syntax errors)"
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Risk of repair oscillation or overfitting to verifier error messages",
+        "Insufficient detail on repair prompt templates and how the verifier's output is structured as model input",
+        "Potential nondeterminism if hosted LLM is nondeterministic despite claimed seeds",
+        "Convergence criteria and handling of non-convergent cases need tightening"
+      ],
+      "required_design_repairs": [
+        "Provide exact repair prompt templates, structured verifier-to-prompt mapping, and examples",
+        "Define automated oscillation detection and a clear stopping rule (beyond N=3)",
+        "Lock and declare model determinism settings (temperature, top-p) and how seeds are applied; record fallback behavior if seeds unsupported",
+        "Specify baseline comparisons (single-shot + simple heuristic repair) and logging needed for reproducibility"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.4,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Ethical risk from creating poisoned artifacts—protocols need stronger safe-guarding and justification",
+        "Attribution of harmful outputs to specific retrieval snippets is inherently noisy and may not support strong causal claims",
+        "Quality and validation of the safety classifier are under-specified",
+        "Need clear provenance logging for retrieval hits to enable attributable analyses"
+      ],
+      "required_design_repairs": [
+        "Document ethical review/mitigation: sandboxing, inert artifacts, storage/access controls, and no connection to live devices",
+        "Specify retrieval stack (vector store, embedding model, retrieval hyperparameters) and indexing reproducibly",
+        "Define poisoning procedure precisely (doc count fraction, content templates) and include held-out validation poisons to calibrate the safety classifier",
+        "Require fine-grained retrieval provenance logging (scores, ranks, doc IDs) to support attribution analyses"
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "novelty": 0.6,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Availability and definition of gold reference configurations is ambiguous for many intents",
+        "Risk of overclaiming that a combined cheap metric can substitute for a verifier",
+        "Metric implementations (BLEU, edit distance, lint rules) can vary; reproducible definitions required"
+      ],
+      "required_design_repairs": [
+        "Define the procedure for creating or selecting gold configurations and report coverage of tasks with golds",
+        "Provide exact metric implementations, libraries/versions, tokenization rules, and thresholding decisions",
+        "Predefine training/validation splits and cross-validation strategy; include calibration and robustness checks for the combined metric",
+        "Explicitly bound claims: present combined metric as a predictor with measured limits, not a verifier replacement"
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

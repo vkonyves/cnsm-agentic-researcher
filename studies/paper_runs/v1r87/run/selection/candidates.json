@@ -1,0 +1,121 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "CAND-2026-001",
+      "title": "Empirical verification of LLM-generated network configurations against deterministic network invariants",
+      "research_question": "To what extent do LLM-generated network configurations produced from natural-language intents satisfy deterministic network invariants (reachability, policy compliance, loop-freedom) when evaluated by a verifier across realistic topologies and vendor-constraint templates?",
+      "hypotheses": [
+        "LLM-generated configurations produced in a single-shot setting will fail to satisfy a nontrivial fraction of formal network invariants across realistic topologies.",
+        "Applying an automated verifier to filter or reject LLM outputs before deployment will significantly reduce the fraction of invariant violations compared with unfiltered single-shot outputs.",
+        "Violations will be concentrated on vendor-specific syntax and multi-device policy interactions rather than simple per-device syntax errors."
+      ],
+      "proposed_design": "Assemble a public benchmark of 200 intent→task pairs covering three topology classes (small, mid, multi-site) and two vendor template families drawn from public device config examples. For each intent, generate configurations using a single moderately-capable hosted LLM under a fixed prompt. Evaluate each generated config with a deterministic network verifier/emulator (e.g., Batfish or Mininet-based verifier) for a defined set of invariants: reachability, ACL policy compliance, loop detection, and route advertisement constraints. Compare three conditions per task: (A) single-shot LLM output; (B) LLM output plus verifier-based reject-and-flag (no repair); (C) LLM output accepted only if verifier passes. Record per-task verifier results and categorized failure modes (syntax, semantic/policy, multi-device inconsistency). All experiments run in isolated emulation (no live devices).",
+      "expected_data": "For each of 200 tasks and three conditions: generated configuration text, verifier pass/fail flag per invariant, categorized failure-mode labels, counts of syntax vs semantic errors, per-task latency and model-call counts, and a reconciliation log of any syntax-correction pre-processing. Aggregate tables: per-condition pass rates, per-invariant pass rates, and distribution of failure modes across topology and vendor families.",
+      "primary_outcome": "Primary metric: fraction of tasks where all specified invariants pass the deterministic verifier under condition A (single-shot). Secondary: absolute and relative reduction in invariant failures when applying condition B and condition C compared to A.",
+      "analysis_outline": "Compute per-condition pass rates with 95% Wilson confidence intervals. Use paired comparisons (McNemar's test) between A vs B and A vs C at the task level to assess reductions in failure rates. Stratify results by topology class and vendor family; report contingency tables and effect sizes (risk difference, relative risk). Report descriptive breakdown of failure-mode categories and illustrative examples. Perform sensitivity analysis excluding tasks with trivial invariants. Report per-task model-call counts and compute correlation between prompt length and pass probability. All raw artifacts and verifier logs retained for reproducibility.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411735779"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4411522870",
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4404602270"
+      ],
+      "risks": [
+        "LLM hallucination could produce syntactically invalid configs that the verifier cannot parse; mitigate with isolated emulation and syntax pre-checkers.",
+        "Vendor-specific templates in public examples may not fully represent proprietary hardware; avoid drawing broad production claims.",
+        "Resource limits on hosted model API could cause partial runs; enforce preregistered model-call budget and retries policy."
+      ],
+      "estimated_model_calls": 2000
+    },
+    {
+      "candidate_id": "CAND-2026-002",
+      "title": "Effectiveness of bounded iterative self-repair for reducing configuration invariant violations",
+      "research_question": "Can a bounded iterative generate-validate-repair loop driven by an LLM and a deterministic verifier reduce complex multi-device invariant violations (including cascading misconfigurations) compared with single-shot generation?",
+      "hypotheses": [
+        "A bounded iterative repair loop with at most N=3 repair iterations will significantly reduce the number of violated invariants relative to single-shot outputs.",
+        "Diminishing returns will appear after the first or second repair iteration for most tasks, with a minority of tasks requiring manual intervention.",
+        "Certain classes of failures (e.g., cross-device policy mismatches) will be less amenable to automated repair than local syntax or single-device policy errors."
+      ],
+      "proposed_design": "From the same pool of intents as candidate 1, select 150 tasks biased toward multi-device and policy-heavy scenarios. For each task, generate an initial LLM configuration. Run a verifier to identify violated invariants and produce a structured failure report. Provide the failure report plus the original intent and failing config back to the same LLM with a constrained repair instruction. Repeat up to three iterations (N=3) or until verifier passes. Compare outcomes to single-shot baseline. Record per-iteration changes, number of iterations to pass, cases that do not converge, and failure-mode trajectories. All runs use fixed random seeds where supported by the model API and identical prompt templates for generation and repair stages.",
+      "expected_data": "Per-task iteration logs including initial output, verifier failure report, each repaired output, verifier result after each repair, number of iterations to convergence or non-convergence, and categorization of persistent failure types. Aggregated statistics on convergence rate, median iterations to pass, and per-class repair effectiveness.",
+      "primary_outcome": "Primary metric: proportion of tasks that achieve a full-verifier pass within N=3 repair iterations. Secondary metrics: median iterations to pass among converged tasks and proportion of tasks with persistent invariant violations after N iterations.",
+      "analysis_outline": "Estimate convergence proportion with 95% confidence intervals. Use paired survival-style analysis to model iterations-to-pass (Kaplan-Meier curve truncated at N=3). Compare single-shot pass rate vs iterative-converged pass rate using McNemar's test on paired tasks. Report subgroup analyses by failure class (syntax vs semantic vs cross-device) and compute logistic regression to identify predictors of non-convergence. Provide illustrative trace examples of successful and failed repairs.",
+      "novelty_evidence_ids": [
+        "doi:10.69987/jacs.2024.40206",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411522870"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4416934640"
+      ],
+      "risks": [
+        "Repair loops may oscillate or introduce new violations; cap iterations and log oscillation patterns.",
+        "Automated repair may overfit to verifier error messages and produce brittle fixes; report examples and limit claims.",
+        "Compute budget may be high for multiple iterations; enforce preregistered model-call cap and report any runs truncated by budget."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "CAND-2026-003",
+      "title": "Vulnerability of retrieval-augmented NetOps generation to poisoned retrieval artifacts and mitigations",
+      "research_question": "How susceptible are retrieval-augmented LLM workflows for NetOps to poisoned or malicious retrieval snippets that induce unsafe configurations, and how effective are simple mitigations (verifier gating, retrieval filtering) at reducing this vulnerability?",
+      "hypotheses": [
+        "Insertion of a small number of poisoned retrieval documents that recommend insecure commands will materially increase the rate of unsafe or hazardous configuration suggestions in a retrieval-augmented generation pipeline.",
+        "Applying a verifier gate that blocks outputs with forbidden commands will substantially reduce unsafe output rates even under poisoned retrieval. ",
+        "Simple retrieval filtering (keyword-based removal) will reduce but not eliminate poisoning effects compared with the verifier gating approach."
+      ],
+      "proposed_design": "Construct a retrieval index from publicly available benign NetOps documents and configuration examples. Create controlled poisoned documents that explicitly propose insecure or harmful configuration snippets (simulated and inert; never executed). For 120 intents, compare three pipeline variants: (A) LLM with benign retrieval; (B) LLM with retrieval containing a small fraction (e.g., 1–5%) of poisoned docs; (C) variant B plus verifier gate that rejects outputs containing forbidden constructs. For each generated config, run a safety classifier and the deterministic verifier to flag unsafe or forbidden commands. Ensure all evaluation occurs in simulation and that poisoned content is ethical and inert. Measure unsafe-output rates per condition and examine retrieval attribution where possible.",
+      "expected_data": "Per-task per-condition generated outputs, retrieval snippets returned, provenance links (which docs influenced the answer), binary unsafe flag from safety classifier, verifier flags, and counts of forbidden-command occurrences. Aggregate unsafe-output rates per condition and retrieval-attribution statistics showing the influence of poisoned docs.",
+      "primary_outcome": "Primary outcome: absolute difference in unsafe-output rate between condition A (benign retrieval) and condition B (poisoned retrieval). Secondary: reduction in unsafe-output rate between B and C (verifier gating).",
+      "analysis_outline": "Compute proportions with 95% confidence intervals. Use chi-square or Fisher's exact test to compare unsafe proportions between conditions. Compute attributable fraction of unsafe outputs linked to poisoned snippets via retrieval logs. Report effectiveness metrics (risk reduction) for each mitigation and provide examples of failure cases where mitigations failed. Include ethical justification and strict sandboxing procedures.",
+      "novelty_evidence_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4416457592",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Ethical risk of creating poisoned content; mitigate by keeping all poisoned docs inert, simulated, and confined to offline indices with no connection to live devices.",
+        "Attribution of retrieval influence may be noisy; report uncertainty and avoid overclaiming causal linkage.",
+        "Mitigation tests may produce false negatives if safety classifier misses subtle forbidden constructs; validate classifier on held-out poisoned examples."
+      ],
+      "estimated_model_calls": 1200
+    },
+    {
+      "candidate_id": "CAND-2026-004",
+      "title": "Operational validity of common automatic metrics for LLM→NetOps: correlating syntactic metrics with verifier-defined correctness",
+      "research_question": "Which automated metrics (syntactic similarity, token-level edit distance, and simple configuration-linting scores) best predict verifier-defined operational correctness for LLM-generated network configurations?",
+      "hypotheses": [
+        "Common syntactic or text-similarity metrics (e.g., BLEU, token edit distance) will correlate weakly with verifier-defined operational correctness.",
+        "Verifier-informed metrics (e.g., number of invariant violations or validator-derived distance) will have substantially higher predictive validity for operational correctness than purely syntactic metrics.",
+        "A small combined metric that includes syntax checks plus a lightweight static analyzer will achieve most of the predictive gain of a full verifier while being significantly cheaper to compute."
+      ],
+      "proposed_design": "Using a corpus of 300 intents and corresponding LLM-generated configurations (collected across varying topology complexity and vendor templates), compute a suite of candidate metrics per output: BLEU, ROUGE, normalized token edit distance to a gold configuration where available, simple lint scores (syntax pass/fail), and lightweight static-analyzer scores. Also compute verifier pass/fail outcome as the operational ground truth. Quantify correlation and predictive power of each metric for verifier pass. Evaluate a small combined metric built by logistic regression on a training split and test its generalization on a held-out set.",
+      "expected_data": "Per-output metric values (BLEU, edit distance, lint pass, static-analyzer score), verifier pass/fail labels, training and test split results for combined metric, correlation matrices, AUCs, and confusion matrices for thresholded predictors.",
+      "primary_outcome": "Primary outcome: Spearman correlation between each metric and verifier pass probability, and AUC of each metric as a binary predictor of verifier pass on held-out data.",
+      "analysis_outline": "Compute Spearman and Pearson correlations with 95% CIs. Train a logistic regression combining cheap metrics on 70% training data and evaluate AUC, precision-recall, and calibration on 30% test data. Compare AUCs using DeLong's test and report net improvement of combined metric over best single synthetic metric. Report per-topology and per-vendor stratified results and calibrate recommended thresholds for operational use.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4399629579"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4389984066"
+      ],
+      "risks": [
+        "Gold configurations may be unavailable or ambiguous for some intents; restrict correlation analyses to tasks with defensible gold references and report coverage.",
+        "Cheap metrics may overfit to dataset idiosyncrasies; use held-out testing and cross-validation.",
+        "Recommendation of a combined metric must be bounded: it is a predictor, not a verifier substitute; state limits clearly."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

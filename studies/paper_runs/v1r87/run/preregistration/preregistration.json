@@ -1,0 +1,87 @@
+{
+  "study_id": "CAND-2026-001",
+  "title": "Empirical verification of LLM-generated network configurations against deterministic network invariants",
+  "research_question": "To what extent do LLM-generated network configurations produced from natural-language intents satisfy deterministic network invariants (reachability, policy compliance, loop-freedom) when evaluated by a deterministic verifier across realistic topologies and vendor-constraint templates?",
+  "confirmatory_hypotheses": [
+    "H1: Single-shot LLM-generated configurations (baseline) will fail to satisfy a nontrivial fraction of deterministic network invariants across the sampled topology/task population.",
+    "H2: Applying an automated verifier-based guarded condition (generate→validate→repair with at most one repair call) will significantly reduce the fraction of invariant violations compared with single-shot baseline generation.",
+    "H3: Failures will concentrate on multi-device policy interactions and vendor-specific multi-device semantics rather than only per-device syntax errors."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which invariant types (reachability, ACL policy compliance, loop-freedom, route advertisement) dominate failures?",
+    "EQ2: How do pass/failure patterns vary by topology class (small, mid, multi-site) and vendor template family?"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4399629579",
+    "https://openalex.org/W4403635865",
+    "https://openalex.org/W4411735779",
+    "https://openalex.org/W4411522870",
+    "https://openalex.org/W4396723768",
+    "https://openalex.org/W4404602270",
+    "doi:10.69987/jacs.2024.40206",
+    "doi:10.2139/ssrn.5085164"
+  ],
+  "benchmark_scope": [
+    "Public-device vendor configuration examples collected from vendor documentation and community repositories (provenance checks applied).",
+    "Synthetic realistic topologies deterministically generated per the adapter's challenging_workflow_stress_v1 index profile (very_hard and extreme task patterns only).",
+    "Isolated deterministic verification using a formal verifier (no live device execution)."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 200,
+    "planned_episode_count": 400,
+    "maximum_model_calls": 400,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline (difference in per-task 'all-specified-invariants-pass' rates between guarded and baseline, paired per task)",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-invariant pass rates (paired difference guarded vs baseline) — exploratory",
+    "Failure-mode distribution proportions by topology class and vendor family — exploratory descriptive"
+  ],
+  "sampling_plan": "Confirmatory paired design using the hosted_netops_gvr_v1 adapter. task_count = 200 tasks. For zero-based ordinal j in 0..199, select task_index per the adapter's challenging_workflow_stress_v1 deterministic rule (cycle=j//5; offset=[4,5,6,7,8][j%5]; task_index=8*cycle+offset). Episodes per task: 2 (baseline and guarded). Exactly one shared initial generation call per task (shared_initial_candidate) and at most one repair call if verifier fails. Maximum_model_calls = 400. Inclusion: all tasks from the deterministic index list. Exclusion: tasks deterministically excluded prior to model calls only if vendor template is token-normalized identical to a generated config source (possible leakage) or if the input intent/template fails the deterministic syntactic pre-check; excluded tasks will be logged and reported. All selection indices are fixed before any hosted-model calls.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Planned N=200 tasks (paired). Planning target: detect an absolute paired increase of ~10–15 percentage points with ~80% power at α=0.05 under mid-range baseline assumptions (baseline pass rate ~45–65%). Exact achieved power will be reported post-run using observed discordant-pair counts. Sensitivity analyses: (1) post-hoc power given observed baseline pass rate and discordant counts; (2) conservative sensitivity treating persistent unparsable tasks as failures.",
+  "exclusion_rules": [
+    "Exclude task deterministically prior to model calls if the vendor-template source is token-normalized identical to a generated config source (leakage detection).",
+    "Exclude task prior to model calls if the provided intent or vendor template fails deterministic syntactic pre-checks; such exclusions are logged with reason and counts."
+  ],
+  "missingness_plan": "No human imputation. Automatic syntax sanitizer (automatic_syntax_sanitizer_v1) attempts to fix minor formatting issues deterministically. If output remains unparsable after sanitizer and the one permitted guarded repair call, mark task as 'persistent unparsable'. Primary analysis follows executor's primary failed_call_treatment (complete_pair_primary). Sensitivity analysis treats persistent unparsables as failures for the affected condition(s) (complete_pair_primary_with_failure_as_zero_sensitivity). All unparsable/excluded counts and raw artifacts are logged and auditable.",
+  "analysis_plan": "Confirmatory analysis executed by paired_binary_analysis_v1 executor using primary_estimand_id = paired_success_rate_difference_guarded_minus_baseline. Outcome per task: binary 'all-specified-invariants-pass' evaluated by the deterministic verifier. Primary test: paired binary comparison (McNemar-style implementation provided by executor). Report: per-condition pass rates with 95% Wilson CIs, risk difference (guarded − baseline), discordant pair counts, and p-value. Primary failed-call handling: complete_pair_primary (include only completed pairs); report sensitivity result using complete_pair_primary_with_failure_as_zero_sensitivity. All runtime sampling parameters (model_version, temperature, top_p, max_tokens, and any provider metadata) will be recorded for every model call; because the adapter does not guarantee deterministic sampling, the protocol uses one initial generation per task shared across paired conditions (per adapter contract). All stratified/subgroup analyses (topology class, vendor family, invariant-type) are labeled exploratory and reported without multiplicity correction.",
+  "multiplicity_plan": "One predeclared confirmatory test (primary_estimand_id). All other analyses are exploratory and reported as such; no confirmatory multiple-testing correction beyond the single primary test.",
+  "contamination_plan": "Mitigation and detection steps: (1) deduplicate and checksum all vendor-template sources and record provenance (URL/DOI/record id) before use; flag and exclude exact token-normalized matches to generated configs. (2) compute per-task token-level similarity between gold-source templates and generated configs; flag unusually high similarity for post-hoc review. (3) monitor verifier outputs for systematic anomalies (e.g., identical failures across unrelated tasks) and log for automated post-hoc analysis. Flagged items are reported separately; primary analysis includes them per failed_call_treatment and sensitivity analyses treat persistent unparsables as failures. Residual uncertainty: potential mismatch between public templates and proprietary production templates; hosted-model nondeterminism (recorded but not eliminable).",
+  "stopping_rule": "Stop when all 200 preregistered tasks have completed both episodes (baseline and guarded) or when the adapter's maximum_model_calls (400) are exhausted. No post-hoc addition or reselection of tasks. Technical retries allowed only per adapter policy (maximum_attempts_per_call = 1); failures classified and logged but do not trigger redesigned sampling.",
+  "planned_outputs": [
+    "Preregistered experimental plan (this document)",
+    "Execution code and configuration (adapter calls, parser, verifier, sanitizer)",
+    "Raw model-call artifacts and verifier logs",
+    "Paired analysis results and statistical outputs",
+    "Failure-analysis record and failure-mode taxonomy",
+    "Evidence-to-claim table and nearest-work comparison",
+    "Complete IEEE-formatted LaTeX manuscript (≤5 pages) with Disclosure Statement",
+    "BibTeX bibliography and verified-reference records",
+    "Compiled PDF (≤5 pages) and NotebookLM presentation brief",
+    "Execution manifest and final-output hash manifest"
+  ],
+  "unresolved_critical_issues": []
+}

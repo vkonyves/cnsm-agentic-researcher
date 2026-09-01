@@ -1,0 +1,167 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Recent literature demonstrates active research and working prototypes in translating high-level human intents into network configurations or code (intent→config), with benchmark-style evaluations and prototype systems reported.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4404602270",
+        "https://openalex.org/W4400234235"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.85,
+      "limitations": [
+        "Most work reports prototypes/benchmarks rather than large-scale production deployments",
+        "Evaluations are task- and dataset-limited; generalization to diverse topologies and vendor devices is not established"
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "Pairing generative LLMs with external validators, execution-based testers, or iterative repair loops improves verifiability and correctness in several domains (code repair, decompilation, program synthesis) and is proposed as a design pattern for operational tasks.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4389984066",
+        "doi:10.69987/jacs.2024.40206",
+        "https://openalex.org/W4411522870",
+        "https://openalex.org/W4416934640",
+        "https://openalex.org/W4386436496",
+        "https://openalex.org/W4388644518"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.8,
+      "limitations": [
+        "Empirical demonstrations are primarily in software-engineering or scientific domains, not always in NetOps-specific environments",
+        "Different works use different oracles/validators; interoperability and standardization are limited"
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "The LLM/agentic-AI literature documents substantive failure modes (hallucination/confabulation, adversarially induced fabrications) and emphasizes the need for guardrails, provenance/validation, and meaningful human oversight.",
+      "evidence_record_ids": [
+        "doi:10.31234/osf.io/bqgk7_v2",
+        "https://openalex.org/W4393065402",
+        "https://openalex.org/W4389520749",
+        "doi:10.20944/preprints202512.0913.v1"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.9,
+      "limitations": [
+        "Much analysis is conceptual, simulation-based, or from domain-adjacent case studies (e.g., SOC); concrete NetOps incident datasets are sparse in the supplied records",
+        "Mitigation effectiveness (e.g., human-in-loop designs) varies by operational context"
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Tool-augmented LLM agents and model-context protocols (MCP/RAG-style approaches) that grant LLMs controlled access to external solvers, tools, or verified code snippets materially extend capabilities and have been shown to enable complex automated tasks in multiple domains.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4396723768",
+        "https://openalex.org/W4416934640",
+        "doi:10.2139/ssrn.6647800",
+        "https://openalex.org/W4416457592"
+      ],
+      "evidence_type": "literature_evidence",
+      "confidence": 0.8,
+      "limitations": [
+        "Demonstrations vary in scope; tool-access protocols differ and require engineering to be safe and auditable",
+        "Direct evaluations in network-device configuration execution/verification pipelines are limited in the supplied set"
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent do LLM-generated network configurations (from intent or natural language) satisfy formal network invariants (reachability, policy compliance, security constraints) when evaluated by deterministic network verifiers under realistic topologies and vendor constraints?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "doi:10.2139/ssrn.5085164"
+      ],
+      "evidence_type": "absence_of_evidence",
+      "confidence": 0.6,
+      "limitations": [
+        "Existing works present intent→config prototypes and discussion of verification needs but do not supply broad, verifier-backed empirical results across realistic network stacks in the supplied records",
+        "Some verification tooling and emulators exist (e.g., Mininet), but integration evidence with LLM pipelines is limited"
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "Which standardized metrics and benchmark tasks most validly capture operational correctness and safety for LLM-driven NetOps (beyond generic accuracy or syntactic correctness)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4411735779",
+        "https://openalex.org/W4401857375",
+        "https://openalex.org/W4385059984"
+      ],
+      "evidence_type": "unresolved_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Surveys discuss evaluation paradigms but do not converge on a single operational metric set for NetOps in the supplied records",
+        "Construct validity (mapping metrics to real-world safety) requires empirical linking absent from these sources"
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "How effective are bounded self-correction and iterative repair strategies (proven in other domains) specifically for complex network-configuration faults, cascading misconfigurations, and policy-level errors in NetOps?",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202510.0587.v1",
+        "doi:10.69987/jacs.2024.40206",
+        "https://openalex.org/W4411522870",
+        "https://openalex.org/W4403635865"
+      ],
+      "evidence_type": "unresolved_question",
+      "confidence": 0.6,
+      "limitations": [
+        "Iterative/self-correction literature shows promise in code and model-repair tasks but the supplied records do not provide network-specific controlled experiments evaluating these strategies on network faults"
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "A reproducible, open benchmark suite focused on operationally meaningful correctness properties for LLM→configuration workflows (reachability, policy compliance, security invariants, staged rollout safety) is underdeveloped or fragmented in the supplied literature.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4399629579",
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4411735779"
+      ],
+      "evidence_type": "literature_gap",
+      "confidence": 0.7,
+      "limitations": [
+        "NetConfEval and prototype datasets exist but appear limited in scope; a community-accepted, verifier-integrated benchmark is not evident among the supplied records",
+        "Some related datasets/benchmarks in AIOps exist, but mapping them to formal NetOps invariants remains a gap"
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Limited published evidence (in the supplied records) demonstrates tight integration between LLM-based generators and deterministic network verifiers or emulators (end-to-end generator→validator→safe-deploy pipeline) with reproducible artifacts.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4403635865",
+        "https://openalex.org/W4399629579",
+        "doi:10.20535/2411-2976.12021.24-32"
+      ],
+      "evidence_type": "methodological_gap",
+      "confidence": 0.65,
+      "limitations": [
+        "Some works mention verification or use emulators, but end-to-end reproducible artifact bundles showing generator+verifier+deployment-safety checks are not prominent in the supplied set"
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Empirical studies quantifying adversarial or dataset-poisoning attacks that induce hazardous LLM outputs specifically in NetOps (e.g., poisoned retrievals causing misconfigurations) are scarce in the supplied literature.",
+      "evidence_record_ids": [
+        "doi:10.20944/preprints202512.0913.v1",
+        "https://openalex.org/W4416457592",
+        "https://openalex.org/W4399629579"
+      ],
+      "evidence_type": "empirical_gap",
+      "confidence": 0.6,
+      "limitations": [
+        "Adversarial/hallucination studies exist for SOC and general LLM settings, and fuzzing frameworks target protocol code, but NetOps-specific adversarial evaluations are limited in the provided records"
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are demonstrably production-ready for fully autonomous, unsupervised NetOps deployments (unsupported by the supplied records).",
+    "The supplied records prove that generator→validator pipelines eliminate all significant operational risks in NetOps (overclaim; not supported).",
+    "Any specific pre-lock development experiment or dataset (from the master prompt rehearsal phase) is being used as final empirical evidence (excluded per instructions)."
+  ]
+}
