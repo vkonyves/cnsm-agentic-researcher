@@ -405,6 +405,36 @@ def sanitize_structured_manuscript_publication_metadata(
         # Defensive fallback for a DOI label that was not bracketed.
         cleaned = inline_doi_label_pattern.sub("", cleaned)
 
+        # The renderer creates the canonical bibliography itself. A standalone
+        # body heading named "References" would therefore create a duplicate
+        # pre-bibliography heading such as:
+        #
+        #     References
+        #     [canonical thebibliography]
+        #
+        # Removing only an exact standalone heading is publication hygiene;
+        # ordinary scientific prose containing the word "references" is
+        # preserved.
+        if re.fullmatch(
+            r"\s*(?:#{1,6}\s*)?references\s*:?\s*",
+            cleaned,
+            flags=re.IGNORECASE,
+        ):
+            return ""
+
+        # Peer-review workflow language must not leak into the submitted paper.
+        # Remove only complete sentences explicitly framed as reviewer process;
+        # scientific sentences before and after them are left untouched.
+        reviewer_process_sentence_pattern = re.compile(
+            r"(?i)"
+            r"(?<!\w)"
+            r"(?:reviewers?|the reviewers?)\s+"
+            r"(?:requested|asked|recommended|suggested|required)"
+            r"[^.!?]*(?:[.!?]+|$)"
+            r"\s*"
+        )
+        cleaned = reviewer_process_sentence_pattern.sub("", cleaned)
+
         # Full cryptographic digests are machine provenance, not ordinary
         # scientific prose. Remove them deterministically together with an
         # immediately associated sha256/SHA-256 label. The mandatory
