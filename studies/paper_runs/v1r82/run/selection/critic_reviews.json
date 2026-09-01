@@ -1,0 +1,92 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand-20260901-001",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Verifier coverage and simulator fidelity may yield false positives/negatives that confound attribution to the LLM vs tooling.",
+        "Vendor-CLI translation errors could dominate measured errors, obscuring LLM vs integration effects.",
+        "Single-model choice risks overclaiming generality across models/vendors."
+      ],
+      "required_design_repairs": [
+        "Specify exact deterministic verifier implementation/version (e.g., Batfish version) and its modeled properties; provide justification of simulator fidelity.",
+        "Provide exact LLM model identifier(s), temperature/logprob settings, prompt templates, and the conversion mapping from verifier output to repair prompt.",
+        "Add sample-size/power calculation or justify n=120 for the primary outcome and prespecify handling of excluded tasks.",
+        "Predefine verifier failure taxonomy and objective thresholds for 'semantic' vs 'topological' errors; include multi-vendor translation tooling and instrumentation to separate translation faults from reasoning faults."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "autocand-20260901-002",
+      "novelty": 1.0,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "High dual-use risk: publishing adversarial prompt corpus or detailed attack techniques could enable real attacks.",
+        "Simulator-based adversarial success may not transfer to production; verifier hardness and sanitizer definitions are underspecified.",
+        "Potential harm from releasing successful adversarial patterns without responsible-disclosure controls."
+      ],
+      "required_design_repairs": [
+        "Include an explicit ethics/safety risk assessment, IRB or equivalent oversight note (if applicable), and a responsible-disclosure/data-release plan restricting sensitive artifacts.",
+        "Precisely define adversarial generation procedures, sanitizer rules, and 'hardened' verifier acceptance criteria (with versions) before execution.",
+        "Prespecify concrete, testable definitions of 'unsafe' and the mapping from verifier-accepted outputs to safety labels; include plan for conservative redaction of any shared adversarial examples.",
+        "Add sample-size justification and exploratory vs confirmatory labeling for any attack classes not fully prespecified."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-20260901-003",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Ensemble construction choices (paraphrase strategy, schema vs freeform) may drive results and risk overfitting to the chosen prompt family.",
+        "Calibration and threshold claims may not generalize across models or prompt regimes if only a single model is tested.",
+        "Operational latency and cost of ensembles may make proposed escalation thresholds impractical."
+      ],
+      "required_design_repairs": [
+        "Prespecify prompt-ensemble generation procedure (paraphrase algorithm, template variants) and seed/control paraphrase generation to enable exact replication.",
+        "Define calibration procedure and target false-negative constraint concretely; prespecify threshold selection on training fold and final evaluation on held-out fold.",
+        "Include a plan to evaluate generalization (e.g., holdout model or alternative prompt family) or explicitly bound claims to the tested model/prompt family.",
+        "Report operational cost/latency budget and decision rule trade-offs; if escalation latency is high, prespecify acceptable operational windows."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "autocand-20260901-004",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.8,
+      "compute_feasibility": 1.0,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Operator-acceptance proxy is a surrogate and may not reflect real human risk tolerance; conclusions may not generalize to real operators.",
+        "Rollback simulation may not capture complex stateful control-plane behaviors and race conditions present in live networks.",
+        "Narrow low-risk task class may overstate contract effectiveness when applied to broader task sets."
+      ],
+      "required_design_repairs": [
+        "Precisely define the 'low-risk' task class and justify its operational relevance; provide inclusion/exclusion rules for tasks.",
+        "Provide evidence or references validating the rollback simulator's fidelity to real rollback semantics, or qualify conclusions accordingly.",
+        "Prespecify operator-acceptance proxy thresholds and run sensitivity analyses across a range (e.g., 1%–5%) before claiming sufficiency.",
+        "Document contingencies if rollback simulation uncovers stateful behaviors not modeled (e.g., escalate these tasks as out-of-scope rather than include them)."
+      ],
+      "verdict": "pass"
+    }
+  ]
+}

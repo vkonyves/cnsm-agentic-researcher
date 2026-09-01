@@ -1,0 +1,158 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "EF1",
+      "statement": "Off-the-shelf LLMs produce plausible draft network configurations but commonly make syntactic, topological, and semantic errors; pairing LLMs with deterministic verifiers and localized feedback materially improves resulting configuration correctness.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4412888330"
+      ],
+      "evidence_type": "empirical / methodological study",
+      "confidence": 0.9,
+      "limitations": [
+        "Primary empirical demonstrations are limited-scope (router translation and specific policies) rather than large-scale production deployments.",
+        "Improvement depends on availability and quality of formal/verifier specifications and localized feedback."
+      ]
+    },
+    {
+      "claim_id": "EF2",
+      "statement": "A mature body of deterministic network verification tooling and formal-methods research (e.g., Batfish, Header Space Analysis, NetPlumber, FastCAT and related verification frameworks) exists and is commonly proposed as the validation layer for automated configuration-change pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W4385957489",
+        "https://openalex.org/W7126266967"
+      ],
+      "evidence_type": "survey / tool papers",
+      "confidence": 0.95,
+      "limitations": [
+        "Tool capabilities and scalability vary; some tools focus on final stable-state properties while others model control-plane dynamics.",
+        "Integration between LLM agents and verifiers is an active engineering topic, not a solved interoperability standard."
+      ]
+    },
+    {
+      "claim_id": "EF3",
+      "statement": "Adversarial and indirect prompt-injection attacks are a documented and practical threat to LLM-integrated applications, creating a meaningful attack surface for operational deployments.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4321855128"
+      ],
+      "evidence_type": "security analysis / empirical attack demonstration",
+      "confidence": 0.95,
+      "limitations": [
+        "Demonstrations cover several application classes but defense effectiveness depends on application architecture and mitigation layers.",
+        "Attack success rates and concrete impact vary by model, retrieval pipeline, and mitigation design."
+      ]
+    },
+    {
+      "claim_id": "EF4",
+      "statement": "Surveys and recent reviews report rapid growth in LLM-agent and AIOps research, while noting that validated, general-purpose autonomous action (authority to change live infrastructure) lacks strong production evidence and remains an open assurance challenge.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412877164",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W4393065402"
+      ],
+      "evidence_type": "surveys / narrative review",
+      "confidence": 0.9,
+      "limitations": [
+        "Surveys synthesize published work and highlight gaps but do not themselves constitute new experimental production evidence.",
+        "Definitions of 'production evidence' and acceptable assurance levels differ across domains and authors."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "UQ1",
+      "statement": "To what extent can agentic LLM systems be granted autonomous authority to perform network configuration changes in production while meeting operational assurance goals (e.g., rollback, evidence anchors, demonstrable safety), and what minimal verification/contract structure suffices for that authority?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7117277408"
+      ],
+      "evidence_type": "framework / gap analysis",
+      "confidence": 0.7,
+      "limitations": [
+        "These sources identify the problem and propose frameworks but do not establish consensus operational thresholds or universal verification contracts.",
+        "Answer likely depends on domain-specific risk tolerances and available validators."
+      ]
+    },
+    {
+      "claim_id": "UQ2",
+      "statement": "How should prompt uncertainty and admissible prompt families be governed and measured in operational NetOps evaluations to avoid spurious inferences from prompt choice variability?",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6381558",
+        "https://openalex.org/W4412877164"
+      ],
+      "evidence_type": "methodological study / survey",
+      "confidence": 0.75,
+      "limitations": [
+        "Prompt-econometrics proposals exist but practical governance procedures for NetOps contexts are still immature.",
+        "Empirical quantification requires task-specific prompt families and reproducible evaluation pipelines."
+      ]
+    },
+    {
+      "claim_id": "UQ3",
+      "statement": "What benchmark suites and standardized metrics best capture operational correctness, safety, and rollback-readiness for LLM-driven NetOps workflows beyond existing task-oriented datasets?",
+      "evidence_record_ids": [
+        "doi:10.1109/ojcoms.2026.3680457",
+        "https://openalex.org/W4412877164"
+      ],
+      "evidence_type": "benchmark / evaluation survey",
+      "confidence": 0.7,
+      "limitations": [
+        "Emerging benchmarks (e.g., 6G-Bench) address adjacent problems but do not yet constitute consensus NetOps verification standards.",
+        "Operational metrics (e.g., reachability, isolation, policy compliance) require deterministic validators for rigorous measurement."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "CG1",
+      "statement": "There is a gap in reproducible, community-standard NetOps evaluation suites that combine LLM-driven generation with formal verification, adversarial-prompt stress tests, and operator-in-the-loop metrics.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412877164",
+        "https://openalex.org/W4388629193",
+        "doi:10.1109/ojcoms.2026.3680457"
+      ],
+      "evidence_type": "literature synthesis",
+      "confidence": 0.8,
+      "limitations": [
+        "Several ingredients (verification tools, benchmarks, adversarial corpora) exist separately; the gap is in integrated, reproducible suites with shared artifacts.",
+        "Recent 2025–2026 outputs indicate movement toward such suites but not yet broad adoption."
+      ]
+    },
+    {
+      "claim_id": "CG2",
+      "statement": "Empirical studies quantifying operator trust, acceptance thresholds, and real-world human–LLM interaction patterns for NetOps decision escalation remain limited.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7202375921",
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7117277408"
+      ],
+      "evidence_type": "empirical / survey evidence",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing work addresses decision-support cascades and debate frameworks, but domain-specific operator studies for network-change acceptance are sparse.",
+        "Transferability of findings from adjacent domains (e.g., SatCom, telecom Q&A) to NetOps is not fully validated."
+      ]
+    },
+    {
+      "claim_id": "CG3",
+      "statement": "Practical, scalable integrations of constrained-generation techniques (schema-guided generation, iterative verification–repair loops) specifically tuned for multi-vendor network CLIs are underexplored at production scale.",
+      "evidence_record_ids": [
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W7126266967"
+      ],
+      "evidence_type": "method / case-study literature",
+      "confidence": 0.78,
+      "limitations": [
+        "Proof-of-concept and small-scale studies exist, including translation and policy cases, but large multi-vendor production evaluations are absent.",
+        "CLI heterogeneity and stateful control-plane behaviors complicate end-to-end validation."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs are already production-ready to autonomously perform unbounded network configuration changes without human oversight (no supplied record provides production-deployment evidence to support this).",
+    "Prompt choice is inconsequential for operational NetOps evaluations (contradicted by prompt-uncertainty analyses and methodological work).",
+    "There is comprehensive, community-wide standardized benchmarking that fully measures LLM-driven NetOps safety, verification, adversarial resilience, and operator acceptance (existing benchmarks and toolchains are fragmented and emergent)."
+  ]
+}

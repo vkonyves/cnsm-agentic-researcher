@@ -1,0 +1,115 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand-20260901-001",
+      "title": "Verifier-Augmented LLM for Multi-Vendor CLI Generation",
+      "research_question": "Does integrating a deterministic network verifier into an iterative generate–verify–repair loop with an LLM reduce semantic and topological configuration errors across multi-vendor CLI tasks compared with LLM-only generation?",
+      "hypotheses": [
+        "An LLM paired with a deterministic verifier and a single verification-feedback repair loop will produce network configurations with fewer semantic errors than the same LLM without verifier assistance.",
+        "Verifier-augmented generation will reduce topological misconfigurations (e.g., unintended reachability changes) by a clinically meaningful margin compared with LLM-only outputs."
+      ],
+      "proposed_design": "Preregistered controlled experiment using a synthetic multi-vendor configuration task set (Cisco IOS-like and Juniper-like CLIs) drawn from public NetOps benchmarks and generated scenarios (n=120 tasks). Two arms: (A) LLM-only generation with a fixed prompt; (B) LLM + deterministic verifier (Batfish or equivalent) in a single generate–verify–repair loop where verifier outputs are converted to localized repair prompts and the LLM is allowed one repair iteration. Use a hosted LLM API (single model family) with fixed temperature and seed policy. All configurations are validated offline in simulator/emulator; no live devices are modified. Metrics: verifier pass/fail (reachability, policy compliance), syntactic success, repair iterations required, and error taxonomy. Preregister seeds, retry policy (max 1 retry for transient API failure), and stopping rules. Record all prompts, model outputs, verifier traces, and hashes.",
+      "expected_data": "Per-task verifier pass binary labels, counts of semantic/topological errors, syntactic error counts, number of repair iterations, and per-task latency/model-call counts. Aggregate pass rates per arm with per-task error annotations and representative failing examples.",
+      "primary_outcome": "Difference in verifier pass rate (proportion of tasks passing all deterministic checks) between LLM+verifier loop and LLM-only, assessed at task level.",
+      "analysis_outline": "Compute proportions and 95% confidence intervals for pass rates in each arm. Use two-sided chi-squared or Fisher exact test for pass-rate comparison. Estimate absolute risk reduction and number-needed-to-repair. Report effect sizes (Cohen's h) and bootstrap CIs for nonparametric metrics. Perform error-type stratified analysis (syntactic vs semantic vs topological) and qualitative failure-mode taxonomy with representative examples. Report per-task model-call cost and latency.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W4412888330"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W4385957489"
+      ],
+      "risks": [
+        "Deterministic verifier coverage may not fully capture control-plane dynamics, causing false negatives or positives in the offline simulator.",
+        "Vendor-CLI heterogeneity could cause translation errors unrelated to LLM reasoning, confounding attribution.",
+        "Exposure of representative failing prompts and repair patterns could assist adversarial actors if shared without limits."
+      ],
+      "estimated_model_calls": 2400
+    },
+    {
+      "candidate_id": "autocand-20260901-002",
+      "title": "Adversarial Prompt Stress Test for Generate–Verify NetOps Pipelines",
+      "research_question": "How susceptible are LLM-driven generate–verify NetOps pipelines to adversarial and prompt-injection attacks, and which mitigation (input sanitization, strict prompt templates, verifier hardening) most reduces successful unsafe outputs?",
+      "hypotheses": [
+        "Adversarially crafted prompts will increase the rate of unsafe or policy-violating configuration outputs even when a deterministic verifier is present in the pipeline.",
+        "Combining input sanitization with stricter verifier checks will reduce but not eliminate successful adversarial cases compared with an unmitigated pipeline."
+      ],
+      "proposed_design": "Construct an adversarial prompt corpus (n=150 adversarial variants) derived from documented prompt-injection patterns and non-adversarial controls (n=150) following prior attack taxonomies. Evaluate three pipeline conditions on the same task set: (1) baseline LLM + verifier, (2) LLM + input sanitization + verifier, (3) LLM + verifier with hardened acceptance criteria (e.g., semantic invariants). Run each adversarial and control prompt once per condition; all execution in simulator. Metrics: fraction of prompts producing verifier-accepted but unsafe configurations (unsafe=violates security policy or introduces unintended reachability), verifier false-negative rate, and types of attack success. Preregister adversarial generation rules, sanitizer rules, verifier acceptance thresholds, seeds, and retry policies.",
+      "expected_data": "Per-prompt condition labels indicating attack success, verifier decisions, sanitized prompt versions, resulting configurations, and annotated failure modes. Summary counts of false negatives and mitigation effectiveness percentages per condition.",
+      "primary_outcome": "Proportion of adversarial prompts that yield verifier-accepted but unsafe configurations (i.e., false negatives) under each mitigation condition; statistical comparison of mitigation effectiveness.",
+      "analysis_outline": "Paired analysis comparing false-negative proportions across conditions using McNemar's test and compute relative risk reduction with 95% CIs. Analyze distribution of attack vectors that bypass each mitigation. Report verifier error types and compute attacker success rate per attack class. Conduct sensitivity analysis varying verifier strictness and sanitizer aggressiveness.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "https://openalex.org/W4321855128",
+        "https://openalex.org/W4412877164"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W2889227506"
+      ],
+      "risks": [
+        "Creation and sharing of adversarial prompts could be dual-use and enable attacks if distributed without safeguards.",
+        "Simulator-based evaluation may underestimate attack success or overestimate mitigation effectiveness in production.",
+        "Mitigations (e.g., heavy sanitization) might degrade legitimate operator inputs, causing availability or usability issues."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "autocand-20260901-003",
+      "title": "Prompt-Uncertainty Ensembles to Predict Verification Failure in NetOps",
+      "research_question": "Can ensemble generation with uncertainty metrics (prompt-ensemble disagreement and model-calibrated scores) reliably predict verifier failure for LLM-produced NetOps configurations, enabling an automated escalation threshold?",
+      "hypotheses": [
+        "An ensemble of diversified prompts will produce a measurable disagreement score that correlates with verification failure probability.",
+        "A calibrated classifier combining ensemble disagreement and model-provided confidence scores can achieve operationally useful discrimination (AUC substantially above 0.7) for predicting verifier failures."
+      ],
+      "proposed_design": "Generate a dataset of NetOps tasks (n=200) covering varied difficulty. For each task, produce k=5 outputs using a prompt family (controlled paraphrases and schema vs freeform) to create an ensemble. Compute disagreement metrics (syntactic diff, semantic reachability differences) and derive model-native scores (logprob aggregates). Label outputs with deterministic verifier pass/fail. Train a small logistic regression on 70% data to predict verifier fail using ensemble features; evaluate on 30% holdout. Predefine calibration targets (e.g., threshold ensuring false-negative rate <5%) and decision rules. Record all artifacts and seeds.",
+      "expected_data": "Per-task ensemble outputs, computed disagreement and confidence metrics, verifier labels, trained classifier coefficients, ROC curve, AUC, Brier score, and selected threshold with confusion matrix on holdout.",
+      "primary_outcome": "Classifier discrimination performance (AUC) and calibration at the predefined escalation threshold; demonstrate a threshold achieving target false-negative rate if feasible.",
+      "analysis_outline": "Report AUC with 95% CI via bootstrapping, Brier score for calibration, calibration plots, and decision-curve analysis to quantify net benefit at candidate thresholds. Perform ablation to measure contribution of disagreement vs model confidence. Report operational trade-offs (false positives leading to unnecessary escalation).",
+      "novelty_evidence_ids": [
+        "doi:10.2139/ssrn.6381558",
+        "https://openalex.org/W4412877164",
+        "https://openalex.org/W4388629193"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4388629193",
+        "https://openalex.org/W2889227506"
+      ],
+      "risks": [
+        "Prompt-ensemble construction choices may inadvertently encode task-specific biases leading to overoptimistic performance.",
+        "Calibration measured in simulation may not generalize to production models or different prompt families.",
+        "Ensemble and classifier overhead increases model-call cost and latency, affecting operational feasibility."
+      ],
+      "estimated_model_calls": 1500
+    },
+    {
+      "candidate_id": "autocand-20260901-004",
+      "title": "Minimal Verification Contract for Limited Autonomous NetOps Actions",
+      "research_question": "What minimal set of deterministic acceptance checks (a verification contract) is sufficient to safely allow limited autonomous LLM-driven changes for low-risk NetOps tasks under simulator evaluation?",
+      "hypotheses": [
+        "A compact verification contract consisting of syntax checking, reachability-preservation, and automated rollback verification will produce a low rate of unsafe outcomes for a defined low-risk task class.",
+        "Adding rollback verification yields diminishing returns beyond reachability-preservation for the selected low-risk tasks."
+      ],
+      "proposed_design": "Define a low-risk task class (non-routing VLAN adjustments, isolated ACL changes to test VLANs, and benign interface descriptions) and a set of candidate verification contracts of increasing strictness: (C0) syntax only, (C1) syntax + reachability invariants, (C2) C1 + rollback simulation. Generate n=100 tasks from public datasets and simulated operational scenarios. For each task, allow LLM to propose a change and apply the contract checks in simulator; if contract passes, simulate rollback and verify no state corruption. Compare the proportion of tasks passing contract and subsequently verified to be safe under each contract. Predefine operator-acceptance proxy (e.g., acceptable unsafe rate <2%).",
+      "expected_data": "Per-task contract pass/fail, simulation rollback success/failure, counts of unsafe events post-acceptance, and marginal improvement when adding checks. Cost (model calls, verifier time) per contract.",
+      "primary_outcome": "Proportion of accepted changes that are both verifier-compliant and rollback-successful under each contract; assessment whether minimal contract meets operator-acceptance proxy.",
+      "analysis_outline": "Estimate proportions with 95% CIs and compare contracts using paired proportion tests (McNemar or exact methods). Compute marginal utility and cost per added check. Present sensitivity analysis varying the operator-acceptance proxy (1%–5%). Provide representative failure cases and discuss whether contract generalizes beyond low-risk tasks.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7203776655",
+        "https://openalex.org/W7117277408",
+        "https://openalex.org/W2889227506"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W2889227506",
+        "https://openalex.org/W7126266967"
+      ],
+      "risks": [
+        "Operator-acceptance proxy is a surrogate and may not reflect real human risk tolerance; conclusions may not transfer to production.",
+        "Simulator rollback success may not capture complex stateful control-plane behaviors present in live networks.",
+        "Narrow task class may overstate contract effectiveness when confronted with broader operational tasks."
+      ],
+      "estimated_model_calls": 800
+    }
+  ]
+}

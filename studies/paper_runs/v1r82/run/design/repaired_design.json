@@ -1,0 +1,162 @@
+{
+  "selected_candidate_id": "autocand-20260901-001",
+  "title": "Verifier-Augmented LLM for Multi-Vendor CLI Generation (Preregistered, Hosted-API Confirmatory Run)",
+  "research_question": "Does integrating a deterministic network verifier into a single generate–verify–repair loop with an LLM improve deterministic verifier pass rates for multi-vendor CLI configuration tasks compared with LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The verifier-augmented workflow (guarded) produces a higher task-level verifier pass rate than LLM-only generation (baseline); estimand = paired_success_rate_difference_guarded_minus_baseline.",
+    "H2 (secondary): Verifier-augmented generation reduces topological misconfiguration counts (as labeled by deterministic verifier counterexamples) compared with baseline (exploratory-confirmatory stratified analysis)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which error classes (syntactic, semantic, topological) benefit most from a single repair iteration?",
+    "EQ2: Per-task model-call cost and latency tradeoffs for guarded vs baseline."
+  ],
+  "benchmark_scope": [
+    "Synthetic multi‑vendor CLI task set generated under the supplied hosted_netops_gvr_v1 adapter profile (intent_configuration_repair_v1 task family).",
+    "Included vendors: Cisco-like IOS syntax and Juniper-like Junos syntax emulations produced by the deterministic task generator described in the adapter profile."
+  ],
+  "model_scope": [
+    "Single hosted LLM API provider and exact model identifier (see Sampling Plan). Claims are bounded to the tested model/version and prompt family."
+  ],
+  "transformation_scope": [
+    "baseline: direct_configuration_generation_v1 (one-shot generation per task).",
+    "guarded: generate_validate_repair_v1 (one initial generation + at most one repair iteration driven by deterministic verifier counterexamples using templated repair prompts)."
+  ],
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_reduction_in_topological_error_rate_guarded_vs_baseline (task-level counts)",
+    "mean_model_calls_per_task_difference_guarded_minus_baseline"
+  ],
+  "sampling_plan": "Use the hosted_netops_gvr_v1 execution adapter in paired (baseline, guarded) mode. Deterministic task selection: task_count = 120 tasks. Task indices are produced exactly by the adapter's challenging_workflow_stress_v1 profile with the provided deterministic index_rule: for zero-based ordinal j from 0..119, set cycle=j//5, offset=[4,5,6,7,8][j%5], task_index=8*cycle+offset. This selection is frozen pre-execution and recorded. Per-adapter constraints: initial_generation_calls_per_task=1, maximum_repair_calls_per_task=1. Total model calls = task_count * 2 = 120 * 2 = 240 model calls (one baseline call and at most one guarded repair call per task). The hosted model name and version are fixed in the preregistration as 'openai-chat-processor-v1' (provider: openai_responses), temperature=0.0, max_output_tokens=150, sampling seed policy: deterministic seed value recorded per call in execution metadata. Retry policy: a single automatic retry allowed only for transient API errors; persistent failures are logged and handled per Missingness Plan.",
+  "analysis_plan": "Primary confirmatory analysis executed by the registered executor 'paired_binary_analysis_v1' with estimand paired_success_rate_difference_guarded_minus_baseline. Primary test: two-sided exact McNemar test (paired binary) for pass/fail verifier outcome per task; report absolute risk difference (guarded − baseline) with 95% CI and Cohen's h. Primary failed-call treatment: 'complete_pair_primary' (pairs with both successful calls retained; pairs with missing results due to persistent infrastructure failure are excluded from primary but counted in sensitivity analyses). Preplanned sensitivity: 'complete_pair_primary_with_failure_as_zero_sensitivity' treating any missing guarded call as a failure for guarded condition. Secondary analyses: stratified error-class comparisons (syntactic, semantic, topological) using bootstrap CIs for counts and nonparametric effect sizes. All analyses use recorded deterministic task indices; bootstraps preserve pairing. All code and inputs are recorded and hashed for reproducibility.",
+  "multiplicity_plan": "Single predeclared primary outcome (verifier pass-rate difference). All other comparisons (error-class strata, latency, cost, qualitative failure taxonomy) are explicitly exploratory or secondary; p-values for secondary/exploratory analyses reported with Benjamini–Hochberg FDR control for descriptive purposes only and not used to overturn primary preregistered conclusions.",
+  "missingness_plan": "Primary analysis uses 'complete_pair_primary' (exclude task pairs with irrecoverable infrastructure failures on either condition). Preplanned sensitivity analyses: (1) treat any missing guarded call as a guarded failure ('complete_pair_primary_with_failure_as_zero_sensitivity'); (2) report descriptive audit of excluded pairs with recorded reason codes (API transient error, adapter transformation failure, verifier runtime error). No human annotation is required; exclusions are deterministic and logged. All excluded-pair hashes and reasons are published in the execution manifest.",
+  "contamination_plan": {
+    "benchmark_names": [
+      "hosted_netops_gvr_v1 challenging_workflow_stress_v1 task profile (synthetic multi-vendor CLI stress set)"
+    ],
+    "risk_factors": [
+      "Translation/normalizer bugs that convert generator intents into incorrect CLI tokens independent of LLM reasoning.",
+      "Verifier modeling limitations: Batfish-like offline verification does not model some control-plane dynamics (e.g., BGP convergence transients) and may show false negatives/positives for stateful behaviors.",
+      "Information leakage or dual-use risk from publishing detailed failing repair prompts or adversarial patterns."
+    ],
+    "detection_procedures": [
+      "Automated instrumentation records parser/normalizer exit codes and diffs between generated tokens and expected vendor grammar; tasks with nonzero parser_fatal_count are flagged.",
+      "Verifier runtime logs include explicit counterexample types (reachability, ACL denial/allow mismatch, VLAN misassignment) which are mapped to objective labels.",
+      "Automated static scan for high-risk content in representative failing prompts (keywords matching attack patterns) prior to any public release; outputs redacted per the Ethics/Disclosure rules."
+    ],
+    "item_flagging_rules": [
+      "Flag a task as 'translation-failure' if parser/normalizer returns a fatal parse error or if the normalizer reports >1 deterministic token-rewrite to reach vendor grammar.",
+      "Flag a task as 'verifier-unsupported' if the verifier returns an unsupported-feature error (control-plane construct out-of-scope) or times out (> verifier_timeout_ms) — such tasks are excluded from primary confirmatory counts and reported separately.",
+      "Flag any failing repair prompt that contains token sequences matching the dual-use watchlist for redaction prior to release."
+    ],
+    "analysis_treatment": "Primary analysis excludes 'verifier-unsupported' and 'translation-failure' tasks (deterministic exclusions recorded pre-analysis). Sensitivity analyses report intent-to-evaluate results including flagged tasks (with attribution of failure class). Public release redacts any repair prompts flagged by the watchlist; redaction rules are deterministic and recorded.",
+    "residual_uncertainty": [
+      "Residual uncertainty about verifier fidelity for stateful control-plane behaviors (documented and reported as noncritical limitation).",
+      "Residual risk that normalizer bugs could systematically bias difference estimates if not detected; mitigation: instrumentation, deterministic exclusion rules, and published excluded-task manifest."
+    ]
+  },
+  "budget_scenarios": [
+    {
+      "scenario_id": "S1_minimal",
+      "description": "Minimal confirmatory run (feasible within reduced budget).",
+      "planned_model_calls": 120,
+      "models": [
+        "openai-chat-processor-v1"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Task_count=60 (paired episodes=60) reduces calls to 120; sufficient for a low-powered check and useful exploratory signal when resources constrained."
+    },
+    {
+      "scenario_id": "S2_recommended",
+      "description": "Primary preregistered confirmatory run (recommended).",
+      "planned_model_calls": 240,
+      "models": [
+        "openai-chat-processor-v1"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 120,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Task_count=120 (paired episodes=120) uses adapter maximum_model_calls = task_count*2 = 240 calls. Power calculation (see Power Plan) supports this sample for detecting ~15 percentage-point paired improvement with 80% power under conservative discordant-rate assumptions. Well within manifest model-call budget (maximum_planned_model_calls=10000) and wall-clock constraint (≤7 days)."
+    },
+    {
+      "scenario_id": "S3_highpower",
+      "description": "High-powered confirmatory run / expanded stress test.",
+      "planned_model_calls": 480,
+      "models": [
+        "openai-chat-processor-v1"
+      ],
+      "transformations": [
+        "baseline: direct_configuration_generation_v1",
+        "guarded: generate_validate_repair_v1"
+      ],
+      "discovery_items": 0,
+      "confirmatory_items": 240,
+      "task_cluster_count": 1,
+      "feasibility_rationale": "Task_count=240 produces up to 480 model calls and increases power to detect smaller absolute differences (~10 percentage points). Still within manifest limits but requires longer execution time; recommended only if resources/time permit."
+    }
+  ],
+  "power_plan": {
+    "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+    "target_effect": "Absolute paired pass-rate improvement of 15 percentage points (0.15) favored as a practically meaningful minimum detectable effect (MDE).",
+    "clustering_unit": "task (each task is an independent paired episode: baseline and guarded outputs on same task index).",
+    "calculation_method": "Conservative McNemar-style paired-sample approximation using discordant-pair-based sample-size formula: n ≈ ((Z_{1-α/2}+Z_{1-β})^2 * (p01 + p10)) / d^2, where d is the absolute difference in paired proportions and p01+p10 is the discordant proportion. We set Z_{1-α/2}=1.96, Z_{1-β}=0.84 (α=0.05 two-sided, power=0.80).",
+    "assumptions": [
+      "Assume discordant proportion (p01+p10) ≈ 0.30 (conservative for these stress-case tasks).",
+      "Target absolute paired difference d = 0.15.",
+      "Plugging values: n ≈ (2.8^2 * 0.30) / 0.15^2 ≈ 105. Rounding up and adding buffer → 120 tasks.",
+      "Type I error α = 0.05 (two-sided), power = 0.80, paired design with tasks independent under adapter selection profile."
+    ],
+    "recommended_scenario_id": "S2_recommended",
+    "minimum_detectable_effect_notes": "With n=120 and assumed discordant proportion 0.30, the MDE ≈ 0.15. If discordant proportion is larger, detectable absolute difference decreases; if smaller, MDE increases. Sensitivity analyses over discordant proportions 0.2–0.4 will be reported.",
+    "sensitivity_analyses": [
+      "Recompute achieved power and MDE across discordant proportions p01+p10 ∈ {0.20,0.30,0.40}.",
+      "Report confidence-interval-based post-hoc detectable effect and bootstrap CIs for absolute risk reduction."
+    ]
+  },
+  "transformation_validation": {
+    "transformation_families": [
+      "direct_configuration_generation_v1",
+      "generate_validate_repair_v1",
+      "verifier_to_prompt_mapping_v1",
+      "vendor_normalizer_parse_v1"
+    ],
+    "semantic_equivalence_checks": [
+      "Deterministic token-level normalization: compare normalized intended configuration semantics pre- and post-transformation using vendor-normalizer diffs; baseline systems failing normalization are flagged.",
+      "Round-trip check for repaired configurations: apply verifier to repaired candidate and ensure that the flagged counterexample no longer appears (deterministic pass) or document verifier counterexample type if unresolved."
+    ],
+    "automatic_rejection_rules": [
+      "Reject task result from primary analysis if vendor_normalizer returns fatal parse error or verifier returns 'unsupported-feature' or timeout; these are deterministic exclusions recorded with reason codes.",
+      "Automatically redact any repair prompts containing strings matched by the dual-use watchlist before public release; redaction is deterministic and logged."
+    ],
+    "audit_sample_policy": "Random deterministic audit sample of 10% of guarded successful repairs (seeded sample using the global run seed) subjected to additional static analysis checks to verify repair prompt mapping correctness; audit is automated (no human adjudication) and logs are published.",
+    "mapping_validation": "Provide templated mapping rules from verifier counterexample types to repair prompts: (1) reachability counterexample → include 'correct route or ACL insertion/removal' template with explicit code snippet placeholders; (2) ACL semantics violation → include 'explicit ACL rule add/remove with direction and match fields' template; (3) VLAN mismatch → include 'VLAN assignment correction' template. Example mappings documented in the preregistration with concrete before/after examples and unit tests exercised in the run.",
+    "residual_risks": [
+      "Verifier coverage gaps for dynamic control-plane behaviors (BGP convergence, transient timers) remain and are reported as noncritical limitations.",
+      "Automated mapping templates may not capture every complex counterexample; these cases are flagged as unresolved and excluded from primary confirmatory counts."
+    ]
+  },
+  "preregistration_fields_complete": true,
+  "unresolved_critical_issues": [],
+  "remaining_noncritical_uncertainties": [
+    "UQ1: Minimal verifier/contract needed to grant autonomous production authority remains an open governance question; experiment is explicitly scoped to offline verifier pass-rate improvement and does not claim production authority.",
+    "UQ2: Prompt-family governance and admissible prompt variability remain unresolved; claims are bounded to the fixed prompt templates specified in this preregistration.",
+    "UQ3: Verifier fidelity for stateful control-plane dynamics (e.g., BGP convergence transients) is limited; such behaviors are out-of-scope and deterministically excluded from primary analysis when detected."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4412888330",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W4385957489",
+    "https://openalex.org/W7126266967"
+  ]
+}

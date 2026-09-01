@@ -1,0 +1,78 @@
+{
+  "study_id": "autocand-20260901-001",
+  "title": "Verifier-Augmented LLM for Multi-Vendor CLI Generation (Preregistered, Hosted-API Confirmatory Run)",
+  "research_question": "Does integrating a deterministic network verifier into a single generate–verify–repair loop with an LLM improve deterministic verifier pass rates for multi-vendor CLI configuration tasks compared with LLM-only generation?",
+  "confirmatory_hypotheses": [
+    "H1 (primary): The verifier-augmented workflow (guarded) produces a higher task-level verifier pass rate than LLM-only generation (baseline); estimand = paired_success_rate_difference_guarded_minus_baseline.",
+    "H2 (secondary): Verifier-augmented generation reduces topological misconfiguration counts (as labeled by deterministic verifier counterexamples) compared with baseline (exploratory-confirmatory stratified analysis)."
+  ],
+  "exploratory_questions": [
+    "EQ1: Which error classes (syntactic, semantic, topological) benefit most from a single repair iteration?",
+    "EQ2: Per-task model-call cost and latency tradeoffs for guarded vs baseline."
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W4388629193",
+    "https://openalex.org/W4412888330",
+    "https://openalex.org/W2889227506",
+    "https://openalex.org/W4385957489",
+    "https://openalex.org/W7126266967"
+  ],
+  "benchmark_scope": [
+    "Synthetic multi‑vendor CLI task set generated under the supplied hosted_netops_gvr_v1 adapter profile (intent_configuration_repair_v1 task family).",
+    "Included vendors: Cisco-like IOS syntax and Juniper-like Junos syntax emulations produced by the deterministic task generator described in the adapter profile."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 120,
+    "planned_episode_count": 240,
+    "maximum_model_calls": 240,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "absolute_reduction_in_topological_error_rate_guarded_vs_baseline (task-level counts)",
+    "mean_model_calls_per_task_difference_guarded_minus_baseline"
+  ],
+  "sampling_plan": "Use the hosted_netops_gvr_v1 execution adapter in paired (baseline, guarded) mode with task_count = 120. Deterministic task selection: for zero-based ordinal j from 0..119, set cycle=j//5, offset=[4,5,6,7,8][j%5], task_index=8*cycle+offset. One initial model generation per task is produced and shared unchanged across paired conditions per the adapter's shared_initial_candidate semantics; guarded condition may invoke at most one repair call when the verifier returns a failing counterexample. Model runtime sampling parameters (temperature, top_p, seed, max_tokens, etc.) are not assumed deterministic by preregistration and will be recorded in execution metadata for each call. The chosen hosted execution model is gpt-5-mini (from supplied available_execution_models). Retry policy: a single automatic retry for transient API errors only; persistent failures are handled per the Missingness Plan.",
+  "power_and_precision_plan": "Primary estimand: paired_success_rate_difference_guarded_minus_baseline. Target effect (MDE): absolute paired pass-rate improvement d = 0.15. Conservative discordant-pair assumption p01+p10 = 0.30. Using two-sided α=0.05 and power=0.80 (Z_{1-α/2}=1.96, Z_{1-β}=0.84) yields n ≈ 105; rounded up and buffered → n = 120 tasks. Recommended scenario: S2_recommended (task_count=120, planned_model_calls=240). Sensitivity: recompute achieved MDE/power across discordant proportions {0.20,0.30,0.40} and report bootstrap CIs for effect sizes.",
+  "exclusion_rules": [
+    "Exclude tasks flagged 'verifier-unsupported' (verifier returns unsupported-feature or times out) from primary confirmatory counts; record deterministic reason codes.",
+    "Exclude tasks flagged 'translation-failure' if vendor_normalizer returns a fatal parse error or performs >1 deterministic token rewrite to reach vendor grammar; such tasks are reported and excluded from primary analysis."
+  ],
+  "missingness_plan": "Primary analysis uses 'complete_pair_primary': retain only task pairs where both baseline and guarded model-call results are present and not excluded deterministically. Preplanned sensitivity analyses: (1) 'complete_pair_primary_with_failure_as_zero_sensitivity' — treat any missing guarded call as guarded failure; (2) publish a descriptive audit of excluded pairs with deterministic reason codes (API transient error, adapter transformation failure, verifier runtime error). All excluded-pair hashes and reasons will be published in the execution manifest. No human adjudication is required; exclusions are deterministic and logged.",
+  "analysis_plan": "Primary confirmatory analysis executed by the registered executor 'paired_binary_analysis_v1' (primary_estimand_id). Primary test: two-sided exact McNemar test (paired binary) on verifier pass/fail per task; report absolute risk difference (guarded − baseline) with 95% CI and effect-size measure (Cohen's h). Primary failed-call treatment: 'complete_pair_primary' (exclude irrecoverable missing pairs). Preplanned sensitivity: treat missing guarded calls as failures ('complete_pair_primary_with_failure_as_zero_sensitivity'). Secondary analyses: stratified counts by error-class (syntactic, semantic, topological) with bootstrap CIs, and nonparametric effect-size descriptors. Bootstraps preserve pairing. All analysis code, inputs, and recorded model-call metadata (including runtime sampling parameters) are versioned, hashed, and published in the execution manifest.",
+  "multiplicity_plan": "One predeclared primary outcome (verifier pass-rate difference). All other comparisons (error-class strata, latency, cost, qualitative taxonomy) are secondary or exploratory. Report p-values for secondary/exploratory analyses with Benjamini–Hochberg FDR adjustment for descriptive purposes only; they will not be used to overturn the primary preregistered conclusion.",
+  "contamination_plan": "Benchmark: hosted_netops_gvr_v1 challenging_workflow_stress_v1 task profile. Risk factors: (1) translation/normalizer bugs that alter CLI tokens independent of LLM reasoning; (2) verifier limitations for stateful control-plane behaviors (e.g., BGP convergence) producing false negatives/positives; (3) information-leakage or dual-use risk from releasing failing repair prompts. Detection: automated instrumentation records parser/normalizer exit codes and diffs; verifier logs include counterexample types mapped to objective labels; automated static scan for high-risk content in repair prompts prior to public release. Flagging rules: 'translation-failure' if parser returns fatal parse error or >1 token rewrite; 'verifier-unsupported' if verifier returns unsupported-feature or times out. Analysis treatment: primary analysis excludes flagged tasks; sensitivity analyses report intent-to-evaluate including flagged tasks. Any repair prompts flagged by dual-use watchlist will be deterministically redacted before public release; redaction rules are recorded.",
+  "stopping_rule": "Execute all predeclared task_count = 120 paired episodes unless interrupted by unrecoverable infrastructure failure. Only the preregistered single automatic retry for transient API errors is allowed; persistent provider or adapter failures that prevent completion will terminate the run and be documented in the execution manifest. Primary analysis will proceed on the deterministically available complete pairs per the Missingness Plan.",
+  "planned_outputs": [
+    "Five-page IEEE-format manuscript (CNSM 2026 Agentic AI Researcher short paper).",
+    "Execution manifest (raw outputs, logs, runtime sampling parameters, hashes).",
+    "Code and configuration (analysis code, adapter invocation scripts, prompt templates, mapping templates).",
+    "Paired episode result table and analysis artifacts (statistics, bootstrap samples, CI files).",
+    "Excluded-task manifest with reason codes and hashes.",
+    "NotebookLM presentation brief (machine-readable) for an acceptance-stage notebook if requested."
+  ],
+  "unresolved_critical_issues": []
+}
