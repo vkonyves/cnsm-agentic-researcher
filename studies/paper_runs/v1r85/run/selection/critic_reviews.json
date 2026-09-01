@@ -1,0 +1,100 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "novelty": 0.8,
+      "falsifiability": 1.0,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Validators are treated as ground truth but their coverage/accuracy is unspecified — mislabeling could bias results.",
+        "Adversarial-intent generation methods are underspecified and could enable misuse if published without safeguards.",
+        "Dataset provenance and public-license status for vendor configs are not fully detailed; may affect reproducibility and legality.",
+        "Statistical power/sample-size justification for 600 paired tasks is not shown; uncertain sensitivity for primary McNemar test.",
+        "Exact model identifier, prompt templates, decoder/settings, and retry policy must be frozen and disclosed in preregistration."
+      ],
+      "required_design_repairs": [
+        "Provide explicit validator specifications, test-coverage matrix, and validation correctness evaluation (e.g., validator-vs-expert spot checks).",
+        "Define and document adversarial-intent generation algorithm, redaction/safety policy for release, and mitigations for misuse.",
+        "Provide dataset provenance, licensing, and selection procedure for the 600 intents; include hashing/archival plan.",
+        "Add a pre-experiment power analysis to justify 600-task sample or adjust sample size.",
+        "Record and freeze exact model identifier(s), prompts, decoding parameters, random seeds, and retry policy in preregistration JSON."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "novelty": 0.85,
+      "falsifiability": 1.0,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.85,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Public release poses security risks (adversarial generators, validators) and needs a clear responsible-disclosure strategy.",
+        "Benchmark artefacts rely on hosted-model behaviour; reproducibility across time/providers requires archived outputs and deterministic seeds.",
+        "Metrics (rollback-worthiness score) need formal definition and validation against operational meaning.",
+        "Risk of benchmark overfitting by future systems if validators expose exploitable patterns.",
+        "Licensing and redistribution of vendor-derived configs and grammars is unspecified."
+      ],
+      "required_design_repairs": [
+        "Define and formalize rollback-worthiness metric and its weighting scheme; justify operational relevance.",
+        "Specify responsible-release policy: what will be public, what will be redacted, and how to provide safe interfaces for validators/adversarial generators.",
+        "Include archival plan: store and publish model outputs, seeds, hashes to permit later verification despite provider drift.",
+        "Document licensing/rights for all dataset items; substitute or redact nonredistributable elements.",
+        "Pre-register model identifiers, per-task model-call cap, and reproducibility-run protocol (number of repeats, seeds)."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "novelty": 0.7,
+      "falsifiability": 1.0,
+      "evidence_support": 0.6,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Constructing correct vendor grammars and parsers is labor-intensive; risk of incomplete grammars biasing results.",
+        "Neurosymbolic repair rules may introduce unanticipated semantic changes that validators do not detect.",
+        "Integration with constrained-decode hooks may require model/API features not universally available; portability concerns.",
+        "Latency and operational cost of repair pipeline may make results academically interesting but operationally impractical without latency targets."
+      ],
+      "required_design_repairs": [
+        "Provide concrete plan and tooling for grammar construction, parser validation, and coverage tests (e.g., corpus-driven grammar completeness metrics).",
+        "Specify the repair-rule provenance, test-suite for rule correctness, and detection of repair-induced regressions.",
+        "Confirm availability of decoding hooks or describe fallback approach if hosted API lacks needed controls.",
+        "Predefine acceptable latency thresholds and measure cost-per-decision; include practical deployment constraints in evaluation."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "novelty": 0.9,
+      "falsifiability": 1.0,
+      "evidence_support": 0.75,
+      "causal_interpretability": 0.7,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.7,
+      "venue_relevance": 1.0,
+      "major_concerns": [
+        "Detailed adversarial payloads and exploitation patterns could be misused if published without mitigation/redaction.",
+        "Simulated attacks may not reflect real adversary capabilities; external validity must be bounded.",
+        "Definition of 'attack success' conflates semantic validator-failures with successful malicious insertion; needs clear taxonomy.",
+        "Ethical/legal constraints on crafting attack payloads and publishing examples must be addressed."
+      ],
+      "required_design_repairs": [
+        "Adopt a responsible-disclosure policy: redact exploit payloads in public artifacts, provide safe summarized exemplars, and offer validator-only interfaces where needed.",
+        "Define attacker threat model explicitly (capabilities, access level) and justify representativeness.",
+        "Formalize attack-success definitions and map them to operationally meaningful outcomes (e.g., unauthorized config change vs. benign syntax noise).",
+        "Confirm experiments run only in simulation; include attestations and logs proving no live-device executions and detail safeguards used."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

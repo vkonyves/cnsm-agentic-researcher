@@ -1,0 +1,86 @@
+{
+  "study_id": "autocand-2026-01-prereg-v1",
+  "title": "Comparative efficacy of tool-augmentation versus constrained decoding for preventing high-risk semantic misconfigurations under adversarial intents (repaired/preregistered)",
+  "research_question": "Under adversarial or out-of-distribution intent prompts, does tool-augmentation (generate→validate→repair) reduce high-risk semantic misconfigurations relative to LLM-only generation in vendor-specific intent→configuration pipelines?",
+  "confirmatory_hypotheses": [
+    "H1: Tool-augmented pipelines (generate→validate→repair) produce a lower high-risk semantic failure rate than LLM-only generation (paired comparison).",
+    "H2: The absolute reduction in high-risk semantic failure rate between tool-augmented and LLM-only pipelines is at least 5 percentage points (the primary minimum-detectable-effect used for sample-size justification)."
+  ],
+  "exploratory_questions": [
+    "E1: How do failure-mode frequencies (ACL, routing, interface/address overlap, BGP/neighbor misconfig) differ between pipelines?",
+    "E2: Does constrained/grammar-aware decoding (not available as a confirmatory adapter) offer complementary benefits when combined with tool-augmentation? (exploratory descriptive analyses only)"
+  ],
+  "evidence_record_ids": [
+    "https://openalex.org/W7161165783",
+    "https://openalex.org/W7165242241",
+    "https://openalex.org/W4407244772",
+    "https://openalex.org/W7117986201",
+    "https://openalex.org/W4408529625",
+    "https://openalex.org/W4400072049",
+    "https://openalex.org/W4415124495"
+  ],
+  "benchmark_scope": [
+    "Public vendor-configuration corpora and intent→configuration pairs derived only from redistributable public datasets referenced in the supplied evidence records (see evidence_record_ids).",
+    "Adversarial intent set used for stress-testing is algorithmically generated; potentially sensitive exemplars will be redacted on public release per the contamination plan."
+  ],
+  "model_scope": [
+    "gpt-5-mini"
+  ],
+  "transformation_scope": [
+    "direct_configuration_generation_v1",
+    "generate_validate_repair_v1"
+  ],
+  "execution_contract": {
+    "adapter_family": "hosted_netops_gvr_v1",
+    "execution_mode": "scientific_confirmatory",
+    "design": "paired_binary",
+    "conditions": [
+      "baseline",
+      "guarded"
+    ],
+    "model_provider": "openai_responses",
+    "model_names": [
+      "gpt-5-mini"
+    ],
+    "task_count": 600,
+    "planned_episode_count": 1200,
+    "maximum_model_calls": 1200,
+    "generation_semantics": "shared_initial_candidate",
+    "independent_condition_generation": false,
+    "initial_generation_calls_per_task": 1,
+    "maximum_repair_calls_per_task": 1,
+    "retrieval_augmented_generation": false
+  },
+  "primary_estimand": "Paired absolute difference in high-risk semantic failure proportions (LLM-only minus tool-augmented) across the predeclared task sample, computed by the paired_binary_analysis_v1 executor.",
+  "primary_estimand_id": "paired_success_rate_difference_guarded_minus_baseline",
+  "secondary_estimands": [
+    "Per-vendor paired absolute differences (Cisco IOS, Juniper Junos).",
+    "Repair success rate: proportion of initial-validator-failed tasks where a single automated repair produces a validator-pass.",
+    "Failure-mode relative-frequency differences by category (ACL, routing, neighbor, interface/address)."
+  ],
+  "sampling_plan": "Confirmatory paired design using the hosted_netops_gvr_v1 adapter. task_count = 600 paired tasks selected deterministically via the adapter's challenging_workflow_stress_v1 index rule (selection is outcome-independent and fixed before any model calls). Episodes_per_task = 2 (baseline and guarded). Per adapter contract: one shared initial generation per task (used unchanged across paired conditions) and at most one guarded repair call if the deterministic validator fails. Runtime sampling parameters (temperature, top_p, other runtime generation parameters) will be recorded for every model call; no claim of deterministic sampling is made.",
+  "power_and_precision_plan": "Primary power target: detect an absolute difference of 5 percentage points with ≈80% power at α=0.05 under conservative paired-difference approximations. Assumptions: baseline semantic high-risk failure rate ≈10%, two-sided α=0.05, paired design. N=600 pairs provides ≈80% power to detect a 5 percentage-point absolute difference under these assumptions. Sensitivity analyses will recompute power/CI under baseline rates 5% and 15% and will report bootstrap CIs for the primary estimand.",
+  "exclusion_rules": [
+    "Exclude any dataset item lacking a public-source URL and license tag (flagged by automated provenance check).",
+    "Exclude confirmatory-sample items flagged by automated consistency checks (ambiguous ground-truth configurations) after additional automatic checks.",
+    "Exclude items redacted for safety (adversarial examples with exploit payloads) from the primary confirmatory analysis; counts and reasons reported."
+  ],
+  "missingness_plan": "Primary analysis treatment: 'complete_pair_primary' — pairs with technical infrastructure/model-call failures are excluded from the confirmatory test and reported with counts and reasons. A sensitivity analysis ('complete_pair_primary_with_failure_as_zero_sensitivity') will treat technical failures as semantic failures. All model-call failures (initial generation vs. repair attempt) and adapter errors will be logged with timestamps and locations.",
+  "analysis_plan": "Primary analysis executed by paired_binary_analysis_v1: McNemar-style paired comparison of binary final semantic-pass outcomes (validator pass/fail) between baseline and guarded conditions, reporting absolute risk difference and two-sided 95% CIs (as provided by the executor). Secondary analyses: vendor-stratified paired estimates, Fisher-exact tests for failure-mode frequency differences with Bonferroni correction across secondary test family, bootstrap CIs for repair success rates, and sensitivity analyses treating technical failures as failures. All analyses will use the paired_binary_analysis_v1 executor and its supported failed_call_treatment options. Runtime sampling parameters and full raw outputs will be archived and hashed for reproducibility.",
+  "multiplicity_plan": "Primary hypothesis (H1/H2) is the single confirmatory test. Secondary tests are labeled exploratory; reported p-values for secondary confirmatory-family tests will be Bonferroni-corrected across the declared family. No multiplicity correction applied to purely exploratory descriptive charts; all exploratory inferences explicitly labeled as exploratory.",
+  "contamination_plan": "Dataset provenance checks and automated redaction: (1) require public-source URL and license for inclusion in confirmatory sample; (2) hash-based duplication detection vs archived pre-lock artifacts to prevent reuse of pre-lock development payloads; (3) algorithmic redaction of adversarial examples containing exploit substrings before public release (full hashed artifacts retained privately); (4) flagged items (missing license, exploit patterns, ambiguous ground-truth) are excluded from the confirmatory primary analysis and reported with counts and rationales. Sensitivity analyses will report confirmatory results with and without flagged items where safe redactions permit.",
+  "stopping_rule": "Stop when all predeclared task_indices are processed or when the adapter's maximum_model_calls (task_count * 2 = 1200) are exhausted. No interim outcome-dependent stopping or sample-size peeking is permitted.",
+  "planned_outputs": [
+    "Preregistered experiment plan (this document) with hashes and adapter-contract metadata.",
+    "Execution manifest and raw model-call logs with runtime sampling parameters.",
+    "Deterministic validator outputs and repair-attempt records.",
+    "Paired_binary_analysis_v1 results file with primary estimand, CIs, and secondary analyses.",
+    "Seeded 100-case validator-audit results (sensitivity/specificity).",
+    "Five-page IEEE-format manuscript PDF (includes Disclosure Statement).",
+    "BibTeX bibliography and verified reference record.",
+    "Public-release dataset subset (only redistributable items) with redactions and hashes; restricted archive for full artifacts.",
+    "Autonomous revision and execution log; final-output hash manifest.",
+    "NotebookLM presentation brief (machine-readable)."
+  ],
+  "unresolved_critical_issues": []
+}

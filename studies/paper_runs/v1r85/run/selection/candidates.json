@@ -1,0 +1,126 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "autocand-2026-01",
+      "title": "Comparative efficacy of tool-augmentation versus constrained decoding for preventing high-risk semantic misconfigurations under adversarial intents",
+      "research_question": "Under adversarial or out-of-distribution intent prompts, which mitigation—tool-augmentation (generate→validate→repair) or constrained/grammar-aware decoding—more effectively reduces high-risk semantic misconfigurations in vendor-specific intent-to-configuration generation pipelines?",
+      "hypotheses": [
+        "Tool-augmented pipelines will produce fewer high-risk semantic misconfigurations than LLM-only generation under adversarial prompts.",
+        "Constrained/grammar-aware decoding will substantially reduce syntactic and low-level errors but will be less effective than tool-augmentation at eliminating semantic misconfigurations detectable by validators.",
+        "Combining constrained decoding with a downstream validator+repair stage will yield the lowest overall high-risk failure rate compared to either approach alone."
+      ],
+      "proposed_design": "Construct a paired evaluation set of 600 intent tasks with corresponding ground-truth vendor configurations covering two widely used CLI families (Cisco IOS and Juniper Junos) drawn from public configuration corpora and augmented with systematically generated adversarial/perturbed intents (syntax perturbations, ambiguous scope, injected distracting context). Implement three pipelines: (A) LLM-only generation (prompt→generate), (B) LLM with external validator and repair tool (generate→validator→repair loop), (C) constrained/grammar-aware decoding (enforced vendor grammar at decode time). Also include (D) combined constrained decoding plus validator/repair. Use a hosted-model API permitted by the environment for a single strong LLM (fixed model identifier in preregistration). Freeze prompts, random seeds, and retry policy in a preregistration JSON before execution. For each generated configuration run deterministic validators (static semantic checks: ACL semantics, route correctness, interface/address conflicts) in a simulator; label each output for syntactic validity, semantic correctness, and whether the validator would permit automated rollout (rollback-worthiness). Log raw outputs, validator traces, and repair attempts.",
+      "expected_data": "Per-task records for 600 intents × 4 pipelines: generated configuration text, syntactic validity boolean, validator semantic-pass boolean, validator-detected semantic-error types (ACL, routing, neighbor misconfig, reachability), number and content of repair iterations, final pass/fail, time per pipeline step, and full logs of model calls and tool responses.",
+      "primary_outcome": "Difference in high-risk semantic failure rate (validator semantic-pass false for final output) between pipelines, reported as absolute percentage points and 95% confidence intervals.",
+      "analysis_outline": "Use paired comparisons across the same 600 intents to compute per-pipeline semantic-failure proportions. Primary comparison: McNemar test (paired binary outcomes) between tool-augmentation (B) and constrained decoding (C). Report absolute risk differences with 95% CIs (Clopper–Pearson). Secondary analyses: pairwise comparisons among A/B/C/D with Bonferroni correction; stratified effect estimates by vendor; failure-mode taxonomy frequency counts and Fisher-exact tests for categorical error-type differences; bootstrap estimates for repair success rates. Predefine significance threshold α=0.05 and report effect sizes and practical significance (number-needed-to-check).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7165242241",
+        "https://openalex.org/W4407244772",
+        "https://openalex.org/W7117986201"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4408529625",
+        "https://openalex.org/W4400072049"
+      ],
+      "risks": [
+        "Public datasets and simulators may not capture all production edge cases, limiting external validity.",
+        "Misclassification of semantic correctness by imperfect validators could bias failure-rate estimates.",
+        "Releasing adversarial-intent generation tooling could be misused to craft harmful prompts if published without safeguards.",
+        "Resource consumption on hosted-model APIs may incur cost and rate-limit interruptions (handled per preregistered retry policy)."
+      ],
+      "estimated_model_calls": 2500
+    },
+    {
+      "candidate_id": "autocand-2026-02",
+      "title": "A reproducible generate–validate–repair benchmark suite for NetOps: design, release, and pipeline differentiation",
+      "research_question": "Can a publicly reproducible generate–validate–repair (GVR) benchmark suite—comprising intents, vendor-specific target configs, deterministic validators, and adversarial test cases—provide reproducible, quantitative separation among LLM-only, GVR, and repair-enabled NetOps pipelines with respect to operational reliability and rollback-worthiness?",
+      "hypotheses": [
+        "A standardized GVR benchmark will reveal statistically significant differences in semantic-failure rates between LLM-only pipelines and GVR pipelines across modestly sized model-call budgets.",
+        "Repair-enabled pipelines will show higher successful automated-rollout rates (validator-pass after repair) than generate-only pipelines, with measurable effect sizes that persist under adversarial perturbations.",
+        "The benchmark will produce reproducible rankings of pipeline reliability (rank stability across repeated seeds) when paired with deterministic validators and a fixed model-call budget."
+      ],
+      "proposed_design": "Design and release a benchmark suite containing: (1) 500 curated intent→target-config pairs spanning two vendor CLIs and multiple task types (ACLs, routing, interface configs); (2) 500 adversarially perturbed variants derived algorithmically; (3) open-source vendor grammar fragments and deterministic validators implementing semantic checks; and (4) an evaluation harness to run pipelines and record artifacts. Predefine three pipeline variants: LLM-only, GVR (validate then repair once), and iterative-repair (up to three repair iterations). Choose two representative hosted LLM endpoints permitted by policy and freeze model identifiers in the preregistration. Run each pipeline across the benchmark with fixed seeds and a model-call budget cap (per-task call cap). Publish benchmark artifacts and evaluation scripts in a public repository. Measure primary metrics: validator-pass after final output, repair success rate, and rollback-worthiness score (validator severity-weighted pass metric).",
+      "expected_data": "Benchmark artifact repository; per-case pipeline logs for 1000 intents (original+adversarial) × 3 pipeline variants × 2 models: generated outputs, validator traces, repair diffs, per-call counts, final pass/fail, and aggregated leaderboards and reproducibility logs (hashes, seed records).",
+      "primary_outcome": "The benchmark's ability to separate pipelines defined as the effect size (Cohen's d or rank-biserial) for validator-pass rates between LLM-only and GVR pipelines, with reproducibility assessed by rank stability over 10 repeated runs.",
+      "analysis_outline": "Compute validator-pass proportions per pipeline and model; test pipeline differences using repeated-measures ANOVA or Friedman test if non-normal, with post-hoc Wilcoxon signed-rank tests and Holm correction. Compute effect sizes (Cohen's d for paired differences or rank-biserial). Evaluate reproducibility by computing Kendall's tau and Spearman rank correlations across repeated runs. Report per-task variance components (task, adversarial status, vendor) via mixed-effects logistic regression to attribute sources of performance variability. Provide artifact hashes and CI for all primary metrics.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4367860052",
+        "https://openalex.org/W4411523078"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W7117986201"
+      ],
+      "risks": [
+        "Public benchmark release could enable adversaries to craft targeted exploits if validators reveal exploitable gaps; mitigate by releasing validator-only interfaces and redacted adversarial generators if required.",
+        "Benchmark may encourage overfitting by future systems to the released validators rather than real-world semantics.",
+        "Dependency on hosted-model APIs may produce non-reproducible results if providers change model behavior; mitigate by archiving model outputs and seeds in reproducibility artifacts."
+      ],
+      "estimated_model_calls": 3000
+    },
+    {
+      "candidate_id": "autocand-2026-03",
+      "title": "Transferability study of constrained decoding and neurosymbolic repair methods to vendor-specific network CLIs",
+      "research_question": "How effectively do constrained decoding and neurosymbolic repair techniques, developed in structured-code domains, transfer to vendor-specific network CLIs in improving syntactic validity and validator-detected semantic correctness compared to unconstrained LLM generation?",
+      "hypotheses": [
+        "Applying constrained decoding with vendor grammars will sharply increase syntactic validity rates relative to unconstrained LLM generation.",
+        "Neurosymbolic repair methods (parse→symbolic-check→symbolic-rewrite→regenerate) will reduce validator-detected semantic errors more than constrained decoding alone for complex tasks such as ACL and routing policy synthesis.",
+        "The marginal benefit of neurosymbolic repair over constrained decoding will be larger for tasks with complex semantic dependencies (multi-rule ACLs, interdependent routing statements) than for simple single-command intents."
+      ],
+      "proposed_design": "Select a focused corpus of 400 intent→config tasks stratified by complexity (simple, moderate, complex) across two vendor CLIs. Implement vendor grammar fragments and a constrained-decoder wrapper using available decoding-hooks. Implement a neurosymbolic repair pipeline that parses generated output into an AST/semantic representation, runs symbolic checks (modelled validators), applies rule-based rewrites, and then performs constrained regeneration of only the corrected segments. Compare three treatments per task: LLM-only, constrained-decoding, and neurosymbolic-repair. Measure syntactic validity, validator semantic-pass, and per-task latency and number of regeneration calls. Pre-register grammar sources and repair rules. Use paired analysis.",
+      "expected_data": "Per-task results for 400 tasks × 3 treatments: generated text, parse success/failure, syntactic-validity flag, validator semantic-pass, categorized semantic-error types, repair transformations applied, number of regenerate calls, and latency logs.",
+      "primary_outcome": "Absolute improvement in validator semantic-pass rate of neurosymbolic repair over constrained decoding, with stratified estimates by task complexity.",
+      "analysis_outline": "Paired proportion tests (McNemar) comparing constrained-decoding vs neurosymbolic repair for validator-pass. Report stratified analyses by complexity using Cochran–Mantel–Haenszel tests. Model repair success probability using logistic regression with predictors: method, task complexity, vendor, and interaction terms. Report median latency differences with Wilcoxon signed-rank tests and provide 95% bootstrap CIs for proportions and differences.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7165242241",
+        "https://openalex.org/W4407244772",
+        "doi:10.20944/preprints202606.1011.v1"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7165242241",
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4415124495"
+      ],
+      "risks": [
+        "Constructing correct vendor grammars is labor-intensive and may omit rare CLI variants, reducing applicability.",
+        "Imperfect parsing or symbolic-rewrite rules could introduce new semantic errors not detected by validators.",
+        "Latency and multiple-regeneration costs may render neurosymbolic repair impractical for low-latency operational contexts."
+      ],
+      "estimated_model_calls": 1800
+    },
+    {
+      "candidate_id": "autocand-2026-04",
+      "title": "Agentic attack surfaces in NetOps pipelines: empirical measurement of prompt-injection and malicious-tool-response risks and mitigations",
+      "research_question": "What is the empirical susceptibility of agentic NetOps pipelines to indirect prompt-injection and malicious-tool-response attacks, and how effective are simple mitigations (strict tool interfaces, response validation) at preventing semantic misconfigurations?",
+      "hypotheses": [
+        "Agentic NetOps pipelines that accept or forward unvalidated tool outputs are more susceptible to successful semantic misconfiguration via malicious-tool-response attacks than pipelines that strictly enforce structured tool interfaces and response validation.",
+        "Indirect prompt-injection embedded in user intents or upstream tool outputs will cause higher semantic-failure rates in LLM-only and loosely-validated pipelines than in pipelines employing response validation and provenance checks.",
+        "Simple mitigations (response schema validation and provenance tags) will substantially reduce attack success rates but will not eliminate all successful attacks against adaptive adversarial payloads."
+      ],
+      "proposed_design": "Simulate an agentic orchestration pipeline that composes LLM generation with tool calls (e.g., topology-query tool, config-template fetcher). Define attack classes: (1) indirect prompt-injection embedded in intent text, (2) malicious tool responses that include attacker prompts or corrupted structured data, and (3) timing/sequence manipulation attempts. For a corpus of 300 operational intents, craft adversarial payloads for each attack class using systematic rules. Implement three pipeline variants: baseline (no response validation), strict-interface (tool outputs constrained to structured schemas with schema validation), and provenance-validated (signed tags and response-content checks). Execute attacks against each pipeline and measure attack success when final output fails validator semantics or contains injected unauthorized statements. Evaluate mitigations' effectiveness. All experiments run in simulation and on public datasets; no live networks.",
+      "expected_data": "Per-intent and per-attack-class logs for 300 intents × 3 pipeline variants: raw tool responses, model-generated outputs, validator results, attack-success boolean, exploited vector description, mitigation-trigger logs, and counts of false-positives where mitigations blocked benign outputs.",
+      "primary_outcome": "Attack success rate reduction attributable to mitigations, reported as absolute and relative decrease in validator-detected semantic failures caused by adversarial inputs.",
+      "analysis_outline": "Compute attack-success proportions per attack class and pipeline. Compare baseline vs mitigation pipelines with McNemar or paired proportion tests. Estimate mitigation effectiveness with risk ratio and absolute risk reduction and 95% CIs. Analyze residual successful attacks qualitatively to identify common bypass patterns and quantify false-positive mitigation rates. Use logistic regression to model attack success probability with predictors: attack class, pipeline variant, vendor, and task complexity.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.21203/rs.3.rs-10854515/v1",
+        "https://openalex.org/W7134993116"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4408529625"
+      ],
+      "risks": [
+        "Publishing detailed attack payloads could enable misuse; sensitive attack details will be redacted and mitigations emphasized in any public release.",
+        "Simulated attacks may not capture all real-world attacker capabilities, limiting external validity.",
+        "False-positive mitigation triggers could prevent legitimate automated rollouts in real deployments if adopted without tuning."
+      ],
+      "estimated_model_calls": 1200
+    }
+  ]
+}

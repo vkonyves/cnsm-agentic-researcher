@@ -1,0 +1,198 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Large language models (LLMs) are actively used to translate high-level network intents into low-level configurations and to assist configuration translation across vendors; multiple recent works report feasible intent-to-configuration systems and prototype evaluations.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4415124495",
+        "doi:10.1002/nem.2313",
+        "https://openalex.org/W7125775240"
+      ],
+      "evidence_type": "system-descriptions and empirical evaluations",
+      "confidence": 0.87,
+      "limitations": [
+        "Most reported evaluations are prototypes or testbed/simulated datasets rather than broad production deployments.",
+        "Performance and safety depend on dataset, model tuning, and verification steps used in each study."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Augmenting LLMs with external tools, validators, or task-specific calculators substantially improves correctness and reduces certain classes of errors compared to baseline LLM-only configurations in empirical studies.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4408529625",
+        "https://openalex.org/W7134993116",
+        "doi:10.2139/ssrn.7138608"
+      ],
+      "evidence_type": "empirical comparative studies and system evaluations",
+      "confidence": 0.86,
+      "limitations": [
+        "Reported improvements are conditional on the domain, tool quality, and how tools are integrated; numerical gains vary by task and dataset.",
+        "Evidence is drawn from heterogeneous domains (healthcare, engineering benchmarks, agent runtimes), not solely NetOps."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Hallucinations and semantic/functional errors in LLM-generated code or configurations are well-documented problems; surveys and empirical analyses identify taxonomy, causes, and mitigation directions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4412158322",
+        "https://openalex.org/W4411523078",
+        "https://openalex.org/W4367860052"
+      ],
+      "evidence_type": "surveys and empirical analyses",
+      "confidence": 0.93,
+      "limitations": [
+        "Taxonomies and measurements are broad and may categorize diverse failure modes that differ in operational impact for NetOps-specific tasks.",
+        "Mitigations evaluated vary in maturity and generality."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Constrained or neurosymbolic decoding and grammar- or semantics-aware generation techniques can enforce syntactic or richer semantic constraints at generation time and have been shown to increase validity of structured outputs in experiments.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7165242241",
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4407244772",
+        "doi:10.20944/preprints202606.1011.v1"
+      ],
+      "evidence_type": "methodological papers and system evaluations",
+      "confidence": 0.82,
+      "limitations": [
+        "These approaches can trade off flexibility (e.g., increased false refusals) and may require domain grammars or tooling that are nontrivial to construct for complex vendor CLIs.",
+        "Reported results are task-dependent and may not guarantee full semantic correctness."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "At least one large-scale production-focused deployment of multi-agent LLMs for network management (Confucius) has been reported with sustained internal use, illustrating that integrated LLM-agent frameworks can be operationalized in large networks with validator integration.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "system report / case study",
+      "confidence": 0.78,
+      "limitations": [
+        "The report is an experience/system paper and may not include exhaustive independent evaluation metrics or public datasets for external reproduction.",
+        "Operational context (scope of tasks onboarded, human oversight policies) constrains generalization."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How reliably do LLM-based intent-to-configuration systems generalize to diverse, real-world vendor configurations and large-scale production networks under adversarial or out-of-distribution inputs?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4400072049",
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "gap identified by system papers and reviews",
+      "confidence": 0.75,
+      "limitations": [
+        "Existing studies show feasibility but typically evaluate on constrained datasets or testbeds; direct large-scale generalization evidence is limited in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What standardized benchmarks, metrics, and workflow-centred evaluations best capture operational reliability, safety, and rollback-worthiness for agentic NetOps systems?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4367860052"
+      ],
+      "evidence_type": "methodology and benchmarking critiques",
+      "confidence": 0.79,
+      "limitations": [
+        "Surveys and methodological papers call for workflow-centred evaluation but do not converge on a single standardized benchmark within the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "To what extent do tool-augmentation and constrained decoding eliminate high-risk silent failures (semantic misconfigurations) versus merely reducing syntactic/low-level errors?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7117986201",
+        "https://openalex.org/W4408529625",
+        "https://openalex.org/W7165242241"
+      ],
+      "evidence_type": "empirical results and method papers indicating partial mitigation",
+      "confidence": 0.7,
+      "limitations": [
+        "Available empirical evidence shows improvements but is heterogeneous; direct measurements of high-stakes semantic failure rates in NetOps are not comprehensively reported in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "How large and representative are public datasets of real-world router/switch configurations for reproducible evaluation of LLM-driven NetOps pipelines?",
+      "evidence_record_ids": [
+        "https://openalex.org/W4415124495",
+        "https://openalex.org/W4400072049"
+      ],
+      "evidence_type": "dataset and evaluation-location concerns raised in applied studies",
+      "confidence": 0.67,
+      "limitations": [
+        "The supplied records discuss datasets and evaluations but do not catalog comprehensive public corpora of production device configurations."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a need for reproducible, NetOps-focused generate–validate–repair benchmark suites that pair intent prompts, vendor-specific target configs, deterministic validators, and adversarial/perturbed test cases.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4367860052",
+        "https://openalex.org/W4411523078"
+      ],
+      "evidence_type": "identified gap from review and evaluation studies",
+      "confidence": 0.81,
+      "limitations": [
+        "Several papers call for improved evaluation but do not themselves release a unified benchmark covering all listed elements in the supplied record set."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Operational attack surfaces for agentic NetOps (e.g., indirect prompt injection, tool-response timing attacks) are documented in adjacent agent-security work but are under-explored specifically for network-configuration pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W4388886073",
+        "doi:10.21203/rs.3.rs-10854515/v1",
+        "https://openalex.org/W7134993116"
+      ],
+      "evidence_type": "security analyses and attack demonstrations in agent literature",
+      "confidence": 0.85,
+      "limitations": [
+        "Attack studies are in the broader agent/LLM context; concrete exploit demonstrations targeting NetOps pipelines are not prominent in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "Evidence is limited on end-to-end human-in-the-loop governance protocols (approval thresholds, canary rollouts, automated rollback) tied to quantitative safety metrics for LLM-driven NetOps actions.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W4413757586"
+      ],
+      "evidence_type": "system surveys and production-framework reports",
+      "confidence": 0.73,
+      "limitations": [
+        "Framework papers recommend governance layers, but detailed, reproducible protocols and metrics for human approvals and rollback are not fully specified in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Transfer of constrained-decoding and neurosymbolic repair methods from code-generation benchmarks to vendor-specific network CLIs requires domain grammars and tooling that appear to be only partially available or reported.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7165242241",
+        "doi:10.20944/preprints202606.1011.v1",
+        "https://openalex.org/W4407244772"
+      ],
+      "evidence_type": "method transferability observation",
+      "confidence": 0.69,
+      "limitations": [
+        "Papers demonstrate constrained decoding benefits on structured tasks; explicit artifacts (vendor grammars, CLI parsers) for NetOps translation are not uniformly published in the supplied set."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLMs (without validators/tools and governance) are proven safe for fully autonomous, unsupervised production NetOps change execution (no supplied record demonstrates universal production safety without surrounding machinery).",
+    "Constrained decoding or neurosymbolic methods guarantee complete semantic correctness for all vendor configurations (supplied method papers report improvements but not absolute guarantees).",
+    "Tool-augmentation universally doubles correctness across all NetOps tasks (some empirical studies report large gains in specific domains, but no supplied record establishes a universal multiplicative factor for NetOps)."
+  ]
+}

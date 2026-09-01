@@ -1,0 +1,25 @@
+{
+  "summary": "Careful, well-documented preregistered paired experiment. Execution artifacts show a degenerate null outcome (600/600 validator passes in both arms) under shared_initial_candidate semantics; authors correctly interpret this as measuring validator/repair trigger behavior rather than generation-level improvements. Main remaining problems are bibliographic formatting and a concise Disclosure refinement; otherwise the study is reproducible, preregistered, and statistically straightforward.",
+  "novelty_score": 1,
+  "technical_depth_score": 1,
+  "soundness_score": 1,
+  "clarity_score": 1,
+  "critical_issues": [
+    "References/bibliography are not presented as a conventional IEEE numbered bibliography with full bibliographic metadata. The manuscript lists cited_record_ids/DOIs but does not provide IEEE‑style reference entries that allow independent verification that each cited work supports the nearby claim.",
+    "Because the References are not presented in standard IEEE bibliographic form, the reviewer cannot verify that each in-text numeric citation maps to an actual bibliographic entry that supports the asserted claim."
+  ],
+  "required_revisions": [
+    "Replace the current cited_record_ids/DOI list with a conventional IEEE numbered References section. Each reference entry must include full bibliographic metadata (authors, title, venue, year, and DOI/arXiv id where available). Ensure each numeric in-text citation [1],[2],... exactly corresponds to one IEEE reference entry.",
+    "Confirm in the manuscript (References or a short footnote) that every cited record actually supports the proximate claim. If a cited item supports only a weaker claim (e.g., 'proposed' or 'demonstrated in limited testbeds'), rephrase the manuscript claim to match the verified evidence.",
+    "Condense the Disclosure Statement so it remains concise (within the five pages) and does not duplicate execution logs or exhaustive provenance lists. Preserve the single required master_prompt locator and its SHA‑256 digest verbatim, and keep other provenance/hashing information exclusively in the archived artifacts rather than in main prose.",
+    "Explicitly ensure the Methods (not only the Disclosure) state that generation_semantics = shared_initial_candidate (the same sampled initial generation per pair was reused across baseline and guarded) and therefore that the confirmatory estimand measures validator/repair-trigger effectiveness rather than independent generation differences. (This point is present in several places but must appear clearly in Methods and in the Limitations paragraph.)",
+    "In Methods or an explicit short subsection, add a concise statement about runtime sampling fields: document that the archived model_configuration.json records temperature = null/unset and explicitly note that null/unset is not evidence of deterministic sampling (i.e., does not imply temperature=0). If sampling fields are archived, point readers to their exact artifact paths for reproduction."
+  ],
+  "optional_revisions": [
+    "If available in the archived bundle, include the preregistered 'seeded 100-case validator‑audit' results (or a short summary) to quantify validator sensitivity/specificity; if not included in the manuscript text, add a concise pointer to the artifact path and hash in the Disclosure or Methods.",
+    "Add a brief, explicit discussion quantifying how the preregistered power/sample‑size assumptions (e.g., baseline ≈10%) were violated by the observed baseline rate (0%), and state the consequences for interpretation of H2 and minimal detectable effect in this execution.",
+    "If space permits, include a one‑paragraph operational recommendation (concrete checklist) for future generate→validate→repair evaluations (e.g., use independent per‑condition draws when measuring generation effects; run validator sensitivity audits; include adversarialized tasks).",
+    "Verify that all figure/table captions and the two tables referenced are present in the final five‑page PDF and that captions are succinct; if any referenced analysis artifacts (e.g., vendor‑stratified summaries) exist in the archive, optionally include a single small table or pointer to the artifact."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,33 @@
+{
+  "study_id": "autocand-2026-01-prereg-v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory paired analysis executed by paired_binary_analysis_v1 on execution/raw_results.jsonl using estimand paired_success_rate_difference_guarded_minus_baseline (McNemar-style paired comparison of validator pass/fail between baseline and guarded). Reports absolute risk difference (guarded minus baseline), two-sided 95% CI as produced by the executor, two-sided p-value, and N = number of complete pairs included after automated exclusions. Missingness handling: failed_call_treatment = complete_pair_primary (per preregistration).",
+  "secondary_analyses": [
+    "Vendor-stratified paired absolute differences (Cisco IOS, Juniper Junos) computed by paired_binary_analysis_v1; per-vendor N, estimate, 95% CI, and unadjusted p-values.",
+    "Repair success rate: proportion of initial-validator-failed tasks where a single automated repair produced a validator pass; bootstrap 95% CIs (bootstrap via paired_binary_analysis_v1-supported routine on archived episode records).",
+    "Failure-mode relative-frequency differences by category (ACL, routing, neighbor/BGP, interface/address overlap): counts and proportions per condition; Fisher-exact tests with Bonferroni correction across the declared secondary test family."
+  ],
+  "sensitivity_analyses": [
+    "Recompute primary estimand treating technical model-call failures as semantic failures using failed_call_treatment = complete_pair_primary_with_failure_as_zero_sensitivity (paired_binary_analysis_v1).",
+    "Recompute primary 95% CIs and power-sensitivity under baseline rates 5% and 15% (bootstrap CIs reported).",
+    "Include/exclude items flagged by contamination checks where safe redaction permits and report effect on primary estimand (descriptive; flagged-item counts reported)."
+  ],
+  "uncertainty_quantification": "Primary two-sided 95% CI provided by paired_binary_analysis_v1; bootstrap 95% CIs for repair success rates and additional bootstrap CIs for sensitivity checks. All CIs and p-values reported with exact sample sizes and paired denominators from execution/raw_results.jsonl.",
+  "multiplicity_implementation": "Primary confirmatory hypothesis (H1/H2) is a single predeclared test (no multiplicity correction). Secondary confirmatory-family tests (vendor-stratified and declared secondary hypothesis set) receive Bonferroni correction across that family. All other analyses and descriptive charts are labeled exploratory and reported without multiplicity correction.",
+  "contamination_analysis": "Follow preregistered contamination_plan: include only items passing automated provenance (public URL and license) and duplication checks; algorithmic redaction of adversarial exemplars before public release with full hashed artifacts retained privately; flagged/missing-license/ambiguous items excluded from primary confirmatory analysis and counts+reasons reported. All dataset provenance flags, redaction markers, and hashes are included in execution/task_manifest.jsonl and execution/raw_results.jsonl and will be referenced by the executor when producing sensitivity summaries.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory sample flow and execution summary: planned pairs (600), completed episodes (1200), model_calls_used (600), failed_episode_count (0), pairs excluded by automated provenance or redaction (count and reason pulled from execution/task_manifest.jsonl).",
+    "Table 2 — Primary estimand results (paired_binary_analysis_v1): point estimate of paired_success_rate_difference_guarded_minus_baseline, two-sided 95% CI, two-sided p-value, N pairs included, and preregistered minimum-detectable-effect annotation.",
+    "Table 3 — Vendor-stratified paired estimates: per-vendor N, paired absolute difference, 95% CI, Bonferroni-corrected p-value for each vendor.",
+    "Table 4 — Repair outcomes: count of initial validator failures, number of automated repairs attempted, repair success rate, bootstrap 95% CI, and per-vendor breakdown.",
+    "Table 5 — Failure-mode contingency: counts and proportions by failure category (ACL, routing, neighbor/BGP, interface/address) for baseline and guarded conditions; unadjusted and Bonferroni-adjusted test results."
+  ],
+  "figure_specifications": [
+    "Figure 1 — Paired-bar chart: baseline vs guarded semantic-failure rates (proportion failing validator) with 95% CIs (derived from paired_binary_analysis_v1 outputs).",
+    "Figure 2 — Paired-dot plot (connected pairs): per-task outcome (pass=0/fail=1) for baseline and guarded conditions to visualize paired changes; jitter for visibility; derived from execution/raw_results.jsonl.",
+    "Figure 3 — Stacked bar chart of failure-mode distribution by condition (baseline, guarded), showing category proportions (ACL, routing, neighbor/BGP, interface/address).",
+    "Figure 4 — Repair outcome waterfall: initial-validator-fail tasks showing fraction repaired by single automated repair and residual failures; include bootstrap CIs for the repair success rate."
+  ]
+}
