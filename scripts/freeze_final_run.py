@@ -54,7 +54,7 @@ def main() -> None:
         paper_run_constraints=args.paper_run_constraints,
         model=args.model,
         run_type=args.run_type,
-        output_dir=args.output_dir,
+        output_dir=args.output_dir / "provenance",
         development_rehearsal=args.development_rehearsal,
     )
 
