@@ -28,6 +28,9 @@ def _plan(
                 task_count + 1,
             )
         ),
+        "initial_generation_calls_per_task": 1,
+        "maximum_repair_calls_per_task": 2,
+        "maximum_model_calls_per_task": 3,
         "estimated_model_calls": task_count * 3,
         "maximum_model_calls": task_count * 3,
         "task_families": [

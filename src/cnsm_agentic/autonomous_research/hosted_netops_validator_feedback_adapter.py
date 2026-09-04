@@ -147,6 +147,12 @@ def validator_feedback_planning_contract() -> dict[str, Any]:
         "episodes_per_task":
             2,
 
+        "initial_generation_calls_per_task":
+            1,
+
+        "maximum_repair_calls_per_task":
+            2,
+
         "maximum_model_calls_per_task":
             3,
 
@@ -302,6 +308,24 @@ def validator_feedback_plan_issues(
     ):
         issues.append(
             "Human scientific labour must not be required."
+        )
+
+    if plan.get("initial_generation_calls_per_task") != 1:
+        issues.append(
+            "initial_generation_calls_per_task must be "
+            "exactly 1."
+        )
+
+    if plan.get("maximum_repair_calls_per_task") != 2:
+        issues.append(
+            "maximum_repair_calls_per_task must be "
+            "exactly 2."
+        )
+
+    if plan.get("maximum_model_calls_per_task") != 3:
+        issues.append(
+            "maximum_model_calls_per_task must be "
+            "exactly 3."
         )
 
     task_count = plan.get("task_count")
