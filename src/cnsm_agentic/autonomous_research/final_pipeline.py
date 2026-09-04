@@ -3479,6 +3479,32 @@ async def create_feasible_experiment_plan(
             ),
         )
 
+        # Canonicalize adapter-owned mechanical execution fields.
+        # These values are fixed by the registered adapter contract, not
+        # scientific choices delegated to the autonomous planner.
+        selected_adapter_contract = (
+            registered_adapter_planning_contracts().get(
+                experiment_plan.adapter_family
+            )
+        )
+
+        if selected_adapter_contract is not None:
+            experiment_plan.initial_generation_calls_per_task = int(
+                selected_adapter_contract[
+                    "initial_generation_calls_per_task"
+                ]
+            )
+            experiment_plan.maximum_repair_calls_per_task = int(
+                selected_adapter_contract[
+                    "maximum_repair_calls_per_task"
+                ]
+            )
+            experiment_plan.maximum_model_calls_per_task = int(
+                selected_adapter_contract[
+                    "maximum_model_calls_per_task"
+                ]
+            )
+
         plan_dict = (
             experiment_plan.model_dump()
         )

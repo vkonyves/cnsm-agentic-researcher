@@ -157,6 +157,22 @@ class ExperimentPlan(BaseModel):
     task_count: int = Field(gt=0)
     task_indices: list[int]
 
+    # Adapter-fixed mechanical call accounting. These may be omitted by
+    # the autonomous planner and are canonicalized from the selected
+    # registered adapter contract before feasibility checking/execution.
+    initial_generation_calls_per_task: int | None = Field(
+        default=None,
+        gt=0,
+    )
+    maximum_repair_calls_per_task: int | None = Field(
+        default=None,
+        ge=0,
+    )
+    maximum_model_calls_per_task: int | None = Field(
+        default=None,
+        gt=0,
+    )
+
     estimated_model_calls: int = Field(gt=0)
     maximum_model_calls: int = Field(gt=0)
 
