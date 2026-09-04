@@ -353,28 +353,41 @@ MANUSCRIPT_AUTHOR = Agent(
                 sampling.
 
 
-        When the registered generation semantics are
-        shared_initial_candidate, the baseline and guarded conditions begin
-        from exactly the same generated candidate. Do not describe the guarded
-        condition as improving a different "first-pass" generation or as
-        reducing first-pass misconfiguration relative to baseline. Describe
-        the comparison precisely as baseline single-shot/initial validity
-        versus final guarded-pipeline validity after deterministic validation
-        and any permitted repair. Only downstream validation/repair can create
-        a paired outcome difference.
+        When paired execution reuses a shared candidate, describe the two
+        conditions according to the registered generation semantics,
+        transformation IDs, and completed execution artifacts. Do not assume
+        that "baseline" means untreated initial generation or that "guarded"
+        means the only repair condition.
 
-        Under shared_initial_candidate semantics, do not claim that the
-        executed paired experiment measured an independent effect of
-        constrained prompting, prompt templates, prompt engineering, or a
-        distinct guarded first-pass prompt unless the archived execution
-        actually contains independent first-pass generations for those
-        conditions. If conceptual preregistration labels included a
-        constrained-prompt arm that was not independently executed, state that
-        deviation explicitly. The title, abstract, research question,
-        contributions, discussion, and conclusion must all describe the
-        actually executed estimand consistently: the same initial candidate
-        without repair versus that candidate after the permitted
-        validator-triggered repair.
+        For hosted_netops_gvr_v1 with shared_initial_candidate semantics,
+        baseline is the unchanged shared initial candidate and guarded is the
+        same candidate after any permitted validator-triggered repair. Do not
+        describe the guarded condition as improving a different first-pass
+        generation or as reducing first-pass misconfiguration relative to
+        baseline.
+
+        For hosted_netops_validator_feedback_repair_v2 with
+        shared_controlled_fault_candidate semantics, both conditions receive
+        exactly the same deterministically injected controlled-fault candidate
+        and exactly one hosted repair opportunity. Baseline is blind repair
+        without deterministic validator diagnostics; guarded is repair with
+        deterministic validator diagnostics. Do not attribute paired outcome
+        differences to source generation, fault assignment, model identity,
+        or repair-call budget because those are shared or matched between
+        conditions.
+
+        Do not claim that either shared-candidate design measured an
+        independent effect of constrained prompting, prompt templates, prompt
+        engineering, or distinct first-pass generation unless the archived
+        execution actually contains independent first-pass generations for
+        those conditions. If conceptual preregistration labels included an arm
+        that was not independently executed, state that deviation explicitly.
+        The title, abstract, research question, contributions, discussion, and
+        conclusion must all describe the actually executed estimand
+        consistently.
+
+        Never describe shared-candidate pairing as deterministic hosted-model
+        sampling. Report runtime sampling parameters exactly as archived.
 
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.
@@ -830,28 +843,41 @@ MANUSCRIPT_REVISER = Agent(
                 sampling.
 
 
-        When the registered generation semantics are
-        shared_initial_candidate, the baseline and guarded conditions begin
-        from exactly the same generated candidate. Do not describe the guarded
-        condition as improving a different "first-pass" generation or as
-        reducing first-pass misconfiguration relative to baseline. Describe
-        the comparison precisely as baseline single-shot/initial validity
-        versus final guarded-pipeline validity after deterministic validation
-        and any permitted repair. Only downstream validation/repair can create
-        a paired outcome difference.
+        When paired execution reuses a shared candidate, describe the two
+        conditions according to the registered generation semantics,
+        transformation IDs, and completed execution artifacts. Do not assume
+        that "baseline" means untreated initial generation or that "guarded"
+        means the only repair condition.
 
-        Under shared_initial_candidate semantics, do not claim that the
-        executed paired experiment measured an independent effect of
-        constrained prompting, prompt templates, prompt engineering, or a
-        distinct guarded first-pass prompt unless the archived execution
-        actually contains independent first-pass generations for those
-        conditions. If conceptual preregistration labels included a
-        constrained-prompt arm that was not independently executed, state that
-        deviation explicitly. The title, abstract, research question,
-        contributions, discussion, and conclusion must all describe the
-        actually executed estimand consistently: the same initial candidate
-        without repair versus that candidate after the permitted
-        validator-triggered repair.
+        For hosted_netops_gvr_v1 with shared_initial_candidate semantics,
+        baseline is the unchanged shared initial candidate and guarded is the
+        same candidate after any permitted validator-triggered repair. Do not
+        describe the guarded condition as improving a different first-pass
+        generation or as reducing first-pass misconfiguration relative to
+        baseline.
+
+        For hosted_netops_validator_feedback_repair_v2 with
+        shared_controlled_fault_candidate semantics, both conditions receive
+        exactly the same deterministically injected controlled-fault candidate
+        and exactly one hosted repair opportunity. Baseline is blind repair
+        without deterministic validator diagnostics; guarded is repair with
+        deterministic validator diagnostics. Do not attribute paired outcome
+        differences to source generation, fault assignment, model identity,
+        or repair-call budget because those are shared or matched between
+        conditions.
+
+        Do not claim that either shared-candidate design measured an
+        independent effect of constrained prompting, prompt templates, prompt
+        engineering, or distinct first-pass generation unless the archived
+        execution actually contains independent first-pass generations for
+        those conditions. If conceptual preregistration labels included an arm
+        that was not independently executed, state that deviation explicitly.
+        The title, abstract, research question, contributions, discussion, and
+        conclusion must all describe the actually executed estimand
+        consistently.
+
+        Never describe shared-candidate pairing as deterministic hosted-model
+        sampling. Report runtime sampling parameters exactly as archived.
 
         Methodology and results sections should explain the scientific meaning
         of the archived evidence rather than narrating the archive itself.

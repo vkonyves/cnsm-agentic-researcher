@@ -517,6 +517,7 @@ def test_builtin_adapter_registration_is_explicit_and_idempotent() -> None:
     register_builtin_execution_adapters()
     assert registered_adapter_families() == [
         "hosted_netops_gvr_v1",
+        "hosted_netops_validator_feedback_repair_v2",
         "synthetic_paired_llm_benchmark_v1",
     ]
 

@@ -111,12 +111,17 @@ def test_shared_initial_wording_policy_is_applied_to_author_and_reviser():
     ).read_text(encoding="utf-8")
 
     assert source.count(
-        "baseline single-shot/initial validity"
+        "When paired execution reuses a shared candidate"
     ) == 2
     assert source.count(
-        "final guarded-pipeline validity"
-    ) >= 2
-
+        "For hosted_netops_gvr_v1 with shared_initial_candidate semantics"
+    ) == 2
+    assert source.count(
+        "For hosted_netops_validator_feedback_repair_v2 with"
+    ) == 2
+    assert source.count(
+        "Baseline is blind repair"
+    ) == 2
 
 def test_disclosure_condensation_policy_is_applied_twice():
     source = Path(
@@ -252,16 +257,11 @@ def test_shared_initial_policy_forbids_claimed_prompting_effect():
     ).read_text(encoding="utf-8")
 
     assert source.count(
-        "executed paired experiment measured an independent effect of"
+        "Do not claim that either shared-candidate design measured an"
     ) >= 2
     assert source.count(
-        "without repair versus that candidate after the permitted"
-    ) >= 2
-    assert (
         "independent effect of constrained prompting"
-        in source
-    )
-
+    ) >= 2
 
 def test_final_agents_require_full_ieee_bibliography():
     source = Path(

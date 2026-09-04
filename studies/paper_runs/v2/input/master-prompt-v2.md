@@ -314,10 +314,8 @@ Where calibration is used, use a two-freeze workflow:
 - freeze the confirmatory design, task-generation regime, sample size, metrics, and analysis;
 - only then generate/execute the disjoint confirmatory sample.
 
-For paired validator/repair studies, prefer shared-initial-candidate semantics when the scientific estimand is the causal effect of downstream validation/repair on the same initial candidate. Do not abandon pairing merely to manufacture discordance. Instead, obtain informative intervention opportunities through principled task difficulty, calibration, or a separately preregistered controlled challenge.
-
-When scientifically justified, the autonomous researcher should consider a complementary controlled-challenge experiment in which deterministic, preregistered fault operators introduce realistic actionable configuration defects. Such a challenge must report detection performance, repair success conditional on detection, residual invalidity, false-positive/over-repair behavior, and repair cost. Natural-generation and controlled-challenge results must remain analytically distinct.
-
+For paired studies, prefer shared-candidate semantics that match the actual causal estimand. If the estimand is the effect of downstream validation/repair on one naturally generated candidate, shared-initial-candidate semantics are appropriate. If the estimand is the effect of validator diagnostics on repair quality, both conditions should instead receive the same preregistered controlled-fault candidate and a matched repair opportunity, differing only in the diagnostic information supplied. Do not abandon pairing merely to manufacture discordance. Obtain informative intervention opportunities through principled task difficulty, calibration, or a preregistered controlled challenge.
+When scientifically justified, the autonomous researcher should consider a controlled-challenge experiment in which deterministic, preregistered fault operators introduce realistic actionable configuration defects. Fault operators, task-selection rules, condition inputs, repair budgets, and analysis must be frozen before confirmatory outcomes. Natural source-generation validity should be reported descriptively and kept analytically distinct from the causal controlled-challenge comparison. Such a challenge should report repair success by condition, paired discordance, residual invalidity, harmful/over-repair behavior, fault-class effects where supported, and repair cost.
 Do not change the scientific design after observing confirmatory results merely to improve the paper.
 
 Any unavoidable post-preregistration deviation must be logged and disclosed.
@@ -378,8 +376,9 @@ Primary interpretation must emphasize effect sizes, uncertainty, intervention ac
 
 For intervention studies, report at minimum when applicable:
 
-- baseline first-pass invalidity/failure rate;
-- number and proportion of cases that activated validation/repair;
+- the validity/failure rate of the relevant pre-intervention or source candidate population;
+- the number and proportion of cases eligible for or activating the intervention/challenge;
+- success/failure rates for each executed condition, using the actual condition semantics from the frozen plan;
 - paired discordant counts;
 - absolute and relative risk differences where meaningful;
 - exact paired inference where appropriate;
@@ -387,8 +386,7 @@ For intervention studies, report at minimum when applicable:
 - repair-attempt and repair-success counts;
 - residual unsafe/invalid outcomes after repair;
 - false-positive or harmful/over-repair cases;
-- model-call and latency cost per avoided violation.
-
+- model-call and latency cost per successful repair or avoided violation where meaningful.
 Do not hide negative, null, incomplete, or unsuccessful cases.
 
 Explicitly distinguish:

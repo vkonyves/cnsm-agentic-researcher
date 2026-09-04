@@ -1575,13 +1575,36 @@ class SyntheticPairedLLMBenchmarkAdapter:
 
 def register_builtin_execution_adapters() -> None:
     """Register built-in adapters explicitly and idempotently by family."""
-    if SYNTHETIC_PAIRED_ADAPTER_FAMILY not in registered_adapter_families():
-        register_adapter(SyntheticPairedLLMBenchmarkAdapter())
+    if (
+        SYNTHETIC_PAIRED_ADAPTER_FAMILY
+        not in registered_adapter_families()
+    ):
+        register_adapter(
+            SyntheticPairedLLMBenchmarkAdapter()
+        )
 
     from .hosted_netops_adapter import (
         HOSTED_NETOPS_ADAPTER_FAMILY,
         HostedNetOpsGVRAdapter,
     )
 
-    if HOSTED_NETOPS_ADAPTER_FAMILY not in registered_adapter_families():
-        register_adapter(HostedNetOpsGVRAdapter())
+    if (
+        HOSTED_NETOPS_ADAPTER_FAMILY
+        not in registered_adapter_families()
+    ):
+        register_adapter(
+            HostedNetOpsGVRAdapter()
+        )
+
+    from .hosted_netops_validator_feedback_adapter import (
+        HOSTED_VALIDATOR_FEEDBACK_ADAPTER_FAMILY,
+        HostedNetOpsValidatorFeedbackAdapter,
+    )
+
+    if (
+        HOSTED_VALIDATOR_FEEDBACK_ADAPTER_FAMILY
+        not in registered_adapter_families()
+    ):
+        register_adapter(
+            HostedNetOpsValidatorFeedbackAdapter()
+        )
