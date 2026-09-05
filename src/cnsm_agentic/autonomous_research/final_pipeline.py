@@ -1105,9 +1105,29 @@ def audit_manuscript_publication_sanity(
 
     metrics["full_sha256_count"] = len(full_hashes)
 
-    expected_master_prompt_sha256 = (
-        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba"
+    expected_master_prompt_sha256_path = (
+        Path(run_dir)
+        / "provenance"
+        / "master_prompt.sha256"
     )
+
+    expected_master_prompt_sha256 = ""
+    if expected_master_prompt_sha256_path.exists():
+        expected_master_prompt_sha256 = (
+            expected_master_prompt_sha256_path
+            .read_text(encoding="utf-8")
+            .strip()
+            .lower()
+        )
+
+    if not re.fullmatch(
+        r"[0-9a-f]{64}",
+        expected_master_prompt_sha256,
+    ):
+        issues.append(
+            "Immutable master-prompt SHA-256 is missing or invalid in "
+            "run provenance."
+        )
 
     if len(full_hashes) != 1:
         issues.append(
@@ -8695,11 +8715,11 @@ class FinalAutonomousResearchPipeline:
             )
 
         # Final authoritative publication checkpoint.
-        revised_manuscript = sanitize_structured_manuscript_publication_metadata(
-            revised_manuscript,
-            run_dir=run_dir,
-        )
-
+        #
+        # Do not mutate the selected manuscript here. Publication hygiene and
+        # any bounded underfill recovery have already completed. This checkpoint
+        # renders and audits the exact selected candidate so readiness cannot
+        # use stale artifacts or accidentally shrink an exact-page manuscript.
         write_json(
             run_dir / "manuscript" / "revised_package.json",
             revised_manuscript,

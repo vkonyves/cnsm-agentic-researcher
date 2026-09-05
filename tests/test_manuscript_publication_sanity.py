@@ -5,23 +5,42 @@ from cnsm_agentic.autonomous_research.final_pipeline import (
 )
 
 
+def _write_master_prompt_sha(
+    root: Path,
+    digest: str = (
+        "1872df1e1805d2d96940456ca016bd665"
+        "d1d5196add77f5acdf1582bb39b15ba"
+    ),
+) -> None:
+    provenance = root / "provenance"
+    provenance.mkdir(parents=True, exist_ok=True)
+
+    (provenance / "master_prompt.sha256").write_text(
+        digest + "\n",
+        encoding="utf-8",
+    )
+
+
 def _write_final(
     root: Path,
     *,
     tex: str,
     log: str,
 ) -> None:
+    _write_master_prompt_sha(root)
+
     final = root / "manuscript" / "final"
     final.mkdir(parents=True)
+
     (final / "manuscript.tex").write_text(
         tex,
         encoding="utf-8",
     )
+
     (final / "manuscript.log").write_text(
         log,
         encoding="utf-8",
     )
-
 
 def test_clean_publication_sanity_passes(tmp_path):
     _write_final(
@@ -442,4 +461,21 @@ def test_missing_character_warning_fails_publication_sanity(
             "missing_character_warning_count"
         ]
         == 1
+    )
+
+
+def _write_master_prompt_sha(
+    run_dir,
+    digest=(
+        "1872df1e1805d2d96940456ca016bd665"
+        "d1d5196add77f5acdf1582bb39b15ba"
+    ),
+):
+    provenance_dir = run_dir / "provenance"
+    provenance_dir.mkdir(parents=True, exist_ok=True)
+    (
+        provenance_dir / "master_prompt.sha256"
+    ).write_text(
+        digest + "\n",
+        encoding="utf-8",
     )
