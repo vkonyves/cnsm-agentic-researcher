@@ -1,0 +1,184 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000029-guarded",
+  "pair_id": "pair-000029",
+  "raw_response_sha256": "ed42bd4a6002b2d964d205b428e3859bfa6a61ee0657202d865c2f7352f7f527",
+  "repair_provider_trace_path": "execution/provider_calls/task-000029-guarded-repair.json",
+  "repair_provider_trace_sha256": "b560055bec5f2dbcb46f51877d5bda92f492a834ddba32a666d4c92686f6c2fc",
+  "schema_version": "2.0",
+  "score": 1,
+  "score_reason_code": "VALID_CONFIGURATION",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000029-source-generation.json",
+  "shared_source_provider_trace_sha256": "5e19a06b8902686ca95767435c642e20b0dcf8758b12306c2dde685d8a600f23",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000029",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "offline_change_before_shutdown",
+    "fault_metadata": {
+      "affected_field": "vlan",
+      "affected_interface": "uplink7",
+      "fault_class": "offline_change_before_shutdown",
+      "source_line_number": 3
+    },
+    "final_configuration": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 210",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 210
+        },
+        "uplink8": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 vlan 210\ninterface uplink7 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 3,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "INTERFACE_NOT_DOWN_FOR_CHANGE"
+      ],
+      "violation_count": 1,
+      "violations": [
+        {
+          "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+          "line_number": 2,
+          "message": "uplink7 must be down before changing vlan."
+        }
+      ]
+    },
+    "repair_call_order": 2,
+    "shared_controlled_fault_candidate": "interface uplink8 admin up\ninterface uplink7 vlan 210\ninterface uplink7 admin down",
+    "shared_controlled_fault_candidate_sha256": "00eec0340357cb0b50cca7466b43d6f2a948d783269d725c7dd21fec2b9b17d3",
+    "source_candidate": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 210",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 210
+        },
+        "uplink8": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 210",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 3,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "failover_then_offline_reconfiguration",
+        "required_command_count": 3,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 210
+        },
+        "uplink8": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 admin down\ninterface uplink7 vlan 210",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 3,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validator_feedback_exposed_to_model": true
+  }
+}

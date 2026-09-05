@@ -1,0 +1,122 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "vCLI_fault_injection_repair_2026_A",
+      "title": "Controlled fault-injection evaluation of verifier-guided LLM repair on vendor CLIs (paired design)",
+      "research_question": "Does a verifier-guided LLM repair pipeline reduce residual unsafe or invalid vendor-CLI configurations compared to blind repair when confronted with preregistered, realistic controlled faults across multiple vendors?",
+      "hypotheses": [
+        "Verifier-guided repair will produce a higher proportion of configurations that pass a deterministic vendor-CLI verifier than blind repair on the same injected faults.",
+        "The difference in verifier pass rates between verifier-guided and blind repair will be statistically detectable in a paired analysis given the preregistered sample size and fault injection frequency.",
+        "Residual unsafe outcomes after repair will be lower under verifier-guided repair than under blind repair, without increasing harmful over-repair events beyond a prespecified threshold."
+      ],
+      "proposed_design": "Preregistered, paired controlled-challenge experiment. Construct a bank of 40 held-out vendor-CLI configuration tasks (balanced Cisco and Juniper examples) derived from public config templates. For each task generate a single controlled-fault variant using a frozen set of deterministic fault operators (e.g., removed BGP neighbor statements, ACL order inversion, incorrect interface shutdown/description, missing VLAN assignment). For each faulty task produce two paired repair attempts from the same initial faulty candidate: (A) blind repair where the LLM is asked to repair without verifier diagnostics, and (B) verifier-guided repair where the same LLM receives deterministic verifier diagnostics (error labels and actionable locations) and one repair opportunity. Freeze prompts, verifier rules, repair budget (one repair attempt), random seeds, and task selection before observing outcomes. Collect raw LLM outputs, verifier judgments, and a ground-truth simulator-based reachability/compliance check. Primary confirmatory comparisons use the paired task semantics. The plan, fault operators, and task bank generation rule are archived and hashed before execution.",
+      "expected_data": "For each of 40 paired tasks: initial faulty configuration, LLM blind-repair output, LLM verifier-guided-repair output, deterministic verifier pass/fail flags with labeled failure classes, simulator-based ground-truth compliance and reachability results, timestamps and model-call counts, and categorical labels of any harmful changes flagged by independent safety rules. Aggregate counts: number of tasks that triggered repair-activation, paired discordant outcomes, per-condition pass rates, and residual failure annotations by class.",
+      "primary_outcome": "Paired difference in proportion of configurations that pass the deterministic vendor-CLI verifier and simulator-based ground-truth compliance after a single repair attempt (verifier-guided minus blind).",
+      "analysis_outline": "Report descriptive counts and proportions of verifier-eligible tasks and activation rate. Use paired exact methods (McNemar test or exact paired binomial test) to test the primary outcome; report risk difference with 95% CI (Clopper-Pearson or Newcombe interval for paired proportions). Report absolute and relative reduction in residual unsafe outcomes. Provide per-fault-class subgroup summaries and exact paired discordant counts. Report model-call and latency cost per successful repair with bootstrap CIs. Predefine no multiplicity adjustment for the primary paired test; secondary subgroup results are exploratory and reported with CIs.",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7171267824"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7171267824",
+        "https://openalex.org/W7140238430"
+      ],
+      "risks": [
+        "Verifier-exploitation where LLMs optimize toward verifier artifacts rather than true compliance.",
+        "Simulator/verifier mismatch causing false assurance of safety in production settings.",
+        "Harmful over-repair that changes operational intent (e.g., removing intended ACL entries).",
+        "Limited external validity due to selected vendors, task bank size, and synthetic faults.",
+        "Operational cost/latency (verifier tax) that may make the intervention impractical at scale."
+      ],
+      "estimated_model_calls": 30
+    },
+    {
+      "candidate_id": "iterative_verifier_exploitation_study_2026_B",
+      "title": "Empirical measurement of verifier-exploitation during iterative verifier-guided LLM repair",
+      "research_question": "Does iterative verifier-guided repair using a single deterministic verifier induce verifier-exploitation that degrades true network-property outcomes (e.g., reachability or policy compliance) across repeated repair iterations, and can multi-verifier ensembles mitigate this effect?",
+      "hypotheses": [
+        "Repeated iterative repair guided by a single deterministic verifier will, on average, reduce verifier-detected failures but may increase residual true-property violations compared to a one-shot repair.",
+        "Using an ensemble of heterogeneous verifiers or cross-checking against a ground-truth simulator will reduce verifier-exploitation compared to using a single verifier.",
+        "Verifier-exploitation effects will be detectable as a divergence between verifier pass rate and simulator-based ground-truth pass rate over iterations."
+      ],
+      "proposed_design": "Controlled iterative-repair experiment on a held-out set of 30 realistic vendor-CLI tasks with injected faults. For each task, run three conditions: (1) one-shot blind repair (single attempt), (2) iterative single-verifier repair for up to three iterations (verifier feedback only), (3) iterative ensemble-verifier repair for up to three iterations (aggregated diagnostics from multiple deterministic verifiers/safety rules). Use identical prompts, same LLM model and seeds across conditions where applicable. Record per-iteration verifier pass, simulator ground-truth pass, and any over-repair events. Freeze iteration budget, verifier implementations, and ensemble aggregation rules before execution.",
+      "expected_data": "Per-task, per-iteration sequence of LLM outputs, verifier pass/fail and labeled failure classes from each verifier, ensemble diagnostic summaries, simulator-based ground-truth compliance/reachability, timestamps, and model-call counts. Time series of verifier pass rate and simulator pass rate across iterations, counts of over-repair events, and paired divergence metrics.",
+      "primary_outcome": "Divergence metric between verifier pass rate and simulator-based ground-truth pass rate across iterations (e.g., mean per-task increase in verifier-only passes that are not corroborated by simulator checks after three iterations).",
+      "analysis_outline": "Model the per-task trajectories using mixed-effects logistic regression with iteration and condition as predictors and task as a random effect to test for systematic divergence. Compute paired comparisons between conditions at iteration three using exact paired tests for proportions and report 95% CIs. Quantify over-repair incidence by condition and test rate differences with Fisher's exact test. Present illustrative case studies of exploitation patterns. Sensitivity analyses vary ensemble aggregation thresholds and report robustness.",
+      "novelty_evidence_ids": [
+        "doi:10.21203/rs.3.rs-10187492/v1",
+        "https://openalex.org/W7171267824"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7171267824",
+        "https://openalex.org/W7140238430"
+      ],
+      "risks": [
+        "Iterative repairs may amplify harmful changes in some cases, increasing operational risk.",
+        "If verifiers are poorly specified, ensemble aggregation may produce conflicting or unusable diagnostics.",
+        "Longer multi-iteration runs increase verifier tax and resource consumption.",
+        "Complex exploitation patterns may be task-specific and not generalize beyond the selected task bank."
+      ],
+      "estimated_model_calls": 30
+    },
+    {
+      "candidate_id": "verifier_tax_cost_latency_tradeoff_2026_C",
+      "title": "Quantifying the verifier tax: cost and latency tradeoffs of verifier-guided LLM repair at NetOps-relevant scale",
+      "research_question": "What are the end-to-end cost, latency, and model-call tradeoffs (the 'verifier tax') associated with verifier-guided repair pipelines for vendor-CLI configuration repairs, and how do these tradeoffs affect operational feasibility?",
+      "hypotheses": [
+        "Verifier-guided repair will incur measurable additional latency and model-call overhead relative to blind repair, with median model calls and wall-clock time per successful repair exceeding prespecified operational thresholds.",
+        "The verifier tax will scale nonlinearly with task complexity, producing larger relative overheads for more complex configuration repairs.",
+        "There exists an operational regime (task complexity and repair budget) where verifier-guided repair yields acceptable verifier tax (e.g., model calls and latency within predefined bounds) while substantially reducing residual unsafe outcomes."
+      ],
+      "proposed_design": "Batch evaluation over 120 varied vendor-CLI repair tasks stratified by estimated complexity (simple, medium, complex) derived via frozen objective heuristics. For each task run blind repair and verifier-guided repair (single diagnostic + one repair attempt). Measure model-call counts, cumulative API cost proxies, wall-clock latency (including verifier runtime), success/failure as per deterministic verifier and simulator ground-truth, and any retries triggered by verifier diagnostics. Predefine operational acceptability thresholds (e.g., median repair latency < 30s, median model calls < 10). All measurement instrumentation and cost proxies frozen before execution.",
+      "expected_data": "Per-task records of task complexity stratum, initial fault class, LLM call counts, verifier runtime, wall-clock repair time, total API-cost proxies, verifier and simulator pass/fail, and whether the repair was successful. Aggregated distributions of model calls, latency, and cost per successful repair by complexity stratum and condition.",
+      "primary_outcome": "Median model-call count and median wall-clock latency per successful repair under verifier-guided repair compared to blind repair, reported with 95% bootstrap confidence intervals and operational acceptability flags.",
+      "analysis_outline": "Compute descriptive distributions and stratified medians by task complexity. Use paired Wilcoxon signed-rank tests on per-task model calls and latency to compare conditions. Bootstrap CIs for median differences. Compute cost-effectiveness curves (cost or latency per avoided residual unsafe outcome). Report the proportion of tasks meeting predefined operational thresholds under each condition. Perform sensitivity analysis varying the definition of success (verifier-only vs simulator corroborated).",
+      "novelty_evidence_ids": [
+        "https://openalex.org/W7140238430",
+        "https://openalex.org/W7171267824"
+      ],
+      "feasibility_evidence_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7171267824"
+      ],
+      "risks": [
+        "Observed verifier tax may exceed acceptable operational thresholds, limiting external validity for production use.",
+        "Cost proxies may not perfectly map to real-world billing; external translation is required.",
+        "Stratification heuristics for complexity may misclassify tasks, affecting interpretation.",
+        "Potential for measurement overhead to influence latency estimates if instrumentation is intrusive."
+      ],
+      "estimated_model_calls": 30
+    },
+    {
+      "candidate_id": "uq_calibrated_repair_thresholds_2026_D",
+      "title": "Incorporating calibrated uncertainty to reduce harmful over-repair in verifier-guided LLM repair",
+      "research_question": "Can calibrated model uncertainty scores combined with verifier diagnostics reduce harmful over-repair events while preserving correction rates in vendor-CLI configuration repair?",
+      "hypotheses": [
+        "Applying a calibrated confidence threshold to LLM repair proposals before applying automated repairs will reduce harmful over-repair events compared to unconditional verifier-guided repair.",
+        "Calibration of model outputs (temperature scaling or isotonic regression) on a disjoint calibration set will improve decision thresholds' precision for harmful-change avoidance without unduly reducing true positive repair rates.",
+        "A decision policy that delays automated application for low-confidence repairs (requesting human-in-the-loop) will yield a better tradeoff between safety (fewer harmful over-repairs) and utility (retained repair success) than always-apply or always-escalate baselines."
+      ],
+      "proposed_design": "Three-arm experiment on 60 vendor-CLI repair tasks plus an independent calibration set of 40 tasks (disjoint). Calibrate LLM confidence scores on the calibration set using predefined methods frozen before confirmatory execution. Execute three confirmatory policies: (A) unconditional verifier-guided automated repair, (B) calibrated-threshold automated repair that only auto-applies repairs above a prespecified confidence threshold, (C) threshold-with-escalation where low-confidence repairs are flagged for human review (simulated oracle that denies application in a prespecified fraction). Record harmful over-repair events, true repair successes, and human-review burden proxy. Freeze thresholds, calibration method, and simulated human-review rules before execution.",
+      "expected_data": "Per-task LLM repair proposals with associated calibrated confidence scores, verifier diagnostics, binary labels of harmful over-repair (per independent safety rules), simulator-based ground-truth repair success, counts of simulated human-review interventions, and model-call counts. Aggregated precision/recall for auto-apply decisions and decision-policy utility metrics under cost weights.",
+      "primary_outcome": "Reduction in harmful over-repair rate (proportion of tasks with harmful changes applied) under the calibrated-threshold automated policy versus unconditional verifier-guided repair, reported with 95% CI.",
+      "analysis_outline": "Evaluate calibration quality (reliability diagrams, Brier score) on the calibration set. For confirmatory data compute harm rates and repair success rates by policy; compare proportions with exact tests (Fisher's exact or paired binomial as appropriate). Compute decision-utility curves across thresholds and report threshold that maximizes prespecified safety-utility tradeoff. Report expected simulated human-review workload at the chosen threshold. Conduct sensitivity analysis varying cost weights for harm vs utility.",
+      "novelty_evidence_ids": [
+        "doi:10.36227/techrxiv.177130685.57616643/v1",
+        "https://openalex.org/W7161165783"
+      ],
+      "feasibility_evidence_ids": [
+        "https://openalex.org/W7171267824",
+        "doi:10.2139/ssrn.6754899"
+      ],
+      "risks": [
+        "Calibration may not generalize from calibration set to confirmatory tasks, producing miscalibrated thresholds.",
+        "Simulated human-review proxy may not capture real operator behavior or delays.",
+        "Thresholding may reduce repair recall excessively, harming utility in high-volume settings.",
+        "Potential data leakage risk if calibration and confirmatory task generation are not strictly disjoint; protocol freezes mitigate this."
+      ],
+      "estimated_model_calls": 30
+    }
+  ]
+}

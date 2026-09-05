@@ -1,0 +1,187 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000004-baseline",
+  "pair_id": "pair-000004",
+  "raw_response_sha256": "2d39d60da792238fd01ca432228fcec6a2fcc4449be99532c66e8a907a39ccd8",
+  "repair_provider_trace_path": "execution/provider_calls/task-000004-baseline-repair.json",
+  "repair_provider_trace_sha256": "8abb0cc38fee4cd8ffb1fbd1a8a5a76ade44ade575e795eb96b90e8eac9a1747",
+  "schema_version": "2.0",
+  "score": 1,
+  "score_reason_code": "VALID_CONFIGURATION",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000004-source-generation.json",
+  "shared_source_provider_trace_sha256": "5689ba9a7609dd5a9edb283a5f547ff3ef58678f864c82b1458155083a917f76",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000004",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "break_before_make",
+    "fault_metadata": {
+      "affected_group": [
+        "edge1",
+        "edge2"
+      ],
+      "fault_class": "break_before_make",
+      "moved_interface": "edge1",
+      "source_line_number": 4
+    },
+    "final_configuration": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge2 admin up\ninterface edge1 admin down",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge1": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt1": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink1": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink2": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge1 admin down\ninterface edge2 admin up",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "TRANSIENT_AVAILABILITY_VIOLATION"
+      ],
+      "violation_count": 1,
+      "violations": [
+        {
+          "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+          "line_number": 3,
+          "message": "Too few interfaces remain active in protected group ['edge1', 'edge2']."
+        }
+      ]
+    },
+    "repair_call_order": 2,
+    "shared_controlled_fault_candidate": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge1 admin down\ninterface edge2 admin up",
+    "shared_controlled_fault_candidate_sha256": "b86a5cdc39c7370877d20ed9dc96c1a9ebf4db33aa2d6e283feb66108bfb6ec6",
+    "source_candidate": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge2 admin up\ninterface edge1 admin down",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge1": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt1": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink1": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink2": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge2 admin up\ninterface edge1 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge1": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt1": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink1": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink2": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge2 admin down\ninterface edge2 vlan 40\ninterface edge2 admin up\ninterface edge1 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validator_feedback_exposed_to_model": false
+  }
+}

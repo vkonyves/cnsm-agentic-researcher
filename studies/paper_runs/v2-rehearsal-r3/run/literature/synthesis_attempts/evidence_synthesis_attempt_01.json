@@ -1,0 +1,190 @@
+{
+  "established_findings": [
+    {
+      "claim_id": "F1",
+      "statement": "Generate–Verify–Repair (GVR) pipelines that interpose deterministic verifiers between probabilistic generation and acceptance reliably detect mechanically-verifiable defects and improve repair success on evaluated code/IaC/DSL tasks.",
+      "evidence_record_ids": [
+        "doi:10.2139/ssrn.6754899",
+        "https://openalex.org/W7171267824",
+        "doi:10.31224/7995"
+      ],
+      "evidence_type": "empirical pipeline evaluations and case studies",
+      "confidence": 0.85,
+      "limitations": [
+        "Evidence is from code, IaC, and DSL benchmarks rather than broad vendor CLI NetOps workloads.",
+        "Reported gains depend on task-specific verifiers and repair budgets.",
+        "Computational and interaction costs are nontrivial and variably reported."
+      ]
+    },
+    {
+      "claim_id": "F2",
+      "statement": "Verifier-guided iterative refinement substantially raises verifiable pass@1 / validator pass rates on Infrastructure-as-Code tasks and reduces specific verifier-detected failure classes.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171267824"
+      ],
+      "evidence_type": "controlled empirical evaluation (IaC benchmark)",
+      "confidence": 0.8,
+      "limitations": [
+        "Results are demonstrated on Terraform/IaC benchmarks and particular models; generalization to other domains or vendor CLIs is unproven.",
+        "Effects depend on verifier design, retry budget, and model used."
+      ]
+    },
+    {
+      "claim_id": "F3",
+      "statement": "Runtime enforcement by verifiers can intercept many non-compliant/unsafe actions but often imposes a measurable 'verifier tax' (longer interaction horizons, increased compute/cost) and does not by itself guarantee safe goal attainment.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140238430"
+      ],
+      "evidence_type": "empirical study of verifier-mediated agent behavior",
+      "confidence": 0.75,
+      "limitations": [
+        "Tax magnitude and impact vary by domain and model; reported horizons are task-dependent.",
+        "Study contexts are non-NetOps domains though findings are relevant to tool-using agents broadly."
+      ]
+    },
+    {
+      "claim_id": "F4",
+      "statement": "Iterative refinement driven by a single verifier proxy can be exploited: optimization toward the proxy may produce systematic degradations of the underlying target property (verifier-exploitation).",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10187492/v1"
+      ],
+      "evidence_type": "controlled empirical analysis of iterative refinement/pathological exploitation",
+      "confidence": 0.7,
+      "limitations": [
+        "Demonstrated in text-summarization/iterative-revision settings; transferability of the specific exploitation mechanisms to NetOps requires empirical verification.",
+        "Mitigations are discussed but not universally validated."
+      ]
+    },
+    {
+      "claim_id": "F5",
+      "statement": "Surveys and field case studies report that LLMs provide useful read-oriented assistance and diagnostic support in network operations, but evidence weakens as systems move toward closed-loop configuration changes and autonomous execution.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7162044117"
+      ],
+      "evidence_type": "survey synthesis and large-scale field case study",
+      "confidence": 0.8,
+      "limitations": [
+        "Heterogeneous methodologies across cited works; positive usefulness ratings do not imply safe autonomous remediation capability.",
+        "Field study evaluations are user-reported and context-specific (demo network)."
+      ]
+    }
+  ],
+  "unresolved_questions": [
+    {
+      "claim_id": "Q1",
+      "statement": "How effective are verifier-guided LLM repair loops at reducing harmful over-repair or introducing new harmful changes when applied to realistic vendor CLI (e.g., Cisco/Juniper) configuration repair tasks?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171267824",
+        "https://openalex.org/W7203759532",
+        "https://openalex.org/W7140238430"
+      ],
+      "evidence_type": "indirect empirical evidence and domain surveys (gap indication)",
+      "confidence": 0.45,
+      "limitations": [
+        "Existing empirical demonstrations focus on IaC, telemetry-grounded program repair, or non-CLI domains; direct measurements on vendor CLIs are absent from supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q2",
+      "statement": "What is the naturalistic activation rate of verifier-guided interventions in real NetOps workloads (i.e., how often will generated candidates actually trigger repairs/validator feedback in production-like task streams)?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7171267824"
+      ],
+      "evidence_type": "survey and benchmark study (suggests concern but not quantified)",
+      "confidence": 0.4,
+      "limitations": [
+        "Supplied records discuss intervention activation as a methodological concern but do not provide large-scale deployment activation statistics for NetOps."
+      ]
+    },
+    {
+      "claim_id": "Q3",
+      "statement": "What are the end-to-end cost–latency tradeoffs (verifier tax) that make verifier-guided repair operationally feasible at NetOps scale?",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140238430",
+        "https://openalex.org/W7171267824"
+      ],
+      "evidence_type": "empirical analyses of verifier overhead in agent pipelines",
+      "confidence": 0.5,
+      "limitations": [
+        "Available measurements are domain- and implementation-specific; NetOps-scale cost/latency studies are not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "Q4",
+      "statement": "Can verifier designs and repair-context encodings be made robust enough to prevent verifier-exploitation while preserving practical correction rates in multi-step NetOps workflows?",
+      "evidence_record_ids": [
+        "doi:10.21203/rs.3.rs-10187492/v1",
+        "https://openalex.org/W7171267824"
+      ],
+      "evidence_type": "empirical demonstrations of exploitation and verifier-guided gains (open question on combined mitigation)",
+      "confidence": 0.45,
+      "limitations": [
+        "Mitigation strategies are proposed or shown in limited settings; cross-domain validation in NetOps is lacking."
+      ]
+    }
+  ],
+  "candidate_gaps": [
+    {
+      "claim_id": "G1",
+      "statement": "There is a shortage of controlled-challenge, deterministic fault-injection experiments that introduce realistic, preregistered vendor-CLI configuration faults to evaluate verifier-guided LLM repair in NetOps.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7161165783",
+        "https://openalex.org/W7171267824"
+      ],
+      "evidence_type": "survey-identified gaps and domain-specific empirical coverage (negative evidence)",
+      "confidence": 0.7,
+      "limitations": [
+        "Claim is based on absence within the supplied record set rather than direct negation; external literature outside supplied records may contain such experiments."
+      ]
+    },
+    {
+      "claim_id": "G2",
+      "statement": "Cross-domain validation is limited: evidence for verifier-guided repair effectiveness is concentrated in IaC, code, and DSLs but is sparse for real device CLIs and heterogeneous vendor behaviors.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7171267824",
+        "doi:10.31224/7995",
+        "https://openalex.org/W7162044117"
+      ],
+      "evidence_type": "comparative empirical coverage across domains",
+      "confidence": 0.6,
+      "limitations": [
+        "Some applied works and case studies touch on CLI usage, but systematic cross-vendor replication is not present in the supplied records."
+      ]
+    },
+    {
+      "claim_id": "G3",
+      "statement": "There is insufficient publicly reported quantification of residual unsafe/invalid outcomes remaining after automated repair attempts in NetOps pipelines.",
+      "evidence_record_ids": [
+        "https://openalex.org/W7140238430",
+        "https://openalex.org/W7203759532"
+      ],
+      "evidence_type": "empirical studies reporting residual failures in related domains; absence in NetOps repair literature supplied",
+      "confidence": 0.6,
+      "limitations": [
+        "Some studies report residual problems in non-NetOps agentic settings; explicit, aggregate post-repair safety tallies for NetOps are not in the supplied set."
+      ]
+    },
+    {
+      "claim_id": "G4",
+      "statement": "Integrating principled uncertainty quantification and calibration methods with verifier-guided repair loops is underexplored in the NetOps-specific literature represented here.",
+      "evidence_record_ids": [
+        "doi:10.36227/techrxiv.177130685.57616643/v1",
+        "https://openalex.org/W4411121371",
+        "https://openalex.org/W7161165783"
+      ],
+      "evidence_type": "methodological position pieces and surveys highlighting calibration challenges and capability–assurance gaps",
+      "confidence": 0.7,
+      "limitations": [
+        "Calibration and UQ methods are studied in ML literature but their operational integration with NetOps verifier–repair loops is not demonstrated in the supplied records."
+      ]
+    }
+  ],
+  "excluded_claims": [
+    "LLM-based verifier-guided repair has been proven production-ready and safe for autonomous vendor-CLI configuration changes across heterogeneous equipment.",
+    "Verifier-guided repair always eliminates all unsafe or invalid configurations (zero residual unsafe outcomes).",
+    "Verifiers never introduce a net cost/latency penalty; verifier mediation imposes no measurable operational overhead.",
+    "There is definitive, large-scale evidence within the supplied records that verifier-guided repair eliminates verifier-exploitation pathologies in multi-step agentic pipelines."
+  ]
+}

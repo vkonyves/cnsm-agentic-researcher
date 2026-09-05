@@ -1,0 +1,205 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000038-baseline",
+  "pair_id": "pair-000038",
+  "raw_response_sha256": "c9aa61b5aa605c1666070a1f2195413c05601b9f109b5ba9eda1468c62212b96",
+  "repair_provider_trace_path": "execution/provider_calls/task-000038-baseline-repair.json",
+  "repair_provider_trace_sha256": "b6b07c6cfd65892167a045a8655c52361d1d0989c546675b7cd7b0c7dbb61dc2",
+  "schema_version": "2.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000038-source-generation.json",
+  "shared_source_provider_trace_sha256": "8c7aec716348b58499ff0fe5cd9bdca479033041a8f766a3f181ac9888c8e99b",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000038",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "no_op_command",
+    "fault_metadata": {
+      "affected_field": "vlan",
+      "affected_interface": "edge17",
+      "fault_class": "no_op_command",
+      "injected_value": 10,
+      "source_line_number": 1
+    },
+    "final_configuration": "interface edge17 vlan 10\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up\ninterface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "rolling_access_vlan_migration",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 50
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 60
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 vlan 10\ninterface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 7,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "NO_OP_COMMAND",
+        "INTERFACE_NOT_DOWN_FOR_CHANGE"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "NO_OP_COMMAND",
+          "line_number": 1,
+          "message": "edge17 vlan is already 10."
+        },
+        {
+          "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+          "line_number": 1,
+          "message": "edge17 must be down before changing vlan."
+        }
+      ]
+    },
+    "repair_call_order": 2,
+    "shared_controlled_fault_candidate": "interface edge17 vlan 10\ninterface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+    "shared_controlled_fault_candidate_sha256": "9247949f3b0352af39ab4a8dba9947bc9da1179261bf20bc8e5056c370add766",
+    "source_candidate": "interface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "rolling_access_vlan_migration",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 50
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 60
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "rolling_access_vlan_migration",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 50
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 60
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 vlan 10\ninterface edge18 admin down\ninterface edge18 vlan 60\ninterface edge18 admin up\ninterface edge17 admin down\ninterface edge17 vlan 50\ninterface edge17 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 7,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "NO_OP_COMMAND",
+        "INTERFACE_NOT_DOWN_FOR_CHANGE"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "NO_OP_COMMAND",
+          "line_number": 1,
+          "message": "edge17 vlan is already 10."
+        },
+        {
+          "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+          "line_number": 1,
+          "message": "edge17 must be down before changing vlan."
+        }
+      ]
+    },
+    "validator_feedback_exposed_to_model": false
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "assignment_artifact_sha256": "a83a9b65339bf68e5c877d889bfd57809a873ec90b0352d4d02d7be9952a3c9f",
+  "assignment_sha256": "8d0879872348ae94a45f3d674df57d6552624cd841b62ab239a280347f5275c6",
+  "baseline_candidate": "interface edge9 vlan 30\ninterface edge9 admin down\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+  "baseline_candidate_sha256": "81bc08f9256c830d7023f8169b3c3be7e1cd979b61638ea5880882693ae8cedb",
+  "fault_class": "offline_change_before_shutdown",
+  "fault_injector_id": "deterministic_netops_fault_injector_v1",
+  "fault_injector_version": "1.0",
+  "fault_metadata": {
+    "affected_field": "vlan",
+    "affected_interface": "edge9",
+    "fault_class": "offline_change_before_shutdown",
+    "source_line_number": 2
+  },
+  "guarded_candidate": "interface edge9 vlan 30\ninterface edge9 admin down\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+  "guarded_candidate_sha256": "81bc08f9256c830d7023f8169b3c3be7e1cd979b61638ea5880882693ae8cedb",
+  "injected_validation": {
+    "difficulty": {
+      "changed_interface_count": 1,
+      "dependency_rule_count": 1,
+      "level": "medium",
+      "pattern": "shutdown_configure_restore",
+      "required_command_count": 4,
+      "transient_rule_count": 2
+    },
+    "final_state": {
+      "edge10": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "edge9": {
+        "admin": "up",
+        "mtu": 1600,
+        "vlan": 30
+      },
+      "mgmt3": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink5": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink6": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface edge9 vlan 30\ninterface edge9 admin down\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+    "observed_touched_field_count": 3,
+    "parsed_command_count": 4,
+    "required_command_count": 4,
+    "valid": false,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [
+      "INTERFACE_NOT_DOWN_FOR_CHANGE"
+    ],
+    "violation_count": 1,
+    "violations": [
+      {
+        "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+        "line_number": 1,
+        "message": "edge9 must be down before changing vlan."
+      }
+    ]
+  },
+  "injected_violation_codes": [
+    "INTERFACE_NOT_DOWN_FOR_CHANGE"
+  ],
+  "pair_id": "pair-000017",
+  "regime_id": "controlled_fault_repair_regime_v1",
+  "regime_version": "1.0",
+  "schema_version": "2.0",
+  "shared_injected_candidate": "interface edge9 vlan 30\ninterface edge9 admin down\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+  "shared_injected_candidate_sha256": "81bc08f9256c830d7023f8169b3c3be7e1cd979b61638ea5880882693ae8cedb",
+  "source_candidate": "interface edge9 admin down\ninterface edge9 vlan 30\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+  "source_candidate_sha256": "68cde9b19cefbe5cbbf2b90fffecca553e7fdad38b2beada6f1d15cc7f6b629a",
+  "source_validation": {
+    "difficulty": {
+      "changed_interface_count": 1,
+      "dependency_rule_count": 1,
+      "level": "medium",
+      "pattern": "shutdown_configure_restore",
+      "required_command_count": 4,
+      "transient_rule_count": 2
+    },
+    "final_state": {
+      "edge10": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "edge9": {
+        "admin": "up",
+        "mtu": 1600,
+        "vlan": 30
+      },
+      "mgmt3": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink5": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink6": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface edge9 admin down\ninterface edge9 vlan 30\ninterface edge9 mtu 1600\ninterface edge9 admin up",
+    "observed_touched_field_count": 3,
+    "parsed_command_count": 4,
+    "required_command_count": 4,
+    "valid": true,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [],
+    "violation_count": 0,
+    "violations": []
+  },
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": null,
+  "task_index": 17
+}

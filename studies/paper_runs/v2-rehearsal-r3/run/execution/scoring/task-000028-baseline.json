@@ -1,0 +1,210 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000028-baseline",
+  "pair_id": "pair-000028",
+  "raw_response_sha256": "3f7e743262dc944253a56a4ddf1c8385b9c2f7faf443e2074f0d34061d1b7517",
+  "repair_provider_trace_path": "execution/provider_calls/task-000028-baseline-repair.json",
+  "repair_provider_trace_sha256": "6607390133324605118429a35888e4394f291cdb1aa122f610421821c39892c1",
+  "schema_version": "2.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000028-source-generation.json",
+  "shared_source_provider_trace_sha256": "7a5c043a934979646375e7744233afce3b7519e4ffde425d98cddcb1b95ec306",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000028",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "dropped_required_restore",
+    "fault_metadata": {
+      "affected_interface": "edge14",
+      "expected_final_admin": "up",
+      "fault_class": "dropped_required_restore",
+      "source_line_number": 3
+    },
+    "final_configuration": "interface edge14 admin down\ninterface edge13 admin down\ninterface edge14 vlan 40\ninterface edge14 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge14 admin down\ninterface edge14 vlan 40\ninterface edge13 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 3,
+      "required_command_count": 4,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "TRANSIENT_AVAILABILITY_VIOLATION",
+        "FINAL_STATE_MISMATCH",
+        "FINAL_ACTIVE_COUNT_VIOLATION"
+      ],
+      "violation_count": 3,
+      "violations": [
+        {
+          "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+          "line_number": 3,
+          "message": "Too few interfaces remain active in protected group ['edge13', 'edge14']."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge14 admin ended as 'down'; expected 'up'."
+        },
+        {
+          "code": "FINAL_ACTIVE_COUNT_VIOLATION",
+          "line_number": null,
+          "message": "Expected exactly 1 active interfaces in ['edge13', 'edge14']; observed 0."
+        }
+      ]
+    },
+    "repair_call_order": 2,
+    "shared_controlled_fault_candidate": "interface edge14 admin down\ninterface edge14 vlan 40\ninterface edge13 admin down",
+    "shared_controlled_fault_candidate_sha256": "644fba8bce9c8f97a028fbd983c3137e35c2bd58a11c76959dacf82251b2a621",
+    "source_candidate": "interface edge14 admin down\ninterface edge14 vlan 40\ninterface edge14 admin up\ninterface edge13 admin down",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge14 admin down\ninterface edge14 vlan 40\ninterface edge14 admin up\ninterface edge13 admin down",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "very_hard",
+        "pattern": "safe_access_service_transfer",
+        "required_command_count": 4,
+        "transient_rule_count": 2
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 40
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge14 admin down\ninterface edge13 admin down\ninterface edge14 vlan 40\ninterface edge14 admin up",
+      "observed_touched_field_count": 3,
+      "parsed_command_count": 4,
+      "required_command_count": 4,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "TRANSIENT_AVAILABILITY_VIOLATION",
+        "TRANSIENT_AVAILABILITY_VIOLATION"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+          "line_number": 2,
+          "message": "Too few interfaces remain active in protected group ['edge13', 'edge14']."
+        },
+        {
+          "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+          "line_number": 3,
+          "message": "Too few interfaces remain active in protected group ['edge13', 'edge14']."
+        }
+      ]
+    },
+    "validator_feedback_exposed_to_model": false
+  }
+}

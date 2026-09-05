@@ -1,0 +1,184 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000035-guarded",
+  "pair_id": "pair-000035",
+  "raw_response_sha256": "b4572a7a2ae117f531c4c1c57a86483ad0937cc1634e920ac28f1d739f2a822d",
+  "repair_provider_trace_path": "execution/provider_calls/task-000035-guarded-repair.json",
+  "repair_provider_trace_sha256": "9428985f049a4404f5829cd354228c46214942b86ebb4af500413a1b2163b0f8",
+  "schema_version": "2.0",
+  "score": 1,
+  "score_reason_code": "VALID_CONFIGURATION",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000035-source-generation.json",
+  "shared_source_provider_trace_sha256": "e41eafc31cfa76796f3fb6e293457599548820747e2d9ce2e71d3b7eebb85e04",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000035",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "dropped_required_restore",
+    "fault_metadata": {
+      "affected_interface": "edge18",
+      "expected_final_admin": "up",
+      "fault_class": "dropped_required_restore",
+      "source_line_number": 6
+    },
+    "final_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "down",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 5,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 1,
+      "violations": [
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge18 admin ended as 'down'; expected 'up'."
+        }
+      ]
+    },
+    "repair_call_order": 2,
+    "shared_controlled_fault_candidate": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+    "shared_controlled_fault_candidate_sha256": "cc70c719263fc07129cd3a46139dfccf0a6fdc97ab4d1b7f3134e9393cfbb66c",
+    "source_candidate": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validator_feedback_exposed_to_model": true
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "reviews": [
+    {
+      "candidate_id": "vCLI_fault_injection_repair_2026_A",
+      "novelty": 0.8,
+      "falsifiability": 0.9,
+      "evidence_support": 0.8,
+      "causal_interpretability": 0.9,
+      "reproducibility": 0.8,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.95,
+      "major_concerns": [
+        "Confirmatory sample (n=40) may limit external validity across vendor/feature diversity and per-fault-class power.",
+        "Potential simulator/verifier mismatch: deterministic verifier pass may not equal safe production behavior.",
+        "Single-repair-attempt budget may under-represent real repair workflows (multi-step repair dynamics).",
+        "Risk of harmful over-repair (intent loss) needs explicit operational labeling and mitigation."
+      ],
+      "required_design_repairs": [
+        "Provide explicit, enumerated fault-operator list and per-vendor task templates in the preregistration and archive their hashes.",
+        "Pre-register and justify power/sample-size assumptions for the primary paired test or report detectable effect sizes given n=40.",
+        "Define and validate verifier↔simulator concordance on a disjoint validation set; report planned handling of verifier/simulator disagreement.",
+        "Specify precise harmful-change detection rules and independent safety checks; freeze repair prompt and failure-label schema; log all diffs and timestamps."
+      ],
+      "verdict": "pass"
+    },
+    {
+      "candidate_id": "iterative_verifier_exploitation_study_2026_B",
+      "novelty": 0.85,
+      "falsifiability": 0.85,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.7,
+      "compute_feasibility": 0.8,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Specification of single-verifier and ensemble-verifier implementations is underspecified and will materially affect results.",
+        "Safety risk from multi-iteration automated edits needs stronger runtime safeguards and stop/rllback rules.",
+        "Sample (n=30) may be small for mixed-effects modeling and heterogeneous exploitation patterns; subgroup analyses may be underpowered.",
+        "Potential confounding between iteration count and prompt-state/prompting strategy if not tightly frozen."
+      ],
+      "required_design_repairs": [
+        "Freeze and publish exact verifier implementations, deterministic diagnostics format, and ensemble aggregation rule before calibration/execution.",
+        "Predefine iteration stopping rules and enforce simulated rollback/containment to prevent destructive edits during execution.",
+        "Pre-register statistical model, random seeds, and planned sensitivity analyses; include synthetic illustrative cases in protocol.",
+        "Increase confirmatory sample or provide power justification for the planned mixed-effects inference; if infeasible, label some analyses exploratory."
+      ],
+      "verdict": "repair"
+    },
+    {
+      "candidate_id": "verifier_tax_cost_latency_tradeoff_2026_C",
+      "novelty": 0.6,
+      "falsifiability": 0.8,
+      "evidence_support": 0.65,
+      "causal_interpretability": 0.6,
+      "reproducibility": 0.6,
+      "compute_feasibility": 0.15,
+      "venue_relevance": 0.8,
+      "major_concerns": [
+        "Design requests 120 tasks but the rehearsal master prompt/manifest constrains confirmatory selection to exactly 40 — procedural conflict for this run.",
+        "Declared maximum planned model calls (manifest) appears incompatible with the proposed batch size and two-condition pairing; estimated_model_calls are internally inconsistent.",
+        "Wall-clock latency/cost measurement depends on instrumentation and hosting variability that are not fully specified; measurement overhead may bias results.",
+        "Stratification heuristics for complexity are not fully defined and may induce selection bias."
+      ],
+      "required_design_repairs": [
+        "Align confirmatory sample size with the rehearsal constraint (exactly 40) or justify/obtain a manifest exception; update preregistration accordingly.",
+        "Reconcile and document model-call budget (estimated_model_calls) with task-count and condition multiplicity; freeze provider API settings and cost-proxy calculation.",
+        "Freeze exact instrumentation stack and latency measurement method; define and test noninvasive timers on a held-out calibration set.",
+        "Specify and freeze objective complexity heuristics and their thresholds; pre-register stratified-analysis plan and operational thresholds."
+      ],
+      "verdict": "veto"
+    },
+    {
+      "candidate_id": "uq_calibrated_repair_thresholds_2026_D",
+      "novelty": 0.8,
+      "falsifiability": 0.85,
+      "evidence_support": 0.7,
+      "causal_interpretability": 0.8,
+      "reproducibility": 0.65,
+      "compute_feasibility": 0.6,
+      "venue_relevance": 0.9,
+      "major_concerns": [
+        "Calibration set (n=40) plus confirmatory 60 tasks may violate the rehearsal-only 40-task constraint for confirmatory runs.",
+        "Calibration generalization risk: thresholds selected on calibration set may not transfer to confirmatory tasks unless disjoint generation rules are airtight.",
+        "Simulated human-review oracle is underspecified and may bias estimated human-review burden and decision utility.",
+        "Risk of data leakage between calibration and confirmatory sets if task generation rules or templates are insufficiently disjoint."
+      ],
+      "required_design_repairs": [
+        "Ensure strict task-set disjointness with frozen generation rules and publish calibration/confirmatory generation hashes; if rehearsal requires 40 confirmatory tasks, adapt counts accordingly.",
+        "Fully specify calibration method(s) (e.g., temperature scaling, isotonic), their implementation details, and evaluation metrics; freeze before calibration outcomes are observed.",
+        "Specify simulated human-review policy with realistic denial/acceptance behavior or replace with a conservative simulated operator model; pre-register workload accounting.",
+        "Provide power justification for harm-rate reduction detection or report minimal detectable harm-rate difference given planned n; freeze thresholds and decision-utility weights."
+      ],
+      "verdict": "repair"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "assignment_artifact_sha256": "a83a9b65339bf68e5c877d889bfd57809a873ec90b0352d4d02d7be9952a3c9f",
+  "assignment_sha256": "8d0879872348ae94a45f3d674df57d6552624cd841b62ab239a280347f5275c6",
+  "baseline_candidate": "interface uplink7 admin down\ninterface uplink8 admin up",
+  "baseline_candidate_sha256": "9883dc4f14ac4442203dc8c25079b1b7f6cc5ae65915c69e693e9f3b2d909c45",
+  "fault_class": "break_before_make",
+  "fault_injector_id": "deterministic_netops_fault_injector_v1",
+  "fault_injector_version": "1.0",
+  "fault_metadata": {
+    "affected_group": [
+      "uplink7",
+      "uplink8"
+    ],
+    "fault_class": "break_before_make",
+    "moved_interface": "uplink7",
+    "source_line_number": 2
+  },
+  "guarded_candidate": "interface uplink7 admin down\ninterface uplink8 admin up",
+  "guarded_candidate_sha256": "9883dc4f14ac4442203dc8c25079b1b7f6cc5ae65915c69e693e9f3b2d909c45",
+  "injected_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "hard",
+      "pattern": "make_before_break_uplink_switchover",
+      "required_command_count": 2,
+      "transient_rule_count": 1
+    },
+    "final_state": {
+      "edge13": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 10
+      },
+      "edge14": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "mgmt4": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink7": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink8": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface uplink7 admin down\ninterface uplink8 admin up",
+    "observed_touched_field_count": 2,
+    "parsed_command_count": 2,
+    "required_command_count": 2,
+    "valid": false,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [
+      "TRANSIENT_AVAILABILITY_VIOLATION"
+    ],
+    "violation_count": 1,
+    "violations": [
+      {
+        "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+        "line_number": 1,
+        "message": "Too few interfaces remain active in protected group ['uplink7', 'uplink8']."
+      }
+    ]
+  },
+  "injected_violation_codes": [
+    "TRANSIENT_AVAILABILITY_VIOLATION"
+  ],
+  "pair_id": "pair-000026",
+  "regime_id": "controlled_fault_repair_regime_v1",
+  "regime_version": "1.0",
+  "schema_version": "2.0",
+  "shared_injected_candidate": "interface uplink7 admin down\ninterface uplink8 admin up",
+  "shared_injected_candidate_sha256": "9883dc4f14ac4442203dc8c25079b1b7f6cc5ae65915c69e693e9f3b2d909c45",
+  "source_candidate": "interface uplink8 admin up\ninterface uplink7 admin down",
+  "source_candidate_sha256": "77dffd26f99be23a7dd4214f882026af9101544c4eca0ccbe9a2383759be87d7",
+  "source_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "hard",
+      "pattern": "make_before_break_uplink_switchover",
+      "required_command_count": 2,
+      "transient_rule_count": 1
+    },
+    "final_state": {
+      "edge13": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 10
+      },
+      "edge14": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "mgmt4": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink7": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink8": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface uplink8 admin up\ninterface uplink7 admin down",
+    "observed_touched_field_count": 2,
+    "parsed_command_count": 2,
+    "required_command_count": 2,
+    "valid": true,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [],
+    "violation_count": 0,
+    "violations": []
+  },
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": null,
+  "task_index": 26
+}

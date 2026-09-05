@@ -1,0 +1,136 @@
+{
+  "assignment_artifact_sha256": "a83a9b65339bf68e5c877d889bfd57809a873ec90b0352d4d02d7be9952a3c9f",
+  "assignment_sha256": "8d0879872348ae94a45f3d674df57d6552624cd841b62ab239a280347f5275c6",
+  "baseline_candidate": "interface uplink3 admin down\ninterface uplink4 admin up\ninterface uplink3 vlan 210",
+  "baseline_candidate_sha256": "5246a2e3c0544e6ced508947075a1d72b2dfa6a0bd50d5b6fe3514542a0d3a12",
+  "fault_class": "break_before_make",
+  "fault_injector_id": "deterministic_netops_fault_injector_v1",
+  "fault_injector_version": "1.0",
+  "fault_metadata": {
+    "affected_group": [
+      "uplink3",
+      "uplink4"
+    ],
+    "fault_class": "break_before_make",
+    "moved_interface": "uplink3",
+    "source_line_number": 2
+  },
+  "guarded_candidate": "interface uplink3 admin down\ninterface uplink4 admin up\ninterface uplink3 vlan 210",
+  "guarded_candidate_sha256": "5246a2e3c0544e6ced508947075a1d72b2dfa6a0bd50d5b6fe3514542a0d3a12",
+  "injected_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "very_hard",
+      "pattern": "failover_then_offline_reconfiguration",
+      "required_command_count": 3,
+      "transient_rule_count": 2
+    },
+    "final_state": {
+      "edge5": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 10
+      },
+      "edge6": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "mgmt2": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink3": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 210
+      },
+      "uplink4": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface uplink3 admin down\ninterface uplink4 admin up\ninterface uplink3 vlan 210",
+    "observed_touched_field_count": 3,
+    "parsed_command_count": 3,
+    "required_command_count": 3,
+    "valid": false,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [
+      "TRANSIENT_AVAILABILITY_VIOLATION"
+    ],
+    "violation_count": 1,
+    "violations": [
+      {
+        "code": "TRANSIENT_AVAILABILITY_VIOLATION",
+        "line_number": 1,
+        "message": "Too few interfaces remain active in protected group ['uplink3', 'uplink4']."
+      }
+    ]
+  },
+  "injected_violation_codes": [
+    "TRANSIENT_AVAILABILITY_VIOLATION"
+  ],
+  "pair_id": "pair-000013",
+  "regime_id": "controlled_fault_repair_regime_v1",
+  "regime_version": "1.0",
+  "schema_version": "2.0",
+  "shared_injected_candidate": "interface uplink3 admin down\ninterface uplink4 admin up\ninterface uplink3 vlan 210",
+  "shared_injected_candidate_sha256": "5246a2e3c0544e6ced508947075a1d72b2dfa6a0bd50d5b6fe3514542a0d3a12",
+  "source_candidate": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 210",
+  "source_candidate_sha256": "aa3068804493c2b1f1c08eab037f8d218a1c1b1d64ee5830e09a2c4635bc057c",
+  "source_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "very_hard",
+      "pattern": "failover_then_offline_reconfiguration",
+      "required_command_count": 3,
+      "transient_rule_count": 2
+    },
+    "final_state": {
+      "edge5": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 10
+      },
+      "edge6": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 20
+      },
+      "mgmt2": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink3": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 210
+      },
+      "uplink4": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 210",
+    "observed_touched_field_count": 3,
+    "parsed_command_count": 3,
+    "required_command_count": 3,
+    "valid": true,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [],
+    "violation_count": 0,
+    "violations": []
+  },
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": null,
+  "task_index": 13
+}

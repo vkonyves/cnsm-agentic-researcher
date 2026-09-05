@@ -1,0 +1,31 @@
+{
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "analysis_executor": "paired_binary_analysis_v1",
+  "estimand": "paired_success_rate_difference_guarded_minus_baseline",
+  "primary_analysis": "Confirmatory analysis executed under the paired_binary_analysis_v1 contract: exact paired binary test (McNemar exact or equivalent exact paired binomial) on the combined success flag (verifier AND simulator pass per episode). Report discordant-pair counts (guarded-only success, baseline-only success), absolute risk difference (guarded minus baseline) with 95% exact CI, and two-sided exact p-value. Apply preregistered 'complete_pair_primary' exclusion rule (exclude a task pair only if both condition executions for that task failed for infrastructure reasons). Inputs: execution/raw_results.jsonl, execution/result_schema.json, execution/task_manifest.jsonl, execution/transformation_manifest.json.",
+  "secondary_analyses": [
+    "per_fault_class_paired_success_rate_difference (exploratory): descriptive paired risk differences with CIs by fault class using task_manifest and raw_results.jsonl",
+    "residual_unsafe_rate_difference_guarded_minus_baseline (exploratory): residual verifier/simulator failures after repair by condition",
+    "harmful_overrepair_rate_difference_guarded_minus_baseline (exploratory): counts/proportions of repairs flagged by frozen harmful-change rules (protected-intent removals) by condition from transformation_manifest",
+    "model_call_cost_per_avoided_failure (exploratory): compute model-call counts and elapsed time per episode from execution_log.jsonl and model_configuration.json; estimate cost-per-avoided-failure with bootstrap CIs"
+  ],
+  "sensitivity_analyses": [
+    "complete_pair_primary_with_failure_as_zero_sensitivity: treat any technical/execution failure as a failed repair (zero) and recompute paired test and risk differences",
+    "verifier-only and simulator-only outcome tables: report analyses using verifier-only and simulator-only pass flags separately to show verifier↔simulator discordance effects (descriptive)"
+  ],
+  "uncertainty_quantification": "Primary: exact two-sided paired test p-value and 95% exact confidence interval for absolute paired risk difference. Report discordant counts and exact-binomial CIs where appropriate. For cost metrics use nonparametric bootstrap (archived model-call metadata and elapsed times) to produce 95% bootstrap CIs. Report exact sample sizes, excluded pairs (per complete_pair_primary) and number of technical failures.",
+  "multiplicity_implementation": "Single predefined primary paired test (no multiplicity adjustment). All subgroup, per-fault-class, and secondary analyses are explicitly exploratory and reported as such; CIs provided but no confirmatory claims derived from exploratory analyses.",
+  "contamination_analysis": "Follow preregistered contamination procedures: deterministic string-match scanning of generated tasks/faults against the archived task bank (execution/task_manifest.jsonl) to detect overlap with public templates; report verifier vs simulator discordance (flag tasks where verifier passes and simulator fails and vice versa) using execution/raw_results.jsonl; audit repairs for protected-intent removals using execution/transformation_manifest.json. Primary success requires both verifier AND simulator agreement; all discordances and contamination flags reported descriptively in results and limitations.",
+  "failed_call_treatment": "complete_pair_primary",
+  "table_specifications": [
+    "Table 1 — Confirmatory paired outcome contingency: counts of (both pass, both fail, guarded-only pass, baseline-only pass) by task index; source: execution/raw_results.jsonl (paired_binary_episode_v1) and execution/result_schema.json",
+    "Table 2 — Discordant-pair breakdown: list of discordant task indices, fault class, guarded outcome, baseline outcome, and diagnostic traces; source: execution/raw_results.jsonl + execution/task_manifest.jsonl",
+    "Table 3 — Harmful-overrepair audit: counts and examples of repairs flagged by harmful-change rules (protected-intent removals), by condition and task index; source: execution/transformation_manifest.json",
+    "Table 4 — Model-call and latency summary: per-condition model-call counts, total tokens, elapsed wall-clock per episode, and aggregate cost; include bootstrap estimates of cost-per-avoided-failure; source: execution/execution_log.jsonl and execution/model_configuration.json"
+  ],
+  "figure_specifications": [
+    "Figure 1 — Confirmatory pass rates by condition: bar chart with 95% exact CIs derived from Table 1 (execution/raw_results.jsonl)",
+    "Figure 2 — Discordant-pair visualization: scatter or dot chart of guarded-only vs baseline-only discordant task indices with fault-class color-coding (exploratory); source: execution/raw_results.jsonl + task_manifest",
+    "Figure 3 — Per-fault-class risk-difference forest plot (exploratory): paired risk differences with 95% CIs by fault class; source: execution/raw_results.jsonl and task_manifest"
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "assignment_artifact_sha256": "a83a9b65339bf68e5c877d889bfd57809a873ec90b0352d4d02d7be9952a3c9f",
+  "assignment_sha256": "8d0879872348ae94a45f3d674df57d6552624cd841b62ab239a280347f5275c6",
+  "baseline_candidate": "interface edge9 vlan 50\ninterface edge9 admin down\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+  "baseline_candidate_sha256": "f9e5ce064b08c2691cc2679198c631b5d92ea796168acf53383b4c8b8b382992",
+  "fault_class": "offline_change_before_shutdown",
+  "fault_injector_id": "deterministic_netops_fault_injector_v1",
+  "fault_injector_version": "1.0",
+  "fault_metadata": {
+    "affected_field": "vlan",
+    "affected_interface": "edge9",
+    "fault_class": "offline_change_before_shutdown",
+    "source_line_number": 2
+  },
+  "guarded_candidate": "interface edge9 vlan 50\ninterface edge9 admin down\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+  "guarded_candidate_sha256": "f9e5ce064b08c2691cc2679198c631b5d92ea796168acf53383b4c8b8b382992",
+  "injected_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "very_hard",
+      "pattern": "rolling_access_vlan_migration",
+      "required_command_count": 6,
+      "transient_rule_count": 3
+    },
+    "final_state": {
+      "edge10": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 60
+      },
+      "edge9": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 50
+      },
+      "mgmt3": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink5": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink6": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface edge9 vlan 50\ninterface edge9 admin down\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+    "observed_touched_field_count": 4,
+    "parsed_command_count": 6,
+    "required_command_count": 6,
+    "valid": false,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [
+      "INTERFACE_NOT_DOWN_FOR_CHANGE"
+    ],
+    "violation_count": 1,
+    "violations": [
+      {
+        "code": "INTERFACE_NOT_DOWN_FOR_CHANGE",
+        "line_number": 1,
+        "message": "edge9 must be down before changing vlan."
+      }
+    ]
+  },
+  "injected_violation_codes": [
+    "INTERFACE_NOT_DOWN_FOR_CHANGE"
+  ],
+  "pair_id": "pair-000022",
+  "regime_id": "controlled_fault_repair_regime_v1",
+  "regime_version": "1.0",
+  "schema_version": "2.0",
+  "shared_injected_candidate": "interface edge9 vlan 50\ninterface edge9 admin down\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+  "shared_injected_candidate_sha256": "f9e5ce064b08c2691cc2679198c631b5d92ea796168acf53383b4c8b8b382992",
+  "source_candidate": "interface edge9 admin down\ninterface edge9 vlan 50\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+  "source_candidate_sha256": "1610e2a102700dd6beeee5d983406bdd863c8dc6dd2d87cd2412be28493c4b2c",
+  "source_validation": {
+    "difficulty": {
+      "changed_interface_count": 2,
+      "dependency_rule_count": 2,
+      "level": "very_hard",
+      "pattern": "rolling_access_vlan_migration",
+      "required_command_count": 6,
+      "transient_rule_count": 3
+    },
+    "final_state": {
+      "edge10": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 60
+      },
+      "edge9": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 50
+      },
+      "mgmt3": {
+        "admin": "up",
+        "mtu": 1500,
+        "vlan": 99
+      },
+      "uplink5": {
+        "admin": "up",
+        "mtu": 9000,
+        "vlan": 200
+      },
+      "uplink6": {
+        "admin": "down",
+        "mtu": 9000,
+        "vlan": 201
+      }
+    },
+    "normalized_configuration": "interface edge9 admin down\ninterface edge9 vlan 50\ninterface edge9 admin up\ninterface edge10 admin down\ninterface edge10 vlan 60\ninterface edge10 admin up",
+    "observed_touched_field_count": 4,
+    "parsed_command_count": 6,
+    "required_command_count": 6,
+    "valid": true,
+    "validator_id": "deterministic_netops_validator_v5",
+    "validator_version": "5.0",
+    "violation_codes": [],
+    "violation_count": 0,
+    "violations": []
+  },
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": null,
+  "task_index": 22
+}

@@ -1,0 +1,217 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000027-baseline",
+  "pair_id": "pair-000027",
+  "raw_response_sha256": "dff50514f921481e2fd22798372aa21ab22205e9388d95a7a040f6bce4785606",
+  "repair_provider_trace_path": "execution/provider_calls/task-000027-baseline-repair.json",
+  "repair_provider_trace_sha256": "429c3fd04376556d4fa10b0de1666fd1f9053e4f606cf4dc8c3b98f94d857bc0",
+  "schema_version": "2.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000027-source-generation.json",
+  "shared_source_provider_trace_sha256": "0b4ea53dfa7906210bb97ec94dec1e5ea7558547a10f2d8d97fe2c36983a10a5",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000027",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "no_op_command",
+    "fault_metadata": {
+      "affected_field": "vlan",
+      "affected_interface": "edge13",
+      "fault_class": "no_op_command",
+      "injected_value": 10,
+      "source_line_number": 1
+    },
+    "final_configuration": "interface edge13 vlan 10\ninterface edge14 vlan 20\ninterface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge13 vlan 10\ninterface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+      "observed_touched_field_count": 5,
+      "parsed_command_count": 7,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "NO_OP_COMMAND"
+      ],
+      "violation_count": 2,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: edge13 vlan."
+        },
+        {
+          "code": "NO_OP_COMMAND",
+          "line_number": 1,
+          "message": "edge13 vlan is already 10."
+        }
+      ]
+    },
+    "repair_call_order": 1,
+    "shared_controlled_fault_candidate": "interface edge13 vlan 10\ninterface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+    "shared_controlled_fault_candidate_sha256": "ad693d74119e2879abcbe09769fb66999b939445d5feb9bd05871f28bed96657",
+    "source_candidate": "interface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge13": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge14": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt4": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink7": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        },
+        "uplink8": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface edge13 vlan 10\ninterface edge14 vlan 20\ninterface edge13 admin down\ninterface edge14 admin down\ninterface edge13 mtu 1800\ninterface edge14 mtu 1800\ninterface edge13 admin up\ninterface edge14 admin up",
+      "observed_touched_field_count": 6,
+      "parsed_command_count": 8,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "UNINTENDED_STATE_CHANGE",
+        "NO_OP_COMMAND",
+        "UNINTENDED_STATE_CHANGE",
+        "NO_OP_COMMAND"
+      ],
+      "violation_count": 4,
+      "violations": [
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 1,
+          "message": "Command modifies a field outside the permitted workflow: edge13 vlan."
+        },
+        {
+          "code": "NO_OP_COMMAND",
+          "line_number": 1,
+          "message": "edge13 vlan is already 10."
+        },
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 2,
+          "message": "Command modifies a field outside the permitted workflow: edge14 vlan."
+        },
+        {
+          "code": "NO_OP_COMMAND",
+          "line_number": 2,
+          "message": "edge14 vlan is already 20."
+        }
+      ]
+    },
+    "validator_feedback_exposed_to_model": false
+  }
+}

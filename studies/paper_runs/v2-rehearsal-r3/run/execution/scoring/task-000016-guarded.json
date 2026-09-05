@@ -1,0 +1,196 @@
+{
+  "condition": "guarded",
+  "episode_id": "task-000016-guarded",
+  "pair_id": "pair-000016",
+  "raw_response_sha256": "11e3b38cdf6bcc7dd5f746215d98921d9e6af31122815eff0f5b9d8e1afc061d",
+  "repair_provider_trace_path": "execution/provider_calls/task-000016-guarded-repair.json",
+  "repair_provider_trace_sha256": "1939e4ee034f32afbbeaa9ccb19bd9c5dd2872b30763dba404f322b38d3c8c8e",
+  "schema_version": "2.0",
+  "score": 1,
+  "score_reason_code": "VALID_CONFIGURATION",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000016-source-generation.json",
+  "shared_source_provider_trace_sha256": "9eb0c1fc39e420b8579778b7d9b138d18576347394a52c0c21344d546ab62706",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000016",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "protected_interface_change",
+    "fault_metadata": {
+      "affected_interface": "mgmt2",
+      "fault_class": "protected_interface_change",
+      "injected_value": "down",
+      "source_line_number": 10
+    },
+    "final_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 70
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "down",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "up",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink4": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up\ninterface mgmt2 admin down",
+      "observed_touched_field_count": 7,
+      "parsed_command_count": 10,
+      "required_command_count": 9,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "PROTECTED_INTERFACE_CHANGE",
+        "UNINTENDED_STATE_CHANGE",
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 3,
+      "violations": [
+        {
+          "code": "PROTECTED_INTERFACE_CHANGE",
+          "line_number": 10,
+          "message": "Protected interface mgmt2 must not change."
+        },
+        {
+          "code": "UNINTENDED_STATE_CHANGE",
+          "line_number": 10,
+          "message": "Command modifies a field outside the permitted workflow: mgmt2 admin."
+        },
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "mgmt2 admin ended as 'down'; expected 'up'."
+        }
+      ]
+    },
+    "repair_call_order": 1,
+    "shared_controlled_fault_candidate": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up\ninterface mgmt2 admin down",
+    "shared_controlled_fault_candidate_sha256": "6b379ed0ef301b7fcbf1ca48d8d42e8d5e02c56e98a4e6d2a412508fec296d8c",
+    "source_candidate": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 70
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "up",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink4": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up",
+      "observed_touched_field_count": 6,
+      "parsed_command_count": 9,
+      "required_command_count": 9,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 3,
+        "dependency_rule_count": 4,
+        "level": "extreme",
+        "pattern": "composed_redundancy_and_access_maintenance",
+        "required_command_count": 9,
+        "transient_rule_count": 4
+      },
+      "final_state": {
+        "edge5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 70
+        },
+        "edge6": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 20
+        },
+        "mgmt2": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink3": {
+          "admin": "up",
+          "mtu": 9300,
+          "vlan": 220
+        },
+        "uplink4": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        }
+      },
+      "normalized_configuration": "interface uplink4 admin up\ninterface uplink3 admin down\ninterface uplink3 vlan 220\ninterface uplink3 mtu 9300\ninterface uplink3 admin up\ninterface uplink4 admin down\ninterface edge5 admin down\ninterface edge5 vlan 70\ninterface edge5 admin up",
+      "observed_touched_field_count": 6,
+      "parsed_command_count": 9,
+      "required_command_count": 9,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validator_feedback_exposed_to_model": true
+  }
+}

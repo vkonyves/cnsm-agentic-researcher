@@ -1,0 +1,22 @@
+{
+  "summary": "Closure review (review_mode=closure_review): The archived execution and analysis artifacts substantively support the preregistered paired primary estimand and the reported paired exact test. The study correctly used shared_initial_candidate semantics, preserved the preregistered sample-size rule, and transparently documents the unresolved preregistered harmful-overrepair aggregation. However, prior required revisions remain incompletely addressed: the manuscript does not present a conventional IEEE-style numbered References section with full bibliographic metadata, and Methods lacks a single explicit pointer to the per-call runtime sampling-record location in the archived artifacts (temperature=null is noted but the per-call record pointer is missing). No other new critical scientific defects were found; the archived artifacts and hashes are present to enable the requested manuscript fixes without new experiments.",
+  "novelty_score": 5,
+  "technical_depth_score": 5,
+  "soundness_score": 1,
+  "clarity_score": 5,
+  "critical_issues": [
+    "Manuscript lacks a conventional IEEE-formatted numbered References section with full bibliographic metadata that unambiguously maps each inline numeric citation to a full reference entry (previous required revision not satisfied).",
+    "Methods does not include the single explicit archival pointer required by the previous review: an explicit sentence stating where per-call runtime sampling parameters are archived (so readers can verify that temperature=null is not evidence of temperature=0)."
+  ],
+  "required_revisions": [
+    "Insert a conventional IEEE-style numbered References section listing full bibliographic metadata (authors, title, venue, year, DOI/URL where available) for every cited work; use the terminal_bibliographic_records in the evidence bundle to populate these entries so each inline numeric marker maps unambiguously to a full reference.",
+    "Add one explicit sentence in Methods pointing to the archived per-call runtime sampling-record location(s). For example: “Per-call runtime sampling parameters and sampling records are archived in the evidence bundle (execution/provider_calls/ and execution/raw_results.jsonl) and the declared model configuration is at execution/model_configuration.json; note that temperature = null in execution/model_configuration.json is unset and not evidence of deterministic sampling.” Use exactly these archive paths (they exist in the evidence bundle) and keep this single pointer concise.",
+    "Explicitly confirm in Methods or a short footnote that each numbered citation supports the specific nearby scholarly claim (i.e., verify citation semantics). If any numbered citation does not support the adjacent claim, replace or qualify that citation rather than leaving an unsupported claim."
+  ],
+  "optional_revisions": [
+    "Condense the Disclosure Statement to remove execution-log-level detail while preserving the mandatory master-prompt locator and its SHA-256 (the current Disclosure is functionally complete but could be more concise).",
+    "Optionally, in Related Work add one-line parenthetical summaries after each numeric citation to clarify the specific empirical claim the cited record supports (improves citation-semantic transparency).",
+    "Consider moving machine-internal artifact paths, long hashes, and per-file provenance details out of the main prose into a short Appendix or the archived artifact manifest reference to improve readability (not required for reproducibility since artifacts are archived)."
+  ],
+  "accept_for_finalisation": false
+}

@@ -1,0 +1,192 @@
+{
+  "condition": "baseline",
+  "episode_id": "task-000035-baseline",
+  "pair_id": "pair-000035",
+  "raw_response_sha256": "91e7344b8ee9cc69f6e1bea5917d3327bb55ead22c29b748457d6e45b133d0ac",
+  "repair_provider_trace_path": "execution/provider_calls/task-000035-baseline-repair.json",
+  "repair_provider_trace_sha256": "cc88a8c80837ac732d5349c0a66b497031500b56a63c2ba37876948fb548ed9f",
+  "schema_version": "2.0",
+  "score": 0,
+  "score_reason_code": "VALIDATION_FAILED",
+  "scorer_id": "deterministic_netops_validator_v5",
+  "scorer_version": "5.0",
+  "scoring_rule": "full_intent_constraint_validation",
+  "scoring_status": "COMPLETED",
+  "shared_source_provider_trace_path": "execution/provider_calls/task-000035-source-generation.json",
+  "shared_source_provider_trace_sha256": "e41eafc31cfa76796f3fb6e293457599548820747e2d9ce2e71d3b7eebb85e04",
+  "study_id": "vCLI_fault_injection_repair_2026_A_prereg_v1",
+  "task_id": "task-000035",
+  "terminal_error_type": null,
+  "validator_trace": {
+    "fault_class": "dropped_required_restore",
+    "fault_metadata": {
+      "affected_interface": "edge18",
+      "expected_final_admin": "up",
+      "fault_class": "dropped_required_restore",
+      "source_line_number": 6
+    },
+    "final_configuration": "interface edge18 admin down\ninterface edge17 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+    "injected_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "down",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 5,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 1,
+      "violations": [
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge18 admin ended as 'down'; expected 'up'."
+        }
+      ]
+    },
+    "repair_call_order": 1,
+    "shared_controlled_fault_candidate": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+    "shared_controlled_fault_candidate_sha256": "cc70c719263fc07129cd3a46139dfccf0a6fdc97ab4d1b7f3134e9393cfbb66c",
+    "source_candidate": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+    "source_validation": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge17 admin down\ninterface edge18 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up\ninterface edge18 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 6,
+      "required_command_count": 6,
+      "valid": true,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [],
+      "violation_count": 0,
+      "violations": []
+    },
+    "validation_after": {
+      "difficulty": {
+        "changed_interface_count": 2,
+        "dependency_rule_count": 2,
+        "level": "hard",
+        "pattern": "paired_link_atomic_mtu_change",
+        "required_command_count": 6,
+        "transient_rule_count": 3
+      },
+      "final_state": {
+        "edge17": {
+          "admin": "up",
+          "mtu": 1800,
+          "vlan": 10
+        },
+        "edge18": {
+          "admin": "down",
+          "mtu": 1800,
+          "vlan": 20
+        },
+        "mgmt5": {
+          "admin": "up",
+          "mtu": 1500,
+          "vlan": 99
+        },
+        "uplink10": {
+          "admin": "down",
+          "mtu": 9000,
+          "vlan": 201
+        },
+        "uplink9": {
+          "admin": "up",
+          "mtu": 9000,
+          "vlan": 200
+        }
+      },
+      "normalized_configuration": "interface edge18 admin down\ninterface edge17 admin down\ninterface edge17 mtu 1800\ninterface edge18 mtu 1800\ninterface edge17 admin up",
+      "observed_touched_field_count": 4,
+      "parsed_command_count": 5,
+      "required_command_count": 6,
+      "valid": false,
+      "validator_id": "deterministic_netops_validator_v5",
+      "validator_version": "5.0",
+      "violation_codes": [
+        "FINAL_STATE_MISMATCH"
+      ],
+      "violation_count": 1,
+      "violations": [
+        {
+          "code": "FINAL_STATE_MISMATCH",
+          "line_number": null,
+          "message": "edge18 admin ended as 'down'; expected 'up'."
+        }
+      ]
+    },
+    "validator_feedback_exposed_to_model": false
+  }
+}
