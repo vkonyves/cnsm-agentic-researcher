@@ -479,3 +479,94 @@ def _write_master_prompt_sha(
         digest + "\n",
         encoding="utf-8",
     )
+
+
+def _write_execution_manifest_for_publication_sanity(root: Path) -> None:
+    execution = root / "execution"
+    execution.mkdir(parents=True, exist_ok=True)
+    (execution / "execution_manifest.json").write_text(
+        '{"controlled_fault_assignment_sha256":"8d0879872348ae94a45f3d674df57d6552624cd841b62ab239a280347f5275c6","source_generation_attempt_count":40,"planned_episode_count":80}\n',
+        encoding="utf-8",
+    )
+
+
+def _write_analysis_results_for_publication_sanity(root: Path) -> None:
+    analysis = root / "analysis"
+    analysis.mkdir(parents=True, exist_ok=True)
+    (analysis / "results.json").write_text(
+        '{"secondary_results":[]}\n',
+        encoding="utf-8",
+    )
+
+
+def test_prebibliography_numbered_reference_list_fails(tmp_path):
+    tex = (
+        "Scientific prose.\n"
+        "[1] A. Author, First paper.\n"
+        "[2] B. Author, Second paper.\n"
+        "\\section*{Disclosure Statement}\n"
+        "Master prompt SHA-256 =\n"
+        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba\n"
+        "\\begin{thebibliography}{2}\n"
+        "\\bibitem{x} A paper.\n"
+        "\\bibitem{y} Another paper.\n"
+        "\\end{thebibliography}\n"
+    )
+    _write_final(tmp_path, tex=tex, log="")
+    audit = audit_manuscript_publication_sanity(run_dir=tmp_path)
+    assert audit["passed"] is False
+    assert audit["metrics"]["prebibliography_numbered_reference_count"] == 2
+
+
+def test_empty_sha256_assignment_fails(tmp_path):
+    tex = (
+        "Scientific prose.\n"
+        'controlled_fault_assignment_sha256 = ""\n'
+        "\\section*{Disclosure Statement}\n"
+        "Master prompt SHA-256 =\n"
+        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba\n"
+        "\\begin{thebibliography}{1}\n"
+        "\\bibitem{x} A paper.\n"
+        "\\end{thebibliography}\n"
+    )
+    _write_final(tmp_path, tex=tex, log="")
+    audit = audit_manuscript_publication_sanity(run_dir=tmp_path)
+    assert audit["passed"] is False
+    assert audit["metrics"]["empty_sha256_assignment_count"] == 1
+
+
+def test_unexecuted_harmful_overrepair_claim_fails(tmp_path):
+    _write_analysis_results_for_publication_sanity(tmp_path)
+    tex = (
+        "Scientific prose.\n"
+        "No preregistered harmful-overrepair events were observed.\n"
+        "\\section*{Disclosure Statement}\n"
+        "Master prompt SHA-256 =\n"
+        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba\n"
+        "\\begin{thebibliography}{1}\n"
+        "\\bibitem{x} A paper.\n"
+        "\\end{thebibliography}\n"
+    )
+    _write_final(tmp_path, tex=tex, log="")
+    audit = audit_manuscript_publication_sanity(run_dir=tmp_path)
+    assert audit["passed"] is False
+    assert audit["metrics"]["unsupported_harmful_overrepair_claim_count"] >= 1
+
+
+def test_unsupported_source_retry_claim_fails(tmp_path):
+    _write_execution_manifest_for_publication_sanity(tmp_path)
+    tex = (
+        "Scientific prose.\n"
+        "One source candidate failed validation after the single automatic retry.\n"
+        "\\section*{Disclosure Statement}\n"
+        "Master prompt SHA-256 =\n"
+        "1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba\n"
+        "\\begin{thebibliography}{1}\n"
+        "\\bibitem{x} A paper.\n"
+        "\\end{thebibliography}\n"
+    )
+    _write_final(tmp_path, tex=tex, log="")
+    audit = audit_manuscript_publication_sanity(run_dir=tmp_path)
+    assert audit["passed"] is False
+    assert audit["metrics"]["unsupported_source_retry_claim_count"] >= 1
+

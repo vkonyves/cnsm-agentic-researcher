@@ -1016,8 +1016,14 @@ def audit_manuscript_publication_sanity(
         "full_sha256_count": 0,
         "bibliography_environment_count": 0,
         "prebibliography_references_heading_count": 0,
+        "prebibliography_numbered_reference_count": 0,
         "duplicate_bibliography_doi_count": 0,
         "inline_doi_label_count": 0,
+        "empty_sha256_assignment_count": 0,
+        "controlled_fault_assignment_sha_mismatch_count": 0,
+        "unsupported_harmful_overrepair_claim_count": 0,
+        "unsupported_failure_as_zero_claim_count": 0,
+        "unsupported_source_retry_claim_count": 0,
         "raw_command_count": 0,
         "artifact_path_count": 0,
         "reviewer_meta_phrase_count": 0,
@@ -1141,6 +1147,98 @@ def audit_manuscript_publication_sanity(
             "the immutable master-prompt disclosure digest."
         )
 
+    claim_scan_tex = hash_scan_tex.replace(r"\_", "_")
+
+    empty_sha256_assignments = re.findall(
+        r"(?i)\b[a-z0-9_]*sha256\s*=\s*(?:\"\"|'')",
+        claim_scan_tex,
+    )
+    metrics["empty_sha256_assignment_count"] = len(empty_sha256_assignments)
+    if empty_sha256_assignments:
+        issues.append(
+            "Final manuscript contains an empty SHA-256 assignment; provenance claims must be populated or omitted."
+        )
+
+    execution_manifest_path = Path(run_dir) / "execution" / "execution_manifest.json"
+    analysis_results_path = Path(run_dir) / "analysis" / "results.json"
+    execution_manifest = {}
+    analysis_results = {}
+    if execution_manifest_path.exists():
+        try:
+            execution_manifest = json.loads(execution_manifest_path.read_text(encoding="utf-8"))
+        except Exception:
+            execution_manifest = {}
+    if analysis_results_path.exists():
+        try:
+            analysis_results = json.loads(analysis_results_path.read_text(encoding="utf-8"))
+        except Exception:
+            analysis_results = {}
+
+    claimed_assignment_hashes = re.findall(
+        r"(?i)\bcontrolled_fault_assignment_sha256\s*=\s*[\"']?([0-9a-f]{64})[\"']?",
+        claim_scan_tex,
+    )
+    expected_assignment_hash = str(execution_manifest.get("controlled_fault_assignment_sha256", "") or "").strip().lower()
+    assignment_mismatches = [
+        value for value in claimed_assignment_hashes
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_assignment_hash)
+        or value.lower() != expected_assignment_hash
+    ]
+    metrics["controlled_fault_assignment_sha_mismatch_count"] = len(assignment_mismatches)
+    if assignment_mismatches:
+        issues.append(
+            "Final manuscript reports a controlled-fault assignment SHA-256 that does not match execution/execution_manifest.json."
+        )
+
+    def _json_mentions_token(value: Any, token: str) -> bool:
+        token = token.lower()
+        if isinstance(value, dict):
+            return any(token in str(k).lower() or _json_mentions_token(v, token) for k, v in value.items())
+        if isinstance(value, list):
+            return any(_json_mentions_token(v, token) for v in value)
+        return token in str(value).lower()
+
+    harmful_claims = re.findall(
+        r"(?is)harmful[-_\s]*over[-_\s]*repair[^.\n]{0,220}\b(?:observed|counts?|rate|events?)\b",
+        claim_scan_tex,
+    )
+    if harmful_claims and not _json_mentions_token(analysis_results, "harmful_overrepair"):
+        metrics["unsupported_harmful_overrepair_claim_count"] = len(harmful_claims)
+        issues.append(
+            "Final manuscript reports harmful-overrepair results that are not present in analysis/results.json."
+        )
+
+    failure_as_zero_claims = re.findall(
+        r"(?is)sensitiv(?:ity|ities)[^.\n]{0,260}(?:failure[^.\n]{0,80}(?:zero|fail)|excluded[^.\n]{0,80}(?:zero|fail))[^.\n]{0,160}\b(?:archived|yield(?:s|ed)?|produced|result)\b",
+        claim_scan_tex,
+    )
+    if failure_as_zero_claims and not (
+        _json_mentions_token(analysis_results, "failure_as_zero")
+        or _json_mentions_token(analysis_results, "sensitivity")
+    ):
+        metrics["unsupported_failure_as_zero_claim_count"] = len(failure_as_zero_claims)
+        issues.append(
+            "Final manuscript reports an executed failure-as-zero sensitivity analysis that is not present in analysis/results.json."
+        )
+
+    source_retry_claims = re.findall(
+        r"(?is)(?:source candidate|candidate)[^.\n]{0,180}\b(?:invalid|failed)\b[^.\n]{0,180}\bafter\b[^.\n]{0,100}\bautomatic retry\b",
+        claim_scan_tex,
+    )
+    source_generation_attempt_count = execution_manifest.get("source_generation_attempt_count")
+    planned_episode_count = execution_manifest.get("planned_episode_count")
+    no_source_retry_evidence = (
+        isinstance(source_generation_attempt_count, int)
+        and isinstance(planned_episode_count, int)
+        and planned_episode_count % 2 == 0
+        and source_generation_attempt_count <= planned_episode_count // 2
+    )
+    if source_retry_claims and no_source_retry_evidence:
+        metrics["unsupported_source_retry_claim_count"] = len(source_retry_claims)
+        issues.append(
+            "Final manuscript attributes an invalid source candidate to an automatic retry, but execution accounting shows no additional source-generation attempt."
+        )
+
     # ---------------------------------------------------------
     # C. Bibliography uniqueness and duplicate-reference hygiene.
     # ---------------------------------------------------------
@@ -1193,6 +1291,19 @@ def audit_manuscript_publication_sanity(
             "Final manuscript contains a separate References heading "
             "before the canonical bibliography; references must appear "
             "exactly once."
+        )
+
+    prebibliography_numbered_references = re.findall(
+        r"(?m)^\s*\[[0-9]+\]\s+\S.*$",
+        body_before_bibliography,
+    )
+    metrics["prebibliography_numbered_reference_count"] = len(
+        prebibliography_numbered_references
+    )
+    if bibliography_environment_count >= 1 and len(prebibliography_numbered_references) >= 2:
+        issues.append(
+            "Final manuscript contains a free-standing numbered reference "
+            "list before the canonical bibliography; references must appear exactly once."
         )
 
     bibliography_text = ""
