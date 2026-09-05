@@ -330,6 +330,8 @@ def _normalise_claimed_artifact_path(
 
 def sanitize_structured_manuscript_publication_metadata(
     manuscript: Any,
+    *,
+    run_dir: Path | None = None,
 ) -> Any:
     """Deterministically remove machine-oriented publication metadata.
 
@@ -341,6 +343,14 @@ def sanitize_structured_manuscript_publication_metadata(
     are intentionally left unchanged.
     """
     import re
+
+    authoritative_master_prompt_sha: str | None = None
+    if run_dir is not None:
+        master_prompt_sha_path = Path(run_dir) / "provenance" / "master_prompt.sha256"
+        if master_prompt_sha_path.exists():
+            candidate_sha = master_prompt_sha_path.read_text(encoding="utf-8").strip().lower()
+            if re.fullmatch(r"[0-9a-f]{64}", candidate_sha):
+                authoritative_master_prompt_sha = candidate_sha
 
     path_replacements = {
         "analysis/condition_summary.csv":
@@ -499,7 +509,9 @@ def sanitize_structured_manuscript_publication_metadata(
             flags=re.IGNORECASE | re.DOTALL,
         )
 
-        if master_prompt_match is not None:
+        if authoritative_master_prompt_sha is not None:
+            master_prompt_sha = authoritative_master_prompt_sha
+        elif master_prompt_match is not None:
             master_prompt_sha = master_prompt_match.group(1)
 
         path_token = "MASTERPROMPTPATHTOKEN"
@@ -510,7 +522,7 @@ def sanitize_structured_manuscript_publication_metadata(
             path_token,
         )
 
-        if master_prompt_sha is not None:
+        if master_prompt_sha is not None and master_prompt_sha in protected:
             protected = protected.replace(
                 master_prompt_sha,
                 sha_token,
@@ -544,6 +556,12 @@ def sanitize_structured_manuscript_publication_metadata(
                 sha_token,
                 master_prompt_sha,
             )
+            if master_prompt_sha not in cleaned:
+                cleaned = cleaned.replace(
+                    master_prompt_path,
+                    master_prompt_path + " (SHA-256: " + master_prompt_sha + ")",
+                    1,
+                )
 
         # A preregistration digest is secondary machine provenance. After
         # full-digest removal, do not leave a misleading empty hash
@@ -7940,7 +7958,8 @@ class FinalAutonomousResearchPipeline:
 
                 sanitized_protected_recovery_seed = (
                     sanitize_structured_manuscript_publication_metadata(
-                        protected_submission_manuscript
+                        protected_submission_manuscript,
+                        run_dir=run_dir,
                     )
                 )
 
@@ -8508,7 +8527,8 @@ class FinalAutonomousResearchPipeline:
 
                 sanitized_protected_submission_manuscript = (
                     sanitize_structured_manuscript_publication_metadata(
-                        protected_submission_manuscript
+                        protected_submission_manuscript,
+                        run_dir=run_dir,
                     )
                 )
 
@@ -8673,6 +8693,46 @@ class FinalAutonomousResearchPipeline:
                 / "artifact_reference_audit_post_remediation.json",
                 artifact_reference_audit,
             )
+
+        # Final authoritative publication checkpoint.
+        revised_manuscript = sanitize_structured_manuscript_publication_metadata(
+            revised_manuscript,
+            run_dir=run_dir,
+        )
+
+        write_json(
+            run_dir / "manuscript" / "revised_package.json",
+            revised_manuscript,
+        )
+
+        publication_validation = build_publication_artifacts(
+            manuscript=revised_manuscript.model_dump(),
+            verified_records=records,
+            output_dir=publication_dir,
+            paper_run_constraints=paper_run_constraints,
+        )
+
+        publication_sanity_audit = audit_manuscript_publication_sanity(
+            run_dir=run_dir,
+        )
+
+        artifact_reference_audit = audit_manuscript_artifact_references(
+            manuscript=revised_manuscript,
+            run_dir=run_dir,
+        )
+
+        write_json(
+            publication_dir / "publication_validation_final_authoritative.json",
+            publication_validation,
+        )
+        write_json(
+            publication_dir / "publication_sanity_audit_final_authoritative.json",
+            publication_sanity_audit,
+        )
+        write_json(
+            publication_dir / "artifact_reference_audit_final_authoritative.json",
+            artifact_reference_audit,
+        )
 
         # Compatibility/final aliases always describe the manuscript
         # that is actually entering the final readiness decision.
