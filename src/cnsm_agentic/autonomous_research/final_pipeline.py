@@ -130,6 +130,8 @@ def repaired_design_adapter_capability_issues(
     design: dict[str, Any],
     *,
     available_adapter_contracts: dict[str, dict[str, Any]],
+    available_execution_models: list[str] | None = None,
+    maximum_planned_model_calls: int | None = None,
 ) -> list[str]:
     """
     Reject a scientific design before preregistration when it positively
@@ -282,6 +284,231 @@ def repaired_design_adapter_capability_issues(
             "Scientific design requires benign/ambiguous/adversarial "
             "prompt-family stratification, but no registered execution "
             "adapter supports it."
+        )
+
+    # ---------------------------------------------------------
+    # Frozen execution-model coherence
+    # ---------------------------------------------------------
+    #
+    # The repaired scientific design must not name executable models
+    # outside the model set frozen for this run. Later preregistration
+    # canonicalization remains a second line of defence, but it must
+    # not silently turn one scientific design into another.
+    if available_execution_models:
+        def normalize_model_name(value: str) -> str:
+            token = value.strip().lower()
+
+            # Structured budget scenarios sometimes include a provider
+            # prefix and/or version suffix:
+            #   openai/gpt-5-mini@2026-08-01
+            if "/" in token:
+                token = token.rsplit("/", 1)[-1]
+
+            if "@" in token:
+                token = token.split("@", 1)[0]
+
+            return token.strip()
+
+        allowed_models = {
+            normalize_model_name(model)
+            for model in available_execution_models
+            if isinstance(model, str) and model.strip()
+        }
+
+        declared_models: set[str] = set()
+
+        # budget_scenarios.models is the strongest structured declaration.
+        for scenario in design.get("budget_scenarios") or []:
+            if not isinstance(scenario, dict):
+                continue
+
+            for model in scenario.get("models") or []:
+                if isinstance(model, str) and model.strip():
+                    declared_models.add(
+                        normalize_model_name(model)
+                    )
+
+        # model_scope is scientific design prose, but explicit GPT model
+        # identifiers there must agree with the frozen execution model.
+        for item in design.get("model_scope") or []:
+            if not isinstance(item, str):
+                continue
+
+            for match in re.finditer(
+                r"(?i)(?:openai/)?"
+                r"(gpt-[A-Za-z0-9][A-Za-z0-9._-]*)"
+                r"(?:@[A-Za-z0-9._-]+)?",
+                item,
+            ):
+                declared_models.add(
+                    normalize_model_name(
+                        match.group(1)
+                    )
+                )
+
+        unsupported_models = sorted(
+            model
+            for model in declared_models
+            if model not in allowed_models
+        )
+
+        for model in unsupported_models:
+            issues.append(
+                "Repaired design declares executable model "
+                f"{model!r}, but the frozen execution-model set is "
+                f"{sorted(allowed_models)!r}."
+            )
+
+    # ---------------------------------------------------------
+    # Frozen model-call budget coherence
+    # ---------------------------------------------------------
+    #
+    # Every structured budget scenario must itself fit the frozen
+    # capability limit. This prevents an alternate/recommended scenario
+    # from advertising an execution that cannot actually be launched.
+    if isinstance(maximum_planned_model_calls, int):
+        for scenario in design.get("budget_scenarios") or []:
+            if not isinstance(scenario, dict):
+                continue
+
+            planned_calls = scenario.get(
+                "planned_model_calls"
+            )
+
+            if (
+                isinstance(planned_calls, int)
+                and planned_calls
+                > maximum_planned_model_calls
+            ):
+                scenario_id = str(
+                    scenario.get(
+                        "scenario_id",
+                        "<unknown>",
+                    )
+                )
+
+                issues.append(
+                    "Repaired design budget scenario "
+                    f"{scenario_id!r} exceeds the frozen model-call "
+                    f"limit: {planned_calls} > "
+                    f"{maximum_planned_model_calls}."
+                )
+
+    # ---------------------------------------------------------
+    # No hidden additional execution phases
+    # ---------------------------------------------------------
+    #
+    # A repaired design may discuss calibration or multi-model work as
+    # future work, but must not positively prescribe an extra executable
+    # calibration/pilot/model run that is absent from the registered
+    # adapter contract. In particular, it cannot declare confirmatory
+    # calls equal to the entire frozen budget and then narratively add
+    # another run whose calls are "additional".
+    executable_phase_text_parts: list[str] = []
+
+    add_phase_text = executable_phase_text_parts.append
+
+    for field in (
+        "sampling_plan",
+        "analysis_plan",
+    ):
+        value = design.get(field)
+        if isinstance(value, str):
+            add_phase_text(value)
+
+    recommended_scenario_id = None
+    power_plan = design.get("power_plan")
+
+    if isinstance(power_plan, dict):
+        recommended_scenario_id = (
+            power_plan.get(
+                "recommended_scenario_id"
+            )
+        )
+
+    recommended_scenario = None
+
+    for scenario in design.get("budget_scenarios") or []:
+        if not isinstance(scenario, dict):
+            continue
+
+        if (
+            recommended_scenario_id is not None
+            and scenario.get("scenario_id")
+            == recommended_scenario_id
+        ):
+            recommended_scenario = scenario
+
+        for field in (
+            "description",
+            "feasibility_rationale",
+        ):
+            value = scenario.get(field)
+            if isinstance(value, str):
+                add_phase_text(value)
+
+    executable_phase_text = "\n".join(
+        executable_phase_text_parts
+    )
+
+    additional_execution_patterns = (
+        # e.g. "a disjoint calibration run will be executed"
+        r"\b(?:additional|disjoint|separate|held[- ]out)?\s*"
+        r"(?:calibration|pilot)\s+run\s+"
+        r"(?:will|would|shall|is\s+to\s+be)\s+"
+        r"(?:be\s+)?execut(?:e|ed)\b",
+
+        # e.g. "calibration model calls are additional to confirmatory"
+        r"\b(?:calibration|pilot)[^.\\n]{0,120}"
+        r"\bmodel[- ]calls?\b[^.\\n]{0,80}"
+        r"\badditional\s+to\b",
+
+        # e.g. "run both primary and alternate model scenario outputs"
+        r"\b(?:execute|run)\s+"
+        r"(?:both|the)\s+[^.\\n]{0,80}"
+        r"(?:alternate|secondary)\s+model\b",
+    )
+
+    has_extra_executable_phase = any(
+        re.search(
+            pattern,
+            executable_phase_text,
+            flags=re.IGNORECASE,
+        )
+        is not None
+        for pattern in additional_execution_patterns
+    )
+
+    if has_extra_executable_phase:
+        issues.append(
+            "Repaired design positively specifies an additional "
+            "calibration/pilot/alternate-model execution phase that is "
+            "not part of the registered single confirmatory adapter "
+            "execution contract."
+        )
+
+    # A particularly strong contradiction: the recommended scenario
+    # already consumes the complete frozen model-call budget while prose
+    # says another executable phase has additional model calls.
+    if (
+        has_extra_executable_phase
+        and isinstance(
+            maximum_planned_model_calls,
+            int,
+        )
+        and isinstance(
+            recommended_scenario,
+            dict,
+        )
+        and recommended_scenario.get(
+            "planned_model_calls"
+        )
+        == maximum_planned_model_calls
+    ):
+        issues.append(
+            "Repaired design allocates the full frozen model-call "
+            "budget to the recommended confirmatory scenario while also "
+            "specifying an additional executable phase."
         )
 
     return sorted(set(issues))
@@ -4409,6 +4636,14 @@ class FinalAutonomousResearchPipeline:
                 repaired_design_dict,
                 available_adapter_contracts=(
                     available_adapter_contracts
+                ),
+                available_execution_models=[
+                    self.model
+                ],
+                maximum_planned_model_calls=(
+                    capability_manifest.get(
+                        "maximum_planned_model_calls"
+                    )
                 ),
             )
         )

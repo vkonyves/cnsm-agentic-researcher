@@ -1,6 +1,7 @@
 from cnsm_agentic.autonomous_research.feasibility import (
     HUMAN_DEPENDENCY_PATTERNS,
     _find_patterns,
+    _find_positive_human_dependencies,
     _prepare_human_dependency_scan_text,
 )
 
@@ -393,3 +394,69 @@ def test_autonomous_scoring_negation_does_not_hide_later_positive_dependency():
         and "manual scoring" in issue
         for issue in issues
     )
+
+
+def test_do_not_trigger_manual_review_is_not_a_human_dependency():
+    text = (
+        "All audit checks are automated; audit failures are logged "
+        "and counted but do not trigger manual review."
+    )
+
+    found = _find_positive_human_dependencies(
+        text,
+        HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+    assert "manual review" not in found
+
+
+def test_trigger_manual_review_remains_a_positive_dependency():
+    text = (
+        "Ambiguous audit failures trigger manual review."
+    )
+
+    found = _find_positive_human_dependencies(
+        text,
+        HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+    assert "manual review" in found
+
+
+def test_do_not_trigger_manual_review_is_negated_locally():
+    text = (
+        "All audit checks are automated; audit failures are logged "
+        "and counted but do not trigger manual review."
+    )
+
+    found = _find_positive_human_dependencies(
+        text,
+        HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+    assert "manual review" not in found
+
+
+def test_positive_trigger_manual_review_remains_forbidden():
+    text = "Ambiguous audit failures trigger manual review."
+
+    found = _find_positive_human_dependencies(
+        text,
+        HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+    assert "manual review" in found
+
+
+def test_mixed_negated_and_positive_review_occurrences_are_separated():
+    text = (
+        "Routine audit failures do not trigger manual review. "
+        "Ambiguous outputs require manual review."
+    )
+
+    found = _find_positive_human_dependencies(
+        text,
+        HUMAN_DEPENDENCY_PATTERNS,
+    )
+
+    assert "manual review" in found

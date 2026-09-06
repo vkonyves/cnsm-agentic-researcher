@@ -633,6 +633,7 @@ def _human_dependency_occurrence_is_negated(
         r"(?:require|requires|required|"
         r"use|uses|used|"
         r"perform|performs|performed|"
+        r"trigger|triggers|triggered|"
         r"include|includes|included|"
         r"involve|involves|involved|"
         r"need|needs|needed|"
