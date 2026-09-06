@@ -73,3 +73,39 @@ Further supported scientific discussion."""
     assert "\\section*{References}" not in sanitized.body
     assert "Supported scientific discussion." in sanitized.body
     assert "Further supported scientific discussion." in sanitized.body
+
+
+def test_sanitizer_removes_numbered_reference_block_but_preserves_inline_citation():
+    manuscript = {
+        "abstract": "Abstract.",
+        "sections": {
+            "introduction": (
+                "Prior work [1] motivates the experiment.\n\n"
+                "[1] A. Author, First duplicate reference.\n"
+                "[2] B. Author, Second duplicate reference.\n"
+                "[3] C. Author, Third duplicate reference.\n\n"
+                "Scientific discussion continues here."
+            ),
+            "related_work": "Related work.",
+            "methodology": "Methodology.",
+            "results": "Results.",
+            "discussion": "Discussion.",
+            "limitations": ["Limitation."],
+            "conclusion": "Conclusion.",
+        },
+        "references": [],
+        "disclosure_statement": "Disclosure.",
+    }
+
+    sanitized = sanitize_structured_manuscript_publication_metadata(
+        manuscript
+    )
+
+    introduction = sanitized["sections"]["introduction"]
+
+    assert "Prior work [1] motivates the experiment." in introduction
+    assert "Scientific discussion continues here." in introduction
+
+    assert "[1] A. Author" not in introduction
+    assert "[2] B. Author" not in introduction
+    assert "[3] C. Author" not in introduction

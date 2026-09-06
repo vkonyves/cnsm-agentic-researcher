@@ -440,6 +440,20 @@ def sanitize_structured_manuscript_publication_metadata(
         )
         cleaned = references_heading_line_pattern.sub("", cleaned)
 
+        # The publication renderer is the sole bibliography authority.
+        # Remove a free-standing author/model-generated numbered reference
+        # list that survived structured manuscript revision. Require at
+        # least two consecutive line-start entries so ordinary inline
+        # bracketed citations such as "... [1]" are never affected.
+        numbered_reference_block_pattern = re.compile(
+            r"(?m)"
+            r"(?:"
+            r"^[ \t]*\[[0-9]+\][^\r\n]*"
+            r"(?:\r?\n|$)"
+            r"){2,}"
+        )
+        cleaned = numbered_reference_block_pattern.sub("", cleaned)
+
         # Peer-review workflow language must not leak into the submitted paper.
         # Remove only complete sentences explicitly framed as reviewer process;
         # scientific sentences before and after them are left untouched.
