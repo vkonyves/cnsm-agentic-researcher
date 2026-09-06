@@ -4396,30 +4396,20 @@ class FinalAutonomousResearchPipeline:
             "available_adapter_contracts": (
                 registered_adapter_planning_contracts()
             ),
+            "available_execution_models": [
+                self.model
+            ],
+            "previous_deterministic_contract_issues": [],
         }
 
-        repaired_design = (
-            await run_agent_with_retry(
-                DESIGN_REPAIR_AGENT,
-                repair_payload,
-                expected_type=(
-                    RepairedStudyDesign
-                ),
-                stage_name=(
-                    "Autonomous design repair"
-                ),
-            )
-        )
+        # -------------------------------------------------
+        # 3b. Bounded autonomous repair against deterministic
+        #     frozen-contract checks
+        # -------------------------------------------------
 
-        if (
-            repaired_design
-            .selected_candidate_id
-            != selected_candidate_id
-        ):
-            raise ValueError(
-                "Autonomous design repair changed "
-                "the selected candidate ID."
-            )
+        available_adapter_contracts = (
+            registered_adapter_planning_contracts()
+        )
 
         evidence_alias_index = (
             build_evidence_alias_index(
@@ -4427,19 +4417,183 @@ class FinalAutonomousResearchPipeline:
             )
         )
 
-        unknown_repair_evidence_ids = sorted(
-            evidence_id
-            for evidence_id
-            in repaired_design.evidence_record_ids
-            if (
-                normalise_evidence_id(
-                    evidence_id
-                )
-                not in evidence_alias_index
+        maximum_design_repair_attempts = 3
+
+        repaired_design = None
+        design_contract_issues: list[str] = []
+        repaired_design_feasibility: dict[str, Any] = {
+            "status": "failed",
+            "issue_count": 0,
+            "issues": [],
+        }
+
+        for design_attempt in range(
+            1,
+            maximum_design_repair_attempts + 1,
+        ):
+            repair_payload[
+                "previous_deterministic_contract_issues"
+            ] = list(
+                design_contract_issues
             )
+
+            repaired_design = (
+                await run_agent_with_retry(
+                    DESIGN_REPAIR_AGENT,
+                    repair_payload,
+                    expected_type=(
+                        RepairedStudyDesign
+                    ),
+                    stage_name=(
+                        "Autonomous design repair "
+                        f"attempt {design_attempt}"
+                    ),
+                )
+            )
+
+            repaired_design_dict = (
+                repaired_design.model_dump()
+            )
+
+            current_issues: list[str] = []
+
+            # Candidate identity is immutable across autonomous repair.
+            if (
+                repaired_design
+                .selected_candidate_id
+                != selected_candidate_id
+            ):
+                current_issues.append(
+                    "Autonomous design repair changed the "
+                    "selected candidate ID; preserve "
+                    f"{selected_candidate_id!r} exactly."
+                )
+
+            # Evidence references must remain inside the retrieved,
+            # verified evidence universe.
+            unknown_repair_evidence_ids = sorted(
+                evidence_id
+                for evidence_id
+                in repaired_design.evidence_record_ids
+                if (
+                    normalise_evidence_id(
+                        evidence_id
+                    )
+                    not in evidence_alias_index
+                )
+            )
+
+            if unknown_repair_evidence_ids:
+                current_issues.append(
+                    "Repaired design references evidence IDs "
+                    "that were not retrieved: "
+                    + ", ".join(
+                        unknown_repair_evidence_ids
+                    )
+                )
+
+            # Generic frozen-capability feasibility.
+            generic_feasibility = (
+                feasibility_report(
+                    design=(
+                        repaired_design_dict
+                    ),
+                    capability_manifest=(
+                        capability_manifest
+                    ),
+                )
+            )
+
+            current_issues.extend(
+                generic_feasibility.get(
+                    "issues",
+                    [],
+                )
+            )
+
+            # Adapter/scientific/frozen-model/budget coherence.
+            current_issues.extend(
+                repaired_design_adapter_capability_issues(
+                    repaired_design_dict,
+                    available_adapter_contracts=(
+                        available_adapter_contracts
+                    ),
+                    available_execution_models=[
+                        self.model
+                    ],
+                    maximum_planned_model_calls=(
+                        capability_manifest.get(
+                            "maximum_planned_model_calls"
+                        )
+                    ),
+                )
+            )
+
+            design_contract_issues = sorted(
+                set(
+                    current_issues
+                )
+            )
+
+            repaired_design_feasibility = {
+                "status": (
+                    "passed"
+                    if not design_contract_issues
+                    else "failed"
+                ),
+                "issue_count": len(
+                    design_contract_issues
+                ),
+                "issues": (
+                    design_contract_issues
+                ),
+                "attempt": design_attempt,
+            }
+
+            # Preserve every pre-outcome autonomous repair attempt.
+            write_json(
+                design_dir
+                / (
+                    "repaired_design_attempt_"
+                    f"{design_attempt:02d}.json"
+                ),
+                repaired_design.model_dump(
+                    mode="json"
+                ),
+            )
+
+            write_json(
+                design_dir
+                / (
+                    "repaired_design_feasibility_attempt_"
+                    f"{design_attempt:02d}.json"
+                ),
+                repaired_design_feasibility,
+            )
+
+            if not design_contract_issues:
+                break
+
+        if repaired_design is None:
+            raise RuntimeError(
+                "Autonomous design repair produced no design."
+            )
+
+        # Persist the latest design and feasibility result as the
+        # authoritative repaired-design artifacts.
+        write_json(
+            design_dir
+            / "repaired_design.json",
+            repaired_design,
         )
 
-        if unknown_repair_evidence_ids:
+        write_json(
+            design_dir
+            / "repaired_design_feasibility.json",
+            repaired_design_feasibility,
+        )
+
+        if design_contract_issues:
             report = create_failure_report(
                 passed_gates=[
                     "fresh_run",
@@ -4448,20 +4602,16 @@ class FinalAutonomousResearchPipeline:
                     "evidence_verification",
                 ],
                 failed_gate=(
-                    "Autonomous design repair referenced "
-                    "evidence that was not retrieved."
+                    "Autonomous design repair could not "
+                    "satisfy deterministic frozen-contract "
+                    "checks within the bounded repair budget."
                 ),
                 final_state=(
-                    "AUTONOMOUS_EVIDENCE_REPAIR_REQUIRED"
+                    "AUTONOMOUS_DESIGN_REPAIR_REQUIRED"
                 ),
-                warnings=[
-                    (
-                        "Unresolved repaired-design evidence IDs: "
-                        + ", ".join(
-                            unknown_repair_evidence_ids
-                        )
-                    )
-                ],
+                warnings=(
+                    design_contract_issues
+                ),
             )
 
             write_json(
@@ -4480,19 +4630,21 @@ class FinalAutonomousResearchPipeline:
                     self.development_rehearsal
                 ),
                 additional_fields={
-                    "unknown_repair_evidence_ids": (
-                        unknown_repair_evidence_ids
+                    "design_repair_attempts": (
+                        maximum_design_repair_attempts
+                    ),
+                    "deterministic_contract_issues": (
+                        design_contract_issues
                     ),
                 },
             )
 
             return report
 
-        write_json(
-            design_dir
-            / "repaired_design.json",
-            repaired_design,
-        )
+        # -------------------------------------------------
+        # 3c. Autonomous readiness judgement of the clean,
+        #     deterministically executable repaired design
+        # -------------------------------------------------
 
         repair_readiness = (
             await run_agent_with_retry(
