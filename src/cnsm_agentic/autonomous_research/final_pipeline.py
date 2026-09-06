@@ -1202,10 +1202,46 @@ def audit_manuscript_publication_sanity(
         r"(?is)harmful[-_\s]*over[-_\s]*repair[^.\n]{0,220}\b(?:observed|counts?|rate|events?)\b",
         claim_scan_tex,
     )
-    if harmful_claims and not _json_mentions_token(analysis_results, "harmful_overrepair"):
-        metrics["unsupported_harmful_overrepair_claim_count"] = len(harmful_claims)
+
+    contamination_summary_path = (
+        Path(run_dir) / "analysis" / "contamination_summary.csv"
+    )
+    contamination_summary_supports_zero_flags = False
+
+    if contamination_summary_path.is_file():
+        try:
+            contamination_lines = [
+                line.strip()
+                for line in contamination_summary_path.read_text(
+                    encoding="utf-8",
+                    errors="replace",
+                ).splitlines()
+                if line.strip()
+            ]
+            contamination_summary_supports_zero_flags = (
+                len(contamination_lines) == 1
+                and contamination_lines[0].replace(" ", "").lower()
+                == "flag,condition,episode_count"
+            )
+        except Exception:
+            contamination_summary_supports_zero_flags = False
+
+    harmful_result_supported = (
+        _json_mentions_token(
+            analysis_results,
+            "harmful_overrepair",
+        )
+        or contamination_summary_supports_zero_flags
+    )
+
+    if harmful_claims and not harmful_result_supported:
+        metrics["unsupported_harmful_overrepair_claim_count"] = len(
+            harmful_claims
+        )
         issues.append(
-            "Final manuscript reports harmful-overrepair results that are not present in analysis/results.json."
+            "Final manuscript reports harmful-overrepair results that are "
+            "not supported by analysis/results.json or the executed "
+            "analysis/contamination_summary.csv."
         )
 
     failure_as_zero_claims = re.findall(

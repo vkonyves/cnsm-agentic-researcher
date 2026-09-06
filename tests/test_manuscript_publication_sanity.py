@@ -570,3 +570,45 @@ def test_unsupported_source_retry_claim_fails(tmp_path):
     assert audit["passed"] is False
     assert audit["metrics"]["unsupported_source_retry_claim_count"] >= 1
 
+
+
+def test_header_only_contamination_summary_supports_zero_harmful_flags(
+    tmp_path,
+):
+    _write_analysis_results_for_publication_sanity(tmp_path)
+
+    analysis_dir = tmp_path / "analysis"
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    (analysis_dir / "contamination_summary.csv").write_text(
+        "flag,condition,episode_count\n",
+        encoding="utf-8",
+    )
+
+    _write_final(
+        tmp_path,
+        tex=r"""
+Scientific prose.
+The archived contamination summary shows no flagged harmful
+over-repair episodes.
+
+\section*{Disclosure Statement}
+Master prompt SHA-256 =
+1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba
+
+\begin{thebibliography}{1}
+\bibitem{x} A verified paper.
+\end{thebibliography}
+""",
+        log="Output written on manuscript.pdf (5 pages).\n",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert (
+        audit["metrics"][
+            "unsupported_harmful_overrepair_claim_count"
+        ]
+        == 0
+    )
