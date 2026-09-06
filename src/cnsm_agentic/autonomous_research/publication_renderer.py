@@ -211,6 +211,33 @@ def _latex_escape(value: str) -> str:
     return value
 
 
+def _add_machine_identifier_breaks(value: str) -> str:
+    """Add TeX break opportunities inside long escaped machine identifiers.
+
+    Presentation-only transformation. Runs after _latex_escape(), therefore
+    underscores appear as ``\\_``. Only whitespace-delimited tokens containing
+    at least three escaped underscores are treated as machine identifiers.
+    """
+    parts = re.split(r"(\s+)", value)
+
+    for index, part in enumerate(parts):
+        if part.count(r"\_") < 3:
+            continue
+
+        parts[index] = (
+            part
+            .replace(
+                r"\_",
+                r"\_\allowbreak{}",
+            )
+            .replace(
+                "-",
+                r"-\allowbreak{}",
+            )
+        )
+
+    return "".join(parts)
+
 def _render_paragraphs(value: str) -> str:
     paragraphs = [
         item.strip()
@@ -222,7 +249,9 @@ def _render_paragraphs(value: str) -> str:
     ]
 
     return "\n\n".join(
-        _latex_escape(paragraph)
+        _add_machine_identifier_breaks(
+            _latex_escape(paragraph)
+        )
         for paragraph in paragraphs
     )
 
@@ -421,6 +450,8 @@ def render_ieee_latex(
 
 \\end{{document}}
 """
+
+
 
 
 def _pdf_page_count(pdf_path: Path) -> int:
