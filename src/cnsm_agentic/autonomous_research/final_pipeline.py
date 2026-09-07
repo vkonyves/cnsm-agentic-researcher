@@ -1233,6 +1233,164 @@ def audit_manuscript_artifact_references(
 
 
 
+
+def manuscript_citation_integrity_issues(
+    *,
+    manuscript: dict[str, Any],
+    verified_records: list[dict[str, Any]],
+) -> list[str]:
+    """Deterministic pre-render citation/bibliography coherence checks."""
+
+    cited_ids = [
+        str(value)
+        for value in manuscript.get("cited_record_ids", [])
+        if value is not None
+    ]
+
+    records_by_id: dict[str, dict[str, Any]] = {}
+
+    for record in verified_records:
+        for candidate_id in (
+            record.get("record_id"),
+            record.get("doi"),
+            record.get("id"),
+        ):
+            if candidate_id:
+                records_by_id[str(candidate_id)] = record
+
+    def normalized_doi(
+        record: dict[str, Any] | None,
+    ) -> str:
+        if not record:
+            return ""
+
+        value = str(
+            record.get("doi") or ""
+        ).strip().lower()
+
+        value = value.removeprefix(
+            "https://doi.org/"
+        )
+
+        return value.rstrip(
+            ".,;:)]}"
+        )
+
+    issues: list[str] = []
+
+    # Same scholarly work cited through multiple aliases.
+    doi_to_positions: dict[str, list[int]] = {}
+
+    for position, cited_id in enumerate(
+        cited_ids,
+        1,
+    ):
+        doi = normalized_doi(
+            records_by_id.get(cited_id)
+        )
+
+        if doi:
+            doi_to_positions.setdefault(
+                doi,
+                [],
+            ).append(position)
+
+    for doi, positions in sorted(
+        doi_to_positions.items()
+    ):
+        if len(positions) > 1:
+            issues.append(
+                "cited_record_ids contains duplicate scholarly "
+                f"identity DOI {doi!r} at bibliography positions "
+                f"{positions}; retain exactly one identifier for "
+                "this work and update numeric citations accordingly."
+            )
+
+    # Extract ordinary single-number IEEE citation markers from
+    # scientific manuscript prose.
+    text_parts: list[str] = []
+
+    for key in (
+        "abstract",
+        "disclosure_statement",
+    ):
+        value = manuscript.get(key)
+
+        if isinstance(value, list):
+            text_parts.extend(
+                str(item)
+                for item in value
+            )
+        elif isinstance(value, str):
+            text_parts.append(value)
+
+    sections = (
+        manuscript.get("sections")
+        or {}
+    )
+
+    if isinstance(sections, dict):
+        for value in sections.values():
+            if isinstance(value, list):
+                text_parts.extend(
+                    str(item)
+                    for item in value
+                )
+            elif isinstance(value, str):
+                text_parts.append(value)
+
+    limitations = (
+        manuscript.get("limitations")
+        or []
+    )
+
+    if isinstance(limitations, list):
+        text_parts.extend(
+            str(item)
+            for item in limitations
+        )
+
+    body = "\n".join(
+        text_parts
+    )
+
+    numeric_markers = [
+        int(match.group(1))
+        for match in re.finditer(
+            r"\[(\d+)\]",
+            body,
+        )
+    ]
+
+    invalid_markers = sorted(
+        {
+            number
+            for number in numeric_markers
+            if (
+                number < 1
+                or number > len(cited_ids)
+            )
+        }
+    )
+
+    if invalid_markers:
+        issues.append(
+            "Manuscript contains numbered scholarly citation "
+            "marker(s) outside cited_record_ids range "
+            f"1..{len(cited_ids)}: "
+            + ", ".join(
+                str(number)
+                for number in invalid_markers
+            )
+            + "."
+        )
+
+    return sorted(
+        set(issues)
+    )
+
+
+
 def audit_manuscript_publication_sanity(
     *,
     run_dir: Path,
@@ -1259,6 +1417,8 @@ def audit_manuscript_publication_sanity(
         "prebibliography_references_heading_count": 0,
         "prebibliography_numbered_reference_count": 0,
         "duplicate_bibliography_doi_count": 0,
+        "bibliography_item_count": 0,
+        "out_of_range_numeric_citation_count": 0,
         "inline_doi_label_count": 0,
         "empty_sha256_assignment_count": 0,
         "controlled_fault_assignment_sha_mismatch_count": 0,
@@ -1624,16 +1784,68 @@ def audit_manuscript_publication_sanity(
         )
 
     # ---------------------------------------------------------
-    # D. DOI labels dumped into prose.
+    # D. Rendered numeric citation range.
     #
-    # DOI bibliography fields are fine; literal 'DOI:' labels
-    # in manuscript prose are publication metadata pollution.
+    # The manuscript renderer preserves IEEE-style numeric markers
+    # such as [1]. As a final defense-in-depth check, no positive
+    # single-number marker in manuscript prose may address a
+    # bibliography position beyond the rendered \bibitem count.
+    #
+    # This intentionally does not reject [0], because bracketed
+    # numeric scientific notation/data can occur outside citations.
     # ---------------------------------------------------------
+    bibitem_count = len(
+        re.findall(
+            r"\\bibitem\s*\{",
+            bibliography_text,
+        )
+    )
+
+    metrics["bibliography_item_count"] = bibitem_count
+
     body_before_bibliography = tex.split(
         r"\begin{thebibliography}",
         1,
     )[0]
 
+    rendered_numeric_markers = [
+        int(match.group(1))
+        for match in re.finditer(
+            r"\[(\d+)\]",
+            body_before_bibliography,
+        )
+    ]
+
+    out_of_range_numeric_citations = sorted(
+        {
+            number
+            for number in rendered_numeric_markers
+            if number > bibitem_count
+        }
+    )
+
+    metrics[
+        "out_of_range_numeric_citation_count"
+    ] = len(out_of_range_numeric_citations)
+
+    if out_of_range_numeric_citations:
+        issues.append(
+            "Final manuscript contains numeric citation marker(s) "
+            "outside the rendered bibliography range "
+            f"1..{bibitem_count}: "
+            + ", ".join(
+                str(number)
+                for number in out_of_range_numeric_citations
+            )
+            + "."
+        )
+
+    # ---------------------------------------------------------
+    # E. DOI labels dumped into prose.
+    #
+    # DOI bibliography fields are fine; literal 'DOI:' labels
+    # in manuscript prose are publication metadata pollution.
+    # ---------------------------------------------------------
     inline_doi_labels = re.findall(
         r"(?i)\bDOI\s*:",
         body_before_bibliography,
@@ -7484,6 +7696,24 @@ class FinalAutonomousResearchPipeline:
             1,
             maximum_terminal_revision_rounds + 2,
         ):
+            terminal_citation_integrity_issues = (
+                manuscript_citation_integrity_issues(
+                    manuscript=revised_manuscript.model_dump(),
+                    verified_records=[
+                        (
+                            record.model_dump()
+                            if hasattr(record, "model_dump")
+                            else dict(record)
+                        )
+                        for record in records
+                        if (
+                            hasattr(record, "model_dump")
+                            or isinstance(record, dict)
+                        )
+                    ],
+                )
+            )
+
             terminal_review_mode = (
                 "full_terminal_review"
                 if terminal_round == 1
@@ -7529,6 +7759,9 @@ class FinalAutonomousResearchPipeline:
                     "terminal_bibliographic_records": (
                         terminal_bibliographic_records
                     ),
+                    "deterministic_citation_integrity_issues": (
+                        terminal_citation_integrity_issues
+                    ),
                     "terminal_factual_accounting_instruction": (
                         "Treat terminal_factual_accounting as "
                         "authoritative for exact pair IDs, episode "
@@ -7550,7 +7783,13 @@ class FinalAutonomousResearchPipeline:
                         "contains full verified metadata for records "
                         "already cited by the manuscript. Require "
                         "normal scholarly references rather than an "
-                        "archive-bibliography placeholder."
+                        "archive-bibliography placeholder. "
+                        "deterministic_citation_integrity_issues contains "
+                        "authoritative non-scientific citation-coherence "
+                        "failures detected from the current manuscript. "
+                        "Every listed citation-integrity issue is a mandatory "
+                        "required revision. Do not declare terminal closure "
+                        "while any such issue remains."
                     ),
                     "previous_terminal_review": (
                         previous_terminal_review.model_dump()
@@ -7579,7 +7818,8 @@ class FinalAutonomousResearchPipeline:
             # A clean terminal review means no further manuscript
             # revision is required.
             if (
-                not latest_peer_review.critical_issues
+                not terminal_citation_integrity_issues
+                and not latest_peer_review.critical_issues
                 and not latest_peer_review.required_revisions
             ):
                 break
@@ -7656,6 +7896,9 @@ class FinalAutonomousResearchPipeline:
                     "terminal_bibliographic_records": (
                         terminal_bibliographic_records
                     ),
+                    "deterministic_citation_integrity_issues": (
+                        terminal_citation_integrity_issues
+                    ),
                     "terminal_factual_accounting_instruction": (
                         "When a required revision concerns an "
                         "episode identifier, pair identifier, "
@@ -7675,7 +7918,16 @@ class FinalAutonomousResearchPipeline:
                         "verified-bibliography placeholder, replace it "
                         "with normal in-manuscript scholarly references "
                         "using terminal_bibliographic_records. Do not "
-                        "invent missing bibliographic fields."
+                        "invent missing bibliographic fields. "
+                        "Resolve every item in "
+                        "deterministic_citation_integrity_issues. "
+                        "The order of cited_record_ids is authoritative "
+                        "IEEE bibliography numbering: position 1 is [1], "
+                        "position 2 is [2], and so on. Remove duplicate "
+                        "scholarly identities cited through identifier "
+                        "aliases and update all affected numeric citation "
+                        "markers consistently. No numeric citation marker "
+                        "may refer to a position outside cited_record_ids."
                     ),
                     "publication_validation": (
                         terminal_review_revision_base_validation

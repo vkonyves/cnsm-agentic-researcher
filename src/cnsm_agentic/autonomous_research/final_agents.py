@@ -425,8 +425,15 @@ MANUSCRIPT_AUTHOR = Agent(
         provenance. Cite verified literature using standard IEEE numbered
         citation markers such as [1] or [2], never raw DOI strings such as
         [10.xxxx/...]. DOI metadata belongs in the bibliography when supplied
-        by the verified reference record. Every cited scholarly claim must be
-        supported by the cited verified record; do not use a tangential
+        by the verified reference record. The order of cited_record_ids is
+        authoritative bibliography numbering: its first identifier is [1],
+        its second is [2], and so on. Every numeric scholarly citation marker
+        must refer to an existing position in cited_record_ids. Never cite the
+        same scholarly work twice through identifier aliases such as a DOI and
+        an OpenAlex record referring to the same DOI. If an alias duplicate is
+        removed, update every affected numeric citation marker consistently.
+        Every cited scholarly claim must be supported by the cited verified
+        record; do not use a tangential
         adjacent-domain source to support a stronger or more specific claim
         than the supplied evidence establishes.
 
@@ -915,8 +922,15 @@ MANUSCRIPT_REVISER = Agent(
         provenance. Cite verified literature using standard IEEE numbered
         citation markers such as [1] or [2], never raw DOI strings such as
         [10.xxxx/...]. DOI metadata belongs in the bibliography when supplied
-        by the verified reference record. Every cited scholarly claim must be
-        supported by the cited verified record; do not use a tangential
+        by the verified reference record. The order of cited_record_ids is
+        authoritative bibliography numbering: its first identifier is [1],
+        its second is [2], and so on. Every numeric scholarly citation marker
+        must refer to an existing position in cited_record_ids. Never cite the
+        same scholarly work twice through identifier aliases such as a DOI and
+        an OpenAlex record referring to the same DOI. If an alias duplicate is
+        removed, update every affected numeric citation marker consistently.
+        Every cited scholarly claim must be supported by the cited verified
+        record; do not use a tangential
         adjacent-domain source to support a stronger or more specific claim
         than the supplied evidence establishes.
 

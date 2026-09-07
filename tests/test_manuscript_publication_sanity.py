@@ -612,3 +612,196 @@ Master prompt SHA-256 =
         ]
         == 0
     )
+
+
+def test_citation_integrity_rejects_duplicate_doi_aliases():
+    from cnsm_agentic.autonomous_research.final_pipeline import (
+        manuscript_citation_integrity_issues,
+    )
+
+    manuscript = {
+        "cited_record_ids": [
+            "10.1145/example",
+            "https://openalex.org/W1",
+        ],
+        "sections": {
+            "introduction": [
+                "Prior work [1] and [2]."
+            ],
+        },
+        "abstract": [],
+        "limitations": [],
+        "disclosure_statement": [],
+    }
+
+    records = [
+        {
+            "record_id": "doi-record",
+            "doi": "10.1145/example",
+        },
+        {
+            "record_id": "https://openalex.org/W1",
+            "doi": "10.1145/example",
+        },
+    ]
+
+    issues = manuscript_citation_integrity_issues(
+        manuscript=manuscript,
+        verified_records=records,
+    )
+
+    assert any(
+        "duplicate scholarly identity" in issue
+        for issue in issues
+    )
+
+
+def test_citation_integrity_rejects_out_of_range_numeric_marker():
+    from cnsm_agentic.autonomous_research.final_pipeline import (
+        manuscript_citation_integrity_issues,
+    )
+
+    manuscript = {
+        "cited_record_ids": [
+            "rec1",
+            "rec2",
+        ],
+        "sections": {
+            "introduction": [
+                "Supported by [1], but not by [3]."
+            ],
+        },
+        "abstract": [],
+        "limitations": [],
+        "disclosure_statement": [],
+    }
+
+    issues = manuscript_citation_integrity_issues(
+        manuscript=manuscript,
+        verified_records=[],
+    )
+
+    assert any(
+        "outside cited_record_ids range" in issue
+        and "3" in issue
+        for issue in issues
+    )
+
+
+def test_citation_integrity_accepts_coherent_numeric_citations():
+    from cnsm_agentic.autonomous_research.final_pipeline import (
+        manuscript_citation_integrity_issues,
+    )
+
+    manuscript = {
+        "cited_record_ids": [
+            "rec1",
+            "rec2",
+        ],
+        "sections": {
+            "introduction": [
+                "Prior work [1] and [2]."
+            ],
+        },
+        "abstract": [],
+        "limitations": [],
+        "disclosure_statement": [],
+    }
+
+    issues = manuscript_citation_integrity_issues(
+        manuscript=manuscript,
+        verified_records=[],
+    )
+
+    assert issues == []
+
+
+def test_rendered_numeric_citation_out_of_range_fails(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=r"""
+Scientific prose cites prior work [11].
+
+\section*{Disclosure Statement}
+Master prompt SHA-256 =
+1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba
+
+\begin{thebibliography}{10}
+\bibitem{r1} Ref 1.
+\bibitem{r2} Ref 2.
+\bibitem{r3} Ref 3.
+\bibitem{r4} Ref 4.
+\bibitem{r5} Ref 5.
+\bibitem{r6} Ref 6.
+\bibitem{r7} Ref 7.
+\bibitem{r8} Ref 8.
+\bibitem{r9} Ref 9.
+\bibitem{r10} Ref 10.
+\end{thebibliography}
+""",
+        log="Output written on manuscript.pdf (5 pages).\n",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is False
+    assert (
+        audit["metrics"]["bibliography_item_count"]
+        == 10
+    )
+    assert (
+        audit["metrics"][
+            "out_of_range_numeric_citation_count"
+        ]
+        == 1
+    )
+    assert any(
+        "outside the rendered bibliography range 1..10: 11"
+        in issue
+        for issue in audit["issues"]
+    )
+
+
+def test_rendered_numeric_citation_at_upper_bound_passes(tmp_path):
+    _write_final(
+        tmp_path,
+        tex=r"""
+Scientific prose cites prior work [10].
+
+\section*{Disclosure Statement}
+Master prompt SHA-256 =
+1872df1e1805d2d96940456ca016bd665d1d5196add77f5acdf1582bb39b15ba
+
+\begin{thebibliography}{10}
+\bibitem{r1} Ref 1.
+\bibitem{r2} Ref 2.
+\bibitem{r3} Ref 3.
+\bibitem{r4} Ref 4.
+\bibitem{r5} Ref 5.
+\bibitem{r6} Ref 6.
+\bibitem{r7} Ref 7.
+\bibitem{r8} Ref 8.
+\bibitem{r9} Ref 9.
+\bibitem{r10} Ref 10.
+\end{thebibliography}
+""",
+        log="Output written on manuscript.pdf (5 pages).\n",
+    )
+
+    audit = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert audit["passed"] is True
+    assert (
+        audit["metrics"]["bibliography_item_count"]
+        == 10
+    )
+    assert (
+        audit["metrics"][
+            "out_of_range_numeric_citation_count"
+        ]
+        == 0
+    )
