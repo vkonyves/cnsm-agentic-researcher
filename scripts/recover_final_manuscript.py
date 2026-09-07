@@ -7,6 +7,8 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+
+from dotenv import load_dotenv
 from typing import Any
 
 from cnsm_agentic.autonomous_research.final_agents import (
@@ -28,6 +30,15 @@ from cnsm_agentic.autonomous_research.final_guardrails import (
 from cnsm_agentic.autonomous_research.publication_renderer import (
     build_publication_artifacts,
 )
+
+
+# Load the same repository-local environment used by the main
+# autonomous runner. This is infrastructure configuration only.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+ENV_PATH = REPO_ROOT / ".env"
+
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
 
 
 SOURCE_SCIENTIFIC_FILES = (

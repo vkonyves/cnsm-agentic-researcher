@@ -66,3 +66,13 @@ def test_publication_recovery_copies_frozen_provenance():
 
     for token in required:
         assert token in text
+
+
+def test_publication_recovery_loads_repository_environment():
+    text = SCRIPT.read_text(
+        encoding="utf-8"
+    )
+
+    assert "from dotenv import load_dotenv" in text
+    assert 'ENV_PATH = REPO_ROOT / ".env"' in text
+    assert "load_dotenv(ENV_PATH)" in text
