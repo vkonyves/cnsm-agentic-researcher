@@ -180,6 +180,22 @@ def recovery_instruction(
         "interpretation; threats to validity; limitations; reproducibility "
         "explanation; and qualified operational implications. "
         "\n\n"
+        "IMPORTANT PAGE-RECOVERY STRATEGY: previous bounded prose-only "
+        "recovery has already produced a clean, substantively expanded "
+        "four-page manuscript without reaching the required fifth page. "
+        "Therefore, when the frozen evidence supports it, strongly prefer "
+        "adding one compact scientifically useful table or figure over "
+        "further diffuse prose expansion. The table or figure must report "
+        "or summarize ONLY measurements already present in the supplied "
+        "completed execution/analysis evidence. Appropriate possibilities "
+        "include paired outcome or discordance structure, condition-wise "
+        "success results, controlled-fault/workflow composition, residual "
+        "failure patterns, or difficulty-stratified results. Autonomously "
+        "choose only content that is genuinely supported and useful to the "
+        "scientific argument. Do not invent, derive unsupported new "
+        "measurements, duplicate an existing table, or add decorative "
+        "material merely to consume space. "
+        "\n\n"
         "Do not introduce or change the research question, hypotheses, "
         "preregistration, study design, execution, sample sizes, numerical "
         "results, statistical tests, effect sizes, confidence intervals, "
@@ -210,6 +226,7 @@ async def recover(
     model: str,
     maximum_attempts: int,
     dry_run: bool,
+    seed_manuscript: Path | None,
 ) -> int:
     source_run = source_run.resolve()
     output_dir = output_dir.resolve()
@@ -238,12 +255,23 @@ async def recover(
         source_run
     )
 
-    current_manuscript = ManuscriptPackage.model_validate(
-        read_json(
+    seed_path = (
+        seed_manuscript.resolve()
+        if seed_manuscript is not None
+        else (
             source_run
             / "manuscript"
             / "revised_package.json"
         )
+    )
+
+    if not seed_path.exists():
+        raise FileNotFoundError(
+            f"Recovery seed manuscript not found: {seed_path}"
+        )
+
+    current_manuscript = ManuscriptPackage.model_validate(
+        read_json(seed_path)
     )
 
     original_citation_ids = citation_ids(
@@ -431,6 +459,8 @@ async def recover(
             recovery_commit
         ),
         "model": model,
+        "seed_manuscript": str(seed_path),
+        "seed_manuscript_sha256": sha256_file(seed_path),
         "scientific_execution_reused": True,
         "scientific_execution_rerun": False,
         "literature_retrieval_rerun": False,
@@ -941,6 +971,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "--seed-manuscript",
+        type=Path,
+        default=None,
+        help=(
+            "Optional structured manuscript JSON to use as the "
+            "publication-recovery seed instead of the source run's "
+            "manuscript/revised_package.json."
+        ),
+    )
+
+    parser.add_argument(
         "--maximum-attempts",
         type=int,
         default=12,
@@ -967,6 +1008,9 @@ def main() -> None:
                     args.maximum_attempts
                 ),
                 dry_run=args.dry_run,
+                seed_manuscript=(
+                    args.seed_manuscript
+                ),
             )
         )
     )

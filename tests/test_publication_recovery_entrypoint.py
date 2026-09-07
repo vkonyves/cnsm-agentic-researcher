@@ -96,3 +96,13 @@ def test_publication_recovery_uses_bounded_revision_context():
 
     for token in required:
         assert token.replace(" ", "") in normalized
+
+
+def test_publication_recovery_supports_explicit_seed_manuscript():
+    text = SCRIPT.read_text(
+        encoding="utf-8"
+    )
+
+    assert '"--seed-manuscript"' in text
+    assert "seed_manuscript: Path | None" in text
+    assert '"seed_manuscript_sha256"' in text
