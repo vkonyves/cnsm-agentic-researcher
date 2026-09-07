@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +38,12 @@ SOURCE_SCIENTIFIC_FILES = (
     "analysis/results.json",
     "analysis/deterministic_reconciliation.json",
     "manuscript/manuscript_evidence_bundle.json",
+    "provenance/freeze_manifest.json",
+    "provenance/master_prompt.sha256",
+    "provenance/master_prompt.txt",
+    "provenance/intervention_policy.json",
+    "provenance/capability_manifest.json",
+    "provenance/paper_run_constraints.json",
 )
 
 
@@ -282,6 +289,73 @@ async def recover(
         / "provenance"
         / "paper_run_constraints.json"
     )
+
+    # Materialize an immutable audit-support snapshot in the recovery
+    # workspace. Publication-sanity auditing intentionally resolves its
+    # provenance/execution/analysis support relative to run_dir, so a
+    # sibling recovery workspace must carry exact copies of those frozen
+    # source artifacts. The original real run remains untouched.
+    recovery_provenance_dir = output_dir / "provenance"
+    recovery_execution_dir = output_dir / "execution"
+    recovery_analysis_dir = output_dir / "analysis"
+
+    recovery_provenance_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    recovery_execution_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    recovery_analysis_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    provenance_files = (
+        "freeze_manifest.json",
+        "master_prompt.sha256",
+        "master_prompt.txt",
+        "intervention_policy.json",
+        "capability_manifest.json",
+        "paper_run_constraints.json",
+    )
+
+    for name in provenance_files:
+        source_path = source_run / "provenance" / name
+        target_path = recovery_provenance_dir / name
+
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Required frozen provenance file missing: {source_path}"
+            )
+
+        shutil.copy2(
+            source_path,
+            target_path,
+        )
+
+    audit_support_files = (
+        (
+            source_run / "execution" / "execution_manifest.json",
+            recovery_execution_dir / "execution_manifest.json",
+        ),
+        (
+            source_run / "analysis" / "results.json",
+            recovery_analysis_dir / "results.json",
+        ),
+        (
+            source_run / "analysis" / "contamination_summary.csv",
+            recovery_analysis_dir / "contamination_summary.csv",
+        ),
+    )
+
+    for source_path, target_path in audit_support_files:
+        if source_path.exists():
+            shutil.copy2(
+                source_path,
+                target_path,
+            )
 
     publication_dir = (
         output_dir

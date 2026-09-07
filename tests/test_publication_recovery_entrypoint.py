@@ -42,3 +42,27 @@ def test_publication_recovery_explicitly_preserves_science():
 
     for token in required:
         assert token in text
+
+
+def test_publication_recovery_copies_frozen_provenance():
+    text = SCRIPT.read_text(
+        encoding="utf-8"
+    )
+
+    required = (
+        '"freeze_manifest.json"',
+        '"master_prompt.sha256"',
+        '"master_prompt.txt"',
+        '"intervention_policy.json"',
+        '"capability_manifest.json"',
+        '"paper_run_constraints.json"',
+        '"execution_manifest.json"',
+        '"results.json"',
+        '"contamination_summary.csv"',
+        "recovery_provenance_dir",
+        "recovery_execution_dir",
+        "recovery_analysis_dir",
+    )
+
+    for token in required:
+        assert token in text
