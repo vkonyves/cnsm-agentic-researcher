@@ -1814,10 +1814,22 @@ def audit_manuscript_publication_sanity(
     # Numeric thousands separators and bibliography metadata are excluded:
     # the lookahead requires an ASCII letter and this scan covers only the
     # manuscript body before the bibliography.
+    # Scan manuscript content only. The LaTeX preamble contains legitimate
+    # command syntax such as ``\\usepackage{amsmath,amssymb}``, which must
+    # never be interpreted as prose punctuation.
+    manuscript_body_for_copy_audit = body_before_bibliography
+    if r"\begin{document}" in manuscript_body_for_copy_audit:
+        manuscript_body_for_copy_audit = (
+            manuscript_body_for_copy_audit.split(
+                r"\begin{document}",
+                1,
+            )[1]
+        )
+
     missing_post_punctuation_space_matches = list(
         re.finditer(
             r"[,;:](?=[A-Za-z])",
-            body_before_bibliography,
+            manuscript_body_for_copy_audit,
         )
     )
     metrics["missing_post_punctuation_space_count"] = len(

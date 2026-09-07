@@ -903,3 +903,35 @@ def test_renderer_normalizes_bibliographic_provider_metadata():
     assert rendered.count("Jibum Hong") == 1
     assert rendered.count("James Won-Ki Hong") == 1
     assert "Nguyen Van Tu" in rendered
+
+
+def test_publication_sanity_ignores_latex_preamble_package_commas(
+    tmp_path,
+):
+    final_dir = tmp_path / "manuscript" / "final"
+    final_dir.mkdir(parents=True)
+
+    (final_dir / "manuscript.tex").write_text(
+        r"""
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\begin{document}
+Normal, correctly spaced prose.
+\begin{thebibliography}{99}
+\bibitem{ref1} Example Reference
+\end{thebibliography}
+\end{document}
+""",
+        encoding="utf-8",
+    )
+
+    result = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert (
+        result["metrics"][
+            "missing_post_punctuation_space_count"
+        ]
+        == 0
+    )
