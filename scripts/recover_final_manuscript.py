@@ -15,6 +15,7 @@ from cnsm_agentic.autonomous_research.final_agents import (
     MANUSCRIPT_REVISER,
 )
 from cnsm_agentic.autonomous_research.final_pipeline import (
+    _manuscript_revision_context,
     _manuscript_text,
     audit_manuscript_artifact_references,
     audit_manuscript_publication_sanity,
@@ -295,6 +296,17 @@ async def recover(
         / "deterministic_reconciliation.json"
     )
 
+    manuscript_revision_context = (
+        _manuscript_revision_context(
+            records=records,
+            execution_manifest=execution_manifest,
+            manuscript_evidence_bundle=(
+                manuscript_evidence_bundle
+            ),
+            evidence_synthesis=evidence_synthesis,
+        )
+    )
+
     paper_run_constraints = read_json(
         source_run
         / "provenance"
@@ -567,15 +579,25 @@ async def recover(
                 "current_manuscript": (
                     best_manuscript.model_dump()
                 ),
-                "verified_records": records,
+                "verified_records": (
+                    manuscript_revision_context[
+                        "verified_records"
+                    ]
+                ),
                 "execution_manifest": (
-                    execution_manifest
+                    manuscript_revision_context[
+                        "execution_manifest"
+                    ]
                 ),
                 "manuscript_evidence_bundle": (
-                    manuscript_evidence_bundle
+                    manuscript_revision_context[
+                        "manuscript_evidence_bundle"
+                    ]
                 ),
                 "evidence_synthesis": (
-                    evidence_synthesis
+                    manuscript_revision_context[
+                        "evidence_synthesis"
+                    ]
                 ),
                 "preregistration": (
                     preregistration.model_dump()

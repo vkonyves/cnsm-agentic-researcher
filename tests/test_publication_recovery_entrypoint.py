@@ -76,3 +76,23 @@ def test_publication_recovery_loads_repository_environment():
     assert "from dotenv import load_dotenv" in text
     assert 'ENV_PATH = REPO_ROOT / ".env"' in text
     assert "load_dotenv(ENV_PATH)" in text
+
+
+def test_publication_recovery_uses_bounded_revision_context():
+    text = SCRIPT.read_text(
+        encoding="utf-8"
+    )
+
+    assert "_manuscript_revision_context" in text
+
+    required = (
+        'manuscript_revision_context["verified_records"]',
+        'manuscript_revision_context["execution_manifest"]',
+        'manuscript_revision_context["manuscript_evidence_bundle"]',
+        'manuscript_revision_context["evidence_synthesis"]',
+    )
+
+    normalized = text.replace("\n", "").replace(" ", "")
+
+    for token in required:
+        assert token.replace(" ", "") in normalized
