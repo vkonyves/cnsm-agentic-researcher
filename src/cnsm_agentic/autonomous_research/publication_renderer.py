@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import html
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -256,6 +257,58 @@ def _render_paragraphs(value: str) -> str:
     )
 
 
+
+def _normalise_bibliographic_text(value: Any) -> str:
+    """Normalize provider-encoded bibliographic display metadata."""
+
+    text = str(value or "").strip()
+
+    # Providers can return multiply HTML-escaped metadata such as
+    # "&amp;amp;". Unescape repeatedly, but keep the operation bounded.
+    for _ in range(4):
+        decoded = html.unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+
+    return text
+
+
+def _normalise_bibliographic_authors(value: Any) -> list[str]:
+    """Normalize and stable-deduplicate bibliographic author names."""
+
+    if isinstance(value, list):
+        raw_authors = value
+    elif value:
+        raw_authors = [value]
+    else:
+        raw_authors = []
+
+    authors: list[str] = []
+    seen: set[str] = set()
+
+    for raw_author in raw_authors:
+        author = _normalise_bibliographic_text(
+            raw_author
+        )
+
+        if not author:
+            continue
+
+        key = " ".join(
+            author.casefold().split()
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        authors.append(author)
+
+    return authors
+
+
+
 def _render_references(
     *,
     cited_record_ids: list[str],
@@ -293,19 +346,15 @@ def _render_references(
             )
             continue
 
-        authors = record.get("authors") or []
-        if isinstance(authors, list):
-            author_text = ", ".join(
-                str(author)
-                for author in authors
-            )
-        else:
-            author_text = str(authors)
+        authors = _normalise_bibliographic_authors(
+            record.get("authors")
+        )
+        author_text = ", ".join(authors)
 
-        title = str(
+        title = _normalise_bibliographic_text(
             record.get("title") or record_id
         )
-        venue = str(
+        venue = _normalise_bibliographic_text(
             record.get("venue")
             or record.get("container_title")
             or record.get("source")

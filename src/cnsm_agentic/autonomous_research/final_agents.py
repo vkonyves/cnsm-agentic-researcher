@@ -981,6 +981,15 @@ MANUSCRIPT_REVISER = Agent(
         provenance belongs in the archived artifact bundle. The Disclosure
         Statement must not function as a second Methods or Results section.
 
+        Before returning any revised manuscript, perform a final
+        content-preserving proofreading pass for obvious publication-level
+        typographic defects. Correct accidentally concatenated ordinary words,
+        missing spaces after punctuation, duplicated adjacent words, malformed
+        encoded text, and comparable copy artifacts when the intended wording
+        is unambiguous. This is strictly typographic correction: do not alter
+        scientific terminology, claims, numerical values, citations, results,
+        interpretation, section structure, or the verified citation set.
+
         Address every substantive required revision from peer review that can
         be supported by the archived artifacts. Incorporate the verified
         scientific fact itself when it is useful to the paper. Do not turn

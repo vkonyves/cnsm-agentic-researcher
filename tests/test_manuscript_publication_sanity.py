@@ -805,3 +805,101 @@ Master prompt SHA-256 =
         ]
         == 0
     )
+
+
+def test_publication_sanity_rejects_missing_post_punctuation_space(
+    tmp_path,
+):
+    final_dir = tmp_path / "manuscript" / "final"
+    final_dir.mkdir(parents=True)
+
+    (final_dir / "manuscript.tex").write_text(
+        r"""
+\documentclass[conference]{IEEEtran}
+\begin{document}
+A deterministic,structured diagnostic was used.
+\begin{thebibliography}{99}
+\bibitem{ref1} Example Reference
+\end{thebibliography}
+\end{document}
+""",
+        encoding="utf-8",
+    )
+
+    result = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert result["passed"] is False
+    assert (
+        result["metrics"][
+            "missing_post_punctuation_space_count"
+        ]
+        == 1
+    )
+
+
+def test_publication_sanity_accepts_normal_post_punctuation_space(
+    tmp_path,
+):
+    final_dir = tmp_path / "manuscript" / "final"
+    final_dir.mkdir(parents=True)
+
+    (final_dir / "manuscript.tex").write_text(
+        r"""
+\documentclass[conference]{IEEEtran}
+\begin{document}
+A deterministic, structured diagnostic was used.
+\begin{thebibliography}{99}
+\bibitem{ref1} Example Reference
+\end{thebibliography}
+\end{document}
+""",
+        encoding="utf-8",
+    )
+
+    result = audit_manuscript_publication_sanity(
+        run_dir=tmp_path,
+    )
+
+    assert (
+        result["metrics"][
+            "missing_post_punctuation_space_count"
+        ]
+        == 0
+    )
+
+
+def test_renderer_normalizes_bibliographic_provider_metadata():
+    from cnsm_agentic.autonomous_research.publication_renderer import (
+        _render_references,
+    )
+
+    rendered = _render_references(
+        cited_record_ids=["record-1"],
+        verified_records=[
+            {
+                "record_id": "record-1",
+                "title": (
+                    "AI Guardrails - Spotting "
+                    "&amp;amp; Fixing Common LLM Failure Modes"
+                ),
+                "authors": [
+                    "Jibum Hong",
+                    "Jibum Hong",
+                    "Nguyen Van Tu",
+                    "James Won-Ki Hong",
+                    "James Won-Ki Hong",
+                ],
+                "publication_year": 2025,
+                "doi": "10.1234/example",
+            }
+        ],
+    )
+
+    assert r"Spotting \& Fixing" in rendered
+    assert "amp;amp" not in rendered
+
+    assert rendered.count("Jibum Hong") == 1
+    assert rendered.count("James Won-Ki Hong") == 1
+    assert "Nguyen Van Tu" in rendered

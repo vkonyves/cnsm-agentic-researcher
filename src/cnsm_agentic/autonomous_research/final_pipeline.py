@@ -1808,6 +1808,28 @@ def audit_manuscript_publication_sanity(
         1,
     )[0]
 
+    # Obvious publication-level punctuation-spacing defects are
+    # mechanically detectable without interpreting scientific content.
+    # Examples: "deterministic,structured" or "method:details".
+    # Numeric thousands separators and bibliography metadata are excluded:
+    # the lookahead requires an ASCII letter and this scan covers only the
+    # manuscript body before the bibliography.
+    missing_post_punctuation_space_matches = list(
+        re.finditer(
+            r"[,;:](?=[A-Za-z])",
+            body_before_bibliography,
+        )
+    )
+    metrics["missing_post_punctuation_space_count"] = len(
+        missing_post_punctuation_space_matches
+    )
+
+    if missing_post_punctuation_space_matches:
+        issues.append(
+            "Final manuscript contains obvious missing spaces after "
+            "punctuation in ordinary prose."
+        )
+
     rendered_numeric_markers = [
         int(match.group(1))
         for match in re.finditer(
@@ -8645,6 +8667,15 @@ class FinalAutonomousResearchPipeline:
                 "changes, spacing tricks, geometry changes, or other formatting hacks. "
                 "Preserve normal IEEE formatting and the exact five-page publication "
                 "requirement. "
+                "\n\n"
+                "Before returning the manuscript, perform a final content-preserving "
+                "proofreading pass for obvious publication-level typographic defects, "
+                "including accidentally concatenated ordinary words, missing spaces "
+                "after punctuation, duplicated adjacent words, malformed encoded text, "
+                "and similar copy artifacts. Correct only obvious typographic defects. "
+                "Do not alter scientific terminology, claims, numerical values, "
+                "citations, results, interpretation, section structure, or the verified "
+                "citation set. "
                 "\n\n"
                 "Make the minimum edits needed to satisfy the deterministic audits. "
                 "Preserve all unaffected manuscript material. The desired result is "
